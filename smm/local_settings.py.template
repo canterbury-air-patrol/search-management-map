@@ -1,0 +1,19 @@
+# This file contains your site-specific settings
+# Make changes as required and make sure to save
+# it as local_settings.py
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+
+# Database
+# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}

@@ -1,0 +1,7 @@
+venv/
+*.pyc
+__pycache__
+.DS_Store
+smm/local_settings.py
+smm/secretkey.txt
+db.sqlite3
