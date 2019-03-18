@@ -25,6 +25,7 @@ with open(os.path.join(BASE_DIR, 'smm', 'secretkey.txt')) as f:
 
 INSTALLED_APPS = [
     'map',
+    'assets',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
