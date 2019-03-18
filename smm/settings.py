@@ -24,6 +24,7 @@ with open(os.path.join(BASE_DIR, 'smm', 'secretkey.txt')) as f:
 # Application definition
 
 INSTALLED_APPS = [
+    'map',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,7 +32,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'leaflet',
-    'map',
 ]
 
 MIDDLEWARE = [
@@ -99,3 +99,5 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+LOGIN_REDIRECT_URL = '/'
