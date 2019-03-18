@@ -1,2 +1,5 @@
 django
 pycodestyle
+
+# Map specific
+django-leaflet
