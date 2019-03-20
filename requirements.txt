@@ -1,5 +1,8 @@
 django
 pycodestyle
 
+# Database
+psycopg2
+
 # Map specific
 django-leaflet

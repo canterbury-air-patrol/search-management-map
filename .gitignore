@@ -5,3 +5,5 @@ __pycache__
 smm/local_settings.py
 smm/secretkey.txt
 db.sqlite3
+dl/
+tmp/

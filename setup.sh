@@ -7,6 +7,30 @@ source venv/bin/activate
 # Install the required packages
 pip install -r requirements.txt
 
+mkdir -p dl
+# Fetch jquery
+JQUERY_VERSION=3.3.1
+JQUERY_FILE=jquery-${JQUERY_VERSION}.min.js
+if [ ! -f dl/${JQUERY_FILE} ]
+then
+	curl -L https://code.jquery.com/${JQUERY_FILE} -o dl/${JQUERY_FILE}
+fi
+mkdir -p map/static/jquery/
+cp dl/${JQUERY_FILE} map/static/jquery/jquery.js
+
+# Fetch leaflet plugins
+LEAFLET_REALTIME_VERSION=2.1.1
+LEAFLET_REALTIME_FILE=leaflet-realtime-${LEAFLET_REALTIME_VERSION}.tar.gz
+if [ ! -f dl/${LEAFLET_REALTIME_FILE} ]
+then
+	curl -L https://github.com/perliedman/leaflet-realtime/archive/${LEAFLET_REALTIME_VERSION}.tar.gz -o dl/${LEAFLET_REALTIME_FILE}
+fi
+# Extract the leaflet plugins
+rm -fr tmp; mkdir tmp
+mkdir -p map/static/leaflet/realtime/
+(cd tmp; tar xf ../dl/${LEAFLET_REALTIME_FILE}; cp leaflet-realtime-${LEAFLET_REALTIME_VERSION}/dist/leaflet-realtime.js ../map/static/leaflet/realtime/)
+rm -fr tmp
+
 echo ""
 
 # Create the local settings file from the template
@@ -16,6 +40,7 @@ then
 	echo ""
 	echo "Create smm/local_settings.py from template"
 	echo "You should check this reflects your required settings"
+        echo "At a minimum you will need to set your postgis parameters"
 fi
 
 if [ ! -f smm/secretkey.txt ]

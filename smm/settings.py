@@ -26,12 +26,14 @@ with open(os.path.join(BASE_DIR, 'smm', 'secretkey.txt')) as f:
 INSTALLED_APPS = [
     'map',
     'assets',
+    'data',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
     'leaflet',
 ]
 
@@ -102,3 +104,10 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 LOGIN_REDIRECT_URL = '/'
+
+LEAFLET_CONFIG['PLUGINS'] = {
+    'realtime': {
+        'js': 'leaflet/realtime/leaflet-realtime.js',
+        'auto-include': True,
+    },
+}

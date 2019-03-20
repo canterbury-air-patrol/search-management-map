@@ -15,5 +15,8 @@ class Asset(models.Model):
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     asset_type = models.ForeignKey(AssetType, on_delete=models.PROTECT)
 
+    def natural_key(self):
+        return self.name
+
     def __str__(self):
         return self.name
