@@ -5,7 +5,7 @@ from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
 
 from assets.models import Asset
-from .models import AssetPointTime, PointTime
+from .models import AssetPointTime, PointTime, PointTimeLabel
 
 
 @login_required
@@ -76,3 +76,37 @@ def asset_position_history(request, asset_name):
                              fields=AssetPointTime.GEOJSON_FIELDS)
 
     return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def point_labels_all(request):
+    pois = PointTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
+
+    geojson_data = serialize('geojson', pois, geometry_field='point',
+                             fields=PointTimeLabel.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def point_label_create(request):
+    poi_lat = ''
+    poi_lon = ''
+    poi_label = ''
+    if request.method == 'GET':
+        poi_lat = request.GET.get('lat')
+        poi_lon = request.GET.get('lon')
+        poi_label = request.GET.get('label')
+    elif request.method == 'POST':
+        poi_lat = request.POST.get('lat')
+        poi_lon = request.POST.get('lon')
+        poi_label = request.POST.get('label')
+
+    if poi_lat is None or poi_lon is None or poi_label is None:
+        return HttpResponseBadRequest()
+
+    p = Point(float(poi_lon), float(poi_lat))
+
+    PointTimeLabel(point=p, label=poi_label, creator=request.user).save()
+
+    return HttpResponse()

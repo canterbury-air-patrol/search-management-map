@@ -67,12 +67,19 @@ function asset_create(asset, layer) {
     }
 }
 
+function poi_create(poi, layer) {
+    var POILabel = poi.properties.label;
+
+    layer.bindPopup(POILabel);
+}
+
 function map_init(map, options) {
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
 
     map.locate({ setView: true, maxZoom: 16 });
 
+    L.control.poiadder({}).addTo(map);
 
     realtime = L.realtime({
             url: "/data/assets/positions/latest/",
@@ -85,4 +92,15 @@ function map_init(map, options) {
         }).addTo(map);
 
     overlay_add("Assets", realtime);
+
+    realtime = L.realtime({
+            url: "/data/pois/current/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: poi_create,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlay_add("POIs", realtime);
 }

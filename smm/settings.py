@@ -110,4 +110,14 @@ LEAFLET_CONFIG['PLUGINS'] = {
         'js': 'leaflet/realtime/leaflet-realtime.js',
         'auto-include': True,
     },
+    'Dialog': {
+        'js': 'leaflet/dialog/Leaflet.Dialog.js',
+        'css': 'leaflet/dialog/Leaflet.Dialog.css',
+        'auto-include': True,
+    },
+    'POIAdder': {
+        'js': 'POIAdder/POIAdder.js',
+        'css': 'POIAdder/POIAdder.css',
+        'auto-include': True,
+    },
 }

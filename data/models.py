@@ -24,3 +24,13 @@ class AssetPointTime(PointTime):
 
     def __str__(self):
         return("{}: {} {}".format(self.asset, self.point, self.timestamp))
+
+
+class PointTimeLabel(PointTime):
+    label = models.TextField()
+    replaced_by = models.ForeignKey("PointTimeLabel", on_delete=models.SET_NULL, null=True, blank=True)
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'label',)
+
+    def __str__(self):
+        return("{}".format(self.label))

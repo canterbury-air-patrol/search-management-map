@@ -25,10 +25,19 @@ if [ ! -f dl/${LEAFLET_REALTIME_FILE} ]
 then
 	curl -L https://github.com/perliedman/leaflet-realtime/archive/${LEAFLET_REALTIME_VERSION}.tar.gz -o dl/${LEAFLET_REALTIME_FILE}
 fi
+LEAFLET_DIALOG_VERSION=1.0.5
+LEAFLET_DIALOG_FILE=leaflet-dialog-${LEAFLET_DIALOG_VERSION}.tar.gz
+if [ ! -f dl/${LEAFLET_DIALOG_FILE} ]
+then
+	curl -L https://github.com/NBTSolutions/Leaflet.Dialog/archive/v1.0.5.tar.gz -o dl/${LEAFLET_DIALOG_FILE}
+fi
+
 # Extract the leaflet plugins
 rm -fr tmp; mkdir tmp
 mkdir -p map/static/leaflet/realtime/
 (cd tmp; tar xf ../dl/${LEAFLET_REALTIME_FILE}; cp leaflet-realtime-${LEAFLET_REALTIME_VERSION}/dist/leaflet-realtime.js ../map/static/leaflet/realtime/)
+mkdir -p map/static/leaflet/dialog/
+(cd tmp; tar xf ../dl/${LEAFLET_DIALOG_FILE}; cp Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.{js,css} ../map/static/leaflet/dialog/)
 rm -fr tmp
 
 echo ""
