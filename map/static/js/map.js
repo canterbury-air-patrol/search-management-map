@@ -73,6 +73,12 @@ function poi_create(poi, layer) {
     layer.bindPopup(POILabel);
 }
 
+function user_polygon_create(poly, layer) {
+    var PolyLabel = poly.properties.label;
+
+    layer.bindPopup(PolyLabel);
+}
+
 function map_init(map, options) {
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
@@ -80,6 +86,7 @@ function map_init(map, options) {
     map.locate({ setView: true, maxZoom: 16 });
 
     L.control.poiadder({}).addTo(map);
+    L.control.polygonadder({}).addTo(map);
 
     realtime = L.realtime({
             url: "/data/assets/positions/latest/",
@@ -103,4 +110,15 @@ function map_init(map, options) {
         }).addTo(map);
 
     overlay_add("POIs", realtime);
+
+    realtime = L.realtime({
+            url: "/data/userpolygons/current/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: user_polygon_create,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlay_add("Polygons", realtime);
 }

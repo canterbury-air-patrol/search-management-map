@@ -1,11 +1,11 @@
 from django.http import HttpResponse, Http404
 from django.contrib.auth.decorators import login_required
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, Polygon
 from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
 
 from assets.models import Asset
-from .models import AssetPointTime, PointTime, PointTimeLabel
+from .models import AssetPointTime, PointTime, PointTimeLabel, PolygonTimeLabel
 
 
 @login_required
@@ -110,3 +110,29 @@ def point_label_create(request):
     PointTimeLabel(point=p, label=poi_label, creator=request.user).save()
 
     return HttpResponse()
+
+
+@login_required
+def user_polygons_all(request):
+    polygons = PolygonTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
+    geojson_data = serialize('geojson', polygons,
+                             geometry_field='polygon',
+                             fields=PolygonTimeLabel.GEOJSON_FIELDS)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def user_polygon_create(request):
+    if request.method == 'POST':
+        points = []
+        label = request.POST['label']
+        points_count = int(request.POST['points'])
+        for i in range(0, points_count):
+            lat = request.POST['point{}_lat'.format(i)]
+            lng = request.POST['point{}_lng'.format(i)]
+            p = Point(float(lng), float(lat))
+            points.append(p)
+        points.append(points[0])
+        PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user).save()
+        return HttpResponse()
+    return HttpResponseBadRequest()

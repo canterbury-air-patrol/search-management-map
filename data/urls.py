@@ -7,4 +7,6 @@ urlpatterns = [
     url(r'^assets/(?P<asset_name>.*)/position/history/$', views.asset_position_history, name='asset_position_history'),
     url(r'^pois/current/$', views.point_labels_all, name='point_labels_all'),
     url(r'^pois/create/$', views.point_label_create, name='point_label_create'),
+    url(r'^userpolygons/current/$', views.user_polygons_all, name='user_polygons_all'),
+    url(r'^userpolygons/create/$', views.user_polygon_create, name='user_polygon_create'),
 ]

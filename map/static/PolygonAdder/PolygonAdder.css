@@ -1,0 +1,8 @@
+.PolygonAdder-marker {
+        height: 100%;
+        opacity: 0.8;
+}
+
+.PolygonAdder-marker:hover {
+        opacity: 1;
+}
