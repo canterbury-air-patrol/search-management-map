@@ -79,6 +79,12 @@ function user_polygon_create(poly, layer) {
     layer.bindPopup(PolyLabel);
 }
 
+function user_line_create(line, layer) {
+    var LineLabel = line.properties.label;
+
+    layer.bindPopup(LineLabel);
+}
+
 function map_init(map, options) {
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
@@ -87,6 +93,7 @@ function map_init(map, options) {
 
     L.control.poiadder({}).addTo(map);
     L.control.polygonadder({}).addTo(map);
+    L.control.lineadder({}).addTo(map);
 
     realtime = L.realtime({
             url: "/data/assets/positions/latest/",
@@ -121,4 +128,15 @@ function map_init(map, options) {
         }).addTo(map);
 
     overlay_add("Polygons", realtime);
+
+    realtime = L.realtime({
+            url: "/data/userlines/current/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: user_line_create,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlay_add("Lines", realtime);
 }

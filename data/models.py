@@ -54,3 +54,23 @@ class PolygonTimeLabel(PolygonTime):
 
     def __str__(self):
         return("{}".format(self.label))
+
+
+class LineStringTime(models.Model):
+    line = models.LineStringField(geography=True)
+    timestamp = models.DateTimeField(default=timezone.now)
+    deleted = models.BooleanField(default=False)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+
+    class Meta:
+        abstract = True
+
+
+class LineStringTimeLabel(LineStringTime):
+    label = models.TextField()
+    replaced_by = models.ForeignKey("LineStringTimeLabel", on_delete=models.SET_NULL, null=True, blank=True)
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'label', )
+
+    def __str__(self):
+        return("{}".format(self.label))

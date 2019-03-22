@@ -1,0 +1,8 @@
+.LineAdder-marker {
+        height: 100%;
+        opacity: 0.8;
+}
+
+.LineAdder-marker:hover {
+        opacity: 1;
+}

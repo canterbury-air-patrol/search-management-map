@@ -125,4 +125,9 @@ LEAFLET_CONFIG['PLUGINS'] = {
         'css': 'PolygonAdder/PolygonAdder.css',
         'auto-include': True,
     },
+    'LineAdder': {
+        'js': 'LineAdder/LineAdder.js',
+        'css': 'LineAdder/LineAdder.css',
+        'auto-include': True,
+    },
 }
