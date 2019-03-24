@@ -37,7 +37,30 @@ rm -fr tmp; mkdir tmp
 mkdir -p map/static/leaflet/realtime/
 (cd tmp; tar xf ../dl/${LEAFLET_REALTIME_FILE}; cp leaflet-realtime-${LEAFLET_REALTIME_VERSION}/dist/leaflet-realtime.js ../map/static/leaflet/realtime/)
 mkdir -p map/static/leaflet/dialog/
-(cd tmp; tar xf ../dl/${LEAFLET_DIALOG_FILE}; cp Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.{js,css} ../map/static/leaflet/dialog/)
+(cd tmp; tar xf ../dl/${LEAFLET_DIALOG_FILE};
+	sed -i -e 's/fa-arrows"/fa-arrows-alt"/' Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.js;
+	sed -i -e 's/fa-arrows-h /fa-arrows-alt-h /' Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.js;
+	cp Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.{js,css} ../map/static/leaflet/dialog/)
+rm -fr tmp
+
+# Grab fontawesome
+FONTAWESOME_VERSION=5.8.1
+FONTAWESOME_FILE=fontawesome-v${FONTAWESOME_VERSION}-all.css
+if [ ! -f dl/${FONTAWESOME_FILE} ]
+then
+	curl -L https://use.fontawesome.com/releases/v${FONTAWESOME_VERSION}/css/all.css -o dl/${FONTAWESOME_FILE}
+fi
+mkdir -p map/static/fontawesome/css
+cp dl/${FONTAWESOME_FILE} map/static/fontawesome/css/all.css
+
+FONTAWESOME_WEBFONTS_FILE=fontawesome-v${FONTAWESOME_VERSION}-webfonts.zip
+if [ ! -f dl/${FONTAWESOME_WEBFONTS_FILE} ]
+then
+	curl -L https://use.fontawesome.com/releases/v${FONTAWESOME_VERSION}/fontawesome-free-${FONTAWESOME_VERSION}-web.zip -o dl/${FONTAWESOME_WEBFONTS_FILE}
+fi
+mkdir -p map/static/fontawesome/webfonts
+mkdir -p tmp
+(cd tmp; unzip ../dl/${FONTAWESOME_WEBFONTS_FILE}; cp -dpR fontawesome-free-${FONTAWESOME_VERSION}-web/webfonts/* ../map/static/fontawesome/webfonts/)
 rm -fr tmp
 
 echo ""

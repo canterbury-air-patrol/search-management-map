@@ -6,3 +6,6 @@ psycopg2
 
 # Map specific
 django-leaflet
+
+# Templates
+django-bootstrap4
