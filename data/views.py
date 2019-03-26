@@ -88,8 +88,7 @@ def point_labels_all(request):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
-@login_required
-def point_label_create(request):
+def point_label_make(request, replaces=None):
     poi_lat = ''
     poi_lon = ''
     poi_label = ''
@@ -107,9 +106,29 @@ def point_label_create(request):
 
     p = Point(float(poi_lon), float(poi_lat))
 
-    PointTimeLabel(point=p, label=poi_label, creator=request.user).save()
+    ptl = PointTimeLabel(point=p, label=poi_label, creator=request.user)
+    ptl.save()
+
+    if replaces is not None:
+        replaces.replaced_by = ptl
+        replaces.save()
 
     return HttpResponse()
+
+
+@login_required
+def point_label_create(request):
+    return point_label_make(request)
+
+
+@login_required
+def point_label_replace(request, pk):
+    replaces = get_object_or_404(PointTimeLabel, pk=pk)
+    if replaces.deleted:
+        return HttpResponseNotFound("This POI has been deleted")
+    if replaces.replaced_by is not None:
+        return HttpResponseNotFound("This POI has already been replaced")
+    return point_label_make(request, replaces=replaces)
 
 
 @login_required

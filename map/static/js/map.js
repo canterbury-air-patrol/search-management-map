@@ -1,5 +1,6 @@
 var assetLines = {};
 var layerControl;
+var my_map;
 
 function overlay_add(name, layer) {
     layerControl.addOverlay(layer, name);
@@ -69,8 +70,14 @@ function asset_create(asset, layer) {
 
 function poi_create(poi, layer) {
     var POILabel = poi.properties.label;
+    var PolyID = poi.properties.pk;
+    var coords = poi.geometry.coordinates;
 
-    layer.bindPopup(POILabel);
+    var popupContent = 'POI: ' + POILabel + '<br />';
+
+    popupContent += '<button class="btn btn-default" onClick="L.POIAdder(my_map, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + PolyID + ',\'' + POILabel + '\');">Move</button>'
+
+    layer.bindPopup(popupContent);
 }
 
 function user_polygon_create(poly, layer) {
@@ -86,6 +93,7 @@ function user_line_create(line, layer) {
 }
 
 function map_init(map, options) {
+    my_map = map;
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
 
