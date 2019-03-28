@@ -96,6 +96,7 @@ function user_polygon_create(poly, layer) {
     }
 
     popupContent += '<button class="btn btn-default" onClick="L.PolygonAdder(my_map, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
 
     layer.bindPopup(popupContent);
 }

@@ -191,6 +191,20 @@ def user_polygon_replace(request, pk):
 
 
 @login_required
+def user_polygon_delete(request, pk):
+    poly = get_object_or_404(PolygonTimeLabel, pk=pk)
+    if poly.deleted:
+        return HttpResponseNotFound("This Polygon has already been deleted")
+    if poly.replaced_by is not None:
+        return HttpResponseNotFound("This Polygon has been replaced")
+    poly.deleted = True
+    poly.deleted_by = request.user
+    poly.deleted_at = timezone.now()
+    poly.save()
+    return HttpResponse("Deleted")
+
+
+@login_required
 def user_lines_all(request):
     lines = LineStringTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
     geojson_data = serialize('geojson', lines,
