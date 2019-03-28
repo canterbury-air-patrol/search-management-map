@@ -155,8 +155,7 @@ def user_polygons_all(request):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
-@login_required
-def user_polygon_create(request):
+def user_polygon_make(request, replaces):
     if request.method == 'POST':
         points = []
         label = request.POST['label']
@@ -167,9 +166,28 @@ def user_polygon_create(request):
             p = Point(float(lng), float(lat))
             points.append(p)
         points.append(points[0])
-        PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user).save()
+        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user).save()
+        if replaces is not None:
+            replaces.replaced_by = ptl
+            replaces.save()
         return HttpResponse()
+
     return HttpResponseBadRequest()
+
+
+@login_required
+def user_polygon_create(request):
+    return user_polygon_make(request)
+
+
+@login_required
+def user_polygon_replace(request, pk):
+    replaces = get_object_or_404(PolygonTimeLabel, pk=pk)
+    if replaces.deleted:
+        return HttpResponseNotFound("This Polygon has been deleted")
+    if replaces.replaced_by is not None:
+        return HttpResponseNotFound("This Polygon has already been replaced")
+    return user_polygon_make(request, replaces=replaces)
 
 
 @login_required

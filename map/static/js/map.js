@@ -70,21 +70,34 @@ function asset_create(asset, layer) {
 
 function poi_create(poi, layer) {
     var POILabel = poi.properties.label;
-    var PolyID = poi.properties.pk;
+    var poiID = poi.properties.pk;
     var coords = poi.geometry.coordinates;
 
     var popupContent = 'POI: ' + POILabel + '<br />';
 
-    popupContent += '<button class="btn btn-default" onClick="L.POIAdder(my_map, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + PolyID + ',\'' + POILabel + '\');">Move</button>'
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + PolyID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.POIAdder(my_map, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + poiID + '/delete/\')">Delete</button>'
 
     layer.bindPopup(popupContent);
 }
 
 function user_polygon_create(poly, layer) {
     var PolyLabel = poly.properties.label;
+    var PolyID = poly.properties.pk;
+    var coords = poly.geometry.coordinates;
 
-    layer.bindPopup(PolyLabel);
+    var popupContent = PolyLabel + '<br />';
+
+    var pointList = '';
+    var i = 0;
+    for (i = 0; i < (coords[0].length - 1); i++) {
+        point = coords[0][i];
+        pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
+    }
+
+    popupContent += '<button class="btn btn-default" onClick="L.PolygonAdder(my_map, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+
+    layer.bindPopup(popupContent);
 }
 
 function user_line_create(line, layer) {
