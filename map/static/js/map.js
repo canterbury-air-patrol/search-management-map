@@ -76,6 +76,7 @@ function poi_create(poi, layer) {
     var popupContent = 'POI: ' + POILabel + '<br />';
 
     popupContent += '<button class="btn btn-default" onClick="L.POIAdder(my_map, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + PolyID + ',\'' + POILabel + '\');">Move</button>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + PolyID + '/delete/\')">Delete</button>'
 
     layer.bindPopup(popupContent);
 }

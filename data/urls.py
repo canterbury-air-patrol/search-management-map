@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^pois/current/$', views.point_labels_all, name='point_labels_all'),
     url(r'^pois/create/$', views.point_label_create, name='point_label_create'),
     url(r'^pois/(?P<pk>\d+)/replace/$', views.point_label_replace, name='point_label_replace'),
+    url(r'^pois/(?P<pk>\d+)/delete/$', views.point_label_delete, name='point_label_delete'),
     url(r'^userpolygons/current/$', views.user_polygons_all, name='user_polygons_all'),
     url(r'^userpolygons/create/$', views.user_polygon_create, name='user_polygon_create'),
     url(r'^userlines/current/$', views.user_lines_all, name='user_lines_all'),

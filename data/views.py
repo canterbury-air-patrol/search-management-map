@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point, Polygon, LineString
 from django.core.serializers import serialize
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 
 from assets.models import Asset
 from .models import AssetPointTime, PointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
@@ -129,6 +130,20 @@ def point_label_replace(request, pk):
     if replaces.replaced_by is not None:
         return HttpResponseNotFound("This POI has already been replaced")
     return point_label_make(request, replaces=replaces)
+
+
+@login_required
+def point_label_delete(request, pk):
+    poi = get_object_or_404(PointTimeLabel, pk=pk)
+    if poi.deleted:
+        return HttpResponseNotFound("This POI has already been deleted")
+    if poi.replaced_by is not None:
+        return HttpResponseNotFound("This POI has been replaced")
+    poi.deleted = True
+    poi.deleted_by = request.user
+    poi.deleted_at = timezone.now()
+    poi.save()
+    return HttpResponse("Deleted")
 
 
 @login_required

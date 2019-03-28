@@ -8,7 +8,9 @@ class PointTime(models.Model):
     point = models.PointField(geography=True)
     timestamp = models.DateTimeField(default=timezone.now)
     deleted = models.BooleanField(default=False)
-    creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
+    deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         abstract = True
