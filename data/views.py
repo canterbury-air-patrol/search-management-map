@@ -166,7 +166,8 @@ def user_polygon_make(request, replaces=None):
             p = Point(float(lng), float(lat))
             points.append(p)
         points.append(points[0])
-        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user).save()
+        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user)
+        ptl.save()
         if replaces is not None:
             replaces.replaced_by = ptl
             replaces.save()
