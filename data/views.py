@@ -155,7 +155,7 @@ def user_polygons_all(request):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
-def user_polygon_make(request, replaces):
+def user_polygon_make(request, replaces=None):
     if request.method == 'POST':
         points = []
         label = request.POST['label']
