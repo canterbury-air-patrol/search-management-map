@@ -3,28 +3,28 @@ L.POIAdder = function(map, pos, replaces, label) {
         draggable: true,
         autoPan: true
     }).addTo(map);
-    var rand_num = Math.floor(Math.random() * 16536);
+    var RAND_NUM = Math.floor(Math.random() * 16536);
     var contents = [
-        "<div class='input-short'><label>Lat</label><input type='text' id='poi-dialog-lat-" + rand_num + "' /></div>",
-        "<div class='input-short'><label>Lon</label><input type='text' id='poi-dialog-lon-" + rand_num + "' /></div>",
-        "<div class='input-label'><label>Label</label><textarea autofocus id='poi-dialog-label-" + rand_num + "' rows=2>" + label + "</textarea></div>",
-        "<button class='btn btn-primary' id='poi-dialog-create-" + rand_num + "'>Create</button><button class='btn btn-danger' id='poi-dialog-cancel-" + rand_num + "'>Cancel</button>",
+        "<div class='input-short'><label>Lat</label><input type='text' id='poi-dialog-lat-" + RAND_NUM + "' /></div>",
+        "<div class='input-short'><label>Lon</label><input type='text' id='poi-dialog-lon-" + RAND_NUM + "' /></div>",
+        "<div class='input-label'><label>Label</label><textarea autofocus id='poi-dialog-label-" + RAND_NUM + "' rows=2>" + label + "</textarea></div>",
+        "<button class='btn btn-primary' id='poi-dialog-create-" + RAND_NUM + "'>Create</button><button class='btn btn-danger' id='poi-dialog-cancel-" + RAND_NUM + "'>Cancel</button>",
     ].join('');
     var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map);
-    if (replaces != -1) {
-        $('#poi-dialog-lat-' + rand_num).val(pos.lat);
-        $('#poi-dialog-lon-' + rand_num).val(pos.lng);
-        $('#poi-dialog-create-' + rand_num).html('Update');
+    if (replaces !== -1) {
+        $('#poi-dialog-lat-' + RAND_NUM).val(pos.lat);
+        $('#poi-dialog-lon-' + RAND_NUM).val(pos.lng);
+        $('#poi-dialog-create-' + RAND_NUM).html('Update');
         markerDialog.open();
     }
-    $('#poi-dialog-create-' + rand_num).click(function(e) {
+    $('#poi-dialog-create-' + RAND_NUM).click(function() {
          var data = {
-             lat: $('#poi-dialog-lat-' + rand_num).val(),
-             lon: $('#poi-dialog-lon-' + rand_num).val(),
-             label: $('#poi-dialog-label-' + rand_num).val(),
+             lat: $('#poi-dialog-lat-' + RAND_NUM).val(),
+             lon: $('#poi-dialog-lon-' + RAND_NUM).val(),
+             label: $('#poi-dialog-label-' + RAND_NUM).val(),
              csrfmiddlewaretoken: csrftoken,       
          }
-         if (replaces == -1)
+         if (replaces === -1)
          {
              $.post('/data/pois/create/', data);
          }
@@ -35,16 +35,16 @@ L.POIAdder = function(map, pos, replaces, label) {
          map.removeLayer(marker);
          markerDialog.destroy();
     });
-    $('#poi-dialog-cancel-' + rand_num).click(function(e) {
+    $('#poi-dialog-cancel-' + RAND_NUM).click(function() {
          map.removeLayer(marker);
          markerDialog.destroy();
     });
-    map.on('dialog:opened', function (e) {
+    map.on('dialog:opened', function () {
         var markerCoords = marker.getLatLng();
-        $('#poi-dialog-lat-' + rand_num).val(markerCoords.lat);
-        $('#poi-dialog-lon-' + rand_num).val(markerCoords.lng);
+        $('#poi-dialog-lat-' + RAND_NUM).val(markerCoords.lat);
+        $('#poi-dialog-lon-' + RAND_NUM).val(markerCoords.lng);
     });
-    marker.on('dragend', function (e) {
+    marker.on('dragend', function () {
         markerDialog.open();
     });
 }
@@ -65,7 +65,6 @@ L.Control.POIAdder = L.Control.extend({
         link.title = 'Add POI';
 
         var markerImg = L.DomUtil.create('img', 'POIAdder-marker', link);
-        var myself = this;
 
         markerImg.src = '/static/leaflet/images/marker-icon.png';
         markerImg.alt = 'Add POI';
@@ -80,7 +79,7 @@ L.Control.POIAdder = L.Control.extend({
         return container;
     },
 
-    onRemove: function(map) {
+    onRemove: function() {
 
     }
 });

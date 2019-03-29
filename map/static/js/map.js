@@ -1,22 +1,23 @@
 var assetLines = {};
 var layerControl;
-var my_map;
+// eslint-disable-next-line no-unused-vars
+var myMap;
 
-function overlay_add(name, layer) {
+function overlayAdd(name, layer) {
     layerControl.addOverlay(layer, name);
 }
 
-function asset_path_update(name)
+function assetPathUpdate(name)
 {
     $.ajax({
         type: "GET",
         url: "/data/assets/" + name + "/position/history/",
         success: function(route) {
-            path = []
-            for(f in route.features)
+            var path = []
+            for(var f in route.features)
             {
-                lon = route.features[f].geometry.coordinates[0];
-                lat = route.features[f].geometry.coordinates[1];
+                var lon = route.features[f].geometry.coordinates[0];
+                var lat = route.features[f].geometry.coordinates[1];
                 path.push(L.latLng(lat, lon));
             }
             assetLines[name].setLatLngs(path);
@@ -24,9 +25,9 @@ function asset_path_update(name)
     });
 }
 
-function asset_update(asset, oldLayer) {
+function assetUpdate(asset, oldLayer) {
     var assetName = asset.properties.asset;
-    asset_path_update(assetName);
+    assetPathUpdate(assetName);
 
     if (!oldLayer) {return; }
 
@@ -49,26 +50,26 @@ function asset_update(asset, oldLayer) {
 
     oldLayer.bindPopup(popupContent);
 
-    if (asset.geometry.type == 'Point') {
+    if (asset.geometry.type === 'Point') {
         var c = asset.geometry.coordinates;
         oldLayer.setLatLng([c[1], c[0]]);
         return oldLayer;
     }
 }
 
-function asset_create(asset, layer) {
+function assetCreate(asset) {
     var assetName = asset.properties.asset;
 
     if(!(assetName in assetLines))
     {
         /* Create an overlay for this object */
-        track = L.polyline([], {color: 'red'});
+        var track = L.polyline([], {color: 'red'});
         assetLines[assetName] = track;
-        overlay_add(assetName, track);
+        overlayAdd(assetName, track);
     }
 }
 
-function poi_create(poi, layer) {
+function poiCreate(poi, layer) {
     var POILabel = poi.properties.label;
     var poiID = poi.properties.pk;
     var coords = poi.geometry.coordinates;
@@ -81,7 +82,7 @@ function poi_create(poi, layer) {
     layer.bindPopup(popupContent);
 }
 
-function user_polygon_create(poly, layer) {
+function userPolygonCreate(poly, layer) {
     var PolyLabel = poly.properties.label;
     var PolyID = poly.properties.pk;
     var coords = poly.geometry.coordinates;
@@ -91,7 +92,7 @@ function user_polygon_create(poly, layer) {
     var pointList = '';
     var i = 0;
     for (i = 0; i < (coords[0].length - 1); i++) {
-        point = coords[0][i];
+        var point = coords[0][i];
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     }
 
@@ -101,7 +102,7 @@ function user_polygon_create(poly, layer) {
     layer.bindPopup(popupContent);
 }
 
-function user_line_create(line, layer) {
+function userLineCreate(line, layer) {
     var LineLabel = line.properties.label;
     var LineID = line.properties.pk;
     var coords = line.geometry.coordinates;
@@ -109,7 +110,6 @@ function user_line_create(line, layer) {
     var popupContent = LineLabel + '<br />';
 
     var pointList = '';
-    var i = 0;
     coords.forEach(function(point) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     })
@@ -120,8 +120,9 @@ function user_line_create(line, layer) {
     layer.bindPopup(popupContent);
 }
 
-function map_init(map, options) {
-    my_map = map;
+// eslint-disable-next-line no-unused-vars
+function mapInit(map) {
+    myMap = map;
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
 
@@ -131,48 +132,48 @@ function map_init(map, options) {
     L.control.polygonadder({}).addTo(map);
     L.control.lineadder({}).addTo(map);
 
-    realtime = L.realtime({
+    var realtime = L.realtime({
             url: "/data/assets/positions/latest/",
             type: 'json',
         }, {
             interval: 3 * 1000,
-            onEachFeature: asset_create,
-            updateFeature: asset_update,
+            onEachFeature: assetCreate,
+            updateFeature: assetUpdate,
             getFeatureId: function(feature) { return feature.properties.asset; }
         }).addTo(map);
 
-    overlay_add("Assets", realtime);
+    overlayAdd("Assets", realtime);
 
     realtime = L.realtime({
             url: "/data/pois/current/",
             type: 'json',
         }, {
             interval: 3 * 1000,
-            onEachFeature: poi_create,
+            onEachFeature: poiCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
 
-    overlay_add("POIs", realtime);
+    overlayAdd("POIs", realtime);
 
     realtime = L.realtime({
             url: "/data/userpolygons/current/",
             type: 'json',
         }, {
             interval: 3 * 1000,
-            onEachFeature: user_polygon_create,
+            onEachFeature: userPolygonCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
 
-    overlay_add("Polygons", realtime);
+    overlayAdd("Polygons", realtime);
 
     realtime = L.realtime({
             url: "/data/userlines/current/",
             type: 'json',
         }, {
             interval: 3 * 1000,
-            onEachFeature: user_line_create,
+            onEachFeature: userLineCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
 
-    overlay_add("Lines", realtime);
+    overlayAdd("Lines", realtime);
 }

@@ -1,6 +1,6 @@
-L.LineAdder = function(map, current_points, replaces, label) {
-    var rand_num = Math.floor(Math.random() * 16536);
-    var points = current_points;
+L.LineAdder = function(map, currentPoints, replaces, label) {
+    var RAND_NUM = Math.floor(Math.random() * 16536);
+    var points = currentPoints;
     var markers = [];
     var line = L.polyline(points, {color: 'yellow'}).addTo(map);
     var dialog = L.control.dialog();
@@ -22,7 +22,7 @@ L.LineAdder = function(map, current_points, replaces, label) {
             });
             markers.push(m);
             m.addTo(map);
-            m.on('dragend', function(e) { updateMarker(p, m); dialog.open(); });
+            m.on('dragend', function() { updateMarker(p, m); dialog.open(); });
         });
 
         // Tell the line the points have changed
@@ -39,32 +39,32 @@ L.LineAdder = function(map, current_points, replaces, label) {
     updateMarkers();
 
     var contents = [
-        "<button class='btn btn-primary' id='lineadder-dialog-next-" + rand_num + "'>Next</button>",
-        "<button class='btn btn-primary' id='lineadder-dialog-done-" + rand_num + "'>Done</button>",
-        "<button class='btn btn-warning' id='lineadder-dialog-remove-" + rand_num + "'>Remove</button>",
-        "<button class='btn btn-warning' id='lineadder-dialog-cancel-" + rand_num + "'>Cancel</button>",
-        "<input type='text' id='lineadder-dialog-name-" + rand_num + "'/>",
+        "<button class='btn btn-primary' id='lineadder-dialog-next-" + RAND_NUM + "'>Next</button>",
+        "<button class='btn btn-primary' id='lineadder-dialog-done-" + RAND_NUM + "'>Done</button>",
+        "<button class='btn btn-warning' id='lineadder-dialog-remove-" + RAND_NUM + "'>Remove</button>",
+        "<button class='btn btn-warning' id='lineadder-dialog-cancel-" + RAND_NUM + "'>Cancel</button>",
+        "<input type='text' id='lineadder-dialog-name-" + RAND_NUM + "'/>",
     ].join('');
     dialog.setContent(contents).addTo(map);
-    $("#lineadder-dialog-name-" + rand_num).val(label);
+    $("#lineadder-dialog-name-" + RAND_NUM).val(label);
 
-    $("#lineadder-dialog-next-" + rand_num).click(function(e) {
+    $("#lineadder-dialog-next-" + RAND_NUM).click(function() {
         points.push(map.getCenter());
         updateMarkers();
     });
 
-    $("#lineadder-dialog-done-" + rand_num).click(function(e) {
+    $("#lineadder-dialog-done-" + RAND_NUM).click(function() {
         var data = [
-            {name: 'label', value: $('#lineadder-dialog-name-' + rand_num).val()},
+            {name: 'label', value: $('#lineadder-dialog-name-' + RAND_NUM).val()},
             {name: 'csrfmiddlewaretoken', value: csrftoken},
             {name: 'points', value: points.length },
         ]
-        for(i = 0; i < points.length; i++) {
+        for(var i = 0; i < points.length; i++) {
             data.push({name: 'point'+i+'_lat', value: points[i].lat})
             data.push({name: 'point'+i+'_lng', value: points[i].lng})
         }
 
-        if (replaces != -1) {
+        if (replaces !== -1) {
             $.post('/data/userlines/' + replaces + '/replace/', data);
         } else {
             $.post('/data/userlines/create/', data);
@@ -74,13 +74,13 @@ L.LineAdder = function(map, current_points, replaces, label) {
         dialog.destroy();
     });
 
-    $("#lineadder-dialog-cancel-" + rand_num).click(function(e) {
+    $("#lineadder-dialog-cancel-" + RAND_NUM).click(function() {
         removeAllMarkers();
         map.removeLayer(line);
         dialog.destroy();
     });
 
-    $("#lineadder-dialog-remove-" + rand_num).click(function(e) {
+    $("#lineadder-dialog-remove-" + RAND_NUM).click(function() {
         if (points.length > 1) {
             points.pop();
         }
@@ -97,7 +97,6 @@ L.Control.LineAdder = L.Control.extend({
         L.Control.prototype.initialize.call(this, options);
     },
 
-
     onAdd: function(map) {
         var container = this._container = L.DomUtil.create('div', 'LineAdder-container leaflet-bar');
         var link = L.DomUtil.create('a', '', container);
@@ -105,7 +104,6 @@ L.Control.LineAdder = L.Control.extend({
         link.title = 'Add Line';
 
         var markerImg = L.DomUtil.create('img', 'Line-img', link);
-        var myself = this;
 
         markerImg.src = '/static/icons/draw-line.png';
         markerImg.alt = 'Add Line';
@@ -121,7 +119,7 @@ L.Control.LineAdder = L.Control.extend({
     },
 
 
-    onRemove: function(map) {
+    onRemove: function() {
 
     },
 });
