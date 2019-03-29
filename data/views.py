@@ -213,8 +213,7 @@ def user_lines_all(request):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
-@login_required
-def user_line_create(request):
+def user_line_make(request, replaces=None):
     if request.method == 'POST':
         points = []
         label = request.POST['label']
@@ -224,6 +223,28 @@ def user_line_create(request):
             lng = request.POST['point{}_lng'.format(i)]
             p = Point(float(lng), float(lat))
             points.append(p)
-        LineStringTimeLabel(line=LineString(points), label=label, creator=request.user).save()
+        lstl = LineStringTimeLabel(line=LineString(points), label=label, creator=request.user)
+        lstl.save()
+        print(lstl)
+        if replaces is not None:
+            replaces.replaced_by = lstl
+            replaces.save()
+            print(replaces)
         return HttpResponse()
+
     return HttpResponseBadRequest()
+
+
+@login_required
+def user_line_create(request):
+    return user_line_make(request)
+
+
+@login_required
+def user_line_replace(request, pk):
+    replaces = get_object_or_404(LineStringTimeLabel, pk=pk)
+    if replaces.deleted:
+        return HttpResponseNotFound("This Line has been deleted")
+    if replaces.replaced_by is not None:
+        return HttpResponseNotFound("This Line has already been replaced")
+    return user_line_make(request, replaces)

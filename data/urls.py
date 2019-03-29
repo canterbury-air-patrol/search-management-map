@@ -15,4 +15,5 @@ urlpatterns = [
     url(r'^userpolygons/(?P<pk>\d+)/delete/$', views.user_polygon_delete, name='user_polygon_delete'),
     url(r'^userlines/current/$', views.user_lines_all, name='user_lines_all'),
     url(r'^userlines/create/$', views.user_line_create, name='user_line_create'),
+    url(r'^userlines/(?P<pk>\d+)/replace/$', views.user_line_replace, name='user_line_replace'),
 ]

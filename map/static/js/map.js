@@ -103,8 +103,20 @@ function user_polygon_create(poly, layer) {
 
 function user_line_create(line, layer) {
     var LineLabel = line.properties.label;
+    var LineID = line.properties.pk;
+    var coords = line.geometry.coordinates;
 
-    layer.bindPopup(LineLabel);
+    var popupContent = LineLabel + '<br />';
+
+    var pointList = '';
+    var i = 0;
+    coords.forEach(function(point) {
+        pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
+    })
+
+    popupContent += '<button class="btn btn-default" onClick="L.LineAdder(my_map, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
+
+    layer.bindPopup(popupContent);
 }
 
 function map_init(map, options) {
