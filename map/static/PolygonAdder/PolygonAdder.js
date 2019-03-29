@@ -3,6 +3,7 @@ L.PolygonAdder = function(map, current_points, replaces, label) {
     var points = current_points;
     var markers = [];
     var polygon = L.polygon(points, {color: 'yellow'}).addTo(map);
+    var dialog = L.control.dialog();
 
     var removeAllMarkers = function() {
         markers.forEach(function(m) { map.removeLayer(m); });
@@ -21,7 +22,7 @@ L.PolygonAdder = function(map, current_points, replaces, label) {
             });
             markers.push(m);
             m.addTo(map);
-            m.on('dragend', function(e) { updateMarker(p, m); });
+            m.on('dragend', function(e) { dialog.open(); updateMarker(p, m); });
         });
 
         // Tell the polygon the points have changed
@@ -44,7 +45,7 @@ L.PolygonAdder = function(map, current_points, replaces, label) {
         "<button class='btn btn-warning' id='polygonadder-dialog-cancel-" + rand_num + "'>Cancel</button>",
         "<input type='text' id='polygonadder-dialog-name-" + rand_num + "'></input>",
     ].join('');
-    var dialog = L.control.dialog().setContent(contents).addTo(map);
+    dialog.setContent(contents).addTo(map);
     $("#polygonadder-dialog-name-" + rand_num).val(label);
 
     $("#polygonadder-dialog-next-" + rand_num).click(function(e) {

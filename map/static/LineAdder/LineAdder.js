@@ -3,6 +3,7 @@ L.LineAdder = function(map, current_points, replaces, label) {
     var points = current_points;
     var markers = [];
     var line = L.polyline(points, {color: 'yellow'}).addTo(map);
+    var dialog = L.control.dialog();
 
     var removeAllMarkers = function() {
         markers.forEach(function(m) { map.removeLayer(m); });
@@ -21,7 +22,7 @@ L.LineAdder = function(map, current_points, replaces, label) {
             });
             markers.push(m);
             m.addTo(map);
-            m.on('dragend', function(e) { updateMarker(p, m); });
+            m.on('dragend', function(e) { updateMarker(p, m); dialog.open(); });
         });
 
         // Tell the line the points have changed
@@ -44,7 +45,7 @@ L.LineAdder = function(map, current_points, replaces, label) {
         "<button class='btn btn-warning' id='lineadder-dialog-cancel-" + rand_num + "'>Cancel</button>",
         "<input type='text' id='lineadder-dialog-name-" + rand_num + "'/>",
     ].join('');
-    var dialog = L.control.dialog().setContent(contents).addTo(map);
+    dialog.setContent(contents).addTo(map);
     $("#lineadder-dialog-name-" + rand_num).val(label);
 
     $("#lineadder-dialog-next-" + rand_num).click(function(e) {
