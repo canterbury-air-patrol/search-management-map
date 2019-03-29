@@ -115,6 +115,7 @@ function user_line_create(line, layer) {
     })
 
     popupContent += '<button class="btn btn-default" onClick="L.LineAdder(my_map, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userlines/' + LineID + '/delete/\')">Delete</button>'
 
     layer.bindPopup(popupContent);
 }

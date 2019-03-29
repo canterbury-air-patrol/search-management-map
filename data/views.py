@@ -248,3 +248,17 @@ def user_line_replace(request, pk):
     if replaces.replaced_by is not None:
         return HttpResponseNotFound("This Line has already been replaced")
     return user_line_make(request, replaces)
+
+
+@login_required
+def user_line_delete(request, pk):
+    line = get_object_or_404(LineStringTimeLabel, pk=pk)
+    if line.deleted:
+        return HttpResponseNotFound("This Line has already been deleted")
+    if line.replaced_by is not None:
+        return HttpResponseNotFound("This Line has been replaced")
+    line.deleted = True
+    line.deleted_by = request.user
+    line.deleted_at = timezone.now()
+    line.save()
+    return HttpResponse("Deleted")

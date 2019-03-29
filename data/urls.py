@@ -16,4 +16,5 @@ urlpatterns = [
     url(r'^userlines/current/$', views.user_lines_all, name='user_lines_all'),
     url(r'^userlines/create/$', views.user_line_create, name='user_line_create'),
     url(r'^userlines/(?P<pk>\d+)/replace/$', views.user_line_replace, name='user_line_replace'),
+    url(r'^userlines/(?P<pk>\d+)/delete/$', views.user_line_delete, name='user_line_delete'),
 ]
