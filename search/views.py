@@ -5,7 +5,9 @@ from django.core.serializers import serialize
 from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry, LineString
 
-from .models import SectorSearch
+import math
+
+from .models import SectorSearch, ExpandingBoxSearch
 from data.models import PointTimeLabel
 from assets.models import AssetType
 
@@ -66,4 +68,72 @@ def sector_search_create(request):
 
     ss = SectorSearch(line=LineString(points), creator=request.user, datum=poi, created_for=asset_type, sweep_width=sweep_width)
     ss.save()
+    return HttpResponse("Created")
+
+
+@login_required
+def expanding_box_search_incomplete(request):
+    sector_searches = ExpandingBoxSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
+
+    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
+                             fields=ExpandingBoxSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def expanding_box_search_completed(request):
+    sector_searches = ExpandingBoxSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
+
+    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
+                             fields=ExpandingBoxSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def expanding_box_search_create(request):
+    if request.method == 'POST':
+        poi_id = request.POST.get('poi_id')
+        asset_type_id = request.POST.get('asset_type_id')
+        sweep_width = reqeust.POST.get('sweep_width')
+        iterations = request.POST.get('iterations')
+        first_bearing = request.POST.get('first_bearing')
+    elif request.method == 'GET':
+        poi_id = request.GET.get('poi_id')
+        asset_type_id = request.GET.get('asset_type_id')
+        sweep_width = request.GET.get('sweep_width')
+        iterations = request.GET.get('iterations')
+        first_bearing = request.GET.get('first_bearing')
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    poi = get_object_or_404(PointTimeLabel, pk=poi_id)
+    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+
+    sweep_width = float(sweep_width)
+    try:
+        first_bearing = int(first_bearing)
+    except:
+        first_bearing = 0
+
+    query = "SELECT p.point, p.first"
+    for i in range(1, int(iterations) + 1):
+        len = math.sqrt(2) * i * sweep_width
+        query += ", ST_Project(p.point, {}, radians({}))".format(len, 45 + first_bearing)
+        query += ", ST_Project(p.point, {}, radians({}))".format(len, 135 + first_bearing)
+        query += ", ST_Project(p.point, {}, radians({}))".format(len, 225 + first_bearing)
+        query += ", ST_Project(p.first, {}, radians({}))".format(len, 315 + first_bearing)
+
+    query += " FROM (SELECT point, ST_Project(point, {}, radians({})) AS first FROM data_pointtimelabel WHERE id = {}) AS p".format(sweep_width, first_bearing, poi.pk)
+
+    cursor = connection.cursor()
+    cursor.execute(query)
+    db_points = cursor.fetchone()
+    points = []
+    for p in db_points:
+        points.append(GEOSGeometry(p))
+
+    eb = ExpandingBoxSearch(line=LineString(points), creator=request.user, datum=poi, created_for=asset_type, sweep_width=sweep_width, iterations=iterations, first_bearing=first_bearing)
+    eb.save()
     return HttpResponse("Created")

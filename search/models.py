@@ -17,7 +17,18 @@ class SearchPath(LineStringTime):
 class SectorSearch(SearchPath):
     datum = models.ForeignKey(PointTimeLabel, on_delete=models.PROTECT)
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'sweepwidth', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'sweep_width', )
 
     def __str__(self):
         return("Sector Search from {} with {} (sw={})".format(datum, created_for, sweep_width))
+
+
+class ExpandingBoxSearch(SearchPath):
+    datum = models.ForeignKey(PointTimeLabel, on_delete=models.PROTECT)
+    iterations = models.IntegerField()
+    first_bearing = models.IntegerField()
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'sweep_width', 'iterations', 'first_bearing', )
+
+    def __str__(self):
+        return("Expanding Box Search from {} with {} (sw={}, n={}, start={})".format(datum, created_for, sweep_width, iterations, first_bearing))

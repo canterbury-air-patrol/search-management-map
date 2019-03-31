@@ -122,14 +122,41 @@ function userLineCreate(line, layer) {
 
 function sectorSearchIncompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
+    var SSweepWidth = line.properties.sweep_width;
 
-    var popupContent = '';
+    var popupContent = 'Sector Search<br />';
+
+    popupContent += "Sweep Width = " + SSweepWidth + "m<br />";
 
     layer.bindPopup(popupContent);
 }
 
 function sectorSearchCompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
+
+    var popupContent = '';
+
+    layer.bindPopup(popupContent);
+}
+
+
+function expandingBoxSearchIncompleteCreate(line, layer) {
+    var ExpandingBoxSearchID = line.properties.pk;
+    var EBSweepWidth = line.properties.sweep_width;
+    var EBFirstBearing = line.properties.first_bearing;
+    var EBIterations = line.properties.iterations;
+
+    var popupContent = 'Expanding Box Search<br />';
+
+    popupContent += "Sweep Width = " + EBSweepWidth + "m<br />";
+    popupContent += "First Bearing = " + EBFirstBearing + "&#176;T<br />";
+    popupContent += "Complete Boxes = " + EBIterations + "<br />";
+
+    layer.bindPopup(popupContent);
+}
+
+function expandingBoxSearchCompleteCreate(line, layer) {
+    var ExpandingBoxSearchID = line.properties.pk;
 
     var popupContent = '';
 
@@ -199,6 +226,7 @@ function mapInit(map) {
             type: 'json',
         }, {
             interval: 3 * 1000,
+            color: 'orange',
             onEachFeature: sectorSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
@@ -216,4 +244,27 @@ function mapInit(map) {
         });
 
     overlayAdd("Sector Searches (completed)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/expandingbox/incomplete/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            color: 'orange',
+            onEachFeature: expandingBoxSearchIncompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlayAdd("ExpandingBox Searches (incomplete)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/expandingbox/completed/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: expandingBoxSearchCompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        });
+
+    overlayAdd("Expanding Box Searches (completed)", realtime);
 }
