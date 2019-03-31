@@ -207,7 +207,7 @@ function mapInit(map) {
 
 
     realtime = L.realtime({
-            url: "/search/sector/complete/",
+            url: "/search/sector/completed/",
             type: 'json',
         }, {
             interval: 3 * 1000,
