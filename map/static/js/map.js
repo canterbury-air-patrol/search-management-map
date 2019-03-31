@@ -120,6 +120,22 @@ function userLineCreate(line, layer) {
     layer.bindPopup(popupContent);
 }
 
+function sectorSearchIncompleteCreate(line, layer) {
+    var SectorSearchID = line.properties.pk;
+
+    var popupContent = '';
+
+    layer.bindPopup(popupContent);
+}
+
+function sectorSearchCompleteCreate(line, layer) {
+    var SectorSearchID = line.properties.pk;
+
+    var popupContent = '';
+
+    layer.bindPopup(popupContent);
+}
+
 // eslint-disable-next-line no-unused-vars
 function mapInit(map) {
     myMap = map;
@@ -176,4 +192,28 @@ function mapInit(map) {
         }).addTo(map);
 
     overlayAdd("Lines", realtime);
+
+
+    realtime = L.realtime({
+            url: "/search/sector/incomplete/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: sectorSearchIncompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlayAdd("Sector Searches (incomplete)", realtime);
+
+
+    realtime = L.realtime({
+            url: "/search/sector/complete/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: sectorSearchCompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        });
+
+    overlayAdd("Sector Searches (completed)", realtime);
 }
