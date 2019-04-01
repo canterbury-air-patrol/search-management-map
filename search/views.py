@@ -34,10 +34,12 @@ def sector_search_completed(request):
 
 @login_required
 def sector_search_create(request):
+    save = False
     if request.method == 'POST':
         poi_id = request.POST.get('poi_id')
         asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = reqeust.POST.get('sweep_width')
+        sweep_width = request.POST.get('sweep_width')
+        save = True
     elif request.method == 'GET':
         poi_id = request.GET.get('poi_id')
         asset_type_id = request.GET.get('asset_type_id')
@@ -67,8 +69,13 @@ def sector_search_create(request):
         points.append(GEOSGeometry(reference_points[p]))
 
     ss = SectorSearch(line=LineString(points), creator=request.user, datum=poi, created_for=asset_type, sweep_width=sweep_width)
-    ss.save()
-    return HttpResponse("Created")
+    if save:
+        ss.save()
+
+    geojson_data = serialize('geojson', [ss], geometry_field='line',
+                             fields=SectorSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
 
 
 @login_required
@@ -93,12 +100,14 @@ def expanding_box_search_completed(request):
 
 @login_required
 def expanding_box_search_create(request):
+    save = False
     if request.method == 'POST':
         poi_id = request.POST.get('poi_id')
         asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = reqeust.POST.get('sweep_width')
+        sweep_width = request.POST.get('sweep_width')
         iterations = request.POST.get('iterations')
         first_bearing = request.POST.get('first_bearing')
+        save = True
     elif request.method == 'GET':
         poi_id = request.GET.get('poi_id')
         asset_type_id = request.GET.get('asset_type_id')
@@ -135,5 +144,10 @@ def expanding_box_search_create(request):
         points.append(GEOSGeometry(p))
 
     eb = ExpandingBoxSearch(line=LineString(points), creator=request.user, datum=poi, created_for=asset_type, sweep_width=sweep_width, iterations=iterations, first_bearing=first_bearing)
-    eb.save()
-    return HttpResponse("Created")
+    if save:
+        eb.save()
+
+    geojson_data = serialize('geojson', [eb], geometry_field='line',
+                             fields=ExpandingBoxSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')

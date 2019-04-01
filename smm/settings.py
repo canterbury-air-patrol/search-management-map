@@ -132,4 +132,8 @@ LEAFLET_CONFIG['PLUGINS'] = {
         'css': 'LineAdder/LineAdder.css',
         'auto-include': True,
     },
+    'SearchAdder': {
+        'js': 'SearchAdder/SearchAdder.js',
+        'auto-include': True,
+    },
 }

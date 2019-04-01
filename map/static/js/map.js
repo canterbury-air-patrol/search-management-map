@@ -78,6 +78,7 @@ function poiCreate(poi, layer) {
 
     popupContent += '<button class="btn btn-default" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + poiID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
 
     layer.bindPopup(popupContent);
 }
