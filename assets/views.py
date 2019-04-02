@@ -11,10 +11,10 @@ def asset_types_list(request):
 
     asset_types_json = []
     for at in asset_types:
-        asset_types_json = {
+        asset_types_json.append({
             'id': at.pk,
             'name': at.name,
-        }
+        })
 
     data = {
         'asset_types': asset_types_json,

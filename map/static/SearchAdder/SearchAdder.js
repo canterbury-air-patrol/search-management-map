@@ -14,7 +14,9 @@ L.SearchAdder = function(map, objectType, objectID) {
     assetSelection += "</select>";
     $.get('/assets/assettypes/json/', function(data) {
         $.each(data, function(index, json){
-            $("#SearchAdder-asset-type-" + RAND_NUM).append("<option value=\'" + json.id + "\'>" + json.name + "</option>");
+            for(var at in json) {
+                $("#SearchAdder-asset-type-" + RAND_NUM).append("<option value=\'" + json[at].id + "\'>" + json[at].name + "</option>");
+            }
         })
     })
     var contents = [
