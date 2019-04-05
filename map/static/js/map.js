@@ -117,6 +117,7 @@ function userLineCreate(line, layer) {
 
     popupContent += '<button class="btn btn-default" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userlines/' + LineID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button>'
 
     layer.bindPopup(popupContent);
 }
@@ -158,6 +159,25 @@ function expandingBoxSearchIncompleteCreate(line, layer) {
 
 function expandingBoxSearchCompleteCreate(line, layer) {
     var ExpandingBoxSearchID = line.properties.pk;
+
+    var popupContent = '';
+
+    layer.bindPopup(popupContent);
+}
+
+function trackLineSearchIncompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
+    var TLSweepWidth = line.properties.sweep_width;
+
+    var popupContent = 'Track Line Search<br />';
+
+    popupContent += "Sweep Width = " + TLSweepWidth + "m<br />";
+
+    layer.bindPopup(popupContent);
+}
+
+function trackLineSearchCompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
 
     var popupContent = '';
 
@@ -268,4 +288,28 @@ function mapInit(map) {
         });
 
     overlayAdd("Expanding Box Searches (completed)", realtime);
+
+
+    realtime = L.realtime({
+            url: "/search/trackline/incomplete/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            color: 'orange',
+            onEachFeature: trackLineSearchIncompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlayAdd("Track Line Searches (incomplete)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/trackline/completed/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: trackLineSearchCompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        });
+
+    overlayAdd("Track Line Searches (completed)", realtime);
 }

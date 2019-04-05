@@ -7,8 +7,8 @@ from django.contrib.gis.geos import GEOSGeometry, LineString
 
 import math
 
-from .models import SectorSearch, ExpandingBoxSearch
-from data.models import PointTimeLabel
+from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch
+from data.models import PointTimeLabel, LineStringTimeLabel
 from assets.models import AssetType
 
 
@@ -149,5 +149,55 @@ def expanding_box_search_create(request):
 
     geojson_data = serialize('geojson', [eb], geometry_field='line',
                              fields=ExpandingBoxSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def track_line_search_incomplete(request):
+    searches = TrackLineSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=TrackLineSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def track_line_search_completed(request):
+    searches = TrackLineSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=TrackLineSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def track_line_search_create(request):
+    save = False
+    if request.method == 'POST':
+        line_id = request.POST.get('line_id')
+        asset_type_id = request.POST.get('asset_type_id')
+        sweep_width = request.POST.get('sweep_width')
+        save = True
+    elif request.method == 'GET':
+        line_id = request.GET.get('line_id')
+        asset_type_id = request.GET.get('asset_type_id')
+        sweep_width = request.GET.get('sweep_width')
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    line = get_object_or_404(LineStringTimeLabel, pk=line_id)
+    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+
+    sweep_width = float(sweep_width)
+
+    tl = TrackLineSearch(line=line.line, creator=request.user, datum=line, created_for=asset_type, sweep_width=sweep_width)
+    if save:
+        tl.save()
+
+    geojson_data = serialize('geojson', [tl], geometry_field='line',
+                             fields=TrackLineSearch.GEOJSON_FIELDS,
                              use_natural_foreign_keys=True)
     return HttpResponse(geojson_data, content_type='application/json')

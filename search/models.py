@@ -1,6 +1,6 @@
 from django.db import models
 
-from data.models import LineStringTime, PointTimeLabel
+from data.models import LineStringTime, PointTimeLabel, LineStringTimeLabel
 from assets.models import AssetType, Asset
 
 
@@ -32,3 +32,12 @@ class ExpandingBoxSearch(SearchPath):
 
     def __str__(self):
         return("Expanding Box Search from {} with {} (sw={}, n={}, start={})".format(datum, created_for, sweep_width, iterations, first_bearing))
+
+
+class TrackLineSearch(SearchPath):
+    datum = models.ForeignKey(LineStringTimeLabel, on_delete=models.PROTECT)
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'sweep_width', )
+
+    def __str__(self):
+        return("Track Line Search along {} with {} (sw={})".format(datum, created_for, sweep_width))
