@@ -11,4 +11,7 @@ urlpatterns = [
     url(r'^trackline/incomplete/$', views.track_line_search_incomplete, name='track_line_search_incomplete'),
     url(r'^trackline/completed/$', views.track_line_search_completed, name='track_line_search_completed'),
     url(r'^trackline/create/$', views.track_line_search_create, name='track_line_search_create'),
+    url(r'^creepingline/incomplete/$', views.creeping_line_search_incomplete, name='creeping_line_search_incomplete'),
+    url(r'^creepingline/completed/$', views.creeping_line_search_completed, name='creeping_line_search_completed'),
+    url(r'^creepingline/create/track/$', views.track_creeping_line_search_create, name='track_creeping_line_search_create'),
 ]

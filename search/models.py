@@ -41,3 +41,13 @@ class TrackLineSearch(SearchPath):
 
     def __str__(self):
         return("Track Line Search along {} with {} (sw={})".format(datum, created_for, sweep_width))
+
+
+class TrackLineCreepingSearch(SearchPath):
+    datum = models.ForeignKey(LineStringTimeLabel, on_delete=models.PROTECT)
+    width = models.IntegerField()
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'sweep_width', 'width', )
+
+    def __str__(self):
+        return("Creeping Search along {} with {} (sw={}, width={})".format(datum, created_for, sweep_width, width))

@@ -184,6 +184,25 @@ function trackLineSearchCompleteCreate(line, layer) {
     layer.bindPopup(popupContent);
 }
 
+function creepingLineSearchIncompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
+    var TLSweepWidth = line.properties.sweep_width;
+
+    var popupContent = 'Track Line Search<br />';
+
+    popupContent += "Sweep Width = " + TLSweepWidth + "m<br />";
+
+    layer.bindPopup(popupContent);
+}
+
+function creepingLineSearchCompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
+
+    var popupContent = '';
+
+    layer.bindPopup(popupContent);
+}
+
 // eslint-disable-next-line no-unused-vars
 function mapInit(map) {
     myMap = map;
@@ -312,4 +331,27 @@ function mapInit(map) {
         });
 
     overlayAdd("Track Line Searches (completed)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/creepingline/incomplete/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            color: 'orange',
+            onEachFeature: creepingLineSearchIncompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlayAdd("Creeping Line Searches (incomplete)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/creepingline/completed/",
+            type: 'json',
+        }, {
+            interval: 3 * 1000,
+            onEachFeature: creepingLineSearchCompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        });
+
+    overlayAdd("Creeping Line Searches (completed)", realtime);
 }

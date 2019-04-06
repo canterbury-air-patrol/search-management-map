@@ -7,9 +7,18 @@ from django.contrib.gis.geos import GEOSGeometry, LineString
 
 import math
 
-from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch
+from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch
 from data.models import PointTimeLabel, LineStringTimeLabel
 from assets.models import AssetType
+
+
+def dictfetchall(cursor):
+    "Return all rows from a cursor as a dict"
+    columns = [col[0] for col in cursor.description]
+    return [
+        dict(zip(columns, row))
+        for row in cursor.fetchall()
+    ]
 
 
 @login_required
@@ -199,5 +208,78 @@ def track_line_search_create(request):
 
     geojson_data = serialize('geojson', [tl], geometry_field='line',
                              fields=TrackLineSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def creeping_line_search_incomplete(request):
+    searches = TrackLineCreepingSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=TrackLineCreepingSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def creeping_line_search_completed(request):
+    searches = TrackLineCreepingSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=TrackLineCreepingSearch.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def track_creeping_line_search_create(request):
+    save = False
+    if request.method == 'POST':
+        line_id = request.POST.get('line_id')
+        asset_type_id = request.POST.get('asset_type_id')
+        sweep_width = request.POST.get('sweep_width')
+        width = request.POST.get('width')
+        save = True
+    elif request.method == 'GET':
+        line_id = request.GET.get('line_id')
+        asset_type_id = request.GET.get('asset_type_id')
+        sweep_width = request.GET.get('sweep_width')
+        width = request.GET.get('width')
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    line = get_object_or_404(LineStringTimeLabel, pk=line_id)
+    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+
+    sweep_width = float(sweep_width)
+
+    segment_query = "SELECT ST_PointN(line::geometry, pos)::geography AS start, ST_PointN(line::geometry, pos + 1)::geography AS end FROM data_linestringtimelabel, generate_series(1, ST_NPoints(line::geometry) - 1) AS pos WHERE id = {}".format(line.pk)
+    line_data_query = "SELECT segment.start AS start, ST_Azimuth(segment.start, segment.end) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({}) AS segment".format(segment_query)
+    line_points_query = "SELECT direction AS direction, ST_Project(linedata.start, {} * i, direction) AS point FROM ({}) AS linedata, generate_series(0, (linedata.distance/{})::integer) AS i".format(sweep_width, line_data_query, sweep_width)
+    query = "SELECT ST_Project(point, {}, direction + PI()/2) AS A, ST_Project(point, {}, direction - PI()/2) AS B FROM ({}) AS linepoints;".format(width, width, line_points_query)
+
+    cursor = connection.cursor()
+    cursor.execute(query)
+    db_points = dictfetchall(cursor)
+
+    points = []
+    reverse = False
+    for segment in db_points:
+        if reverse:
+            points.append(GEOSGeometry(segment['b']))
+            points.append(GEOSGeometry(segment['a']))
+            reverse = False
+        else:
+            points.append(GEOSGeometry(segment['a']))
+            points.append(GEOSGeometry(segment['b']))
+            reverse = True
+
+    search = TrackLineCreepingSearch(line=LineString(points), creator=request.user, datum=line, created_for=asset_type, sweep_width=sweep_width, width=width)
+    if save:
+        search.save()
+
+    geojson_data = serialize('geojson', [search], geometry_field='line',
+                             fields=TrackLineCreepingSearch.GEOJSON_FIELDS,
                              use_natural_foreign_keys=True)
     return HttpResponse(geojson_data, content_type='application/json')

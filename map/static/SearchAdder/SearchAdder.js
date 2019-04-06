@@ -6,6 +6,7 @@ L.SearchAdder = function(map, objectType, objectID) {
         searchSelection += "<option value='expanding-box'>Expanding Box</option>";
     } else if (objectType == 'line') {
         searchSelection += "<option value='track-line'>Track Line</option>";
+        searchSelection += "<option value='creeping-line'>Creeping Line Ahead</option>";
     } else if (objectType == 'polygon') {
         searchSelection += "<option value='creeping-line'>Creeping Line Ahead</option>";
     }
@@ -25,6 +26,7 @@ L.SearchAdder = function(map, objectType, objectID) {
         "<div id='SearchAdder-sw-"+ RAND_NUM +"'>Sweep Width: <input type='number' id='SearchAdder-sweep-width-"+ RAND_NUM +"' /></div>",
         "<div id='SearchAdder-i-" + RAND_NUM + "'>Iterations: <input type='number' id='SearchAdder-iterations-"+ RAND_NUM +"' /></div>",
         "<div id='SearchAdder-fb-" + RAND_NUM + "'>First Bearing: <input type='number' id='SearchAdder-first-bearing-"+ RAND_NUM +"' min='0' max='359' value='0'/></div>",
+        "<div id='SearchAdder-w-" + RAND_NUM + "'>Width (across track): <input type='number' id='SearchAdder-width-"+ RAND_NUM +"' min='0'/></div>",
         "<button class='btn btn-default' id='SearchAdder-preview-" + RAND_NUM + "'>Preview</button>",
         "<button class='btn btn-default' id='SearchAdder-create-" + RAND_NUM + "'>Create</button>",
         "<button class='btn btn-danger' id='SearchAdder-cancel-" + RAND_NUM + "'>Cancel</button>",
@@ -40,6 +42,11 @@ L.SearchAdder = function(map, objectType, objectID) {
         } else {
             $("#SearchAdder-i-" + RAND_NUM).hide();
             $("#SearchAdder-fb-" + RAND_NUM).hide();
+        }
+        if (selectedType == 'creeping-line' && objectType == 'line') {
+            $("#SearchAdder-w-" + RAND_NUM).show();
+        } else {
+            $("#SearchAdder-w-" + RAND_NUM).hide();
         }
     }
 
@@ -59,6 +66,9 @@ L.SearchAdder = function(map, objectType, objectID) {
             return '/search/trackline/create/';
         }
         if (selectedType == 'creeping-line') {
+            if (objectType == 'line') {
+                return '/search/creepingline/create/track/';
+            }
             return '/search/creepingline/create/';
         }
     }
@@ -69,6 +79,7 @@ L.SearchAdder = function(map, objectType, objectID) {
             {name: 'asset_type_id', value: $("#SearchAdder-asset-type-" + RAND_NUM).val()},
             {name: 'iterations', value: $("#SearchAdder-iterations-" + RAND_NUM).val()},
             {name: 'first_bearing', value: $("#SearchAdder-first-bearing-" + RAND_NUM).val()},
+            {name: 'width', value: $("#SearchAdder-width-" + RAND_NUM).val()},
         ]
         if (objectType == 'point') {
             data.push({name: 'poi_id', value: objectID });
