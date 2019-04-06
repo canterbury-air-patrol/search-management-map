@@ -214,6 +214,11 @@ function mapInit(map) {
     L.control.poiadder({}).addTo(map);
     L.control.polygonadder({}).addTo(map);
     L.control.lineadder({}).addTo(map);
+    L.control.locate({
+        setView: 'untilPan',
+        keepCurrentZoomLevel: true,
+        locateOptions: { enableHighAccuracy: true},
+    }).addTo(map);
 
     var realtime = L.realtime({
             url: "/data/assets/positions/latest/",

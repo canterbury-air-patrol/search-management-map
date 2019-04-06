@@ -30,7 +30,13 @@ LEAFLET_DIALOG_VERSION=1.0.5
 LEAFLET_DIALOG_FILE=leaflet-dialog-${LEAFLET_DIALOG_VERSION}.tar.gz
 if [ ! -f dl/${LEAFLET_DIALOG_FILE} ]
 then
-	curl -L https://github.com/NBTSolutions/Leaflet.Dialog/archive/v1.0.5.tar.gz -o dl/${LEAFLET_DIALOG_FILE}
+	curl -L https://github.com/NBTSolutions/Leaflet.Dialog/archive/v${LEAFLET_DIALOG_VERSION}.tar.gz -o dl/${LEAFLET_DIALOG_FILE}
+fi
+LEAFLET_LOCATECONTROL_VERSION=0.66.2
+LEAFLET_LOCATECONTROL_FILE=leaflet-locatecontrol-${LEAFLET_LOCATECONTROL_VERSION}.tar.gz
+if [ ! -f dl/${LEAFLET_LOCATECONTROL_FILE} ]
+then
+	curl -L https://github.com/domoritz/leaflet-locatecontrol/archive/v${LEAFLET_LOCATECONTROL_VERSION}.tar.gz -o dl/${LEAFLET_LOCATECONTROL_FILE}
 fi
 
 # Extract the leaflet plugins
@@ -42,6 +48,9 @@ mkdir -p map/static/leaflet/dialog/
 	sed -i -e 's/fa-arrows"/fa-arrows-alt"/' Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.js;
 	sed -i -e 's/fa-arrows-h /fa-arrows-alt-h /' Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.js;
 	cp Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.{js,css} ../map/static/leaflet/dialog/)
+rm -fr tmp; mkdir tmp
+mkdir -p map/static/leaflet/locatecontrol/
+(cd tmp; tar xf ../dl/${LEAFLET_LOCATECONTROL_FILE}; cp leaflet-locatecontrol-${LEAFLET_LOCATECONTROL_VERSION}/dist/*.min.{js,css} ../map/static/leaflet/locatecontrol/)
 rm -fr tmp
 
 # Grab fontawesome

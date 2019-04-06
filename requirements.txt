@@ -2,7 +2,7 @@ django
 pycodestyle
 
 # Database
-psycopg2
+psycopg2-binary
 
 # Map specific
 django-leaflet
