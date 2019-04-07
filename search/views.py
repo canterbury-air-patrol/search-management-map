@@ -6,10 +6,11 @@ from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry, LineString
 
 import math
+import json
 
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch
 from data.models import PointTimeLabel, LineStringTimeLabel
-from assets.models import AssetType
+from assets.models import AssetType, Asset
 
 
 def dictfetchall(cursor):
@@ -19,6 +20,64 @@ def dictfetchall(cursor):
         dict(zip(columns, row))
         for row in cursor.fetchall()
     ]
+
+
+@login_required
+def find_closest_search(request):
+    if request.method == 'POST':
+        asset_id = request.POST.get('asset_id')
+        lat = request.POST.get('latitude')
+        long = request.POST.get('longitude')
+    elif request.method == 'GET':
+        asset_id = request.GET.get('asset_id')
+        lat = request.GET.get('latitude')
+        long = request.GET.get('longitude')
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    asset = get_object_or_404(Asset, pk=asset_id)
+
+    object_type = None
+    object_id = None
+    distance = None
+    length = None
+
+    # Search for the closest start point across the search types
+    for table in ('sector', 'expandingbox', 'trackline', 'tracklinecreeping'):
+        query = "SELECT id,ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) AS distance, ST_Length(line) AS length FROM search_{}search WHERE created_for_id = {} AND completed is NULL ORDER BY distance ASC LIMIT 1;".format(long, lat, table, asset.asset_type.pk)
+        cursor = connection.cursor()
+        cursor.execute(query)
+        search_res = dictfetchall(cursor)
+        if len(search_res) > 0:
+            if object_type is None or search_res[0]['distance'] < distance:
+                object_type = table
+                object_id = search_res[0]['id']
+                distance = search_res[0]['distance']
+                length = search_res[0]['length']
+
+    if object_type == 'tracklinecreeping':
+        object_type = 'creepingline/track'
+
+    data = {
+        'object_url': "/search/{}/{}/json/".format(object_type, object_id),
+        'distance': distance,
+        'length': length,
+    }
+
+    return HttpResponse(json.dumps(data), content_type='application/json')
+
+
+@login_required
+def search_json(request, id, objectClass):
+    search = get_object_or_404(objectClass, pk=id)
+    geojson_data = serialize('geojson', [search], geometry_field='line',
+                             fields=objectClass.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+def sector_search_json(request, id):
+    return search_json(request, id, SectorSearch)
 
 
 @login_required
@@ -85,6 +144,10 @@ def sector_search_create(request):
                              fields=SectorSearch.GEOJSON_FIELDS,
                              use_natural_foreign_keys=True)
     return HttpResponse(geojson_data, content_type='application/json')
+
+
+def expanding_box_search_json(request, id):
+    return search_json(request, id, ExpandingBoxSearch)
 
 
 @login_required
@@ -162,6 +225,10 @@ def expanding_box_search_create(request):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
+def track_line_search_json(request, id):
+    return search_json(request, id, TrackLineSearch)
+
+
 @login_required
 def track_line_search_incomplete(request):
     searches = TrackLineSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
@@ -210,6 +277,10 @@ def track_line_search_create(request):
                              fields=TrackLineSearch.GEOJSON_FIELDS,
                              use_natural_foreign_keys=True)
     return HttpResponse(geojson_data, content_type='application/json')
+
+
+def creeping_line_track_search_json(request, id):
+    return search_json(request, id, TrackLineCreepingSearch)
 
 
 @login_required
