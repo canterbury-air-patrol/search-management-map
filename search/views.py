@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.serializers import serialize
@@ -44,7 +44,7 @@ def find_closest_search(request):
 
     # Search for the closest start point across the search types
     for table in ('sector', 'expandingbox', 'trackline', 'tracklinecreeping'):
-        query = "SELECT id,ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) AS distance, ST_Length(line) AS length FROM search_{}search WHERE created_for_id = {} AND completed is NULL ORDER BY distance ASC LIMIT 1;".format(long, lat, table, asset.asset_type.pk)
+        query = "SELECT id,ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) AS distance, ST_Length(line) AS length FROM search_{}search WHERE created_for_id = {} AND inprogress_by_id is NULL AND completed is NULL ORDER BY distance ASC LIMIT 1;".format(long, lat, table, asset.asset_type.pk)
         cursor = connection.cursor()
         cursor.execute(query)
         search_res = dictfetchall(cursor)
@@ -96,6 +96,48 @@ def search_completed(request, objectClass):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
+def check_searches_in_progress(asset):
+    for objectClass in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch):
+        searches = objectClass.objects.filter(inprogress_by=asset).exclude(completed__isnull=False)
+        if len(searches) > 0:
+            return True
+
+    return False
+
+
+@login_required
+def search_begin(request, id, objectClass):
+    if request.method == 'POST':
+        asset_id = request.POST.get('asset_id')
+    elif request.method == 'GET':
+        asset_id = request.GET.get('asset_id')
+    else:
+        return HttpResponse('Unsupported method')
+
+    asset = get_object_or_404(Asset, pk=asset_id)
+    if asset.owner != request.user:
+        return HttpResponseForbidden("Wrong User for Asset")
+
+    if check_searches_in_progress(asset):
+        return HttpResponseForbidden("Asset already has a search in progress.")
+
+    search = get_object_or_404(objectClass, pk=id)
+    if search.deleted:
+        return HttpResponseForbidden("Search has been deleted")
+    if search.completed is not None or search.completed_by is not None:
+        return HttpResponseForbidden("Search already completed")
+    if search.inprogress_by is not None:
+        return HttpResponseForbidden("Search already in progress")
+
+    search.inprogress_by = asset
+    search.save()
+
+    geojson_data = serialize('geojson', [search], geometry_field='line',
+                             fields=objectClass.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
 def sector_search_json(request, id):
     return search_json(request, id, SectorSearch)
 
@@ -106,6 +148,10 @@ def sector_search_incomplete(request):
 
 def sector_search_completed(request):
     return search_completed(request, SectorSearch)
+
+
+def sector_search_begin(request, id):
+    return search_begin(request, id, SectorSearch)
 
 
 @login_required
@@ -164,6 +210,10 @@ def expanding_box_search_incomplete(request):
 
 def expanding_box_search_completed(request):
     return search_completed(request, ExpandingBoxSearch)
+
+
+def expanding_box_search_begin(request, id):
+    return search_begin(request, id, ExpandingBoxSearch)
 
 
 @login_required
@@ -233,6 +283,10 @@ def track_line_search_completed(request):
     return search_completed(request, TrackLineSearch)
 
 
+def track_line_search_begin(request, id):
+    return search_begin(request, id, TrackLineSearch)
+
+
 @login_required
 def track_line_search_create(request):
     save = False
@@ -273,6 +327,10 @@ def creeping_line_track_search_incomplete(request):
 
 def creeping_line_track_search_completed(request):
     return search_completed(request, TrackLineCreepingSearch)
+
+
+def creeping_line_track_search_begin(request, id):
+    return search_begin(request, id, TrackLineCreepingSearch)
 
 
 @login_required
