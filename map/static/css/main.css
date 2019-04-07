@@ -7,3 +7,7 @@
 .fa-arrows-alt, .fa-arrows-alt-h {
 	color: #666;
 }
+
+.form-inline > * {
+   margin:5px 3px;
+}
