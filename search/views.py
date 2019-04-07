@@ -132,7 +132,7 @@ def expanding_box_search_create(request):
     sweep_width = float(sweep_width)
     try:
         first_bearing = int(first_bearing)
-    except:
+    except ValueError:
         first_bearing = 0
 
     query = "SELECT p.point, p.first"
