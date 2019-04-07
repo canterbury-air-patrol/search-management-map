@@ -76,28 +76,36 @@ def search_json(request, id, objectClass):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
+@login_required
+def search_incomplete(request, objectClass):
+    searches = objectClass.objects.exclude(deleted=True).exclude(completed__isnull=False)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=objectClass.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
+@login_required
+def search_completed(request, objectClass):
+    searches = objectClass.objects.exclude(deleted=True).exclude(completed__isnull=True)
+
+    geojson_data = serialize('geojson', searches, geometry_field='line',
+                             fields=objectClass.GEOJSON_FIELDS,
+                             use_natural_foreign_keys=True)
+    return HttpResponse(geojson_data, content_type='application/json')
+
+
 def sector_search_json(request, id):
     return search_json(request, id, SectorSearch)
 
 
-@login_required
 def sector_search_incomplete(request):
-    sector_searches = SectorSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
-
-    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
-                             fields=SectorSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_incomplete(request, SectorSearch)
 
 
-@login_required
 def sector_search_completed(request):
-    sector_searches = SectorSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
-
-    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
-                             fields=SectorSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_completed(request, SectorSearch)
 
 
 @login_required
@@ -150,24 +158,12 @@ def expanding_box_search_json(request, id):
     return search_json(request, id, ExpandingBoxSearch)
 
 
-@login_required
 def expanding_box_search_incomplete(request):
-    sector_searches = ExpandingBoxSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
-
-    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
-                             fields=ExpandingBoxSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_incomplete(request, ExpandingBoxSearch)
 
 
-@login_required
 def expanding_box_search_completed(request):
-    sector_searches = ExpandingBoxSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
-
-    geojson_data = serialize('geojson', sector_searches, geometry_field='line',
-                             fields=ExpandingBoxSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_completed(request, ExpandingBoxSearch)
 
 
 @login_required
@@ -229,24 +225,12 @@ def track_line_search_json(request, id):
     return search_json(request, id, TrackLineSearch)
 
 
-@login_required
 def track_line_search_incomplete(request):
-    searches = TrackLineSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=TrackLineSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_incomplete(request, TrackLineSearch)
 
 
-@login_required
 def track_line_search_completed(request):
-    searches = TrackLineSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=TrackLineSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return search_completed(request, TrackLineSearch)
 
 
 @login_required
@@ -283,24 +267,12 @@ def creeping_line_track_search_json(request, id):
     return search_json(request, id, TrackLineCreepingSearch)
 
 
-@login_required
-def creeping_line_search_incomplete(request):
-    searches = TrackLineCreepingSearch.objects.exclude(deleted=True).exclude(completed__isnull=False)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=TrackLineCreepingSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+def creeping_line_track_search_incomplete(request):
+    return search_incomplete(request, TrackLineCreepingSearch)
 
 
-@login_required
-def creeping_line_search_completed(request):
-    searches = TrackLineCreepingSearch.objects.exclude(deleted=True).exclude(completed__isnull=True)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=TrackLineCreepingSearch.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+def creeping_line_track_search_completed(request):
+    return search_completed(request, TrackLineCreepingSearch)
 
 
 @login_required

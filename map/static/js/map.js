@@ -338,7 +338,7 @@ function mapInit(map) {
     overlayAdd("Track Line Searches (completed)", realtime);
 
     realtime = L.realtime({
-            url: "/search/creepingline/incomplete/",
+            url: "/search/creepingline/track/incomplete/",
             type: 'json',
         }, {
             interval: 3 * 1000,
@@ -350,7 +350,7 @@ function mapInit(map) {
     overlayAdd("Creeping Line Searches (incomplete)", realtime);
 
     realtime = L.realtime({
-            url: "/search/creepingline/completed/",
+            url: "/search/creepingline/track/completed/",
             type: 'json',
         }, {
             interval: 3 * 1000,
