@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.serializers import serialize
 from django.db import connection
 from django.contrib.gis.geos import GEOSGeometry, LineString
+from django.utils import timezone
 
 import math
 import json
@@ -138,6 +139,34 @@ def search_begin(request, id, objectClass):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
+@login_required
+def search_finished(request, id, objectClass):
+    if request.method == 'POST':
+        asset_id = request.POST.get('asset_id')
+    elif request.method == 'GET':
+        asset_id = request.GET.get('asset_id')
+    else:
+        return HttpResponse('Unsupported method')
+
+    asset = get_object_or_404(Asset, pk=asset_id)
+    if asset.owner != request.user:
+        return HttpResponseForbidden("Wrong User for Asset")
+
+    search = get_object_or_404(objectClass, pk=id)
+    if search.deleted:
+        return HttpResponseForbidden("Search has been deleted")
+    if search.completed is not None or search.completed_by is not None:
+        return HttpResponseForbidden("Search already completed")
+    if search.inprogress_by is None or search.inprogress_by.id != asset.id:
+        return HttpResponseForbidden("Search not in progress by this asset")
+
+    search.completed = timezone.now()
+    search.completed_by = asset
+    search.save()
+
+    return HttpResponse("Completed")
+
+
 def sector_search_json(request, id):
     return search_json(request, id, SectorSearch)
 
@@ -152,6 +181,10 @@ def sector_search_completed(request):
 
 def sector_search_begin(request, id):
     return search_begin(request, id, SectorSearch)
+
+
+def sector_search_finished(request, id):
+    return search_finished(request, id, SectorSearch)
 
 
 @login_required
@@ -214,6 +247,10 @@ def expanding_box_search_completed(request):
 
 def expanding_box_search_begin(request, id):
     return search_begin(request, id, ExpandingBoxSearch)
+
+
+def expanding_box_search_finished(request, id):
+    return search_finished(request, id, ExpandingBoxSearch)
 
 
 @login_required
@@ -287,6 +324,10 @@ def track_line_search_begin(request, id):
     return search_begin(request, id, TrackLineSearch)
 
 
+def track_line_search_finished(request, id):
+    return search_finished(request, id, TrackLineSearch)
+
+
 @login_required
 def track_line_search_create(request):
     save = False
@@ -331,6 +372,10 @@ def creeping_line_track_search_completed(request):
 
 def creeping_line_track_search_begin(request, id):
     return search_begin(request, id, TrackLineCreepingSearch)
+
+
+def creeping_line_track_search_finished(request, id):
+    return search_finished(request, id, TrackLineCreepingSearch)
 
 
 @login_required
