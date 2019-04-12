@@ -37,7 +37,10 @@ def cosine_rule(u, v):
     """Returns the cosine angle between two vectors
     Where,
     cos(theta) = u . v / mag(u) / mag(v)"""
-    return None
+    norm = np.linalg.norm
+    dot = np.dot
+    acos = math.acos
+    return acos(dot(u, v)/norm(u)/norm(v))
 
 
 def decomp(lrng):
