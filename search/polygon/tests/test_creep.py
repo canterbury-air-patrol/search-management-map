@@ -13,6 +13,18 @@ class Test_Creep(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_relv(self):
+        """ Tests relative vector from two points """
+        a = Point(0, 0)
+        b = Point(1, 0)
+
+        self.assertEqual(relv(a,b),
+                         [1,0])
+
+        c = Point(0, 1)
+        self.assertEqual(relv(b,c),
+                         [-1,1])
+
     def test_corner_relv(self):
         """ Tests conversion of points to relative vector """
         a = Point(0,0)
@@ -20,6 +32,12 @@ class Test_Creep(unittest.TestCase):
         c = Point(0,1)
 
         u, v = corner_relv(a, b, c)
+
+        u_exp = [1, 0]
+        v_exp = [-1, 0]
+
+        self.assertEqual(u, u_exp)
+        self.assertEqual(v, v_exp)
 
     # def test_subpoly(self):
     #     " Tests subpoly returns new subset polygon"

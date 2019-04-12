@@ -20,12 +20,16 @@ import math as m
 #     return min
 
 
+def relv(a, b):
+    """ Returns a relative vector, b-a"""
+    return [v for i, v in enumerate(b)]
+
+
 def corner_relv(a, b, c):
     """ Takes 3 points a, b and c and returns
          u = b - a
          v = c - b """
-    return [0, 1]
-
+    return [relv(a, b), relv(b, c)]
 
 def decomp(lrng):
     """Decompose an arbitrary linear ring into a set of convex linear rings."""
