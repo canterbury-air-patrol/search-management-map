@@ -2,7 +2,7 @@
 
 from django.contrib.gis.geos import Polygon, Point
 import numpy as np
-import math as m
+import math
 
 
 # Pseudocode
@@ -31,6 +31,13 @@ def corner_relv(a, b, c):
          u = b - a
          v = c - b """
     return [relv(a, b), relv(b, c)]
+
+
+def cosine_rule(u, v):
+    """Returns the cosine angle between two vectors
+    Where,
+    cos(theta) = u . v / mag(u) / mag(v)"""
+    return None
 
 
 def decomp(lrng):

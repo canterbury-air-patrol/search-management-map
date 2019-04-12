@@ -39,6 +39,13 @@ class Test_Creep(unittest.TestCase):
         self.assertEqual(u, u_exp)
         self.assertEqual(v, v_exp)
 
+    def test_cosine_rule(self):
+        """ Tests cosine rule """
+        u = [1, 0]
+        v = [0, 1]
+        self.assertEqual(cosine_rule(u, v), math.pi/2)
+
+
     # def test_subpoly(self):
     #     " Tests subpoly returns new subset polygon"
     #     self.assertFalse(True)
