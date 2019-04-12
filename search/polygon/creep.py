@@ -4,6 +4,7 @@ from django.contrib.gis.geos import Polygon, Point
 import numpy as np
 import math as m
 
+
 # Pseudocode
 # def decomp(poly):
 #     "Decompose a concave polygon into a convex"
@@ -22,7 +23,7 @@ import math as m
 
 def relv(a, b):
     """ Returns a relative vector, b-a"""
-    return [v for i, v in enumerate(b)]
+    return [v - a[i] for i, v in enumerate(b)]
 
 
 def corner_relv(a, b, c):
@@ -30,6 +31,7 @@ def corner_relv(a, b, c):
          u = b - a
          v = c - b """
     return [relv(a, b), relv(b, c)]
+
 
 def decomp(lrng):
     """Decompose an arbitrary linear ring into a set of convex linear rings."""

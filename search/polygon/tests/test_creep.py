@@ -34,7 +34,7 @@ class Test_Creep(unittest.TestCase):
         u, v = corner_relv(a, b, c)
 
         u_exp = [1, 0]
-        v_exp = [-1, 0]
+        v_exp = [-1, 1]
 
         self.assertEqual(u, u_exp)
         self.assertEqual(v, v_exp)
