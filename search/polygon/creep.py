@@ -21,19 +21,20 @@ import math
 #     return min
 
 
-def relv(a, b):
+def pt_relv(a, b):
     """ Returns a relative vector, b-a"""
     return [v - a[i] for i, v in enumerate(b)]
 
 
-def corner_relv(a, b, c):
+def pt_corner_relv(a, b, c):
     """ Takes 3 points a, b and c and returns
          u = b - a
          v = c - b """
-    return [relv(a, b), relv(b, c)]
+    return [pt_relv(a, b),
+            pt_relv(b, c)]
 
 
-def cosine_rule(u, v):
+def vec_cosine_rule(u, v):
     """Returns the cosine angle between two vectors
     Where,
     cos(theta) = u . v / mag(u) / mag(v)"""
@@ -43,19 +44,39 @@ def cosine_rule(u, v):
     return acos(dot(u, v)/norm(u)/norm(v))
 
 
+def lrng_concave_points(lrng):
+    """ Takes a linear ring and
+    returns all concave/reflex points in the ring """
+
+
+def lrng_cross(lrng):
+    """Returns the cross product of every corner
+        """
+    dirl = list()
+
+    # Ignore last element (duplicate)
+    lr = [pt for pt in lrng]
+    lr.pop()
+
+    for i, pt in enumerate(lr):
+        p0 = lr[i-2]
+        p1 = lr[i-1]
+        p2 = pt
+        dirl.append(
+            np.cross(
+                *pt_corner_relv(p0, p1, p2)
+            )
+        )
+    dirl.append(dirl.pop(0))
+    return [float(x) for x in dirl]
+
+
 def decomp(lrng):
     """Decompose an arbitrary linear ring into a set of convex linear rings."""
     for pt1 in concave_points(lrng):
         for pt0 in convex_points(lrng):
             if cansee(pt0, pt1, lrng):
                 pass
-
-
-def concave_points(lrng):
-    " Takes a linear ring and returns all concave/reflex points in the ring"
-    for pt in lrng:
-        pass
-    return pt
 
 
 def convex_points(lrng):

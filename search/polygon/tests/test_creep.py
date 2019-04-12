@@ -18,11 +18,11 @@ class Test_Creep(unittest.TestCase):
         a = Point(0, 0)
         b = Point(1, 0)
 
-        self.assertEqual(relv(a,b),
+        self.assertEqual(pt_relv(a,b),
                          [1,0])
 
         c = Point(0, 1)
-        self.assertEqual(relv(b,c),
+        self.assertEqual(pt_relv(b,c),
                          [-1,1])
 
     def test_corner_relv(self):
@@ -31,7 +31,7 @@ class Test_Creep(unittest.TestCase):
         b = Point(1,0)
         c = Point(0,1)
 
-        u, v = corner_relv(a, b, c)
+        u, v = pt_corner_relv(a, b, c)
 
         u_exp = [1, 0]
         v_exp = [-1, 1]
@@ -43,11 +43,11 @@ class Test_Creep(unittest.TestCase):
         """ Tests cosine rule """
         u1 = [1, 0]
         v1 = [0, 1]
-        self.assertEqual(cosine_rule(u1, v1), math.pi/2)
+        self.assertEqual(vec_cosine_rule(u1, v1), math.pi/2)
 
         u2 = [1, 0]
         v2 = [1, 1]
-        self.assertAlmostEqual(cosine_rule(u2, v2), math.pi/4)
+        self.assertAlmostEqual(vec_cosine_rule(u2, v2), math.pi/4)
 
     # def test_subpoly(self):
     #     " Tests subpoly returns new subset polygon"
@@ -57,20 +57,46 @@ class Test_Creep(unittest.TestCase):
     #     " Test polygon is decomposed into multiple smaller polygons"
     #     self.assertFalse(True)
 
-    # def test_concave_points(self):
-    #     " Test concave points are returned from linear ring."
 
-    #     # Plain square (no reflex points)
-    #     lrng0 = LinearRing((
-    #         (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+    def test_cross(self):
+        """ Test cross product of lrng method
+        """
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
-    #     # Square with a notch (1 reflex point @ (2,1))
-    #     lrng1 = LinearRing((
-    #         (0, 0), (0, 2), (4, 2), (4, 0),
-    #         (3, 0), (2, 1), (1, 0), (0, 0)))
+        # Square with a notch (1 reflex point @ (2,1))
+        lrng1 = LinearRing((
+            (0, 0), (0, 2), (4, 2), (4, 0),
+            (3, 0), (2, 1), (1, 0), (0, 0)))
 
-    #     self.assertEqual(c.concave_points(lrng0), list())
-    #     self.assertEqual(c.concave_points(lrng1), [(2, 1)])
+        self.assertEqual(lrng_cross(lrng0),
+                         [-1, -1, -1, -1])
+        lrng0.reverse()
+        self.assertEqual(lrng_cross(lrng0),
+                         [1, 1, 1, 1])
+
+        self.assertEqual(lrng_cross(lrng1),
+                         [-2, -8, -8, -2, -1, 2, -1])
+        lrng1.reverse()
+        self.assertEqual(lrng_cross(lrng1),
+                         [2, 1, -2, 1, 2, 8, 8])
+
+
+    def test_concave_points(self):
+        " Test concave points are returned from linear ring."
+
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Square with a notch (1 reflex point @ (2,1))
+        lrng1 = LinearRing((
+            (0, 0), (0, 2), (4, 2), (4, 0),
+            (3, 0), (2, 1), (1, 0), (0, 0)))
+
+        self.assertEqual(lrng_concave_points(lrng0), list())
+        self.assertEqual(lrng_concave_points(lrng1), [(2, 1)])
 
     # def test_subtract_points(self):
 
