@@ -47,6 +47,23 @@ def vec_cosine_rule(u, v):
 def lrng_concave_points(lrng):
     """ Takes a linear ring and
     returns all concave/reflex points in the ring """
+    lcross = lrng_cross(lrng)
+    cw = sum(1 for i in lcross if i < 0)
+    acw = sum(1 for i in lcross if i > 0)
+    zeros = sum(1 for i in lcross if i == 0)
+
+    # The number of concave points will always be
+    # smaller or equal than the number of convex points
+
+    # Case 1: Concave points are acw, or both
+    if cw >= acw:
+        return [lrng[i]
+                for i, cp in enumerate(lcross)
+                if cp > 0 ]
+    else:
+        return [lrng[i]
+                for i, cp in enumerate(lcross)
+                if cp < 0]
 
 
 def lrng_cross(lrng):
