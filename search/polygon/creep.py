@@ -97,8 +97,14 @@ def decomp(lrng):
                 pass
 
 
-def convex_points(lrng):
+def lrng_convex_points(lrng):
     " Takes a linear ring and returns all convex points"
+    concave_points = lrng_concave_points(lrng)
+    convex_points = [pt
+                     for pt in lrng
+                     if pt not in concave_points]
+    convex_points.pop()
+    return convex_points
 
 
 def cansee(pt0, pt1, lrng):

@@ -98,6 +98,25 @@ class Test_Creep(unittest.TestCase):
         self.assertEqual(lrng_concave_points(lrng0), list())
         self.assertEqual(lrng_concave_points(lrng1), [(2, 1)])
 
+    def test_convex_points(self):
+        " Test convex points are returned from linear ring."
+
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Square with a notch (1 reflex point @ (2,1))
+        lrng1 = LinearRing((
+            (0, 0), (0, 2), (4, 2), (4, 0),
+            (3, 0), (2, 1), (1, 0), (0, 0)))
+
+        self.assertEqual(lrng_convex_points(lrng0),
+                         [(0, 0), (0, 1), (1, 1), (1, 0)])
+        self.assertEqual(lrng_convex_points(lrng1),
+                         [(0, 0), (0, 2), (4, 2), (4, 0),
+                          (3, 0), (1, 0)])
+
+
     # def test_subtract_points(self):
 
     #     pt0 = Point(10,1)
