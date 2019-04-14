@@ -4,7 +4,6 @@ from django.contrib.gis.geos import Polygon, Point
 import numpy as np
 import math
 
-
 # Pseudocode
 # def decomp(poly):
 #     "Decompose a concave polygon into a convex"
@@ -60,6 +59,8 @@ def lrng_concave_points(lrng):
         return [lrng[i]
                 for i, cp in enumerate(lcross)
                 if cp > 0 ]
+
+    # Alternative: Concave points are cw
     else:
         return [lrng[i]
                 for i, cp in enumerate(lcross)
