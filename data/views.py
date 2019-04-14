@@ -1,12 +1,19 @@
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point, Polygon, LineString
 from django.core.serializers import serialize
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+
+from io import TextIOWrapper
+import csv
+import pytz
+from datetime import datetime
 
 from assets.models import Asset
 from .models import AssetPointTime, PointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
+from .forms import UploadTyphoonData
+from smm.settings import TIME_ZONE
 
 
 @login_required
@@ -263,3 +270,41 @@ def user_line_delete(request, pk):
     line.deleted_at = timezone.now()
     line.save()
     return HttpResponse("Deleted")
+
+
+def convert_typhoon_time(ts):
+    a = ts.split(' ')
+    date = a[0]
+    year = int(date[0:4])
+    month = int(date[4:6])
+    day = int(date[6:8])
+    time = a[1].split(':')
+    hour = int(time[0])
+    min = int(time[1])
+    sec = int(time[2])
+    msecs = int(time[3])
+    return datetime(year, month, day, hour, min, sec, msecs, tzinfo=pytz.timezone(TIME_ZONE)), sec
+
+
+@login_required
+def upload_typhoonh_data(request):
+    if request.method == 'POST':
+        form = UploadTyphoonData(request.POST, request.FILES)
+        if form.is_valid():
+            with TextIOWrapper(request.FILES['telemetry'].file, encoding=request.encoding) as f:
+                reader = csv.DictReader(f)
+                last_second = -1
+                for row in reader:
+                    if row['gps_used'] == 'true':
+                        p = Point(float(row['longitude']), float(row['latitude']))
+                        timestring, seconds = convert_typhoon_time(row[''])
+                        if seconds != last_second:
+                            AssetPointTime(asset=form.cleaned_data['asset'], alt=float(row['altitude']), heading=float(row['yaw']), point=p, timestamp=timestring, creator=request.user).save()
+                            last_second = seconds
+            return HttpResponseRedirect('/')
+    else:
+        form = UploadTyphoonData()
+
+    form.fields['asset'].queryset = Asset.objects.filter(owner=request.user)
+
+    return render(request, 'typhoon-upload.html', {'form': form})
