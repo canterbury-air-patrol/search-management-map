@@ -1,0 +1,49 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>Search Map Recorder</title>
+        <script type="text/javascript">
+            csrftoken = "{{ csrf_token }}";
+        </script>
+        <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
+        <script>
+function errorHandler() {
+
+}
+
+function updatePosition(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    var altitude = position.coords.altitude;
+    var heading = position.coords.heading;
+
+    var asset_name = $("#id_asset option:selected").text();
+    var data = {
+        lat: latitude,
+        lon: longitude,
+        alt: altitude,
+        heading: heading,
+    };
+
+    $.get('/data/assets/' + asset_name + '/position/add/', data);
+}
+
+function startRecording(){
+if (navigator.geolocation) {
+var options = {timeout:60000};
+               geoLoc = navigator.geolocation;
+               watchID = geoLoc.watchPosition(updatePosition, errorHandler, options);
+}
+}
+        </script>
+    </head>
+    <body>
+        <form>
+        <table>
+            {{ form }}
+        </table>
+        <button class="btn" onClick="startRecording()">Record</button>
+        </form>
+    </body>
+</html>
