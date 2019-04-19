@@ -63,8 +63,22 @@ def asset_record_position(request, asset_name):
     p = None
     try:
         p = Point(float(lon), float(lat))
-    except TypeError:
+    except (ValueError, TypeError):
         pass
+
+    try:
+        fix = int(fix)
+    except (TypeError, ValueError):
+        fix = None
+    try:
+        heading = int(heading)
+    except (TypeError, ValueError):
+        heading = None
+    try:
+        alt = float(alt)
+    except (TypeError, ValueError):
+        alt = None
+
     if p:
         AssetPointTime(asset=asset, point=p, creator=request.user, alt=alt, heading=heading, fix=fix).save()
     if not p:
