@@ -1,6 +1,6 @@
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.core.serializers import serialize
-from django.contrib.gis.geos import Point, Polygon, LineString
+from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -15,6 +15,22 @@ def to_geojson(objecttype, objects):
     geojson_data = serialize('geojson', objects, geometry_field=objecttype.GEOFIELD,
                              fields=objecttype.GEOJSON_FIELDS, use_natural_foreign_keys=True)
     return HttpResponse(geojson_data, content_type='application/json')
+
+
+def to_kml(objecttype, objects):
+    kml_data = '<?xml version="1.0" encoding="UTF-8"?>\n' + \
+               '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
+               '\t<Document>\n'
+    for object in objects:
+        kml_data += '\t\t<Placemark>\n\t\t\t<name>{}</name>\n'.format(object.label)
+        kml_data += '\t\t\t<description>{}</description>\n'.format(object.label)
+        kml_data += GEOSGeometry(getattr(object, objecttype.GEOFIELD)).kml
+        kml_data += '\n\t\t</Placemark>\n'
+
+    kml_data += '\t</Document>\n</kml>'
+    print(kml_data)
+
+    return HttpResponse(kml_data, 'application/vnd.google-earth.kml+xml')
 
 
 def userobject_replace(objecttype, request, name, pk, func):

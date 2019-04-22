@@ -106,6 +106,10 @@ def point_labels_all(request):
     return to_geojson(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
 
 
+def point_labels_all_kml(request):
+    return to_kml(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
+
+
 @login_required
 def point_label_create(request):
     return point_label_make(request)
@@ -126,6 +130,10 @@ def user_polygons_all(request):
     return to_geojson(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
 
 
+def user_polygons_all_kml(request):
+    return to_kml(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
+
+
 @login_required
 def user_polygon_create(request):
     return user_polygon_make(request)
@@ -144,6 +152,10 @@ def user_polygon_delete(request, pk):
 @login_required
 def user_lines_all(request):
     return to_geojson(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
+
+
+def user_lines_all_kml(request):
+    return to_kml(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
 
 
 @login_required
