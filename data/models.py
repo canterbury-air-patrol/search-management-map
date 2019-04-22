@@ -12,6 +12,8 @@ class PointTime(models.Model):
     deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
     deleted_at = models.DateTimeField(null=True, blank=True)
 
+    GEOFIELD = 'point'
+
     class Meta:
         abstract = True
 
@@ -46,6 +48,8 @@ class PolygonTime(models.Model):
     deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
     deleted_at = models.DateTimeField(null=True, blank=True)
 
+    GEOFIELD = 'polygon'
+
     class Meta:
         abstract = True
 
@@ -65,6 +69,8 @@ class LineStringTime(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
     deleted = models.BooleanField(default=False)
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+
+    GEOFIELD = 'line'
 
     class Meta:
         abstract = True

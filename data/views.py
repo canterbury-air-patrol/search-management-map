@@ -13,6 +13,7 @@ from datetime import datetime
 from assets.models import Asset
 from .models import AssetPointTime, PointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 from .forms import UploadTyphoonData
+from .view_helpers import *
 from smm.settings import TIME_ZONE
 
 
@@ -102,40 +103,7 @@ def asset_position_history(request, asset_name):
 
 @login_required
 def point_labels_all(request):
-    pois = PointTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
-
-    geojson_data = serialize('geojson', pois, geometry_field='point',
-                             fields=PointTimeLabel.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
-
-
-def point_label_make(request, replaces=None):
-    poi_lat = ''
-    poi_lon = ''
-    poi_label = ''
-    if request.method == 'GET':
-        poi_lat = request.GET.get('lat')
-        poi_lon = request.GET.get('lon')
-        poi_label = request.GET.get('label')
-    elif request.method == 'POST':
-        poi_lat = request.POST.get('lat')
-        poi_lon = request.POST.get('lon')
-        poi_label = request.POST.get('label')
-
-    if poi_lat is None or poi_lon is None or poi_label is None:
-        return HttpResponseBadRequest()
-
-    p = Point(float(poi_lon), float(poi_lat))
-
-    ptl = PointTimeLabel(point=p, label=poi_label, creator=request.user)
-    ptl.save()
-
-    if replaces is not None:
-        replaces.replaced_by = ptl
-        replaces.save()
-
-    return HttpResponse()
+    return to_geojson(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
 
 
 @login_required
@@ -145,56 +113,17 @@ def point_label_create(request):
 
 @login_required
 def point_label_replace(request, pk):
-    replaces = get_object_or_404(PointTimeLabel, pk=pk)
-    if replaces.deleted:
-        return HttpResponseNotFound("This POI has been deleted")
-    if replaces.replaced_by is not None:
-        return HttpResponseNotFound("This POI has already been replaced")
-    return point_label_make(request, replaces=replaces)
+    return userobject_replace(PointTimeLabel, request, 'POI', pk, point_label_make)
 
 
 @login_required
 def point_label_delete(request, pk):
-    poi = get_object_or_404(PointTimeLabel, pk=pk)
-    if poi.deleted:
-        return HttpResponseNotFound("This POI has already been deleted")
-    if poi.replaced_by is not None:
-        return HttpResponseNotFound("This POI has been replaced")
-    poi.deleted = True
-    poi.deleted_by = request.user
-    poi.deleted_at = timezone.now()
-    poi.save()
-    return HttpResponse("Deleted")
+    return userobject_delete(PointTimeLabel, request, 'POI', pk)
 
 
 @login_required
 def user_polygons_all(request):
-    polygons = PolygonTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
-    geojson_data = serialize('geojson', polygons,
-                             geometry_field='polygon',
-                             fields=PolygonTimeLabel.GEOJSON_FIELDS)
-    return HttpResponse(geojson_data, content_type='application/json')
-
-
-def user_polygon_make(request, replaces=None):
-    if request.method == 'POST':
-        points = []
-        label = request.POST['label']
-        points_count = int(request.POST['points'])
-        for i in range(0, points_count):
-            lat = request.POST['point{}_lat'.format(i)]
-            lng = request.POST['point{}_lng'.format(i)]
-            p = Point(float(lng), float(lat))
-            points.append(p)
-        points.append(points[0])
-        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user)
-        ptl.save()
-        if replaces is not None:
-            replaces.replaced_by = ptl
-            replaces.save()
-        return HttpResponse()
-
-    return HttpResponseBadRequest()
+    return to_geojson(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
 
 
 @login_required
@@ -204,57 +133,17 @@ def user_polygon_create(request):
 
 @login_required
 def user_polygon_replace(request, pk):
-    replaces = get_object_or_404(PolygonTimeLabel, pk=pk)
-    if replaces.deleted:
-        return HttpResponseNotFound("This Polygon has been deleted")
-    if replaces.replaced_by is not None:
-        return HttpResponseNotFound("This Polygon has already been replaced")
-    return user_polygon_make(request, replaces=replaces)
+    return userobject_replace(PolygonTimeLabel, request, 'Polygon', pk, user_polygon_make)
 
 
 @login_required
 def user_polygon_delete(request, pk):
-    poly = get_object_or_404(PolygonTimeLabel, pk=pk)
-    if poly.deleted:
-        return HttpResponseNotFound("This Polygon has already been deleted")
-    if poly.replaced_by is not None:
-        return HttpResponseNotFound("This Polygon has been replaced")
-    poly.deleted = True
-    poly.deleted_by = request.user
-    poly.deleted_at = timezone.now()
-    poly.save()
-    return HttpResponse("Deleted")
+    return userobject_delete(PolygonTimeLabel, request, 'Polygon', pk)
 
 
 @login_required
 def user_lines_all(request):
-    lines = LineStringTimeLabel.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
-    geojson_data = serialize('geojson', lines,
-                             geometry_field='line',
-                             fields=LineStringTimeLabel.GEOJSON_FIELDS)
-    return HttpResponse(geojson_data, content_type='application/json')
-
-
-def user_line_make(request, replaces=None):
-    if request.method == 'POST':
-        points = []
-        label = request.POST['label']
-        points_count = int(request.POST['points'])
-        for i in range(0, points_count):
-            lat = request.POST['point{}_lat'.format(i)]
-            lng = request.POST['point{}_lng'.format(i)]
-            p = Point(float(lng), float(lat))
-            points.append(p)
-        lstl = LineStringTimeLabel(line=LineString(points), label=label, creator=request.user)
-        lstl.save()
-        print(lstl)
-        if replaces is not None:
-            replaces.replaced_by = lstl
-            replaces.save()
-            print(replaces)
-        return HttpResponse()
-
-    return HttpResponseBadRequest()
+    return to_geojson(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
 
 
 @login_required
@@ -264,26 +153,12 @@ def user_line_create(request):
 
 @login_required
 def user_line_replace(request, pk):
-    replaces = get_object_or_404(LineStringTimeLabel, pk=pk)
-    if replaces.deleted:
-        return HttpResponseNotFound("This Line has been deleted")
-    if replaces.replaced_by is not None:
-        return HttpResponseNotFound("This Line has already been replaced")
-    return user_line_make(request, replaces)
+    return userobject_replace(LineStringTimeLabel, request, 'Line', pk, user_line_make)
 
 
 @login_required
 def user_line_delete(request, pk):
-    line = get_object_or_404(LineStringTimeLabel, pk=pk)
-    if line.deleted:
-        return HttpResponseNotFound("This Line has already been deleted")
-    if line.replaced_by is not None:
-        return HttpResponseNotFound("This Line has been replaced")
-    line.deleted = True
-    line.deleted_by = request.user
-    line.deleted_at = timezone.now()
-    line.save()
-    return HttpResponse("Deleted")
+    return userobject_delete(LineStringTimeLabel, request, 'Line', pk)
 
 
 def convert_typhoon_time(ts):
