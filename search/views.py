@@ -12,6 +12,7 @@ import json
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch
 from data.models import PointTimeLabel, LineStringTimeLabel
 from assets.models import AssetType, Asset
+from data.view_helpers import to_kml, to_geojson, to_kml
 from .view_helpers import *
 
 
@@ -134,12 +135,22 @@ def sector_search_json(request, id):
     return search_json(request, id, SectorSearch)
 
 
+@login_required
 def sector_search_incomplete(request):
-    return search_incomplete(request, SectorSearch)
+    return to_geojson(SectorSearch, search_incomplete(request, SectorSearch))
 
 
+def sector_search_incomplete_kml(request):
+    return to_kml(SectorSearch, search_incomplete(request, SectorSearch))
+
+
+@login_required
 def sector_search_completed(request):
-    return search_completed(request, SectorSearch)
+    return to_geojson(SectorSearch, search_completed(request, SectorSearch))
+
+
+def sector_search_completed_kml(request):
+    return to_kml(SectorSearch, search_completed(request, SectorSearch))
 
 
 def sector_search_begin(request, id):
@@ -200,12 +211,22 @@ def expanding_box_search_json(request, id):
     return search_json(request, id, ExpandingBoxSearch)
 
 
+@login_required
 def expanding_box_search_incomplete(request):
-    return search_incomplete(request, ExpandingBoxSearch)
+    return to_geojson(ExpandingBoxSearch, search_incomplete(request, ExpandingBoxSearch))
 
 
+def expanding_box_search_incomplete_kml(request):
+    return to_kml(ExpandingBoxSearch, search_incomplete(request, ExpandingBoxSearch))
+
+
+@login_required
 def expanding_box_search_completed(request):
-    return search_completed(request, ExpandingBoxSearch)
+    return to_geojson(ExpandingBoxSearch, search_completed(request, ExpandingBoxSearch))
+
+
+def expanding_box_search_completed_kml(request):
+    return to_kml(ExpandingBoxSearch, search_completed(request, ExpandingBoxSearch))
 
 
 def expanding_box_search_begin(request, id):
@@ -275,12 +296,22 @@ def track_line_search_json(request, id):
     return search_json(request, id, TrackLineSearch)
 
 
+@login_required
 def track_line_search_incomplete(request):
-    return search_incomplete(request, TrackLineSearch)
+    return to_geojson(TrackLineSearch, search_incomplete(request, TrackLineSearch))
 
 
+def track_line_search_incomplete_kml(request):
+    return to_kml(TrackLineSearch, search_incomplete(request, TrackLineSearch))
+
+
+@login_required
 def track_line_search_completed(request):
-    return search_completed(request, TrackLineSearch)
+    return to_geojson(TrackLineSearch, search_completed(request, TrackLineSearch))
+
+
+def track_line_search_completed_kml(request):
+    return to_kml(TrackLineSearch, search_completed(request, TrackLineSearch))
 
 
 def track_line_search_begin(request, id):
@@ -325,12 +356,22 @@ def creeping_line_track_search_json(request, id):
     return search_json(request, id, TrackLineCreepingSearch)
 
 
+@login_required
 def creeping_line_track_search_incomplete(request):
-    return search_incomplete(request, TrackLineCreepingSearch)
+    return to_geojson(TrackLineCreepingSearch, search_incomplete(request, TrackLineCreepingSearch))
 
 
+def creeping_line_track_search_incomplete_kml(request):
+    return to_kml(TrackLineCreepingSearch, search_incomplete(request, TrackLineCreepingSearch))
+
+
+@login_required
 def creeping_line_track_search_completed(request):
-    return search_completed(request, TrackLineCreepingSearch)
+    return to_geojson(TrackLineCreepingSearch, search_completed(request, TrackLineCreepingSearch))
+
+
+def creeping_line_track_search_completed_kml(request):
+    return to_kml(TrackLineCreepingSearch, search_completed(request, TrackLineCreepingSearch))
 
 
 def creeping_line_track_search_begin(request, id):

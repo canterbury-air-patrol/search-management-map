@@ -22,8 +22,8 @@ def to_kml(objecttype, objects):
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
                '\t<Document>\n'
     for object in objects:
-        kml_data += '\t\t<Placemark>\n\t\t\t<name>{}</name>\n'.format(object.label)
-        kml_data += '\t\t\t<description>{}</description>\n'.format(object.label)
+        kml_data += '\t\t<Placemark>\n\t\t\t<name><![CDATA[{}]]></name>\n'.format(str(object))
+        kml_data += '\t\t\t<description><![CDATA[{}]]></description>\n'.format(str(object))
         kml_data += GEOSGeometry(getattr(object, objecttype.GEOFIELD)).kml
         kml_data += '\n\t\t</Placemark>\n'
 

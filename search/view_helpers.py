@@ -15,24 +15,12 @@ def search_json(request, id, objectClass):
     return HttpResponse(geojson_data, content_type='application/json')
 
 
-@login_required
 def search_incomplete(request, objectClass):
-    searches = objectClass.objects.exclude(deleted=True).exclude(completed__isnull=False)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=objectClass.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return objectClass.objects.exclude(deleted=True).exclude(completed__isnull=False)
 
 
-@login_required
 def search_completed(request, objectClass):
-    searches = objectClass.objects.exclude(deleted=True).exclude(completed__isnull=True)
-
-    geojson_data = serialize('geojson', searches, geometry_field='line',
-                             fields=objectClass.GEOJSON_FIELDS,
-                             use_natural_foreign_keys=True)
-    return HttpResponse(geojson_data, content_type='application/json')
+    return objectClass.objects.exclude(deleted=True).exclude(completed__isnull=True)
 
 
 def check_searches_in_progress(asset):
