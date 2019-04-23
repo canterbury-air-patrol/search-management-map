@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""
+Tests for the map presentation
 
-# Create your tests here.
+We test the map presentation externally to django.
+"""

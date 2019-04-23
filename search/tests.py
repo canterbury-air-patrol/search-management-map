@@ -1,3 +1,5 @@
-from django.test import TestCase
+"""
+Tests for search creation/management
 
-# Create your tests here.
+TODO
+"""

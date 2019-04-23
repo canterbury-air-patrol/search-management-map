@@ -1,3 +1,5 @@
-from django.db import models
+"""
+Models for the map
 
-# Create your models here.
+There shouldn't be any required
+"""

@@ -1,3 +1,5 @@
-from django.contrib import admin
+"""
+Admin of map models
 
-# Register your models here.
+This probably shouldn't be required.
+"""

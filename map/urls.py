@@ -1,3 +1,9 @@
+"""
+URLs for the map
+
+This is mapped in at the top level
+"""
+
 from django.conf.urls import url
 from . import views
 

@@ -1,3 +1,9 @@
+"""
+Urls for assets
+
+These are linked in at /assets/
+"""
+
 from django.conf.urls import url
 from . import views
 

@@ -1,5 +1,4 @@
 django
-pycodestyle
 
 # Database
 psycopg2-binary
@@ -9,3 +8,8 @@ django-leaflet
 
 # Templates
 django-bootstrap4
+
+# Code checking
+pycodestyle
+pylint
+pylint-django
