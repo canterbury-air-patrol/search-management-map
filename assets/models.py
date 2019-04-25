@@ -8,8 +8,9 @@ Assets are things that can do searches
 - etc
 """
 
-from django.db import models
+from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 class AssetType(models.Model):
@@ -43,3 +44,43 @@ class Asset(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class AssetCommand(models.Model):
+    """
+    An action for the asset to perform
+
+    This provides a mechanism for controlling an
+    asset if it is still communicating with this system
+    (and the user has no other means to issue instructions).
+    Commands should be simple and continuous actions,
+    i.e. hold position or return home.
+    """
+    asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
+    issued = models.DateTimeField(default=timezone.now)
+    issued_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+    COMMAND_CHOICES = (
+        ('RTL', "Return To Launch"),
+        ('RON', "Continue"),  # Resume own navigation
+        ('CIR', "Circle"),
+        ('GOTO', "Goto position"),
+    )
+    command = models.CharField(max_length=4, choices=COMMAND_CHOICES)
+    position = models.PointField(geography=True, null=True, blank=True)
+    reason = models.TextField()
+
+    GEOFIELD = 'position'
+    GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason',)
+
+    def __str__(self):
+        return "Command {} to {}".format(self.asset, self.get_command_display())
+
+    @staticmethod
+    def last_command_for_asset(asset):
+        """
+        Find the current command that applies to an asset
+        """
+        try:
+            return AssetCommand.objects.filter(asset=asset).order_by('-issued')[0]
+        except IndexError:
+            return None

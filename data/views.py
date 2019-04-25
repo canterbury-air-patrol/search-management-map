@@ -10,13 +10,13 @@ import csv
 from datetime import datetime
 import pytz
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect
+from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
 
 from smm.settings import TIME_ZONE
-from assets.models import Asset
+from assets.models import Asset, AssetCommand
 from .models import AssetPointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 from .forms import UploadTyphoonData
 from .view_helpers import to_geojson, to_kml, userobject_not_deleted_or_replaced, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
@@ -44,12 +44,13 @@ def asset_record_position(request, asset_name):
 
     Only allows recording of the assets position by the owner.
     Accepts get requests because some assets are very basic.
+
+    Return the last command that applies to an object
     """
     asset = get_object_or_404(Asset, name=asset_name)
     if asset.owner != request.user:
         Http404("Wrong User for Asset")
 
-    msg = "Success"
     lat = ''
     lon = ''
     fix = None
@@ -69,7 +70,7 @@ def asset_record_position(request, asset_name):
         alt = request.POST.get('alt')
         heading = request.POST.get('heading')
     else:
-        msg = request.method
+        return HttpResponseBadRequest("Unsupport method")
 
     point = None
     try:
@@ -93,9 +94,22 @@ def asset_record_position(request, asset_name):
     if point:
         AssetPointTime(asset=asset, point=point, creator=request.user, alt=alt, heading=heading, fix=fix).save()
     else:
-        msg = ("Invalid lat/lon (%s,%s)" % (lat, lon))
+        return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
 
-    return HttpResponse(msg)
+    asset_command = AssetCommand.last_command_for_asset(asset)
+    if asset_command:
+        data = {
+            'action': asset_command.command,
+            'action_txt': asset_command.get_command_display(),
+            'reason': asset_command.reason,
+            'issued': asset_command.issued,
+        }
+        if asset_command.position:
+            data['latitude'] = asset_command.position.y
+            data['longitude'] = asset_command.position.x
+        return JsonResponse(data)
+
+    return HttpResponse("Continue")
 
 
 @login_required
