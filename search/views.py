@@ -14,7 +14,7 @@ Basic overview of presented API:
 """
 import math
 
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db import connection
@@ -55,6 +55,15 @@ def find_closest_search(request):
 
     asset = get_object_or_404(Asset, pk=asset_id)
 
+    if lat is None or long is None:
+        return HttpResponseBadRequest('Invalid lat or long')
+
+    try:
+        lat = float(lat)
+        long = float(long)
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest('Invalid lat or long')
+
     object_type = None
     object_id = None
     distance = None
@@ -80,8 +89,8 @@ def find_closest_search(request):
 
     data = {
         'object_url': "/search/{}/{}/json/".format(object_type, object_id),
-        'distance': distance,
-        'length': length,
+        'distance': int(distance),
+        'length': int(length),
     }
 
     return JsonResponse(data)
