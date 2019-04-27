@@ -219,6 +219,7 @@ function mapInit(map) {
         keepCurrentZoomLevel: true,
         locateOptions: { enableHighAccuracy: true},
     }).addTo(map);
+    L.control.smmadmin({}).addTo(map);
 
     var realtime = L.realtime({
             url: "/data/assets/positions/latest/",

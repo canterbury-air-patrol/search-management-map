@@ -136,6 +136,10 @@ LEAFLET_CONFIG['PLUGINS'] = {
         'js': 'SearchAdder/SearchAdder.js',
         'auto-include': True,
     },
+    'SMMAdmin': {
+        'js': 'Admin/admin.js',
+        'auto-include': True,
+    },
     'LocateControl': {
         'js': 'leaflet/locatecontrol/L.Control.Locate.min.js',
         'css': ['leaflet/locatecontrol/L.Control.Locate.mapbox.min.css', 'leaflet/locatecontrol/L.Control.Locate.min.css'],

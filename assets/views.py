@@ -1,10 +1,13 @@
 """
 Views for assets
 """
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
+from django.contrib.gis.geos import Point
+from django.shortcuts import render
 
-from .models import AssetType, Asset
+from .models import AssetType, Asset, AssetCommand
+from .forms import AssetCommandForm
 
 
 @login_required
@@ -49,3 +52,33 @@ def assets_mine_list(request):
     }
 
     return JsonResponse(data)
+
+
+@login_required
+def asset_command_set(request):
+    """
+    Set the command for a given asset.
+    """
+    form = None
+    if request.method == 'POST':
+        print(request.POST)
+        form = AssetCommandForm(request.POST)
+        if form.is_valid():
+            point = None
+            print(form.cleaned_data['command'])
+            if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
+                latitude = request.POST.get('latitude')
+                longitude = request.POST.get('longitude')
+                print("Converting position")
+                try:
+                    point = Point(latitude, longitude)
+                except (ValueError, TypeError):
+                    HttpResponseBadRequest('Invalid lat/long')
+            asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point)
+            asset_command.save()
+            return HttpResponse("Created")
+
+    if form is None:
+        form = AssetCommandForm()
+
+    return render(request, 'asset-command-form.html', {'form': form})

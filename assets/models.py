@@ -66,6 +66,7 @@ class AssetCommand(models.Model):
         ('GOTO', "Goto position"),
     )
     command = models.CharField(max_length=4, choices=COMMAND_CHOICES)
+    REQUIRES_POSITION = ('GOTO',)
     position = models.PointField(geography=True, null=True, blank=True)
     reason = models.TextField()
 
