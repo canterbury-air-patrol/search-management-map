@@ -42,6 +42,6 @@ def check_searches_in_progress(asset):
     for object_class in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch):
         searches = object_class.objects.filter(inprogress_by=asset).exclude(completed__isnull=False)
         if searches.exists():
-            return True
+            return searches[0]
 
-    return False
+    return None

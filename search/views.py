@@ -69,20 +69,38 @@ def find_closest_search(request):
     distance = None
     length = None
 
-    # Search for the closest start point across the search types
-    for table in ('sector', 'expandingbox', 'trackline', 'tracklinecreeping'):
+    # If this asset already has a search in progress, only offer that
+    search = check_searches_in_progress(asset)
+    if search is not None:
+        object_type = search._meta.db_table
+        object_id = search.pk
         query = \
-            "SELECT id,ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) AS distance, ST_Length(line) AS length" \
-            " FROM search_{}search WHERE created_for_id = {} AND inprogress_by_id is NULL AND completed is NULL ORDER BY distance ASC LIMIT 1;".format(long, lat, table, asset.asset_type.pk)
+            "SELECT ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) as distance, ST_Length(line) AS length" \
+            " FROM {} WHERE id = {}".format(long, lat, object_type, object_id)
         cursor = connection.cursor()
         cursor.execute(query)
         search_res = dictfetchall(cursor)
-        if len(search_res) > 0:
-            if object_type is None or search_res[0]['distance'] < distance:
-                object_type = table
-                object_id = search_res[0]['id']
-                distance = search_res[0]['distance']
-                length = search_res[0]['length']
+        distance = search_res[0]['distance']
+        length = search_res[0]['length']
+        object_type = object_type[7:-6]
+    else:
+        # Search for the closest start point across the search types
+        for table in ('sector', 'expandingbox', 'trackline', 'tracklinecreeping'):
+            query = \
+                "SELECT id,ST_Distance(ST_PointN(line::geometry,1)::geography,'SRID=4326;POINT({} {})'::geography) AS distance, ST_Length(line) AS length" \
+                " FROM search_{}search WHERE created_for_id = {} AND inprogress_by_id is NULL AND completed is NULL AND NOT deleted ORDER BY distance ASC LIMIT 1;".format(long, lat, table, asset.asset_type.pk)
+            cursor = connection.cursor()
+            cursor.execute(query)
+            search_res = dictfetchall(cursor)
+            if len(search_res) > 0:
+                if object_type is None or search_res[0]['distance'] < distance:
+                    object_type = table
+                    object_id = search_res[0]['id']
+                    distance = search_res[0]['distance']
+                    length = search_res[0]['length']
+
+    if object_type is None or object_id is None:
+        return HttpResponseNotFound("No suitable searches exist")
 
     if object_type == 'tracklinecreeping':
         object_type = 'creepingline/track'
@@ -107,7 +125,7 @@ def check_search_state(search, action, asset):
         return HttpResponseForbidden("Search already completed")
 
     if action == 'begin':
-        if search.inprogress_by is not None:
+        if search.inprogress_by is not None and search.inprogress_by != asset:
             return HttpResponseForbidden("Search already in progress")
     elif action == 'complete':
         if search.inprogress_by is None or search.inprogress_by.id != asset.id:
@@ -134,10 +152,13 @@ def search_begin(request, search_id, object_class):
     if asset.owner != request.user:
         return HttpResponseForbidden("Wrong User for Asset")
 
-    if check_searches_in_progress(asset):
-        return HttpResponseForbidden("Asset already has a search in progress.")
-
     search = get_object_or_404(object_class, pk=search_id)
+
+    inprogress_search = check_searches_in_progress(asset)
+    if inprogress_search is not None:
+        if inprogress_search != search:
+            return HttpResponseForbidden("Asset already has a search in progress.")
+
     error = check_search_state(search, 'begin', asset)
     if error is not None:
         return error
