@@ -139,12 +139,25 @@ class Test_Creep(unittest.TestCase):
         self.assertFalse(cansee(*pts0c, lrng0))
         self.assertFalse(cansee(*pts0d, lrng0))
 
-    # def test_subtract_points(self):
+    def test_sublrng(self):
+        """Test sublrng returns a subset of lnrg """
 
-    #     pt0 = Point(10,1)
-    #     pt1 = Point(1,10)
-    #     pt2 = Point(-9,9)
-    #     print(pt0)
-    #     print(pt1 - pt0)
-    #     print(pt2)
-    #     self.assertTrue(pt2.equals(pt1 - pt0))
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        pt0 = (0, 0)
+        pt1 = (0, 1)
+        pt2 = (1, 1)
+        pt3 = (1, 0)
+
+        # Return lrng from pt0 to pt2, (inclusive)
+        self.assertEqual(sublrng(pt0, pt2, lrng0),
+                         LinearRing((pt0, pt1, pt2, pt0)))
+        # Return lrng from pt0 to pt3, (=lrng0)
+        self.assertEqual(sublrng(pt0, pt3, lrng0), lrng0)
+        # Return lrng from pt1 to pt0,
+        # (=lrng0, but starts at pt1 now)
+        A = sublrng(pt2, pt1, lrng0)
+        B = LinearRing((pt2, pt3, pt0, pt1, pt2))
+        self.assertEqual(A, B)

@@ -1,24 +1,23 @@
 #!/usr/bin/python3
 
-from django.contrib.gis.geos import Polygon, Point, LineString
+from django.contrib.gis.geos import Polygon, Point, LineString, LinearRing
 import numpy as np
 import math
 
 # Pseudocode
 # def decomp(poly):
 #     "Decompose a concave polygon into a convex"
-#     for i in reflex(poly):
-#         for j in other(poly):
+#     for i in concave_pts(poly):
+#         for j in convex_pts(poly):
 #             if cansee(i,j, lrng):
 #                 left = subpoly(i,j,poly)
 #                 right = subpoly(j,i,poly)
 #                 tmp = decomp(left) + decomp(right)
-#                 if (tmp.size < ndiags):
+#                 if (tmp.size < ndiags or ndiags = 0):
 #                     min = tmp
 #                     ndiags = tmp.size
 #                     min += newpoly(i,j)
 #     return min
-
 
 def pt_relv(a, b):
     """ Returns a relative vector, b-a"""
@@ -122,3 +121,19 @@ def cansee(pt0, pt1, lrng):
         return False
     else:
         return True
+
+
+def sublrng(pt0, pt1, lrng):
+    """ Returns a LinearRing subset of lrng.
+    pt0 = starting point,
+    pt1 = ending point,
+    lrng = original linear ring"""
+
+    i0 = lrng.index(pt0)
+    i1 = lrng.index(pt1)
+
+    if i1 > i0:
+        return LinearRing(
+            lrng[i0:i1+1] + [pt0])
+    else:
+        return LinearRing(lrng[i0:-1] + lrng[:i1+1] + [pt0])
