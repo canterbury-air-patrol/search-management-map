@@ -116,6 +116,28 @@ class Test_Creep(unittest.TestCase):
                          [(0, 0), (0, 2), (4, 2), (4, 0),
                           (3, 0), (1, 0)])
 
+    def test_cansee(self):
+        """ Test cansee returns whether a line can be drawn
+        between points, pt0 and pt1
+        without crossing the LinearRing, lrng """
+
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Edge case
+        pts0a = [(0, 0), (0, 1)]
+        # Cross to center (from edge)
+        pts0b = [(0.5, 0), (0.5, 0.5)]
+        # Cross to center (from outside)
+        pts0c = [(0.5, -1), (0.5, 0.5)]
+        # Cross outside to outside
+        pts0d = [(0.5, -1), (0.5, 2)]
+
+        self.assertTrue(cansee(*pts0a, lrng0))
+        self.assertFalse(cansee(*pts0b, lrng0))
+        self.assertFalse(cansee(*pts0c, lrng0))
+        self.assertFalse(cansee(*pts0d, lrng0))
 
     # def test_subtract_points(self):
 

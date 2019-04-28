@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from django.contrib.gis.geos import Polygon, Point
+from django.contrib.gis.geos import Polygon, Point, LineString
 import numpy as np
 import math
 
@@ -110,3 +110,15 @@ def lrng_convex_points(lrng):
 def cansee(pt0, pt1, lrng):
     """ Returns true if a line can be drawn,
     from pt0 to pt1 without crossing any lines in lrng"""
+    line = LineString(pt0, pt1)
+    intersect = list(lrng.intersection(line))
+    while pt0 in intersect:
+        intersect.remove(pt0)
+
+    while pt1 in intersect:
+        intersect.remove(pt1)
+
+    if intersect:
+        return False
+    else:
+        return True
