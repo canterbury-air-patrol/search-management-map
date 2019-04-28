@@ -10,6 +10,7 @@ that assets provide directly (i.e. position reports).
 from django.contrib.gis.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.contrib.gis.db.models.functions import Length
 from assets.models import Asset
 
 
@@ -151,6 +152,13 @@ class LineStringTime(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
 
     GEOFIELD = 'line'
+
+    def length(self):
+        """
+        Calculate the total length (in m) of this line
+        """
+        annotated_self = self.__class__.objects.annotate(length=Length('line')).get(pk=self.pk)
+        return annotated_self.length.m
 
     class Meta:
         abstract = True
