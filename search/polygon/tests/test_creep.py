@@ -144,6 +144,15 @@ class Test_Creep(unittest.TestCase):
 
         self.assertFalse(cansee(*pts1a, lrng0))
 
+        # Points as points
+        pts2a = [Point((0,0)),
+                 Point((-0.1, 0.5))]
+        try:
+            cansee(*pts2a, lrng0)
+        except TypeError:
+            self.fail(
+                "cansee() raises TypeError for an array of Point objects!")
+
     def test_sublrng(self):
         """Test sublrng returns a subset of lnrg """
 
