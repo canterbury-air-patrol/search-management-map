@@ -175,3 +175,27 @@ class Test_Creep(unittest.TestCase):
         A = sublrng(pt2, pt1, lrng0)
         B = LinearRing((pt2, pt3, pt0, pt1, pt2))
         self.assertEqual(A, B)
+
+    def test_decomp(self):
+        """ Decompose a LinearRing into multiple convex LinearRing."""
+        # Plain square (no reflex points)
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Square with a notch (1 reflex point @ (2,1))
+        lrng1 = LinearRing((
+            (0, 0), (0, 2), (4, 2), (4, 0),
+            (3, 0), (2, 1), (1, 0), (0, 0)))
+
+        # Decomposing a convex linear ring
+        # should produce an array of that linear ring only
+        result0 = decomp(lrng0)
+        self.assertEqual(result0[0], lrng0)
+        self.assertEqual(len(result0), 1)
+
+        # Decompose a square with a notch
+        # Should produce two linear rings
+        result1 = decomp(lrng1)
+        for r in result1:
+            print(r)
+        self.assertEqual(len(result1), 2)

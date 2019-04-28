@@ -90,10 +90,24 @@ def lrng_cross(lrng):
 
 def decomp(lrng):
     """Decompose an arbitrary linear ring into a set of convex linear rings."""
-    for pt1 in concave_points(lrng):
-        for pt0 in convex_points(lrng):
+    ndiags = 0
+    concave_points = lrng_concave_points(lrng)
+    convex_points = lrng_convex_points(lrng)
+
+    for pt1 in concave_points:
+        for pt0 in convex_points:
             if cansee(pt0, pt1, lrng):
-                pass
+                left = sublrng(pt0, pt1, lrng)
+                right = sublrng(pt1, pt0, lrng)
+                tmp = decomp(left) + decomp(right)
+                if (len(tmp) < ndiags or ndiags == 0):
+                    min = tmp
+                    ndiags = len(tmp)
+
+    if concave_points:
+        return min
+    else:
+        return [lrng]
 
 
 def lrng_convex_points(lrng):
