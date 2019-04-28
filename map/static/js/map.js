@@ -11,25 +11,30 @@ function assetPathUpdate(name)
 {
     if (!(name in assetLines)) {
         var track = L.polyline([], {color: 'red'});
-        assetLines[name] = {track: track, updating: false};
+        assetLines[name] = {track: track, updating: false, lastUpdate: null, path: []};
         overlayAdd(name, track);
     }
     var assetLine = assetLines[name]
     if (assetLine.updating) { return; }
     assetLine.updating = true;
 
+    var url = "/data/assets/" + name + "/position/history/?oldest=last";
+    if(assetLine.lastUpdate != null) {
+        url = url + "&from=" + assetLine.lastUpdate
+    }
+
     $.ajax({
         type: "GET",
-        url: "/data/assets/" + name + "/position/history/",
+        url: url,
         success: function(route) {
-            var path = []
             for(var f in route.features)
             {
                 var lon = route.features[f].geometry.coordinates[0];
                 var lat = route.features[f].geometry.coordinates[1];
-                path.push(L.latLng(lat, lon));
+                assetLine.path.push(L.latLng(lat, lon));
+                assetLine.lastUpdate = route.features[f].properties.timestamp;
             }
-            assetLine.track.setLatLngs(path);
+            assetLine.track.setLatLngs(assetLine.path);
             assetLine.updating = false;
         },
         error: function() {

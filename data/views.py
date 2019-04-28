@@ -116,11 +116,24 @@ def asset_record_position(request, asset_name):
 def asset_position_history(request, asset_name):
     """
     Get the full track from an asset.
+
+    When from is provided, only points after the timestamp from are considered.
     """
+    oldest = 'first'
+    if request.method == 'GET':
+        since = request.GET.get('from')
+        if request.GET.get('oldest'):
+            oldest = request.GET.get('oldest')
+
     asset = get_object_or_404(Asset, name=asset_name)
 
-    # TODO: filter by date/time
-    positions = AssetPointTime.objects.filter(asset=asset).order_by('-timestamp')
+    positions = AssetPointTime.objects.filter(asset=asset)
+    if since is not None:
+        positions = positions.filter(timestamp__gt=since)
+    if oldest == 'last':
+        positions = positions.order_by('timestamp')
+    else:
+        positions = positions.order_by('-timestamp')
 
     return to_geojson(AssetPointTime, positions)
 
