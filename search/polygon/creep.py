@@ -107,8 +107,9 @@ def lrng_convex_points(lrng):
 
 
 def cansee(pt0, pt1, lrng):
-    """ Returns true if a line can be drawn,
-    from pt0 to pt1 without crossing any lines in lrng"""
+    """ Returns true if a line can be drawn
+    from pt0 to pt1 without crossing any lines in lrng.
+    pt0 and pt1 must also be across and NOT next to each other."""
     line = LineString(pt0, pt1)
 
     if not isinstance(pt0, Point):

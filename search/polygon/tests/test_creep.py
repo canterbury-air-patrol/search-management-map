@@ -122,10 +122,10 @@ class Test_Creep(unittest.TestCase):
         without crossing the LinearRing, lrng """
 
         # Plain square (no reflex points)
+        # Modified with a slight bump
         lrng0 = LinearRing((
-            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
-
-        # Edge case
+            (0, 0), (-0.1, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)))
+        # Edge case,
         pts0a = [(0, 0), (0, 1)]
         # Cross to center (from edge)
         pts0b = [(0.5, 0), (0.5, 0.5)]
@@ -138,6 +138,11 @@ class Test_Creep(unittest.TestCase):
         self.assertFalse(cansee(*pts0b, lrng0))
         self.assertFalse(cansee(*pts0c, lrng0))
         self.assertFalse(cansee(*pts0d, lrng0))
+
+        # Points next to each other
+        pts1a = [(0, 0), (-0.1, 0.5)]
+
+        self.assertFalse(cansee(*pts1a, lrng0))
 
     def test_sublrng(self):
         """Test sublrng returns a subset of lnrg """
