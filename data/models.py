@@ -57,6 +57,11 @@ class AssetPointTime(PointTime):
     def __str__(self):
         return "{}: {} {}".format(self.asset, self.point, self.timestamp)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['asset', '-timestamp']),
+        ]
+
 
 class PointTimeLabel(PointTime):
     """
@@ -72,6 +77,11 @@ class PointTimeLabel(PointTime):
 
     def __str__(self):
         return "{}".format(self.label)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['deleted', 'replaced_by']),
+        ]
 
 
 class PolygonTime(models.Model):
@@ -116,6 +126,11 @@ class PolygonTimeLabel(PolygonTime):
     def __str__(self):
         return "{}".format(self.label)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['deleted', 'replaced_by']),
+        ]
+
 
 class LineStringTime(models.Model):
     """
@@ -154,3 +169,8 @@ class LineStringTimeLabel(LineStringTime):
 
     def __str__(self):
         return "{}".format(self.label)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['deleted', 'replaced_by']),
+        ]

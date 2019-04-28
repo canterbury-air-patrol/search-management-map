@@ -9,6 +9,15 @@ function overlayAdd(name, layer) {
 
 function assetPathUpdate(name)
 {
+    if (!(name in assetLines)) {
+        var track = L.polyline([], {color: 'red'});
+        assetLines[name] = {track: track, updating: false};
+        overlayAdd(name, track);
+    }
+    var assetLine = assetLines[name]
+    if (assetLine.updating) { return; }
+    assetLine.updating = true;
+
     $.ajax({
         type: "GET",
         url: "/data/assets/" + name + "/position/history/",
@@ -20,7 +29,11 @@ function assetPathUpdate(name)
                 var lat = route.features[f].geometry.coordinates[1];
                 path.push(L.latLng(lat, lon));
             }
-            assetLines[name].setLatLngs(path);
+            assetLine.track.setLatLngs(path);
+            assetLine.updating = false;
+        },
+        error: function() {
+            assetLine.updating = false;
         },
     });
 }
@@ -64,7 +77,7 @@ function assetCreate(asset) {
     {
         /* Create an overlay for this object */
         var track = L.polyline([], {color: 'red'});
-        assetLines[assetName] = track;
+        assetLines[assetName] = {track: track, updating: false};
         overlayAdd(assetName, track);
     }
 }
@@ -221,11 +234,17 @@ function mapInit(map) {
     }).addTo(map);
     L.control.smmadmin({}).addTo(map);
 
+    var assetUpdateFreq = 3 * 1000;
+    var assetTrackUpdateFreq = 30 * 1000;
+    var userDataUpdateFreq = 10 * 1000;
+    var searchIncompleteUpdateFreq = 30 * 1000;
+    var searchCompleteUpdateFreq = 60 * 1000;
+
     var realtime = L.realtime({
             url: "/data/assets/positions/latest/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: assetUpdateFreq,
             onEachFeature: assetCreate,
             updateFeature: assetUpdate,
             getFeatureId: function(feature) { return feature.properties.asset; }
@@ -237,7 +256,7 @@ function mapInit(map) {
             url: "/data/pois/current/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: userDataUpdateFreq,
             onEachFeature: poiCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
@@ -248,7 +267,7 @@ function mapInit(map) {
             url: "/data/userpolygons/current/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: userDataUpdateFreq,
             onEachFeature: userPolygonCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
@@ -259,7 +278,7 @@ function mapInit(map) {
             url: "/data/userlines/current/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: userDataUpdateFreq,
             onEachFeature: userLineCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
@@ -271,7 +290,7 @@ function mapInit(map) {
             url: "/search/sector/incomplete/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchIncompleteUpdateFreq,
             color: 'orange',
             onEachFeature: sectorSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
@@ -284,7 +303,7 @@ function mapInit(map) {
             url: "/search/sector/completed/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchCompleteUpdateFreq,
             onEachFeature: sectorSearchCompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         });
@@ -295,7 +314,7 @@ function mapInit(map) {
             url: "/search/expandingbox/incomplete/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchIncompleteUpdateFreq,
             color: 'orange',
             onEachFeature: expandingBoxSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
@@ -307,7 +326,7 @@ function mapInit(map) {
             url: "/search/expandingbox/completed/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchCompleteUpdateFreq,
             onEachFeature: expandingBoxSearchCompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         });
@@ -319,7 +338,7 @@ function mapInit(map) {
             url: "/search/trackline/incomplete/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchIncompleteUpdateFreq,
             color: 'orange',
             onEachFeature: trackLineSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
@@ -331,7 +350,7 @@ function mapInit(map) {
             url: "/search/trackline/completed/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchCompleteUpdateFreq,
             onEachFeature: trackLineSearchCompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         });
@@ -342,7 +361,7 @@ function mapInit(map) {
             url: "/search/creepingline/track/incomplete/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchIncompleteUpdateFreq,
             color: 'orange',
             onEachFeature: creepingLineSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
@@ -354,7 +373,7 @@ function mapInit(map) {
             url: "/search/creepingline/track/completed/",
             type: 'json',
         }, {
-            interval: 3 * 1000,
+            interval: searchCompleteUpdateFreq,
             onEachFeature: creepingLineSearchCompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         });

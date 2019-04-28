@@ -26,6 +26,11 @@ class SearchPath(LineStringTime):
 
     class Meta:
         abstract = True
+        indexes = [
+            models.Index(fields=['created_for']),
+            models.Index(fields=['inprogress_by']),
+            models.Index(fields=['completed']),
+        ]
 
 
 class SectorSearch(SearchPath):
