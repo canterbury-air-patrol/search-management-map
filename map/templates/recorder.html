@@ -8,8 +8,30 @@
         </script>
         <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
         <script>
-function errorHandler() {
 
+function errorHandler(error) {
+    var msg = null;
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+             msg = "No permision given to access location";
+             break;
+        case error.POSITION_UNAVAILABLE:
+             msg = "Unable to get the current position";
+             break;
+        case error.TIMEOUT:
+             msg = "Timed out getting position";
+             break;
+        default:
+             msg = "Unknown error: " + error.code;
+             break;
+    }
+    if (msg == null) {
+         $("#error_label").text('');
+         $("#error_text").text('');
+    } else {
+         $("#error_label").text('Error');
+         $("#error_text").text(msg);
+    }
 }
 
 function updatePosition(position) {
@@ -26,15 +48,23 @@ function updatePosition(position) {
         heading: heading,
     };
 
+    $("#latitude").text(latitude);
+    $("#longitude").text(longitude);
+    $("#altitude").text(altitude);
+    $("#header").text(heading);
+
     $.get('/data/assets/' + asset_name + '/position/add/', data);
 }
 
 function startRecording(){
-if (navigator.geolocation) {
-var options = {timeout:60000};
-               geoLoc = navigator.geolocation;
-               watchID = geoLoc.watchPosition(updatePosition, errorHandler, options);
-}
+    if (navigator.geolocation) {
+        var options = {
+            timeout:60000,
+            enableHighAccuracy: true
+        };
+        geoLoc = navigator.geolocation;
+        watchID = geoLoc.watchPosition(updatePosition, errorHandler, options);
+    }
 }
         </script>
     </head>
@@ -43,7 +73,12 @@ var options = {timeout:60000};
         <table>
             {{ form }}
         </table>
-        <button class="btn" onClick="startRecording()">Record</button>
         </form>
+        <button class="btn" onClick="startRecording()">Record</button>
+        <table>
+            <tr><td id='error_label'></td><td id='error_text'></td></tr>
+            <tr><td>Latitude</td><td>Longitude</td><td>Altitude</td><td>Heading</td></tr>
+            <tr><td id='latitude'><td id='longitude'></td><td id='altitude'></td><td id='heading'></td></tr>
+        </table>
     </body>
 </html>
