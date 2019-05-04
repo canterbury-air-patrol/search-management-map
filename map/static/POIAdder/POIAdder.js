@@ -12,15 +12,15 @@ L.POIAdder = function(map, pos, replaces, label) {
     ].join('');
     var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map);
     if (replaces !== -1) {
-        $('#poi-dialog-lat-' + RAND_NUM).val(pos.lat);
-        $('#poi-dialog-lon-' + RAND_NUM).val(pos.lng);
+        $('#poi-dialog-lat-' + RAND_NUM).val(deg_to_dm(pos.lat, true));
+        $('#poi-dialog-lon-' + RAND_NUM).val(deg_to_dm(pos.lng, false));
         $('#poi-dialog-create-' + RAND_NUM).html('Update');
         markerDialog.open();
     }
     $('#poi-dialog-create-' + RAND_NUM).click(function() {
          var data = {
-             lat: $('#poi-dialog-lat-' + RAND_NUM).val(),
-             lon: $('#poi-dialog-lon-' + RAND_NUM).val(),
+             lat: dm_to_deg ($('#poi-dialog-lat-' + RAND_NUM).val()),
+             lon: dm_to_deg ($('#poi-dialog-lon-' + RAND_NUM).val()),
              label: $('#poi-dialog-label-' + RAND_NUM).val(),
              csrfmiddlewaretoken: csrftoken,       
          }
@@ -41,8 +41,8 @@ L.POIAdder = function(map, pos, replaces, label) {
     });
     map.on('dialog:opened', function () {
         var markerCoords = marker.getLatLng();
-        $('#poi-dialog-lat-' + RAND_NUM).val(markerCoords.lat);
-        $('#poi-dialog-lon-' + RAND_NUM).val(markerCoords.lng);
+        $('#poi-dialog-lat-' + RAND_NUM).val(deg_to_dm(markerCoords.lat, true));
+        $('#poi-dialog-lon-' + RAND_NUM).val(deg_to_dm(markerCoords.lng, false));
     });
     marker.on('dragend', function () {
         markerDialog.open();
