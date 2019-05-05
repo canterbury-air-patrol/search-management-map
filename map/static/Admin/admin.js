@@ -142,9 +142,9 @@ L.SMMAdmin.TrackPosition = function(map) {
             heading: heading,
         };
 
-        $("#track-position-lat").text(latitude);
-        $("#track-position-lon").text(longitude);
-        $("#track-position-alt").text(altitude);
+        $("#track-position-lat").text(deg_to_dm(latitude, true));
+        $("#track-position-lon").text(deg_to_dm(longitude, false));
+        $("#track-position-alt").text(Math.floor(altitude));
         $("#track-position-heading").text(heading);
 
         if (state == 'running') {
