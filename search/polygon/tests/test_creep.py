@@ -184,7 +184,7 @@ class Test_Creep(unittest.TestCase):
 
         # Square with a notch (1 reflex point @ (2,1))
         lrng1 = LinearRing((
-            (0, 0), (0, 2), (4, 2), (4, 0),
+            (0, 0), (0, 2), (2, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
 
         # Decomposing a convex linear ring
@@ -196,6 +196,4 @@ class Test_Creep(unittest.TestCase):
         # Decompose a square with a notch
         # Should produce two linear rings
         result1 = decomp(lrng1)
-        for r in result1:
-            print(r)
         self.assertEqual(len(result1), 2)
