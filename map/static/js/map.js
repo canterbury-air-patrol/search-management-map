@@ -49,24 +49,33 @@ function assetUpdate(asset, oldLayer) {
 
     if (!oldLayer) {return; }
 
-    var popupContent = assetName;
+    var coords = asset.geometry.coordinates;
+
+    var popupContent = '';
+    popupContent += '<dl class="row"><dt class="asset-label col-sm-3">Asset</dt><dd class="asset-name col-sm-9">' + assetName + '</dd>';
+
+    popupContent += '<dt class="asset-lat-label col-sm-3">Lat</dt><dd class="asset-lat-val col-sm-9">' + deg_to_dm(coords[1], true) + '</dd>';
+    popupContent += '<dt class="asset--lng-label col-sm-3">Long</dt><dd class="asset-lng-val col-sm-9">' + deg_to_dm(coords[0]) + '</dd>';
+
     var alt = asset.properties.alt;
     var heading = asset.properties.heading;
     var fix = asset.properties.fix;
 
     if (alt) {
-        popupContent = popupContent + "<br />(alt=" + alt + ")";
+        popupContent = popupContent + '<dt class="asset-alt-label col-sm-3">Altitude</dt><dd class="asset-alt-val col-sm-9">' + alt + 'm</dd>';
     }
 
     if (heading) {
-        popupContent = popupContent + "<br />(heading=" + heading + ")";
+        popupContent = popupContent + '<dt class="asset-heading-label col-sm-3">Heading</dt><dd class="asset-heading-val col-sm-9">' + heading + ' &deg;</dd>';
     }
 
     if (fix) {
-        popupContent = popupContent + "<br />(" + fix + "d fix)";
+        popupContent = popupContent + '<dt class="asset-fix-label col-sm-3">Fix</dt><dd class="asset-fix-val col-sm-9">' + fix + 'd</dd>';
     }
 
-    oldLayer.bindPopup(popupContent);
+    popupContent += '</dl>';
+
+    oldLayer.bindPopup(popupContent, { minWidth: 200});
 
     if (asset.geometry.type === 'Point') {
         var c = asset.geometry.coordinates;
@@ -92,13 +101,14 @@ function poiCreate(poi, layer) {
     var poiID = poi.properties.pk;
     var coords = poi.geometry.coordinates;
 
-    var popupContent = 'POI: ' + POILabel + '<br />';
+    var popupContent = '<dl class="poi row"><dt class="poi-label col-sm-2">POI</dt><dd class="poi-name col-sm-10">' + POILabel + '</dd>';
 
-    popupContent += '<div class="poi-geo"><div class="poi-lat">' + deg_to_dm(coords[1], true) + '</div><div class="poi-long">' + deg_to_dm(coords[0]) + '</div></div>';
+    popupContent += '<dt class="poi-lat-label col-sm-2">Lat</dt><dd class="poi-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
+    popupContent += '<dt class="poi-lng-label col-sm-2">Long</dt><dd class="poi-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
 
-    popupContent += '<button class="btn btn-default" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
+    popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + poiID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent);
 }
@@ -108,7 +118,7 @@ function userPolygonCreate(poly, layer) {
     var PolyID = poly.properties.pk;
     var coords = poly.geometry.coordinates;
 
-    var popupContent = PolyLabel + '<br />';
+    var popupContent = '<dl class="polygon row"><dt class="polygon-label col-sm-3">Polygon</dt><dd class="polygon-name col-sm-9">' + PolyLabel + '</dd></dl>';
 
     var pointList = '';
     var i = 0;
@@ -117,10 +127,10 @@ function userPolygonCreate(poly, layer) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     }
 
-    popupContent += '<button class="btn btn-default" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
+    popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button></div>'
 
-    layer.bindPopup(popupContent);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function userLineCreate(line, layer) {
@@ -128,18 +138,18 @@ function userLineCreate(line, layer) {
     var LineID = line.properties.pk;
     var coords = line.geometry.coordinates;
 
-    var popupContent = LineLabel + '<br />';
+    var popupContent = '<dl class="line row"><dt class="line-label col-sm-3">Line</dt><dd class="line-name col-sm-9">' + LineLabel + '</dd></dl>';
 
     var pointList = '';
     coords.forEach(function(point) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     })
 
-    popupContent += '<button class="btn btn-default" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
+    popupContent += '<dev class="btn-group"><button class="btn btn-default" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userlines/' + LineID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
 
-    layer.bindPopup(popupContent);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function sectorSearchIncompleteCreate(line, layer) {

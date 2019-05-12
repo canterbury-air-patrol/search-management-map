@@ -15,8 +15,7 @@ L.SearchAdder = function(map, objectType, objectID) {
         break;
     }
     searchSelection += "</select>";
-    var assetSelection = "<select class='form-control' id='SearchAdder-asset-type-" + RAND_NUM +  "'>";
-    assetSelection += "</select>";
+    var assetSelection = "<select class='form-control' id='SearchAdder-asset-type-" + RAND_NUM +  "'></select>";
     $.get('/assets/assettypes/json/', function(data) {
         $.each(data, function(index, json){
             for(var at in json) {
@@ -47,7 +46,7 @@ L.SearchAdder = function(map, objectType, objectID) {
             $("#SearchAdder-i-" + RAND_NUM).hide();
             $("#SearchAdder-fb-" + RAND_NUM).hide();
         }
-        if (selectedType === 'creeping-line' && objectType == 'line') {
+        if (selectedType === 'creeping-line' && objectType === 'line') {
             $("#SearchAdder-w-" + RAND_NUM).show();
         } else {
             $("#SearchAdder-w-" + RAND_NUM).hide();
@@ -68,7 +67,7 @@ L.SearchAdder = function(map, objectType, objectID) {
             case 'track-line':
                 return '/search/trackline/create/';
             case 'creeping-line':
-                return (objectType == 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/';
+                return (objectType === 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/';
             default:
                 console.log('search type not supported')
         }

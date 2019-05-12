@@ -44,19 +44,12 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 	updateMarkers();
 
 	var contents = [
-		"<button class='btn btn-primary' id='polygonadder-dialog-next-" +
-			RAND_NUM +
-			"'>Next</button>",
-		"<button class='btn btn-primary' id='polygonadder-dialog-done-" +
-			RAND_NUM +
-			"'>Done</button>",
-		"<button class='btn btn-warning' id='polygonadder-dialog-remove-" +
-			RAND_NUM +
-			"'>Remove</button>",
-		"<button class='btn btn-warning' id='polygonadder-dialog-cancel-" +
-			RAND_NUM +
-			"'>Cancel</button>",
-		"<input type='text' id='polygonadder-dialog-name-" + RAND_NUM + "'></input>",
+		'<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
+                '<input type="text" id="polygonadder-dialog-name-' + RAND_NUM + '"></input></div>',
+		'<div class="btn-group"><button class="btn btn-primary" id="polygonadder-dialog-next-' + RAND_NUM + '">Next</button>',
+		'<button class="btn btn-primary" id="polygonadder-dialog-done-' + RAND_NUM + '">Done</button></div>',
+		'<div class="btn-group"><button class="btn btn-warning" id="polygonadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
+		'<button class="btn btn-warning" id="polygonadder-dialog-cancel-' + RAND_NUM + '">Cancel</button></div>',
 	].join('');
 	dialog.setContent(contents).addTo(map);
 	$('#polygonadder-dialog-name-' + RAND_NUM).val(label);

@@ -12,7 +12,7 @@
    margin:5px 3px;
 }
 
-div.poi-lat, div.poi-long {
-   display: inline;
-   padding: 1px;
+
+.poi-label, .poi-lat-label, .poi-lng-label {
+   font-weight: 700 !important;
 }

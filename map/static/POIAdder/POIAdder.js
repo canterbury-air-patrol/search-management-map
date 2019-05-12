@@ -5,10 +5,14 @@ L.POIAdder = function(map, pos, replaces, label) {
     }).addTo(map);
     var RAND_NUM = Math.floor(Math.random() * 16536);
     var contents = [
-        "<div class='input-short'><label>Lat</label><input type='text' id='poi-dialog-lat-" + RAND_NUM + "' /></div>",
-        "<div class='input-short'><label>Lon</label><input type='text' id='poi-dialog-lon-" + RAND_NUM + "' /></div>",
-        "<div class='input-label'><label>Label</label><textarea autofocus id='poi-dialog-label-" + RAND_NUM + "' rows=2>" + label + "</textarea></div>",
-        "<button class='btn btn-primary' id='poi-dialog-create-" + RAND_NUM + "'>Create</button><button class='btn btn-danger' id='poi-dialog-cancel-" + RAND_NUM + "'>Cancel</button>",
+        '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
+        '<textarea autofocus id="poi-dialog-label-' + RAND_NUM + '" rows=2>' + label + '</textarea></div>',
+        '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Lat</span></div>',
+        '<input type="text" id="poi-dialog-lat-' + RAND_NUM + '" /></div>',
+        '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Long</span></div>',
+        '<input type="text" id="poi-dialog-lon-' + RAND_NUM + '" /></div>',
+        '<div class="btn-group"><button class="btn btn-primary" id="poi-dialog-create-' + RAND_NUM + '">Create</button>',
+        '<button class="btn btn-danger" id="poi-dialog-cancel-' + RAND_NUM + '">Cancel</button></div>',
     ].join('');
     var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map);
     if (replaces !== -1) {
