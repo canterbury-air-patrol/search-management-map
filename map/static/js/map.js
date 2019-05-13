@@ -152,85 +152,182 @@ function userLineCreate(line, layer) {
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
+function searchDataToPopUp(data) {
+    var res = '<dl class="search-data row">';
+
+    for (d in data) {
+         res += '<dt class="search-' + data[d].css + '-label col-sm-6">' + data[d].label + '</dt>'
+         res += '<dd class="search-' + data[d].css + '-value col-sm-6">' + data[d].value + '</dd>'
+    }
+
+    res += '</dl>';
+
+    return res;
+}
+
 function sectorSearchIncompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
-    var SSweepWidth = line.properties.sweep_width;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = 'Sector Search<br />';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Sector' },
+        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
 
-    popupContent += "Sweep Width = " + SSweepWidth + "m<br />";
-
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function sectorSearchCompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = '';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Sector' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
 
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 
 function expandingBoxSearchIncompleteCreate(line, layer) {
     var ExpandingBoxSearchID = line.properties.pk;
-    var EBSweepWidth = line.properties.sweep_width;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
     var EBFirstBearing = line.properties.first_bearing;
     var EBIterations = line.properties.iterations;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = 'Expanding Box Search<br />';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Expanding Box' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'first-bearing', label: 'First Bearing', value: EBFirstBearing },
+        { css: 'complete-boxes', label: 'Complete Boxes', value: EBIterations },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
 
-    popupContent += "Sweep Width = " + EBSweepWidth + "m<br />";
-    popupContent += "First Bearing = " + EBFirstBearing + "&#176;T<br />";
-    popupContent += "Complete Boxes = " + EBIterations + "<br />";
-
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function expandingBoxSearchCompleteCreate(line, layer) {
     var ExpandingBoxSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var EBFirstBearing = line.properties.first_bearing;
+    var EBIterations = line.properties.iterations;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = '';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Expanding Box' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'first-bearing', label: 'First Bearing', value: EBFirstBearing },
+        { css: 'iterations', label: 'Iterations', value: EBIterations },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
 
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function trackLineSearchIncompleteCreate(line, layer) {
     var TrackLineSearchID = line.properties.pk;
-    var TLSweepWidth = line.properties.sweep_width;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = 'Track Line Search<br />';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Track Line' },
+        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
 
-    popupContent += "Sweep Width = " + TLSweepWidth + "m<br />";
-
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function trackLineSearchCompleteCreate(line, layer) {
     var TrackLineSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
 
-    var popupContent = '';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Track Line' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
 
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function creepingLineSearchIncompleteCreate(line, layer) {
     var TrackLineSearchID = line.properties.pk;
-    var TLSweepWidth = line.properties.sweep_width;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
+    var Width = line.properties.width;
 
-    var popupContent = 'Track Line Search<br />';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Creeping Line (from line)' },
+        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'search-width', label: 'Search Width', value: Width + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
 
-    popupContent += "Sweep Width = " + TLSweepWidth + "m<br />";
-
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 function creepingLineSearchCompleteCreate(line, layer) {
     var TrackLineSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
+    var Width = line.properties.width;
 
-    var popupContent = '';
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Creeping Line (from line)' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'search-width', label: 'Search Width', value: Width + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
 
-    layer.bindPopup(popupContent);
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
 // eslint-disable-next-line no-unused-vars

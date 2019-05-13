@@ -24,6 +24,12 @@ class AssetType(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
 
+    def natural_key(self):
+        """
+        Use the asset type name when refering to the asset type during serialization (i.e. to geojson).
+        """
+        return self.name
+
     def __str__(self):
         return self.name
 
