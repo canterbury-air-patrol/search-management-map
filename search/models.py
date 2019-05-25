@@ -9,9 +9,9 @@ import math
 from django.db import models, connection as dbconn
 from django.db.models import Func
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import GEOSGeometry, LineString
+from django.contrib.gis.geos import GEOSGeometry, LineString, LinearRing
 
-from data.models import LineStringTime, PointTimeLabel, LineStringTimeLabel
+from data.models import LineStringTime, PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
 from assets.models import AssetType, Asset
 
 
@@ -402,4 +402,39 @@ class TrackLineCreepingSearch(SearchPath):
         if save:
             search.save()
 
+        return search
+
+
+class PolygonSearch(SearchPath):
+    """
+    A polygon search for a given area (LinearRing).
+    """
+    datum = models.ForeignKey(PolygonTimeLabel, on_delete=models.PROTECT)
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', )
+
+    def __str__(self):
+        return "Polygon Search along {} with {} (sw={})".format(
+            self.datum,
+            self.created_for,
+            self.sweep_width)
+
+    @staticmethod
+    def url_component():
+        return 'polygon'
+
+    @staticmethod
+    def create(params, save=False):
+        """
+        Create a polygon search that sweeps across a polygon
+        """
+        # TODO: Obtain points for raw line and pass to PolygonSearch init
+        search = PolygonSearch(
+            line=None,
+            creator=params.creator(),
+            datum=params.from_geo(),
+            created_for=params.asset_type(),
+            sweep_width=params.sweep_width())
+        if save:
+            search.save()
         return search
