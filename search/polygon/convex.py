@@ -144,3 +144,9 @@ def sublrng(pt0, pt1, lrng):
             lrng[i0:i1+1] + [pt0])
     else:
         return LinearRing(lrng[i0:-1] + lrng[:i1+1] + [pt0])
+
+
+def creep_line(lrng, width):
+    """ Return a LineString which represents
+    a creeping path through a convex LinearRing """
+    pass
