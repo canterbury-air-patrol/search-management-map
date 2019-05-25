@@ -197,3 +197,17 @@ class Test_Convex(unittest.TestCase):
         # Should produce two linear rings
         result1 = decomp(lrng1)
         self.assertEqual(len(result1), 2)
+
+    def test_creep_line(self):
+        """ Test creeping line generation over convex LinearRing. """
+        # Plain square
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Creeping line @ same size as square
+        lstr0a = creep_line(lrng0, 1)
+        lstr0a_expected = LineString(
+            (0, 0), (1, 0), (1, 1), (0, 1)
+        )
+
+        self.assertEqual(lstr0a, lstr0a_expected)
