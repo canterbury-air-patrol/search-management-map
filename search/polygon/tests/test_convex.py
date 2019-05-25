@@ -200,6 +200,7 @@ class Test_Convex(unittest.TestCase):
 
     def test_creep_line(self):
         """ Test creeping line generation over convex LinearRing. """
+
         # Plain square
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
@@ -229,3 +230,23 @@ class Test_Convex(unittest.TestCase):
         self.assertEqual(lstr0a, lstr0a_expected)
         self.assertEqual(lstr0b, lstr0b_expected)
         self.assertEqual(lstr1a, lstr1a_expected)
+
+    def test_creep_line_at_angle(self):
+        """ Test creeping line generation over convex LinearRing,
+        at various angles. """
+
+        # Angle 0deg = West to East, South to North progression
+        # Width = The distance across South to North
+        # Angle +90deg = East
+
+        # Plain square
+        lrng0 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+
+        # Creeping line @ same size as square
+        lstr0a = creep_line_at_angle(lrng0, 1, 0)
+        lstr0a_expected = LineString(
+            (0, 0), (1, 0), (1, 1), (0, 1)
+        )
+
+        self.assertEqual(lstr0a, lstr0a_expected)

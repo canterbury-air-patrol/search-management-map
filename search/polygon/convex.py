@@ -2,6 +2,7 @@
 
 from django.contrib.gis.geos import Point, LineString, LinearRing
 import numpy as np
+import shapely
 import math
 
 
@@ -193,3 +194,9 @@ def creep_line(lrng, width):
     pts = [p for p in carve(lrng, liter)]
 
     return LineString(pts)
+
+
+def creep_line_at_angle(lrng, width, angle):
+    pass
+# TODO: Implement creep_line at angle with shapely
+#       affine transformations (rotation)
