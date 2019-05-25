@@ -2,11 +2,11 @@
 
 import unittest
 from django.contrib.gis.geos import Polygon, LinearRing, Point
-from search.polygon.creep import *
+from search.polygon.convex import *
 
 
-class Test_Creep(unittest.TestCase):
-    """ Tests creeping path generation for a linear ring."""
+class Test_Convex(unittest.TestCase):
+    """ Tests convexing path generation for a linear ring."""
     def setUp(self):
         pass
 
