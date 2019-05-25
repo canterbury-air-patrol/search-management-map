@@ -177,7 +177,7 @@ class Test_Convex(unittest.TestCase):
         self.assertEqual(A, B)
 
     def test_decomp(self):
-        """ Decompose a LinearRing into multiple convex LinearRing."""
+        """ Test decomposes a LinearRing into multiple convex LinearRings."""
         # Plain square (no reflex points)
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
