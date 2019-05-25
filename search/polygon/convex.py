@@ -153,27 +153,43 @@ def creep_line(lrng, width):
     xdist = xmax - xmin
     ydist = ymax - ymin
 
-    def zigzag(x, y, xd, yd, ymax):
-        """ Generates coordinates in a zigzag pattern."""
+    def stripe(y, space, ymax):
+        """ Generates ycoord spaced over interval"""
         while y < ymax:
-            yield (x, y)
+            yield y
+            y = y + space
+        yield ymax
 
-            # Travel across x
-            x = x + xd
-            yield (x, y)
+    def slice(xmin, xmax, yiter):
+        """ Generates LineStrings spaced over yiter"""
+        for y in yiter:
+            yield LineString((xmin, y), (xmax, y))
 
-            # Reverse x direction
-            xd = -xd
+    def carve(lrng, liter):
+        """
+        Generates a list of points that intersect with lrng
+        """
+        reverse = False
+        for l in liter:
+            i = lrng.intersection(l)
+            i.normalize()
+            if isinstance(i, LineString):
+                if reverse:
+                    reverse = False
+                    i.reverse()
+                    for p in i:
+                        yield p
+                else:
+                    reverse = True
+                    for p in i:
+                        yield p
+            elif isinstance(i, Point):
+                yield i
+            else:
+                raise(TypeError)
 
-            # Travel up y
-            y = y + yd
-
-        yield (x, ymax)
-        # Final travel across x
-        x = x + xd
-        yield (x, ymax)
-
-    z = zigzag(xmin, ymin, xdist, width, ymax)
-    pts = [zn for zn in z]
+    yiter = [y for y in stripe(ymin, ydist, ymax)]
+    liter = [l for l in slice(xmin, xmax, yiter)]
+    pts = [p for p in carve(lrng, liter)]
 
     return LineString(pts)
