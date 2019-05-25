@@ -210,4 +210,11 @@ class Test_Convex(unittest.TestCase):
             (0, 0), (1, 0), (1, 1), (0, 1)
         )
 
+        # Creeping line @ 1.1 spacing
+        lstr0b = creep_line(lrng0, 1.1)
+        lstr0b_expected = LineString(
+            (0, 0), (1, 0), (1, 1), (0, 1)
+        )
+
         self.assertEqual(lstr0a, lstr0a_expected)
+        self.assertEqual(lstr0b, lstr0b_expected)

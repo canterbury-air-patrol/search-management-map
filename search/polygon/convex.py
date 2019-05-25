@@ -153,10 +153,11 @@ def creep_line(lrng, width):
     xdist = xmax - xmin
     ydist = ymax - ymin
 
-    def zigzag(x, y, xd, yd):
+    def zigzag(x, y, xd, yd, ymax):
         """ Generates coordinates in a zigzag pattern."""
-        yield (x, y)
-        while True:
+        while y < ymax:
+            yield (x, y)
+
             # Travel across x
             x = x + xd
             yield (x, y)
@@ -166,18 +167,13 @@ def creep_line(lrng, width):
 
             # Travel up y
             y = y + yd
-            yield (x, y)
 
-    z = zigzag(xmin, ymin, xdist, width)
-    pts = list()
-    y = ymin
+        yield (x, ymax)
+        # Final travel across x
+        x = x + xd
+        yield (x, ymax)
 
-    while y <= ymax:
-        zn = next(z)
-        x, y = zn
-        pts.append(zn)
-
-    # Pop the last point (which exceeded extents)
-    pts.pop()
+    z = zigzag(xmin, ymin, xdist, width, ymax)
+    pts = [zn for zn in z]
 
     return LineString(pts)
