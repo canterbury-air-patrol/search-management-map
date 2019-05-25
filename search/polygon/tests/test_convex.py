@@ -6,7 +6,7 @@ from search.polygon.convex import *
 
 
 class Test_Convex(unittest.TestCase):
-    """ Tests convexing path generation for a linear ring."""
+    """ Test generation of convex linear ring from concave linear ring."""
     def setUp(self):
         pass
 
