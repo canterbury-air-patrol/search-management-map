@@ -216,5 +216,16 @@ class Test_Convex(unittest.TestCase):
             (0, 0), (1, 0), (1, 1), (0, 1)
         )
 
+        # Triangle (half-square)
+        lrng1 = LinearRing((
+            (0, 0), (0, 1), (1, 1), (0, 0)))
+
+        # Creeping line @ same size as square
+        lstr1a = creep_line(lrng1, 1)
+        lstr1a_expected = LineString(
+            (0, 0), (0, 1), (1, 1)
+        )
+
         self.assertEqual(lstr0a, lstr0a_expected)
         self.assertEqual(lstr0b, lstr0b_expected)
+        self.assertEqual(lstr1a, lstr1a_expected)
