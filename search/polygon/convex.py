@@ -149,4 +149,35 @@ def sublrng(pt0, pt1, lrng):
 def creep_line(lrng, width):
     """ Return a LineString which represents
     a creeping path through a convex LinearRing """
-    pass
+    xmin, ymin, xmax, ymax = lrng.extent
+    xdist = xmax - xmin
+    ydist = ymax - ymin
+
+    def zigzag(x, y, xd, yd):
+        """ Generates coordinates in a zigzag pattern."""
+        yield (x, y)
+        while True:
+            # Travel across x
+            x = x + xd
+            yield (x, y)
+
+            # Reverse x direction
+            xd = -xd
+
+            # Travel up y
+            y = y + yd
+            yield (x, y)
+
+    z = zigzag(xmin, ymin, xdist, width)
+    pts = list()
+    y = ymin
+
+    while y <= ymax:
+        zn = next(z)
+        x, y = zn
+        pts.append(zn)
+
+    # Pop the last point (which exceeded extents)
+    pts.pop()
+
+    return LineString(pts)
