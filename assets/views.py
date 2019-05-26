@@ -61,17 +61,14 @@ def asset_command_set(request):
     """
     form = None
     if request.method == 'POST':
-        print(request.POST)
         form = AssetCommandForm(request.POST)
         if form.is_valid():
             point = None
-            print(form.cleaned_data['command'])
             if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
                 latitude = request.POST.get('latitude')
                 longitude = request.POST.get('longitude')
-                print("Converting position")
                 try:
-                    point = Point(latitude, longitude)
+                    point = Point(float(longitude), float(latitude))
                 except (ValueError, TypeError):
                     HttpResponseBadRequest('Invalid lat/long')
             asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point)

@@ -54,7 +54,7 @@ def find_closest_search(request):
 
     distance = None
 
-    point = Point(lat, long)
+    point = Point(long, lat)
 
     # If this asset already has a search in progress, only offer that
     search = check_searches_in_progress(asset)
