@@ -64,6 +64,7 @@ def find_closest_search(request):
             if possible_search:
                 if distance is None or possible_search.distance < distance:
                     search = possible_search
+                    distance = possible_search.distance
 
     if search is None:
         return HttpResponseNotFound("No suitable searches exist")
