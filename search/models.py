@@ -11,7 +11,10 @@ from django.db.models import Func
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, LineString, LinearRing
 
-from data.models import LineStringTime, PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
+from data.models import (LineStringTime,
+                         PointTimeLabel,
+                         LineStringTimeLabel,
+                         PolygonTimeLabel)
 from assets.models import AssetType, Asset
 
 
@@ -433,8 +436,14 @@ class PolygonSearch(SearchPath):
         Create a polygon search that sweeps across a polygon
         """
         # TODO: Obtain points for raw line and pass to PolygonSearch init
+
+        # See class PolygonTimeLabel in data/models.py
+        poly = params.from_geo().polygon
+        lrng = poly[0]
+        line = LineString([pt for pt in lrng])
+
         search = PolygonSearch(
-            line=None,
+            line=line,
             creator=params.creator(),
             datum=params.from_geo(),
             created_for=params.asset_type(),
