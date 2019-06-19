@@ -88,7 +88,7 @@ L.SearchAdder = function(map, objectType, objectID) {
             case 'track-line':
                 return '/search/trackline/create/';
             case 'creeping-line':
-                return (objectType === 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/';
+                return (objectType === 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/polygon/';
             default:
                 console.log('search type not supported')
         }

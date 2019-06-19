@@ -19,9 +19,9 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 
 from assets.models import AssetType, Asset
-from data.models import PointTimeLabel, LineStringTimeLabel
+from data.models import PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
 from data.view_helpers import to_kml, to_geojson
-from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
+from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
 from .view_helpers import search_json, search_incomplete, search_completed, check_searches_in_progress
 
 
@@ -478,3 +478,83 @@ def track_creeping_line_search_create(request):
     search = TrackLineCreepingSearch.create(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
 
     return to_geojson(TrackLineCreepingSearch, [search])
+
+
+def creeping_line_polygon_search_json(request, search_id):
+    """
+    Provide the fulls details of a creeping line ahead search as json
+    """
+    return search_json(request, search_id, PolygonSearch)
+
+
+@login_required
+def creeping_line_polygon_search_incomplete(request):
+    """
+    Get a list of all the incomplete creeping line ahead searches (as json)
+    """
+    return to_geojson(PolygonSearch, search_incomplete(PolygonSearch))
+
+
+def creeping_line_polygon_search_incomplete_kml(request):
+    """
+    Get a list of all the incomplete creeping line ahead searches (as kml)
+    """
+    return to_kml(PolygonSearch, search_incomplete(PolygonSearch))
+
+
+@login_required
+def creeping_line_polygon_search_completed(request):
+    """
+    Get a list of all the completed creeping line ahead searches (as json)
+    """
+    return to_geojson(PolygonSearch, search_completed(PolygonSearch))
+
+
+def creeping_line_polygon_search_completed_kml(request):
+    """
+    Get a list of all the completed creeping line ahead searches (as kml)
+    """
+    return to_kml(PolygonSearch, search_completed(PolygonSearch))
+
+
+def creeping_line_polygon_search_begin(request, search_id):
+    """
+    Begin a creeping line search
+    """
+    return search_begin(request, search_id, PolygonSearch)
+
+
+def creeping_line_polygon_search_finished(request, search_id):
+    """
+    Complete a creeping line search
+    """
+    return search_finished(request, search_id, PolygonSearch)
+
+
+@login_required
+def polygon_creeping_line_search_create(request):
+    """
+    Create a creeping line ahead search (from a polygon)
+    """
+    save = False
+    if request.method == 'POST':
+        poly_id = request.POST.get('poly_id')
+        asset_type_id = request.POST.get('asset_type_id')
+        sweep_width = request.POST.get('sweep_width')
+        save = True
+    elif request.method == 'GET':
+        poly_id = request.GET.get('poly_id')
+        asset_type_id = request.GET.get('asset_type_id')
+        sweep_width = request.GET.get('sweep_width')
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    poly = get_object_or_404(PolygonTimeLabel, pk=poly_id)
+    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+
+    search = PolygonSearch.create(SearchParams(poly,
+                                               asset_type,
+                                               request.user,
+                                               sweep_width), save=save)
+
+    return to_geojson(PolygonSearch, [search])

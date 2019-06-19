@@ -411,7 +411,11 @@ class PolygonSearch(SearchPath):
     """
     datum = models.ForeignKey(PolygonTimeLabel, on_delete=models.PROTECT)
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', )
+    GEOJSON_FIELDS = ('pk',
+                      'timestamp',
+                      'created_for',
+                      'inprogress_by',
+                      'sweep_width', )
 
     def __str__(self):
         return "Polygon Search along {} with {} (sw={})".format(
@@ -421,7 +425,7 @@ class PolygonSearch(SearchPath):
 
     @staticmethod
     def url_component():
-        return 'polygon'
+        return 'creepingline/polygon'
 
     @staticmethod
     def create(params, save=False):
