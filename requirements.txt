@@ -16,3 +16,4 @@ pylint-django
 
 # Numerical
 numpy
+haversine
