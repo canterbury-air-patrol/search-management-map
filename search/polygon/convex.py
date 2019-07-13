@@ -174,20 +174,25 @@ def creep_line(lrng, width):
         for l in liter:
             i = lrng.intersection(l)
             i.normalize()
-            if isinstance(i, LineString):
-                if reverse:
-                    reverse = False
-                    i.reverse()
-                    for p in i:
-                        yield p
+            try:
+                if isinstance(i, Point):
+                    yield i
+
                 else:
-                    reverse = True
-                    for p in i:
-                        yield p
-            elif isinstance(i, Point):
-                yield i
-            else:
-                raise(TypeError)
+                    # Presumably iterable
+                    iter(i)
+                    if reverse:
+                        reverse = False
+                        i.reverse()
+                        for p in i:
+                            yield p
+                    else:
+                        reverse = True
+                        for p in i:
+                            yield p
+            except TypeError:
+                msg = "{} is of type {}".format(i, type(i))
+                raise(TypeError(msg))
 
     yiter = [y for y in stripe(ymin, ydist, ymax)]
     liter = [l for l in slice(xmin, xmax, yiter)]
