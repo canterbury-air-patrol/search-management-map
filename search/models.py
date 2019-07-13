@@ -5,7 +5,6 @@ Each search type has a model to represent it,
 all inherting from the abstract model (SearchPath)
 """
 import math
-from haversine import haversine, Unit
 
 from django.db import models, connection as dbconn
 from django.db.models import Func
@@ -17,7 +16,7 @@ from data.models import (LineStringTime,
                          LineStringTimeLabel,
                          PolygonTimeLabel)
 from assets.models import AssetType, Asset
-from search.polygon.convex import creep_line as polygon_creep_line
+from search.polygon.convex import creep_line_lonlat as polygon_creep_line
 
 
 def dictfetchall(cursor):
@@ -441,39 +440,10 @@ class PolygonSearch(SearchPath):
         poly = params.from_geo().polygon
         lrng = poly[0]
         sweep_width = params.sweep_width()
-
-        # ASSUMPTION: To convert to meters:  lon, lat
-        # Use haversine formula to calculate average lon/lat per meter
-        # Only calculate for the first point
-        # Assume distance is the same between all other local points (same polygon)
-
-        # Obtain initial point and differences
-        pt0 = lrng[0]
-        gx = pt0[0]
-        gy = pt0[1]
-        pt_plus1x = Point(gx + 1, gy, srid=4326)
-        pt_plus1y = Point(gx, gy + 1, srid=4326)
-
-        # Obtain distance between points (use first point as reference)
-        dx = haversine(pt0, pt_plus1x, unit=Unit.METERS)
-        dy = haversine(pt0, pt_plus1y, unit=Unit.METERS)
-        d = [dx, dy]
-
-        # Create a LinearRing with "normalized coords"
-        lrng1 = LinearRing([
-            [d[i] * coord for i, coord in enumerate(pt)]
-            for pt in lrng])
-
-        # Create a creeping line search using "normalized coords"
-        line1 = polygon_creep_line(lrng1, sweep_width)
-
-        # Convert back to regular lon / lat
-        line0 = LineString([
-            [coord / d[i] for i, coord in enumerate(pt)]
-            for pt in line1])
+        line = polygon_creep_line(lrng, sweep_width)
 
         search = PolygonSearch(
-            line=line0,
+            line=line,
             creator=params.creator(),
             datum=params.from_geo(),
             created_for=params.asset_type(),

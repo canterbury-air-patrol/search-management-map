@@ -3,6 +3,7 @@
 from django.contrib.gis.geos import Point, LineString, LinearRing
 import numpy as np
 import math
+from haversine import haversine, Unit
 
 
 def pt_relv(a, b):
@@ -198,6 +199,39 @@ def creep_line(lrng, width):
     pts = [p for p in carve(lrng, liter)]
 
     return LineString(pts)
+
+
+def creep_line_lonlat(lrng, width):
+    """ Returns a LineString creeping path across a lon/lat set of points"""
+    # ASSUMPTION: To convert to meters:  lon, lat
+    # Use haversine formula to calculate average lon/lat per meter
+    # Only calculate for the first point
+    # Assume distance is the same between all other local points (same polygon)
+
+    # Obtain initial point and differences
+    pt0 = lrng[0]
+    gx = pt0[0]
+    gy = pt0[1]
+    pt_plus1x = Point(gx + 1, gy, srid=4326)
+    pt_plus1y = Point(gx, gy + 1, srid=4326)
+
+    # Obtain distance between points (use first point as reference)
+    dx = haversine(pt0, pt_plus1x, unit=Unit.METERS)
+    dy = haversine(pt0, pt_plus1y, unit=Unit.METERS)
+    d = [dx, dy]
+
+    # Create a LinearRing with "normalized coords"
+    lrng1 = LinearRing([
+        [d[i] * coord for i, coord in enumerate(pt)]
+        for pt in lrng])
+
+    # Create a creeping line search using "normalized coords"
+    line1 = creep_line(lrng1, width)
+
+    # Convert back to regular lon / lat
+    return LineString([
+        [coord / d[i] for i, coord in enumerate(pt)]
+        for pt in line1])
 
 
 def creep_line_at_angle(lrng, width, angle):
