@@ -16,7 +16,7 @@ from data.models import (LineStringTime,
                          LineStringTimeLabel,
                          PolygonTimeLabel)
 from assets.models import AssetType, Asset
-from search.polygon.convex import creep_line_lonlat as polygon_creep_line
+from search.polygon.convex import creep_line_concave as polygon_creep_line
 
 
 def dictfetchall(cursor):

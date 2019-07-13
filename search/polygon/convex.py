@@ -234,5 +234,15 @@ def creep_line_lonlat(lrng, width):
         for pt in line1])
 
 
+def creep_line_concave(lrng, width):
+    """ Return a LineString creeping path across all convex polygons in a
+    concave polygon"""
+    lrngs_convex = decomp(LinearRing([pt for pt in lrng]))
+    return LineString([p
+                       for l in [creep_line_lonlat(lr, width)
+                                 for lr in lrngs_convex]
+                       for p in l])
+
+
 def creep_line_at_angle(lrng, width, angle):
     pass
