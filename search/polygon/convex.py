@@ -2,7 +2,6 @@
 
 from django.contrib.gis.geos import Point, LineString, LinearRing
 import numpy as np
-import shapely
 import math
 
 
@@ -35,7 +34,7 @@ def lrng_concave_points(lrng):
     lcross = lrng_cross(lrng)
     cw = sum(1 for i in lcross if i < 0)
     acw = sum(1 for i in lcross if i > 0)
-    zeros = sum(1 for i in lcross if i == 0)
+    # zeros = sum(1 for i in lcross if i == 0)
 
     # The number of concave points will always be
     # smaller or equal than the number of convex points
@@ -44,7 +43,7 @@ def lrng_concave_points(lrng):
     if cw >= acw:
         return [lrng[i]
                 for i, cp in enumerate(lcross)
-                if cp > 0 ]
+                if cp > 0]
 
     # Alternative: Concave points are cw
     else:
@@ -203,5 +202,3 @@ def creep_line(lrng, width):
 
 def creep_line_at_angle(lrng, width, angle):
     pass
-# TODO: Implement creep_line at angle with shapely
-#       affine transformations (rotation)

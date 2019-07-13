@@ -437,8 +437,6 @@ class PolygonSearch(SearchPath):
         """
         Create a polygon search that sweeps across a polygon
         """
-        # TODO: Obtain points for raw line and pass to PolygonSearch init
-
         # See class PolygonTimeLabel in data/models.py
         poly = params.from_geo().polygon
         lrng = poly[0]
@@ -453,8 +451,8 @@ class PolygonSearch(SearchPath):
         pt0 = lrng[0]
         gx = pt0[0]
         gy = pt0[1]
-        pt_plus1x = Point(gx+1, gy, srid=4326)
-        pt_plus1y = Point(gx, gy+1, srid=4326)
+        pt_plus1x = Point(gx + 1, gy, srid=4326)
+        pt_plus1y = Point(gx, gy + 1, srid=4326)
 
         # Obtain distance between points (use first point as reference)
         dx = haversine(pt0, pt_plus1x, unit=Unit.METERS)
@@ -463,7 +461,7 @@ class PolygonSearch(SearchPath):
 
         # Create a LinearRing with "normalized coords"
         lrng1 = LinearRing([
-            [d[i]*coord for i, coord in enumerate(pt)]
+            [d[i] * coord for i, coord in enumerate(pt)]
             for pt in lrng])
 
         # Create a creeping line search using "normalized coords"
@@ -471,7 +469,7 @@ class PolygonSearch(SearchPath):
 
         # Convert back to regular lon / lat
         line0 = LineString([
-            [coord/d[i] for i, coord in enumerate(pt)]
+            [coord / d[i] for i, coord in enumerate(pt)]
             for pt in line1])
 
         search = PolygonSearch(

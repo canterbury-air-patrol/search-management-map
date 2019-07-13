@@ -18,18 +18,18 @@ class Test_Convex(unittest.TestCase):
         a = Point(0, 0)
         b = Point(1, 0)
 
-        self.assertEqual(pt_relv(a,b),
-                         [1,0])
+        self.assertEqual(pt_relv(a, b),
+                         [1, 0])
 
         c = Point(0, 1)
-        self.assertEqual(pt_relv(b,c),
-                         [-1,1])
+        self.assertEqual(pt_relv(b, c),
+                         [-1, 1])
 
     def test_corner_relv(self):
         """ Tests conversion of points to relative vector """
-        a = Point(0,0)
-        b = Point(1,0)
-        c = Point(0,1)
+        a = Point(0, 0)
+        b = Point(1, 0)
+        c = Point(0, 1)
 
         u, v = pt_corner_relv(a, b, c)
 
@@ -145,7 +145,7 @@ class Test_Convex(unittest.TestCase):
         self.assertFalse(cansee(*pts1a, lrng0))
 
         # Points as points
-        pts2a = [Point((0,0)),
+        pts2a = [Point((0, 0)),
                  Point((-0.1, 0.5))]
         try:
             cansee(*pts2a, lrng0)
