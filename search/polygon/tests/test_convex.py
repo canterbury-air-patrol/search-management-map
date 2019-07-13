@@ -198,6 +198,25 @@ class Test_Convex(unittest.TestCase):
         result1 = decomp(lrng1)
         self.assertEqual(len(result1), 2)
 
+    def test_decomp_example1(self):
+        """ Real Example 1 :: Pair of Pants """
+        # Real Data
+        lrng0 = LinearRing((
+            (172.79159545898438, -43.41801639874423),
+            (172.7974319458008, -43.33866308542216),
+            (172.86712646484375, -43.327924949879176),
+            (172.9344177246094, -43.33491743983),
+            (172.93510437011722, -43.42749192352219),
+            (172.90489196777347, -43.422504990087994),
+            (172.87742614746094, -43.374110416762214),
+            (172.85545349121097, -43.42001136931237),
+            (172.79159545898438, -43.41801639874423)))
+
+        result0 = decomp(lrng0)
+        print(type(lrng0[0]))
+        self.assertEqual(len(result0), 2)
+        print([[pt for pt in lr] for lr in result0])
+
     def test_creep_line(self):
         """ Test creeping line generation over convex LinearRing. """
 
