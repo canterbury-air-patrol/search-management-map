@@ -59,7 +59,7 @@ def lrng_cross(lrng):
     dirl = list()
 
     # Ignore last element (duplicate)
-    lr = [pt for pt in lrng]
+    lr = [np.float64(pt) for pt in lrng]
     lr.pop()
 
     for i, pt in enumerate(lr):
@@ -72,7 +72,7 @@ def lrng_cross(lrng):
             )
         )
     dirl.append(dirl.pop(0))
-    return [float(x) for x in dirl]
+    return [np.float64(x) for x in dirl]
 
 
 def decomp(lrng):
