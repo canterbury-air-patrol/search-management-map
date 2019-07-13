@@ -152,7 +152,7 @@ def creep_line(lrng, width):
     a creeping path through a convex LinearRing """
     xmin, ymin, xmax, ymax = lrng.extent
     xdist = xmax - xmin
-    ydist = ymax - ymin
+    ydist = width
 
     def stripe(y, space, ymax):
         """ Generates ycoord spaced over interval"""
