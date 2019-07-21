@@ -9,7 +9,7 @@ import math
 from django.db import models, connection as dbconn
 from django.db.models import Func
 from django.contrib.auth import get_user_model
-from django.contrib.gis.geos import GEOSGeometry, LineString, LinearRing, Point
+from django.contrib.gis.geos import GEOSGeometry, LineString
 
 from data.models import (LineStringTime,
                          PointTimeLabel,
@@ -429,6 +429,9 @@ class PolygonSearch(SearchPath):
 
     @staticmethod
     def url_component():
+        """
+        Return the part of the path that identifies this search type
+        """
         return 'creepingline/polygon'
 
     @staticmethod
