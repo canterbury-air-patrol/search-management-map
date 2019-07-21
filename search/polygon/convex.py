@@ -1,39 +1,44 @@
 #!/usr/bin/python3
+"""
+Functions for convex polygons
 
+- Decompose a concave polygon into multiple convex polygons (decomp)
+- Generate a creeping line search over a convex polygon (creep_line)
+"""
+import math
 from django.contrib.gis.geos import Point, LineString, LinearRing
 import numpy as np
-import math
 from haversine import haversine, Unit
 
 
-def pt_relv(a, b):
-    """ Returns a relative vector, b-a"""
-    return [v - a[i] for i, v in enumerate(b)]
+def pt_relv(pt_a, pt_b):
+    """ Returns a relative vector, pt_b-pt_a"""
+    return [v - pt_a[i] for i, v in enumerate(pt_b)]
 
 
-def pt_corner_relv(a, b, c):
-    """ Takes 3 points a, b and c and returns
-         u = b - a
-         v = c - b """
-    return [pt_relv(a, b),
-            pt_relv(b, c)]
+def pt_corner_relv(pt_a, pt_b, pt_c):
+    """ Takes 3 points pt_a, pt_b and pt_c and returns
+         u = pt_b - pt_a
+         v = pt_c - pt_b """
+    return [pt_relv(pt_a, pt_b),
+            pt_relv(pt_b, pt_c)]
 
 
-def vec_cosine_rule(u, v):
+def vec_cosine_rule(vec_u, vec_v):
     """Returns the cosine angle between two vectors
     Where,
     cos(theta) = u . v / mag(u) / mag(v)"""
     norm = np.linalg.norm
     dot = np.dot
     acos = math.acos
-    return acos(dot(u, v)/norm(u)/norm(v))
+    return acos(dot(vec_u, vec_v)/norm(vec_u)/norm(vec_v))
 
 
 def lrng_concave_points(lrng):
     """ Takes a linear ring and
     returns all concave/reflex points in the ring """
     lcross = lrng_cross(lrng)
-    cw = sum(1 for i in lcross if i < 0)
+    cws = sum(1 for i in lcross if i < 0)
     acw = sum(1 for i in lcross if i > 0)
     # zeros = sum(1 for i in lcross if i == 0)
 
@@ -41,16 +46,15 @@ def lrng_concave_points(lrng):
     # smaller or equal than the number of convex points
 
     # Case 1: Concave points are acw, or both
-    if cw >= acw:
+    if cws >= acw:
         return [lrng[i]
                 for i, cp in enumerate(lcross)
                 if cp > 0]
 
-    # Alternative: Concave points are cw
-    else:
-        return [lrng[i]
-                for i, cp in enumerate(lcross)
-                if cp < 0]
+    # Alternative: Concave points are cws (clockwise)
+    return [lrng[i]
+            for i, cp in enumerate(lcross)
+            if cp < 0]
 
 
 def lrng_cross(lrng):
@@ -59,16 +63,16 @@ def lrng_cross(lrng):
     dirl = list()
 
     # Ignore last element (duplicate)
-    lr = [np.float64(pt) for pt in lrng]
-    lr.pop()
+    lrng_1 = [np.float64(pt) for pt in lrng]
+    lrng_1.pop()
 
-    for i, pt in enumerate(lr):
-        p0 = lr[i-2]
-        p1 = lr[i-1]
-        p2 = pt
+    for i, val in enumerate(lrng_1):
+        pt_0 = lrng_1[i-2]
+        pt_1 = lrng_1[i-1]
+        pt_2 = val
         dirl.append(
             np.cross(
-                *pt_corner_relv(p0, p1, p2)
+                *pt_corner_relv(pt_0, pt_1, pt_2)
             )
         )
     dirl.append(dirl.pop(0))
@@ -88,13 +92,12 @@ def decomp(lrng):
                 right = sublrng(pt1, pt0, lrng)
                 tmp = decomp(left) + decomp(right)
                 if (len(tmp) < ndiags or ndiags == 0):
-                    min = tmp
+                    min_convex = tmp
                     ndiags = len(tmp)
 
     if concave_points:
-        return min
-    else:
-        return [lrng]
+        return min_convex
+    return [lrng]
 
 
 def lrng_convex_points(lrng):
@@ -127,8 +130,7 @@ def cansee(pt0, pt1, lrng):
 
     if intersect:
         return False
-    else:
-        return True
+    return True
 
 
 def sublrng(pt0, pt1, lrng):
@@ -137,42 +139,42 @@ def sublrng(pt0, pt1, lrng):
     pt1 = ending point,
     lrng = original linear ring"""
 
-    i0 = lrng.index(pt0)
-    i1 = lrng.index(pt1)
+    idx0 = lrng.index(pt0)
+    idx1 = lrng.index(pt1)
 
-    if i1 > i0:
+    if idx1 > idx0:
         return LinearRing(
-            lrng[i0:i1+1] + [pt0])
-    else:
-        return LinearRing(lrng[i0:-1] + lrng[:i1+1] + [pt0])
+            lrng[idx0:idx1+1] + [pt0])
+
+    return LinearRing(lrng[idx0:-1] + lrng[:idx1+1] + [pt0])
 
 
 def creep_line(lrng, width):
     """ Return a LineString which represents
     a creeping path through a convex LinearRing """
     xmin, ymin, xmax, ymax = lrng.extent
-    xdist = xmax - xmin
+    # xdist = xmax - xmin
     ydist = width
 
-    def stripe(y, space, ymax):
+    def step(yin, space, ymax):
         """ Generates ycoord spaced over interval"""
-        while y < ymax:
-            yield y
-            y = y + space
+        while yin < ymax:
+            yield yin
+            yin = yin + space
         yield ymax
 
-    def slice(xmin, xmax, yiter):
+    def stripe(xmin, xmax, yiter):
         """ Generates LineStrings spaced over yiter"""
-        for y in yiter:
-            yield LineString((xmin, y), (xmax, y))
+        for yin in yiter:
+            yield LineString((xmin, yin), (xmax, yin))
 
     def carve(lrng, liter):
         """
         Generates a list of points that intersect with lrng
         """
         reverse = False
-        for l in liter:
-            i = lrng.intersection(l)
+        for lstr in liter:
+            i = lrng.intersection(lstr)
             i.normalize()
             try:
                 if isinstance(i, Point):
@@ -184,18 +186,18 @@ def creep_line(lrng, width):
                     if reverse:
                         reverse = False
                         i.reverse()
-                        for p in i:
-                            yield p
+                        for pnt in i:
+                            yield pnt
                     else:
                         reverse = True
-                        for p in i:
-                            yield p
+                        for pnt in i:
+                            yield pnt
             except TypeError:
                 msg = "{} is of type {}".format(i, type(i))
-                raise(TypeError(msg))
+                raise TypeError(msg)
 
-    yiter = [y for y in stripe(ymin, ydist, ymax)]
-    liter = [l for l in slice(xmin, xmax, yiter)]
+    yiter = [y for y in step(ymin, ydist, ymax)]
+    liter = [l for l in stripe(xmin, xmax, yiter)]
     pts = [p for p in carve(lrng, liter)]
 
     return LineString(pts)
@@ -210,19 +212,19 @@ def creep_line_lonlat(lrng, width):
 
     # Obtain initial point and differences
     pt0 = lrng[0]
-    gx = pt0[0]
-    gy = pt0[1]
-    pt_plus1x = Point(gx + 1, gy, srid=4326)
-    pt_plus1y = Point(gx, gy + 1, srid=4326)
+    g_x = pt0[0]
+    g_y = pt0[1]
+    pt_plus1x = Point(g_x + 1, g_y, srid=4326)
+    pt_plus1y = Point(g_x, g_y + 1, srid=4326)
 
     # Obtain distance between points (use first point as reference)
-    dx = haversine(pt0, pt_plus1x, unit=Unit.METERS)
-    dy = haversine(pt0, pt_plus1y, unit=Unit.METERS)
-    d = [dx, dy]
+    d_x = haversine(pt0, pt_plus1x, unit=Unit.METERS)
+    d_y = haversine(pt0, pt_plus1y, unit=Unit.METERS)
+    d_a = [d_x, d_y]
 
     # Create a LinearRing with "normalized coords"
     lrng1 = LinearRing([
-        [d[i] * coord for i, coord in enumerate(pt)]
+        [d_a[i] * coord for i, coord in enumerate(pt)]
         for pt in lrng])
 
     # Create a creeping line search using "normalized coords"
@@ -230,7 +232,7 @@ def creep_line_lonlat(lrng, width):
 
     # Convert back to regular lon / lat
     return LineString([
-        [coord / d[i] for i, coord in enumerate(pt)]
+        [coord / d_a[i] for i, coord in enumerate(pt)]
         for pt in line1])
 
 
@@ -245,4 +247,6 @@ def creep_line_concave(lrng, width):
 
 
 def creep_line_at_angle(lrng, width, angle):
+    """ Returns a LineString creeping path at a set angle
+    across a LinearRing"""
     pass
