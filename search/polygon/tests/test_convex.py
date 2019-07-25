@@ -1,11 +1,25 @@
 #!/usr/bin/python3
+"""
+UnitTests for Convex Polygon module
+"""
 
 import unittest
-from django.contrib.gis.geos import Polygon, LinearRing, Point
-from search.polygon.convex import *
+import math
+from django.contrib.gis.geos import LineString, LinearRing, Point
+from search.polygon.convex import (pt_relv,
+                                   pt_corner_relv,
+                                   vec_cosine_rule,
+                                   lrng_cross,
+                                   lrng_concave_points,
+                                   lrng_convex_points,
+                                   cansee,
+                                   sublrng,
+                                   decomp,
+                                   creep_line,
+                                   creep_line_at_angle)
 
 
-class Test_Convex(unittest.TestCase):
+class TestConvex(unittest.TestCase):
     """ Test generation of convex linear ring from concave linear ring."""
     def setUp(self):
         pass
@@ -15,39 +29,39 @@ class Test_Convex(unittest.TestCase):
 
     def test_relv(self):
         """ Tests relative vector from two points """
-        a = Point(0, 0)
-        b = Point(1, 0)
+        aaa = Point(0, 0)
+        bbb = Point(1, 0)
 
-        self.assertEqual(pt_relv(a, b),
+        self.assertEqual(pt_relv(aaa, bbb),
                          [1, 0])
 
-        c = Point(0, 1)
-        self.assertEqual(pt_relv(b, c),
+        ccc = Point(0, 1)
+        self.assertEqual(pt_relv(bbb, ccc),
                          [-1, 1])
 
     def test_corner_relv(self):
         """ Tests conversion of points to relative vector """
-        a = Point(0, 0)
-        b = Point(1, 0)
-        c = Point(0, 1)
+        aaa = Point(0, 0)
+        bbb = Point(1, 0)
+        ccc = Point(0, 1)
 
-        u, v = pt_corner_relv(a, b, c)
+        uuu, vvv = pt_corner_relv(aaa, bbb, ccc)
 
-        u_exp = [1, 0]
-        v_exp = [-1, 1]
+        uuu_exp = [1, 0]
+        vvv_exp = [-1, 1]
 
-        self.assertEqual(u, u_exp)
-        self.assertEqual(v, v_exp)
+        self.assertEqual(uuu, uuu_exp)
+        self.assertEqual(vvv, vvv_exp)
 
     def test_cosine_rule(self):
         """ Tests cosine rule """
-        u1 = [1, 0]
-        v1 = [0, 1]
-        self.assertEqual(vec_cosine_rule(u1, v1), math.pi/2)
+        uuu1 = [1, 0]
+        vvv1 = [0, 1]
+        self.assertEqual(vec_cosine_rule(uuu1, vvv1), math.pi/2)
 
-        u2 = [1, 0]
-        v2 = [1, 1]
-        self.assertAlmostEqual(vec_cosine_rule(u2, v2), math.pi/4)
+        uuu2 = [1, 0]
+        vvv2 = [1, 1]
+        self.assertAlmostEqual(vec_cosine_rule(uuu2, vvv2), math.pi/4)
 
     # def test_subpoly(self):
     #     " Tests subpoly returns new subset polygon"
@@ -65,7 +79,7 @@ class Test_Convex(unittest.TestCase):
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
-        # Square with a notch (1 reflex point @ (2,1))
+        # Square with aaa notch (1 reflex point @ (2,1))
         lrng1 = LinearRing((
             (0, 0), (0, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
@@ -90,7 +104,7 @@ class Test_Convex(unittest.TestCase):
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
-        # Square with a notch (1 reflex point @ (2,1))
+        # Square with aaa notch (1 reflex point @ (2,1))
         lrng1 = LinearRing((
             (0, 0), (0, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
@@ -105,7 +119,7 @@ class Test_Convex(unittest.TestCase):
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
-        # Square with a notch (1 reflex point @ (2,1))
+        # Square with aaa notch (1 reflex point @ (2,1))
         lrng1 = LinearRing((
             (0, 0), (0, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
@@ -117,44 +131,44 @@ class Test_Convex(unittest.TestCase):
                           (3, 0), (1, 0)])
 
     def test_cansee(self):
-        """ Test cansee returns whether a line can be drawn
+        """ Test cansee returns whether aaa line can be drawn
         between points, pt0 and pt1
         without crossing the LinearRing, lrng """
 
         # Plain square (no reflex points)
-        # Modified with a slight bump
+        # Modified with aaa slight bump
         lrng0 = LinearRing((
             (0, 0), (-0.1, 0.5), (0, 1), (1, 1), (1, 0), (0, 0)))
         # Edge case,
-        pts0a = [(0, 0), (0, 1)]
+        pts0aaa = [(0, 0), (0, 1)]
         # Cross to center (from edge)
-        pts0b = [(0.5, 0), (0.5, 0.5)]
+        pts0bbb = [(0.5, 0), (0.5, 0.5)]
         # Cross to center (from outside)
-        pts0c = [(0.5, -1), (0.5, 0.5)]
+        pts0ccc = [(0.5, -1), (0.5, 0.5)]
         # Cross outside to outside
-        pts0d = [(0.5, -1), (0.5, 2)]
+        pts0ddd = [(0.5, -1), (0.5, 2)]
 
-        self.assertTrue(cansee(*pts0a, lrng0))
-        self.assertFalse(cansee(*pts0b, lrng0))
-        self.assertFalse(cansee(*pts0c, lrng0))
-        self.assertFalse(cansee(*pts0d, lrng0))
+        self.assertTrue(cansee(*pts0aaa, lrng0))
+        self.assertFalse(cansee(*pts0bbb, lrng0))
+        self.assertFalse(cansee(*pts0ccc, lrng0))
+        self.assertFalse(cansee(*pts0ddd, lrng0))
 
         # Points next to each other
-        pts1a = [(0, 0), (-0.1, 0.5)]
+        pts1aaa = [(0, 0), (-0.1, 0.5)]
 
-        self.assertFalse(cansee(*pts1a, lrng0))
+        self.assertFalse(cansee(*pts1aaa, lrng0))
 
         # Points as points
-        pts2a = [Point((0, 0)),
-                 Point((-0.1, 0.5))]
+        pts2aaa = [Point((0, 0)),
+                   Point((-0.1, 0.5))]
         try:
-            cansee(*pts2a, lrng0)
+            cansee(*pts2aaa, lrng0)
         except TypeError:
             self.fail(
                 "cansee() raises TypeError for an array of Point objects!")
 
     def test_sublrng(self):
-        """Test sublrng returns a subset of lnrg """
+        """Test sublrng returns aaa subset of lnrg """
 
         # Plain square (no reflex points)
         lrng0 = LinearRing((
@@ -172,28 +186,28 @@ class Test_Convex(unittest.TestCase):
         self.assertEqual(sublrng(pt0, pt3, lrng0), lrng0)
         # Return lrng from pt1 to pt0,
         # (=lrng0, but starts at pt1 now)
-        A = sublrng(pt2, pt1, lrng0)
-        B = LinearRing((pt2, pt3, pt0, pt1, pt2))
-        self.assertEqual(A, B)
+        aaa = sublrng(pt2, pt1, lrng0)
+        bbb = LinearRing((pt2, pt3, pt0, pt1, pt2))
+        self.assertEqual(aaa, bbb)
 
     def test_decomp(self):
-        """ Test decomposes a LinearRing into multiple convex LinearRings."""
+        """ Test decomposes aaa LinearRing into multiple convex LinearRings."""
         # Plain square (no reflex points)
         lrng0 = LinearRing((
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
-        # Square with a notch (1 reflex point @ (2,1))
+        # Square with aaa notch (1 reflex point @ (2,1))
         lrng1 = LinearRing((
             (0, 0), (0, 2), (2, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
 
-        # Decomposing a convex linear ring
+        # Decomposing aaa convex linear ring
         # should produce an array of that linear ring only
         result0 = decomp(lrng0)
         self.assertEqual(result0[0], lrng0)
         self.assertEqual(len(result0), 1)
 
-        # Decompose a square with a notch
+        # Decompose aaa square with aaa notch
         # Should produce two linear rings
         result1 = decomp(lrng1)
         self.assertEqual(len(result1), 2)
@@ -225,14 +239,14 @@ class Test_Convex(unittest.TestCase):
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
         # Creeping line @ same size as square
-        lstr0a = creep_line(lrng0, 1)
-        lstr0a_expected = LineString(
+        lstr0aaa = creep_line(lrng0, 1)
+        lstr0aaa_expected = LineString(
             (0, 0), (1, 0), (1, 1), (0, 1)
         )
 
         # Creeping line @ 1.1 spacing
-        lstr0b = creep_line(lrng0, 1.1)
-        lstr0b_expected = LineString(
+        lstr0bbb = creep_line(lrng0, 1.1)
+        lstr0bbb_expected = LineString(
             (0, 0), (1, 0), (1, 1), (0, 1)
         )
 
@@ -241,14 +255,14 @@ class Test_Convex(unittest.TestCase):
             (0, 0), (0, 1), (1, 1), (0, 0)))
 
         # Creeping line @ same size as square
-        lstr1a = creep_line(lrng1, 1)
-        lstr1a_expected = LineString(
+        lstr1aaa = creep_line(lrng1, 1)
+        lstr1aaa_expected = LineString(
             (0, 0), (0, 1), (1, 1)
         )
 
-        self.assertEqual(lstr0a, lstr0a_expected)
-        self.assertEqual(lstr0b, lstr0b_expected)
-        self.assertEqual(lstr1a, lstr1a_expected)
+        self.assertEqual(lstr0aaa, lstr0aaa_expected)
+        self.assertEqual(lstr0bbb, lstr0bbb_expected)
+        self.assertEqual(lstr1aaa, lstr1aaa_expected)
 
     def test_creep_line_at_angle(self):
         """ Test creeping line generation over convex LinearRing,
@@ -263,9 +277,9 @@ class Test_Convex(unittest.TestCase):
             (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
         # Creeping line @ same size as square
-        lstr0a = creep_line_at_angle(lrng0, 1, 0)
-        lstr0a_expected = LineString(
+        lstr0aaa = creep_line_at_angle(lrng0, 1, 0)
+        lstr0aaa_expected = LineString(
             (0, 0), (1, 0), (1, 1), (0, 1)
         )
 
-        self.assertEqual(lstr0a, lstr0a_expected)
+        self.assertEqual(lstr0aaa, lstr0aaa_expected)
