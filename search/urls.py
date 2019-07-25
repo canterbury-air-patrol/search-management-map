@@ -39,5 +39,13 @@ urlpatterns = [
     url(r'^creepingline/track/(?P<search_id>\d+)/json/$', views.creeping_line_track_search_json, name='creeping_line_track_search_json'),
     url(r'^creepingline/track/(?P<search_id>\d+)/begin/$', views.creeping_line_track_search_begin, name='creeping_line_track_search_begin'),
     url(r'^creepingline/track/(?P<search_id>\d+)/finished/$', views.creeping_line_track_search_finished, name='creeping_line_track_search_finished'),
+    url(r'^creepingline/polygon/incomplete/$', views.creeping_line_polygon_search_incomplete, name='creeping_line_polygon_search_incomplete'),
+    url(r'^creepingline/polygon/incomplete/kml/$', views.creeping_line_polygon_search_incomplete_kml, name='creeping_line_polygon_search_incomplete_kml'),
+    url(r'^creepingline/polygon/completed/$', views.creeping_line_polygon_search_completed, name='creeping_line_polygon_search_completed'),
+    url(r'^creepingline/polygon/completed/kml/$', views.creeping_line_polygon_search_completed_kml, name='creeping_line_polygon_search_completed_kml'),
+    url(r'^creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
+    url(r'^creepingline/polygon/(?P<search_id>\d+)/json/$', views.creeping_line_polygon_search_json, name='creeping_line_polygon_search_json'),
+    url(r'^creepingline/polygon/(?P<search_id>\d+)/begin/$', views.creeping_line_polygon_search_begin, name='creeping_line_polygon_search_begin'),
+    url(r'^creepingline/polygon/(?P<search_id>\d+)/finished/$', views.creeping_line_polygon_search_finished, name='creeping_line_polygon_search_finished'),
     url(r'^find/closest/$', views.find_closest_search, name='find_closest_search'),
 ]

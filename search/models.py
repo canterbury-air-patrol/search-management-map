@@ -11,8 +11,12 @@ from django.db.models import Func
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, LineString
 
-from data.models import LineStringTime, PointTimeLabel, LineStringTimeLabel
+from data.models import (LineStringTime,
+                         PointTimeLabel,
+                         LineStringTimeLabel,
+                         PolygonTimeLabel)
 from assets.models import AssetType, Asset
+from search.polygon.convex import creep_line_concave as polygon_creep_line
 
 
 def dictfetchall(cursor):
@@ -402,4 +406,51 @@ class TrackLineCreepingSearch(SearchPath):
         if save:
             search.save()
 
+        return search
+
+
+class PolygonSearch(SearchPath):
+    """
+    A polygon search for a given area (LinearRing).
+    """
+    datum = models.ForeignKey(PolygonTimeLabel, on_delete=models.PROTECT)
+
+    GEOJSON_FIELDS = ('pk',
+                      'timestamp',
+                      'created_for',
+                      'inprogress_by',
+                      'sweep_width', )
+
+    def __str__(self):
+        return "Polygon Search along {} with {} (sw={})".format(
+            self.datum,
+            self.created_for,
+            self.sweep_width)
+
+    @staticmethod
+    def url_component():
+        """
+        Return the part of the path that identifies this search type
+        """
+        return 'creepingline/polygon'
+
+    @staticmethod
+    def create(params, save=False):
+        """
+        Create a polygon search that sweeps across a polygon
+        """
+        # See class PolygonTimeLabel in data/models.py
+        poly = params.from_geo().polygon
+        lrng = poly[0]
+        sweep_width = params.sweep_width()
+        line = polygon_creep_line(lrng, sweep_width)
+
+        search = PolygonSearch(
+            line=line,
+            creator=params.creator(),
+            datum=params.from_geo(),
+            created_for=params.asset_type(),
+            sweep_width=params.sweep_width())
+        if save:
+            search.save()
         return search

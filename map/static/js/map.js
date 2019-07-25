@@ -128,7 +128,8 @@ function userPolygonCreate(poly, layer) {
     }
 
     popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button></div>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
@@ -481,7 +482,7 @@ function mapInit(map) {
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
 
-    overlayAdd("Creeping Line Searches (incomplete)", realtime);
+    overlayAdd("Track Creeping Line Searches (incomplete)", realtime);
 
     realtime = L.realtime({
             url: "/search/creepingline/track/completed/",
@@ -492,5 +493,28 @@ function mapInit(map) {
             getFeatureId: function(feature) { return feature.properties.pk; }
         });
 
-    overlayAdd("Creeping Line Searches (completed)", realtime);
+    overlayAdd("Track Creeping Line Searches (completed)", realtime);
+
+	  realtime = L.realtime({
+            url: "/search/creepingline/polygon/incomplete/",
+            type: 'json',
+        }, {
+            interval: searchIncompleteUpdateFreq,
+            color: 'orange',
+            onEachFeature: creepingLineSearchIncompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        }).addTo(map);
+
+    overlayAdd("Polygon Creeping Line Searches (incomplete)", realtime);
+
+    realtime = L.realtime({
+            url: "/search/creepingline/polygon/completed/",
+            type: 'json',
+        }, {
+            interval: searchCompleteUpdateFreq,
+            onEachFeature: creepingLineSearchCompleteCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; }
+        });
+
+    overlayAdd("Polygon Creeping Line Searches (completed)", realtime);
 }

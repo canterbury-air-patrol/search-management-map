@@ -13,3 +13,7 @@ django-bootstrap4
 pycodestyle
 pylint
 pylint-django
+
+# Numerical
+numpy
+haversine
