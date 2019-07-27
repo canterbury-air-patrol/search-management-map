@@ -1,9 +1,5 @@
 #!/bin/bash
 
-# Re-create the virtual env
-rm -fr venv
-python3 -m venv venv
-source venv/bin/activate
 pip install wheel
 # Install the required packages
 pip install -r requirements.txt
@@ -78,7 +74,14 @@ echo ""
 # Create the local settings file from the template
 if [ ! -f smm/local_settings.py ]
 then
-	cp smm/local_settings.py.template smm/local_settings.py
+	grep -q docker /proc/self/cgroup
+	RETCODE=$?
+	if [ $RETCODE -eq 0 ]
+	then
+		cp docker/app/local_settings.py smm/local_settings.py
+	else
+		cp smm/local_settings.py.template smm/local_settings.py
+	fi
 	echo ""
 	echo "Create smm/local_settings.py from template"
 	echo "You should check this reflects your required settings"
@@ -92,12 +95,10 @@ then
 	echo "Created new secretkey.txt in smm/secretkey.txt"
 fi
 
-echo ""
-echo "A virtual environment has been created in 'venv'"
-echo "run 'source venv/bin/activate' to enter"
-echo "and 'deactivate' to leave"
+./manage.py collectstatic --no-input
+
 echo ""
 echo "To start the server run ./start.sh"
-echo "This script will enter the virtual environment and start the server on port 8080"
+echo "This script will start the server on port 8080"
 echo "You may need to create an admin user with './manage.py createsuperuser'"
 echo ""

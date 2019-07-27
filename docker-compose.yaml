@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  db:
+    image: mdillon/postgis
+  app:
+    build: .
+    volumes:
+      - ./:/code/
+    expose:
+      - "8080"
+    depends_on:
+      - db
+  web:
+    image: nginx
+    ports:
+      - 8080:8080
+    volumes:
+      - ./static/:/static/
+      - ./docker/nginx:/etc/nginx/conf.d
+    depends_on:
+      - app

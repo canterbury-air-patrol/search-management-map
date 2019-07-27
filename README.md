@@ -14,9 +14,17 @@ A system for planning and managing searches. Define a search area and monitor pr
 ```
 git clone https://github.com/canterbury-air-patrol/search-management-map.git
 cd search-management-map
-./setup.sh
-# follow the instructions in the output from setup.sh
-./start.sh
+./setup-venv.sh
+# follow the instructions in the output from setup-venv.sh
+./start-venv.sh
+```
+
+### With Docker
+```
+git clone https://github.com/canterbury-air-patrol/search-management-map.git
+cd search-management-map
+docker-compose run app ./docker/app/create-admin.sh
+docker-compose up
 ```
 
 ## Deploying
