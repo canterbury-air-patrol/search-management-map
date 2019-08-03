@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from data.view_helpers import to_geojson
-from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch
+from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch
 
 
 @login_required
@@ -39,7 +39,7 @@ def check_searches_in_progress(asset):
     """
     Check if the specified asset has any searches in progress
     """
-    for object_class in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch):
+    for object_class in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch):
         searches = object_class.objects.filter(inprogress_by=asset).exclude(completed__isnull=False)
         if searches.exists():
             return searches[0]

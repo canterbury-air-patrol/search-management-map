@@ -59,7 +59,7 @@ def find_closest_search(request):
     # If this asset already has a search in progress, only offer that
     search = check_searches_in_progress(asset)
     if search is None:
-        for object_type in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch):
+        for object_type in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch):
             possible_search = object_type.find_closest(asset.asset_type, point)
             if possible_search:
                 if distance is None or possible_search.distance < distance:
