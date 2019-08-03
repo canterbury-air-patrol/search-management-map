@@ -17,3 +17,6 @@ pylint-django
 # Numerical
 numpy
 haversine
+
+# uwsgi
+uwsgi
