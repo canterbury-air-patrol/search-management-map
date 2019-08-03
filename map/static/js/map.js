@@ -331,6 +331,44 @@ function creepingLineSearchCompleteCreate(line, layer) {
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
+function creepingLinePolygonSearchIncompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
+
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Creeping Line (from polygon)' },
+        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
+
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
+}
+
+function creepingLinePolygonSearchCompleteCreate(line, layer) {
+    var TrackLineSearchID = line.properties.pk;
+    var SweepWidth = line.properties.sweep_width;
+    var AssetType = line.properties.created_for;
+    var InprogressBy = line.properties.inprogress_by;
+
+    var data = [
+        { css: 'type', label: 'Search Type', value: 'Creeping Line (from polygon)' },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
+
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
+}
+
 // eslint-disable-next-line no-unused-vars
 function mapInit(map) {
     myMap = map;
@@ -501,7 +539,7 @@ function mapInit(map) {
         }, {
             interval: searchIncompleteUpdateFreq,
             color: 'orange',
-            onEachFeature: creepingLineSearchIncompleteCreate,
+            onEachFeature: creepingLinePolygonSearchIncompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         }).addTo(map);
 
@@ -512,7 +550,7 @@ function mapInit(map) {
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
-            onEachFeature: creepingLineSearchCompleteCreate,
+            onEachFeature: creepingLinePolygonSearchCompleteCreate,
             getFeatureId: function(feature) { return feature.properties.pk; }
         });
 
