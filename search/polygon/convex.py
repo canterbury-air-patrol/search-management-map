@@ -203,6 +203,28 @@ def creep_line(lrng, width):
     return LineString(pts)
 
 
+def skew_lonlat(lonlat, tol=1, unit=Unit.METERS):
+    """ Obtain the lonlat skew at coord at lon, lat
+
+    That is the ratio of distance/degree for longitude and latitude"""
+    # Obtain initial point
+    g_x = lonlat[0]
+    g_y = lonlat[1]
+
+    # Interpolate points for x-0.5, x+0.5
+    pt_minus_half_x = Point(g_x - 0.5 * tol, g_y, srid=4326)
+    pt_minus_half_y = Point(g_x, g_y - 0.5 * tol, srid=4326)
+    pt_plus_half_x = Point(g_x + 0.5 * tol, g_y, srid=4326)
+    pt_plus_half_y = Point(g_x, g_y + 0.5 * tol, srid=4326)
+
+    # Obtain distance between points (use first point as reference)
+    d_x = haversine(pt_minus_half_x, pt_plus_half_x, unit=unit) / tol
+    d_y = haversine(pt_minus_half_y, pt_plus_half_y, unit=unit) / tol
+    d_a = [d_x, d_y]
+
+    return d_a
+
+
 def creep_line_lonlat(lrng, width):
     """ Returns a LineString creeping path across a lon/lat set of points"""
     # ASSUMPTION: To convert to meters:  lon, lat
