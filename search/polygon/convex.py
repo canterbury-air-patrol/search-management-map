@@ -222,12 +222,12 @@ def skew_lonlat(skew_point, tol=1, unit=Unit.METERS, inverse=False):
     # Obtain distance between points (use first point as reference)
     d_x = haversine(pt_minus_half_x, pt_plus_half_x, unit=unit) / tol
     d_y = haversine(pt_minus_half_y, pt_plus_half_y, unit=unit) / tol
-    d_a = [d_x, d_y]
+    aspect_ratio = [d_x, d_y]
 
     if inverse:
-        return [1 / c for c in d_a]
+        return [1 / c for c in aspect_ratio]
 
-    return d_a
+    return aspect_ratio
 
 
 def skew_by_ratio(ratio, pt_array):
