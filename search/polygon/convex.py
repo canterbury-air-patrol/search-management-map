@@ -203,10 +203,11 @@ def creep_line(lrng, width):
     return LineString(pts)
 
 
-def skew_lonlat(lonlat, tol=1, unit=Unit.METERS):
+def skew_lonlat(lonlat, tol=1, unit=Unit.METERS, inverse=False):
     """ Obtain the lonlat skew at coord at lon, lat
 
-    That is the ratio of distance/degree for longitude and latitude"""
+    That is the ratio of distance/degree for longitude and latitude
+    inverse=True, will provide a d_a to reverse the conversion."""
     # Obtain initial point
     g_x = lonlat[0]
     g_y = lonlat[1]
@@ -221,6 +222,9 @@ def skew_lonlat(lonlat, tol=1, unit=Unit.METERS):
     d_x = haversine(pt_minus_half_x, pt_plus_half_x, unit=unit) / tol
     d_y = haversine(pt_minus_half_y, pt_plus_half_y, unit=unit) / tol
     d_a = [d_x, d_y]
+
+    if inverse:
+        return [1 / c for c in d_a]
 
     return d_a
 
