@@ -250,37 +250,50 @@ def skew_by_ratio(ratio, pt_array):
             for pt in pt_array]
 
 
-def creep_line_lonlat(lrng, width):
+def conv_lonlat_to_meters(geometry, skew_point=None):
+    """ Converts a lonlat Geometry to a meters Geometry """
+    # Obtain skew_point if not set (first point in geometry)
+    if isinstance(skew_point, type(None)):
+        skew_point = geometry[0]
+
+    # Obtain skew and conversion for lonlat to meters
+    lonlat_to_meters = skew_lonlat(skew_point, tol=1, unit=Unit.METERS)
+
+    # Create a Geometry with "normalized coords" in meters
+    geometry_in_meters = geometry.__class__(
+        skew_by_ratio(lonlat_to_meters, geometry))
+
+    return geometry_in_meters
+
+
+def conv_meters_to_lonlat(geometry, skew_point):
+    """ Converts a meters LinearString to a lonlat LinearString
+
+    A skew point is required for converting meters back to lonlat."""
+
+    # Obtain skew and conversion for lonlat to meters
+    meters_to_lonlat = skew_lonlat(skew_point,
+                                   tol=1,
+                                   unit=Unit.METERS,
+                                   inverse=True)
+
+    # Create a Geometry with "normalized coords" in meters
+    geometry_in_lonlat = geometry.__class__(
+        skew_by_ratio(meters_to_lonlat, geometry))
+
+    return geometry_in_lonlat
+
+
+def creep_line_lonlat(lrng_lonlat, width_meters):
     """ Returns a LineString creeping path across a lon/lat set of points"""
-    # ASSUMPTION: To convert to meters:  lon, lat
-    # Use haversine formula to calculate average lon/lat per meter
-    # Only calculate for the first point
-    # Assume distance is the same between all other local points (same polygon)
-
-    # Obtain initial point and differences
-    pt0 = lrng[0]
-    g_x = pt0[0]
-    g_y = pt0[1]
-    pt_plus1x = Point(g_x + 1, g_y, srid=4326)
-    pt_plus1y = Point(g_x, g_y + 1, srid=4326)
-
-    # Obtain distance between points (use first point as reference)
-    d_x = haversine(pt0, pt_plus1x, unit=Unit.METERS)
-    d_y = haversine(pt0, pt_plus1y, unit=Unit.METERS)
-    d_a = [d_x, d_y]
-
-    # Create a LinearRing with "normalized coords"
-    lrng1 = LinearRing([
-        [d_a[i] * coord for i, coord in enumerate(pt)]
-        for pt in lrng])
+    skew_point = lrng_lonlat[0]
+    lrng_meters = conv_lonlat_to_meters(lrng_lonlat, skew_point=skew_point)
 
     # Create a creeping line search using "normalized coords"
-    line1 = creep_line(lrng1, width)
+    line_meters = creep_line(lrng_meters, width_meters)
 
     # Convert back to regular lon / lat
-    return LineString([
-        [coord / d_a[i] for i, coord in enumerate(pt)]
-        for pt in line1])
+    return conv_meters_to_lonlat(line_meters, skew_point=skew_point)
 
 
 def creep_line_concave(lrng, width):
