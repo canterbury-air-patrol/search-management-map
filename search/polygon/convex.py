@@ -229,6 +229,26 @@ def skew_lonlat(lonlat, tol=1, unit=Unit.METERS, inverse=False):
     return d_a
 
 
+def skew_by_ratio(ratio, pt_array):
+    """ Skew a List of Points by a ratio [ dx, dy ]
+
+    Useful for converting from lonlat to meters and vice-versa.
+    Assumes the absolute position is not relevant.
+
+    For example:
+    r_a = skew_lonlat(lrng[0], tol=1, unit=Unit.METERS)
+    meters_array = skew_by_ratio(r_a, lonlat_array)
+
+    r_i = skew_lonlat(lrng[0]. tol=1, unit=Unit.METERS, inverse=True)
+    lonlat_array = skew_by_ratio(r_i, meters_array)
+
+    """
+
+    return [[ratio[i] * coord
+             for i, coord in enumerate(pt)]
+            for pt in pt_array]
+
+
 def creep_line_lonlat(lrng, width):
     """ Returns a LineString creeping path across a lon/lat set of points"""
     # ASSUMPTION: To convert to meters:  lon, lat
