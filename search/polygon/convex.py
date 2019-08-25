@@ -203,14 +203,15 @@ def creep_line(lrng, width):
     return LineString(pts)
 
 
-def skew_lonlat(lonlat, tol=1, unit=Unit.METERS, inverse=False):
-    """ Obtain the lonlat skew at coord at lon, lat
+def skew_lonlat(skew_point, tol=1, unit=Unit.METERS, inverse=False):
+    """ Obtain the lonlat skew at the skew_point coord at lon, lat
 
     That is the ratio of distance/degree for longitude and latitude
+    ( as a particular point, referred to as the skew_point )
     inverse=True, will provide a d_a to reverse the conversion."""
     # Obtain initial point
-    g_x = lonlat[0]
-    g_y = lonlat[1]
+    g_x = skew_point[0]
+    g_y = skew_point[1]
 
     # Interpolate points for x-0.5, x+0.5
     pt_minus_half_x = Point(g_x - 0.5 * tol, g_y, srid=4326)
