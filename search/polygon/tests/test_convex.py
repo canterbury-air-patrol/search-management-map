@@ -16,7 +16,8 @@ from search.polygon.convex import (pt_relv,
                                    sublrng,
                                    decomp,
                                    creep_line,
-                                   creep_line_at_angle)
+                                   creep_line_at_angle,
+                                   perimeter_subarray)
 
 
 class TestConvex(unittest.TestCase):
@@ -263,6 +264,49 @@ class TestConvex(unittest.TestCase):
         self.assertEqual(lstr0aaa, lstr0aaa_expected)
         self.assertEqual(lstr0bbb, lstr0bbb_expected)
         self.assertEqual(lstr1aaa, lstr1aaa_expected)
+
+    def test_perimeter_subarray(self):
+        """ Test perimetere subarray generation. """
+
+        # Point array
+        pt_array = [[1, 1],
+                    [2, 2],
+                    [3, 3],
+                    [4, 4],
+                    [5, 5],
+                    [6, 6],
+                    [7, 7]]
+
+        # Split by single point
+        pts = [[1, 1]]
+
+        # Perimeter subarray generator
+        peri_sub_gen = perimeter_subarray(pts, pt_array)
+
+        self.assertEqual(pt_array + [[1, 1]],
+                         peri_sub_gen.__next__())
+
+        # Split by double points
+        pts = [[2, 2], [5, 5]]
+
+        # Perimeter subarrray generator
+        peri_sub_gen = perimeter_subarray(pts, pt_array)
+
+        self.assertEqual(pt_array[4:]+pt_array[:1 + 1],
+                         peri_sub_gen.__next__())
+        self.assertEqual(pt_array[1:4 + 1],
+                         peri_sub_gen.__next__())
+
+        # Reverse order of pts (= same result)
+        pts.reverse()
+
+        # Perimeter subarrray generator
+        peri_sub_gen = perimeter_subarray(pts, pt_array)
+
+        self.assertEqual(pt_array[4:]+pt_array[:1 + 1],
+                         peri_sub_gen.__next__())
+        self.assertEqual(pt_array[1:4 + 1],
+                         peri_sub_gen.__next__())
 
     def test_creep_line_at_angle(self):
         """ Test creeping line generation over convex LinearRing,

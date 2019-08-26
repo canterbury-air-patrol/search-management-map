@@ -296,6 +296,28 @@ def creep_line_lonlat(lrng_lonlat, width_meters):
     return conv_meters_to_lonlat(line_meters, skew_point=skew_point)
 
 
+def perimeter_subarray(pts, pt_arr):
+    """ Subarray iterator between pts in a pt_array """
+
+    # Find index of all points in pt_array
+    pts_idx = [pt_arr.index(pt) for pt in pts]
+
+    # Sort indices
+    pts_idx.sort()
+
+    # Construct LineString for each segment
+    for count, i1 in enumerate(pts_idx):
+        i0 = pts_idx[count-1]
+
+        # Yield linestring which wraps over the end
+        if count == 0:
+            yield pt_arr[i0:] + pt_arr[:i1+1]
+            continue
+
+        # Yield typical linestring segments
+        yield pt_arr[i0:i1+1]
+
+
 def creep_line_concave(lrng, width):
     """ Return a LineString creeping path across all convex polygons in a
     concave polygon"""
