@@ -321,10 +321,82 @@ def perimeter_subarray(pts, pt_arr):
 def creep_line_concave(lrng, width):
     """ Return a LineString creeping path across all convex polygons in a
     concave polygon"""
+    # Decompose LinearRing into several convex LinearRings
     lrngs_convex = decomp(LinearRing([pt for pt in lrng]))
+
+    # Create creeping line (LineString) for each convex LinearRing
+    creep_lines = [creep_line(lr, width) for lr in lrngs_convex]
+
+    # Create a list of points for each creeping line start and end points
+    creep_line_start_points = [lr[0] for lr in lrngs_convex]
+    creep_line_end_points = [lr[-2] for lr in lrngs_convex]
+
+    # Create a pool of end points
+    remaining_points = [pts
+                        for pts in (creep_line_end_points +
+                                    creep_line_start_points)]
+
+    # Initialize order of creep lines with the first end point
+    i = 0
+    current_segment = [creep_line_start_points.pop(i), creep_line_end_points.pop(i)]
+    creep_lines_ordered = list()
+    creep_lines_ordered.append(creep_lines.pop(i))
+
+    # Continue to append the closest end points and creep lines together
+    # Append LineStrings connecting the creep lines together
+    while len(remaining_points) > 2:
+        found_point = False
+
+        # Remove next start point (if it exists in list)
+        remaining_points.remove(current_segment[0])
+
+        # Find first pt_arr segment that includes current segment
+        for pt_arr in perimeter_subarray(
+                remaining_points, [tuple(p) for p in lrng][:-1]):
+
+            # Find a segment that connects to the end point
+            # But does not pass through the starting point
+            if current_segment[1] in pt_arr:
+                if current_segment[1] == pt_arr[0]:
+                    found_point = True
+                    break
+                elif current_segment[1] == pt_arr[-1]:
+                    pt_arr.reverse()
+                    found_point = True
+                    break
+
+        # Raise an error if no such point was found
+        if not found_point:
+            msg = "Could not find next point!\n"
+            msg += "current_segment: {}\n".format(current_segment)
+            msg += "remaining_points: {}\n".format(remaining_points)
+            raise ValueError(msg)
+
+        # Add joining line to next creep line
+        if len(pt_arr) > 1:
+            creep_lines_ordered.append(LineString(pt_arr))
+
+        # Remove end point
+        remaining_points.remove(current_segment[1])
+
+        # New segment (last point on pt_arr)
+        next_start_point = pt_arr[-1]
+        if next_start_point in creep_line_start_points:
+            i = creep_line_start_points.index(next_start_point)
+            current_segment = [creep_line_start_points.pop(i),
+                               creep_line_end_points.pop(i)]
+        elif next_start_point in creep_line_end_points:
+            i = creep_line_end_points.index(next_start_point)
+            # Reverse order (starting at end and working back)
+            creep_lines[i].reverse()
+            current_segment = [creep_line_end_points.pop(i),
+                               creep_line_start_points.pop(i)]
+
+        # Add next creep line
+        creep_lines_ordered.append(creep_lines.pop(i))
+
     return LineString([p
-                       for l in [creep_line_lonlat(lr, width)
-                                 for lr in lrngs_convex]
+                       for l in creep_lines_ordered
                        for p in l])
 
 
