@@ -17,7 +17,10 @@ from search.polygon.convex import (pt_relv,
                                    decomp,
                                    creep_line,
                                    creep_line_at_angle,
-                                   perimeter_subarray)
+                                   perimeter_subarray,
+                                   creep_line_concave,
+                                   conv_lonlat_to_meters,
+                                   conv_meters_to_lonlat)
 
 
 class TestConvex(unittest.TestCase):
@@ -264,6 +267,33 @@ class TestConvex(unittest.TestCase):
         self.assertEqual(lstr0aaa, lstr0aaa_expected)
         self.assertEqual(lstr0bbb, lstr0bbb_expected)
         self.assertEqual(lstr1aaa, lstr1aaa_expected)
+
+    def test_creep_line_lonlat(self):
+        """ Test creeping line generation over geographic data"""
+
+        # Triangle
+        # endpts: [[(172.53787994384768, -43.49091477463456), (172.5579643249512, -43.478086050102846)]]
+        width_meters = 100
+        lrng_lonlat = [(172.53787994384768, -43.49091477463456),
+                       (172.53135681152344, -43.47758779225476),
+                       (172.5579643249512, -43.478086050102846),
+                       (172.53787994384768, -43.49091477463456)]
+        lrng_meters = conv_lonlat_to_meters(lrng_lonlat)
+        creep_line_concave(lrng_meters, width_meters)
+
+        # Large N shape
+        # endpts: [[(172.59075164794922, -43.45815253147134), (172.59178161621097, -43.4249985081581)], [(172.5227737426758, -43.3781031842174), (172.54508972167972, -43.414525042084996)], [(172.54508972167972, -43.414525042084996), (172.5227737426758, -43.3781031842174)]]
+        width_meters = 1000
+        lrng_lonlat = [(172.59075164794922, -43.45815253147134),
+                       (172.6556396484375, -43.375108633273086),
+                       (172.59178161621097, -43.4249985081581),
+                       (172.5227737426758, -43.3781031842174),
+                       (172.5162506103516, -43.4220062741493),
+                       (172.52037048339847, -43.45914936352794),
+                       (172.54508972167972, -43.414525042084996),
+                       (172.59075164794922, -43.45815253147134)]
+        lrng_meters = conv_lonlat_to_meters(lrng_lonlat)
+        creep_line_concave(lrng_meters, width_meters)
 
     def test_perimeter_subarray(self):
         """ Test perimetere subarray generation. """
