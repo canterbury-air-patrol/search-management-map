@@ -17,6 +17,7 @@ from data.models import (LineStringTime,
                          PolygonTimeLabel)
 from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
+from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
 
 
 def dictfetchall(cursor):
@@ -441,12 +442,18 @@ class PolygonSearch(SearchPath):
         """
         # See class PolygonTimeLabel in data/models.py
         poly = params.from_geo().polygon
-        lrng = poly[0]
+        lrng_lonlat = poly[0]
+
+        skew_point = lrng_lonlat[0]
+        lrng_meters = conv_lonlat_to_meters(lrng_lonlat)
+
         sweep_width = params.sweep_width()
-        line = polygon_creep_line(lrng, sweep_width)
+
+        line_meters = polygon_creep_line(lrng_meters, sweep_width)
+        line_lonlat = conv_meters_to_lonlat(line_meters, skew_point)
 
         search = PolygonSearch(
-            line=line,
+            line=line_lonlat,
             creator=params.creator(),
             datum=params.from_geo(),
             created_for=params.asset_type(),
