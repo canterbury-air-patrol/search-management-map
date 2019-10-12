@@ -33,7 +33,29 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
         var markerCoords = marker.getLatLng();
         point.lat = markerCoords.lat;
         point.lng = markerCoords.lng;
+        for (i = 0; i < points.length; i++) {
+            if (points[i] == point)
+            {
+                updatePointRow(i, point);
+            }
+        }
         updateMarkers();
+    }
+
+    var point_count = 0;
+    var addPointRow = function(point) {
+        $('#lineadder-points-' + RAND_NUM).append('<div id="lineadder-points-' + RAND_NUM + '-' + point_count + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lat" size="12" value="' + deg_to_dm(point.lat, true) + '" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lon" size="12" value="' + deg_to_dm(point.lng, false) + '" /></div>');
+        point_count++;
+    }
+
+    var removePointRow = function() {
+        point_count--;
+        $('#lineadder-points-' + RAND_NUM + '-' + point_count).remove();
+    }
+
+    var updatePointRow = function(row, point) {
+        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lat').val(deg_to_dm(point.lat, true));
+        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lon').val(deg_to_dm(point.lng, false));
     }
 
     updateMarkers();
@@ -41,16 +63,27 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
     var contents = [
         '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
         '<input type="text" id="lineadder-dialog-name-' + RAND_NUM + '"></input></div>',
-        '<div class="btn-group"><button class="btn btn-primary" id="lineadder-dialog-next-' + RAND_NUM + '">Next</button>',
+        '<div class="btn-group">',
         '<button class="btn btn-primary" id="lineadder-dialog-done-' + RAND_NUM + '">Done</button></div>',
-        '<div class="btn-group"><button class="btn btn-warning" id="lineadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
-        '<button class="btn btn-warning" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button></div>',
+        '<button class="btn btn-warning" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button>',
+        '</div>',
+        '<div id="lineadder-points-' + RAND_NUM + '"></div>',
+        '<div class="btn-group">',
+        '<button class="btn btn-primary" id="lineadder-dialog-next-' + RAND_NUM + '">Next</button>',
+        '<button class="btn btn-warning" id="lineadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
+        '</div>',
     ].join('');
     dialog.setContent(contents).addTo(map);
+
+    points.forEach(function (p) {
+        addPointRow(p);
+    });
     $("#lineadder-dialog-name-" + RAND_NUM).val(label);
 
     $("#lineadder-dialog-next-" + RAND_NUM).click(function() {
-        points.push(map.getCenter());
+        new_point = map.getCenter();
+        addPointRow(new_point);
+        points.push(new_point);
         updateMarkers();
     });
 
@@ -61,8 +94,8 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
             {name: 'points', value: points.length },
         ]
         for(var i = 0; i < points.length; i++) {
-            data.push({name: 'point'+i+'_lat', value: points[i].lat})
-            data.push({name: 'point'+i+'_lng', value: points[i].lng})
+            data.push({name: 'point'+i+'_lat', value: dm_to_deg ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lat").val())})
+            data.push({name: 'point'+i+'_lng', value: dm_to_deg ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lon").val())})
         }
 
         if (replaces !== -1) {
@@ -84,6 +117,7 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
     $("#lineadder-dialog-remove-" + RAND_NUM).click(function() {
         if (points.length > 1) {
             points.pop();
+            removePointRow();
         }
         updateMarkers();
     });
