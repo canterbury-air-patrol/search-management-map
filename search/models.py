@@ -104,14 +104,14 @@ class SearchPath(LineStringTime):
         return annotated_self.distance
 
     @classmethod
-    def find_closest(cls, asset_type, point):
+    def find_closest(cls, mission, asset_type, point):
         """
         Find the search with the closest starting point
         Only searches that haven't been started or deleted and are for the right asset type are considered
         """
         try:
             search = cls.objects.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point))
-            search = search.filter(created_for=asset_type).filter(inprogress_by__isnull=True).filter(completed__isnull=True).filter(deleted=False).order_by('distance')[0]
+            search = search.filter(mission=mission).filter(created_for=asset_type).filter(inprogress_by__isnull=True).filter(completed__isnull=True).filter(deleted=False).order_by('distance')[0]
             return search
         except IndexError:
             return None
@@ -119,6 +119,7 @@ class SearchPath(LineStringTime):
     class Meta:
         abstract = True
         indexes = [
+            models.Index(fields=['mission']),
             models.Index(fields=['created_for']),
             models.Index(fields=['inprogress_by']),
             models.Index(fields=['completed']),

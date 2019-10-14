@@ -18,13 +18,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 
-from assets.models import AssetType, Asset
+from assets.models import AssetType
+from assets.decorators import asset_id_in_get_post
 from data.models import PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission
-from mission.decorators import mission_is_member
+from mission.decorators import mission_is_member, mission_asset_get_mission
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
-from .view_helpers import search_json, mission_search_incomplete, mission_search_completed, check_searches_in_progress
+from .view_helpers import mission_search_incomplete, mission_search_completed, check_searches_in_progress
 
 
 def mission_get(mission_id):
@@ -35,22 +36,20 @@ def mission_get(mission_id):
 
 
 @login_required
-def find_closest_search(request):
+@asset_id_in_get_post
+@mission_asset_get_mission
+def find_closest_search(request, asset, mission):
     """
     Find the geographically closest search for the specified asset.
     """
     if request.method == 'POST':
-        asset_id = request.POST.get('asset_id')
         lat = request.POST.get('latitude')
         long = request.POST.get('longitude')
     elif request.method == 'GET':
-        asset_id = request.GET.get('asset_id')
         lat = request.GET.get('latitude')
         long = request.GET.get('longitude')
     else:
         HttpResponseNotFound('Unknown Method')
-
-    asset = get_object_or_404(Asset, pk=asset_id)
 
     if lat is None or long is None:
         return HttpResponseBadRequest('Invalid lat or long')
@@ -69,7 +68,7 @@ def find_closest_search(request):
     search = check_searches_in_progress(asset)
     if search is None:
         for object_type in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch):
-            possible_search = object_type.find_closest(asset.asset_type, point)
+            possible_search = object_type.find_closest(mission, asset.asset_type, point)
             if possible_search:
                 if distance is None or possible_search.distance < distance:
                     search = possible_search
@@ -108,24 +107,18 @@ def check_search_state(search, action, asset):
 
 
 @login_required
-def search_begin(request, search_id, object_class):
+@asset_id_in_get_post
+@mission_asset_get_mission
+def search_begin(request, search_id, object_class, asset, mission):
     """
     An asset has accepted a search
 
     Mark the search as inprogress with the specified asset
     """
-    if request.method == 'POST':
-        asset_id = request.POST.get('asset_id')
-    elif request.method == 'GET':
-        asset_id = request.GET.get('asset_id')
-    else:
-        return HttpResponse('Unsupported method')
-
-    asset = get_object_or_404(Asset, pk=asset_id)
-    if asset.owner != request.user:
-        return HttpResponseForbidden("Wrong User for Asset")
-
     search = get_object_or_404(object_class, pk=search_id)
+
+    if search.mission != mission:
+        return HttpResponseForbidden("Asset not currently assigned to the mission this search is in.")
 
     inprogress_search = check_searches_in_progress(asset)
     if inprogress_search is not None:
@@ -143,21 +136,12 @@ def search_begin(request, search_id, object_class):
 
 
 @login_required
-def search_finished(request, search_id, object_class):
+@asset_id_in_get_post
+@mission_asset_get_mission
+def search_finished(request, search_id, object_class, asset, mission):
     """
     A search has been completed
     """
-    if request.method == 'POST':
-        asset_id = request.POST.get('asset_id')
-    elif request.method == 'GET':
-        asset_id = request.GET.get('asset_id')
-    else:
-        return HttpResponse('Unsupported method')
-
-    asset = get_object_or_404(Asset, pk=asset_id)
-    if asset.owner != request.user:
-        return HttpResponseForbidden("Wrong User for Asset")
-
     search = get_object_or_404(object_class, pk=search_id)
     error = check_search_state(search, 'complete', asset)
     if error is not None:
@@ -168,13 +152,6 @@ def search_finished(request, search_id, object_class):
     search.save()
 
     return HttpResponse("Completed")
-
-
-def sector_search_json(request, search_id):
-    """
-    Provide the fulls details of a sector search as json
-    """
-    return search_json(request, search_id, SectorSearch)
 
 
 @login_required
@@ -211,20 +188,6 @@ def sector_search_completed_kml(request, mission_id):
     return to_kml(SectorSearch, mission_search_completed(mission, SectorSearch))
 
 
-def sector_search_begin(request, search_id):
-    """
-    Begin a sector search
-    """
-    return search_begin(request, search_id, SectorSearch)
-
-
-def sector_search_finished(request, search_id):
-    """
-    Complete a sector search
-    """
-    return search_finished(request, search_id, SectorSearch)
-
-
 @login_required
 def sector_search_create(request):
     """
@@ -249,13 +212,6 @@ def sector_search_create(request):
     search = SectorSearch.create(SearchParams(poi, asset_type, request.user, sweep_width), save=save)
 
     return to_geojson(SectorSearch, [search])
-
-
-def expanding_box_search_json(request, search_id):
-    """
-    Provide the fulls details of an expanding box search as json
-    """
-    return search_json(request, search_id, ExpandingBoxSearch)
 
 
 @login_required
@@ -290,20 +246,6 @@ def expanding_box_search_completed_kml(request, mission_id):
     """
     mission = mission_get(mission_id)
     return to_kml(ExpandingBoxSearch, mission_search_completed(mission, ExpandingBoxSearch))
-
-
-def expanding_box_search_begin(request, search_id):
-    """
-    Begin an expanding box search
-    """
-    return search_begin(request, search_id, ExpandingBoxSearch)
-
-
-def expanding_box_search_finished(request, search_id):
-    """
-    Complete an expanding box search
-    """
-    return search_finished(request, search_id, ExpandingBoxSearch)
 
 
 @login_required
@@ -342,13 +284,6 @@ def expanding_box_search_create(request):
     return to_geojson(ExpandingBoxSearch, [search])
 
 
-def track_line_search_json(request, search_id):
-    """
-    Provide the fulls details of a track line search as json
-    """
-    return search_json(request, search_id, TrackLineSearch)
-
-
 @login_required
 @mission_is_member
 def track_line_search_incomplete(request, mission_id, mission_user):
@@ -383,20 +318,6 @@ def track_line_search_completed_kml(request, mission_id):
     return to_kml(TrackLineSearch, mission_search_completed(mission, TrackLineSearch))
 
 
-def track_line_search_begin(request, search_id):
-    """
-    Begin a trackline search
-    """
-    return search_begin(request, search_id, TrackLineSearch)
-
-
-def track_line_search_finished(request, search_id):
-    """
-    Complete a trackline search
-    """
-    return search_finished(request, search_id, TrackLineSearch)
-
-
 @login_required
 def track_line_search_create(request):
     """
@@ -421,13 +342,6 @@ def track_line_search_create(request):
     search = TrackLineSearch.create(SearchParams(line, asset_type, request.user, sweep_width), save=save)
 
     return to_geojson(TrackLineSearch, [search])
-
-
-def creeping_line_track_search_json(request, search_id):
-    """
-    Provide the fulls details of a creeping line ahead search as json
-    """
-    return search_json(request, search_id, TrackLineCreepingSearch)
 
 
 @login_required
@@ -464,20 +378,6 @@ def creeping_line_track_search_completed_kml(request, mission_id):
     return to_kml(TrackLineCreepingSearch, mission_search_completed(mission, TrackLineCreepingSearch))
 
 
-def creeping_line_track_search_begin(request, search_id):
-    """
-    Begin a creeping line search
-    """
-    return search_begin(request, search_id, TrackLineCreepingSearch)
-
-
-def creeping_line_track_search_finished(request, search_id):
-    """
-    Complete a creeping line search
-    """
-    return search_finished(request, search_id, TrackLineCreepingSearch)
-
-
 @login_required
 def track_creeping_line_search_create(request):
     """
@@ -504,13 +404,6 @@ def track_creeping_line_search_create(request):
     search = TrackLineCreepingSearch.create(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
 
     return to_geojson(TrackLineCreepingSearch, [search])
-
-
-def creeping_line_polygon_search_json(request, search_id):
-    """
-    Provide the fulls details of a creeping line ahead search as json
-    """
-    return search_json(request, search_id, PolygonSearch)
 
 
 @login_required
@@ -545,20 +438,6 @@ def creeping_line_polygon_search_completed_kml(request, mission_id):
     """
     mission = mission_get(mission_id)
     return to_kml(PolygonSearch, mission_search_completed(mission, PolygonSearch))
-
-
-def creeping_line_polygon_search_begin(request, search_id):
-    """
-    Begin a creeping line search
-    """
-    return search_begin(request, search_id, PolygonSearch)
-
-
-def creeping_line_polygon_search_finished(request, search_id):
-    """
-    Complete a creeping line search
-    """
-    return search_finished(request, search_id, PolygonSearch)
 
 
 @login_required
