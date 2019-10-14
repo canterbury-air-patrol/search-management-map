@@ -102,9 +102,9 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 			data.push({ name: 'point' + i + '_lng', value: dm_to_deg ($("#polygonadder-points-" + RAND_NUM + "-" + i + "-lon").val()) });
 		}
 		if (replaces !== -1) {
-			$.post('/data/userpolygons/' + replaces + '/replace/', data);
+			$.post('/mission/' + mission_id + '/data/userpolygons/' + replaces + '/replace/', data);
 		} else {
-			$.post('/data/userpolygons/create/', data);
+			$.post('/mission/' + mission_id + '/data/userpolygons/create/', data);
 		}
 		removeAllMarkers();
 		map.removeLayer(polygon);

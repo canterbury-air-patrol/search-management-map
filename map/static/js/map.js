@@ -18,7 +18,7 @@ function assetPathUpdate(name)
     if (assetLine.updating) { return; }
     assetLine.updating = true;
 
-    var url = "/data/assets/" + name + "/position/history/?oldest=last";
+    var url = "/mission/" + mission_id + "/data/assets/" + name + "/position/history/?oldest=last";
     if(assetLine.lastUpdate != null) {
         url = url + "&from=" + assetLine.lastUpdate
     }
@@ -107,7 +107,7 @@ function poiCreate(poi, layer) {
     popupContent += '<dt class="poi-lng-label col-sm-2">Long</dt><dd class="poi-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
 
     popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/pois/' + poiID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
     popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent);
@@ -128,7 +128,7 @@ function userPolygonCreate(poly, layer) {
     }
 
     popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
     popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent, { minWidth: 200 });
@@ -147,7 +147,7 @@ function userLineCreate(line, layer) {
     })
 
     popupContent += '<dev class="btn-group"><button class="btn btn-default" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/data/userlines/' + LineID + '/delete/\')">Delete</button>'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/\')">Delete</button>'
     popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent, { minWidth: 200 });
@@ -394,7 +394,7 @@ function mapInit(map) {
     var searchCompleteUpdateFreq = 60 * 1000;
 
     var realtime = L.realtime({
-            url: "/data/assets/positions/latest/",
+            url: "/mission/" + mission_id + "/data/assets/positions/latest/",
             type: 'json',
         }, {
             interval: assetUpdateFreq,
@@ -406,7 +406,7 @@ function mapInit(map) {
     overlayAdd("Assets", realtime);
 
     realtime = L.realtime({
-            url: "/data/pois/current/",
+            url: "/mission/" + mission_id + "/data/pois/current/",
             type: 'json',
         }, {
             interval: userDataUpdateFreq,
@@ -417,7 +417,7 @@ function mapInit(map) {
     overlayAdd("POIs", realtime);
 
     realtime = L.realtime({
-            url: "/data/userpolygons/current/",
+            url: "/mission/" + mission_id + "/data/userpolygons/current/",
             type: 'json',
         }, {
             interval: userDataUpdateFreq,
@@ -428,7 +428,7 @@ function mapInit(map) {
     overlayAdd("Polygons", realtime);
 
     realtime = L.realtime({
-            url: "/data/userlines/current/",
+            url: "/mission/" + mission_id + "/data/userlines/current/",
             type: 'json',
         }, {
             interval: userDataUpdateFreq,

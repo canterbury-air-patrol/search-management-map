@@ -30,11 +30,11 @@ L.POIAdder = function(map, pos, replaces, label) {
          }
          if (replaces === -1)
          {
-             $.post('/data/pois/create/', data);
+             $.post('/mission/' + mission_id + '/data/pois/create/', data);
          }
          else
          {
-             $.post('/data/pois/' + replaces + '/replace/', data);
+             $.post('/mission/' + mission_id + '/data/pois/' + replaces + '/replace/', data);
          }
          map.removeLayer(marker);
          markerDialog.destroy();

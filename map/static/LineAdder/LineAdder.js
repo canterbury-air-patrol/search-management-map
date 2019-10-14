@@ -99,9 +99,9 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
         }
 
         if (replaces !== -1) {
-            $.post('/data/userlines/' + replaces + '/replace/', data);
+            $.post('/mission/' + mission_id + '/data/userlines/' + replaces + '/replace/', data);
         } else {
-            $.post('/data/userlines/create/', data);
+            $.post('/mission/' + mission_id + '/data/userlines/create/', data);
         }
         removeAllMarkers();
         map.removeLayer(line);

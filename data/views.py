@@ -17,13 +17,15 @@ from django.shortcuts import get_object_or_404, render
 
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
+from mission.decorators import mission_is_member
 from .models import AssetPointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 from .forms import UploadTyphoonData
 from .view_helpers import to_geojson, to_kml, userobject_not_deleted_or_replaced, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
 
 
 @login_required
-def assets_position_latest(request):
+@mission_is_member
+def assets_position_latest(request, mission_id, mission_user):
     """
     Get the last position of each of the know assets
     """
@@ -139,14 +141,15 @@ def asset_position_history(request, asset_name):
 
 
 @login_required
-def point_labels_all(request):
+@mission_is_member
+def point_labels_all(request, mission_id, mission_user):
     """
     Get all the current POIs as geojson
     """
     return to_geojson(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
 
 
-def point_labels_all_kml(request):
+def point_labels_all_kml(request, mission_id):
     """
     Get all the current POIs as kml
     """
@@ -154,7 +157,8 @@ def point_labels_all_kml(request):
 
 
 @login_required
-def point_label_create(request):
+@mission_is_member
+def point_label_create(request, mission_id, mission_user):
     """
     Store a new POI
     """
@@ -162,7 +166,8 @@ def point_label_create(request):
 
 
 @login_required
-def point_label_replace(request, poi):
+@mission_is_member
+def point_label_replace(request, mission_id, mission_user, poi):
     """
     Move/relabel a POI
     """
@@ -170,7 +175,8 @@ def point_label_replace(request, poi):
 
 
 @login_required
-def point_label_delete(request, poi):
+@mission_is_member
+def point_label_delete(request, mission_id, mission_user, poi):
     """
     Delete a POI
     """
@@ -178,14 +184,15 @@ def point_label_delete(request, poi):
 
 
 @login_required
-def user_polygons_all(request):
+@mission_is_member
+def user_polygons_all(request, mission_id, mission_user):
     """
     Get all the current user polygons as geojson
     """
     return to_geojson(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
 
 
-def user_polygons_all_kml(request):
+def user_polygons_all_kml(request, mission_id):
     """
     Get all the current user polygons as kml
     """
@@ -193,7 +200,8 @@ def user_polygons_all_kml(request):
 
 
 @login_required
-def user_polygon_create(request):
+@mission_is_member
+def user_polygon_create(request, mission_id, mission_user):
     """
     Create a new user polygon
     """
@@ -201,7 +209,8 @@ def user_polygon_create(request):
 
 
 @login_required
-def user_polygon_replace(request, polygon):
+@mission_is_member
+def user_polygon_replace(request, mission_id, mission_user, polygon):
     """
     Update the polygon/label of a user polygon
     """
@@ -209,7 +218,8 @@ def user_polygon_replace(request, polygon):
 
 
 @login_required
-def user_polygon_delete(request, polygon):
+@mission_is_member
+def user_polygon_delete(request, mission_id, mission_user, polygon):
     """
     Delete a user polygon
     """
@@ -217,14 +227,15 @@ def user_polygon_delete(request, polygon):
 
 
 @login_required
-def user_lines_all(request):
+@mission_is_member
+def user_lines_all(request, mission_id, mission_user):
     """
     Get all the current user lines as geojson
     """
     return to_geojson(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
 
 
-def user_lines_all_kml(request):
+def user_lines_all_kml(request, mission_id):
     """
     Get all the current user lines as kml
     """
@@ -232,7 +243,8 @@ def user_lines_all_kml(request):
 
 
 @login_required
-def user_line_create(request):
+@mission_is_member
+def user_line_create(request, mission_id, mission_user):
     """
     Create a new user line
     """
@@ -240,7 +252,8 @@ def user_line_create(request):
 
 
 @login_required
-def user_line_replace(request, line):
+@mission_is_member
+def user_line_replace(request, mission_id, mission_user, line):
     """
     Update the line/label of a user line
     """
@@ -248,7 +261,8 @@ def user_line_replace(request, line):
 
 
 @login_required
-def user_line_delete(request, line):
+@mission_is_member
+def user_line_delete(request, mission_id, mission_user, line):
     """
     Delete a user line
     """
@@ -274,7 +288,8 @@ def convert_typhoon_time(timestamp):
 
 
 @login_required
-def upload_typhoonh_data(request):
+@mission_is_member
+def upload_typhoonh_data(request, mission_id, mission_user):
     """
     Allow the user to upload a telemetry from a Typhoon H to create
     the asset track.

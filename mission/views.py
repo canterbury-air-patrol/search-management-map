@@ -4,37 +4,36 @@ Mission Create/Management Views.
 
 from datetime import datetime
 
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 
 from .models import Mission, MissionUser
 from .forms import MissionForm
+from .decorators import mission_is_member, mission_is_admin
 
 
 @login_required
-def mission_details(request, mission_id):
+@mission_is_member
+def mission_details(request, mission_id, mission_user=None):
     """
     Missions details and management.
     """
-    mission = get_object_or_404(Mission, pk=mission_id)
-    return render(request, 'mission_details.html', {'mission': mission})
+    return render(request, 'mission_details.html', {'mission': mission_user.mission})
 
 
 @login_required
-def mission_close(request, mission_id):
+@mission_is_admin
+def mission_close(request, mission_id, mission_user=None):
     """
     Close a Mission
     """
-    mission = get_object_or_404(Mission, pk=mission_id)
-    if mission.closed is not None:
+    if mission_user.mission.closed is not None:
         return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    user_mission = get_object_or_404(MissionUser, mission=mission, user=request.user)
 
-    if user_mission.role == 'A':
-        mission.closed = datetime.now()
-        mission.closed_by = request.user
-        mission.save()
+    mission_user.mission.closed = datetime.now()
+    mission_user.mission.closed_by = request.user
+    mission_user.mission.save()
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
