@@ -42,4 +42,4 @@ class TimeLineEntry(models.Model):
 
     message = models.TextField()
 
-    url = models.TextField()
+    url = models.TextField(blank=True, null=True)

@@ -3,6 +3,7 @@ Forms for missions
 """
 from django.forms import ModelForm
 
+from timeline.models import TimeLineEntry
 from .models import Mission, MissionUser, MissionAsset
 
 
@@ -31,3 +32,12 @@ class MissionAssetForm(ModelForm):
     class Meta:
         model = MissionAsset
         fields = ['asset']
+
+
+class MissionTimeLineEntryForm(ModelForm):
+    """
+    Form for adding a custom (user defined time/message) timeline entry to a mission
+    """
+    class Meta:
+        model = TimeLineEntry
+        fields = ['timestamp', 'message', 'url']

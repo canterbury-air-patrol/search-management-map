@@ -11,10 +11,10 @@ from django.utils import timezone
 
 from assets.models import Asset
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
+from timeline.helpers import timeline_record_create, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType
-from .forms import MissionForm, MissionUserForm, MissionAssetForm
+from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionTimeLineEntryForm
 from .decorators import mission_is_member, mission_is_admin
 
 
@@ -45,7 +45,7 @@ def mission_timeline(request, mission_id, mission_user):
     """
     data = {
         'mission': mission_user.mission,
-        'timeline': TimeLineEntry.objects.filter(mission=mission_user.mission),
+        'timeline': TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp'),
     }
     return render(request, 'mission_timeline.html', data)
 
@@ -110,6 +110,27 @@ def mission_new(request):
         form = MissionForm()
 
     return render(request, 'mission_create.html', {'form': form})
+
+
+@login_required
+@mission_is_member
+def mission_timeline_add(request, mission_id, mission_user):
+    """
+    Add a custom entry to the timeline for a mission.
+    """
+    form = None
+    if request.method == 'POST':
+        form = MissionTimeLineEntryForm(request.POST)
+        if form.is_valid():
+            entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=form.cleaned_data['message'], timestamp=form.cleaned_data['timestamp'], url=form.cleaned_data['url'], event_type='usr')
+            entry.save()
+            timeline_record_create(mission_user.mission, request.user, entry)
+            return HttpResponseRedirect("/mission/{}/timeline/".format(mission_id))
+
+    if form is None:
+        form = MissionTimeLineEntryForm()
+
+    return render(request, 'mission_timeline_add.html', {'form': form})
 
 
 @login_required
