@@ -6,7 +6,7 @@ L.SMMAdmin.AssetCommand = function(map) {
         "<div><button class='btn btn-default' id='command_create'>Set</button>",
         "<button class='btn btn-default' id='command_cancel'>Cancel</button></div>",
     ].join('');
-    var assetCommandDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map);
+    var assetCommandDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
     var gotoPoint = null;
     var changeSelectedCommand = function() {
         var selectedCommand = $("#id_command").val();
@@ -76,7 +76,7 @@ L.SMMAdmin.TrackPosition = function(map) {
         "<button class='btn btn-default' id='record_stop'>Stop</button>",
         "<button class='btn btn-default' id='record_close'>Close</button></div>",
     ].join('');
-    var trackPositionDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map);
+    var trackPositionDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
 
     $.get('/assets/mine/json/', function(data) {
         $.each(data, function(index, json){
@@ -191,7 +191,7 @@ L.Control.SMMAdmin = L.Control.extend({
                 "<div><button class='btn btn-default' id='asset_track'>Track as Asset</button></div>",
                 "<div><button class='btn btn-default' id='admin_close'>Close</button>",
             ].join('');
-            var AdminDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map);
+            var AdminDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
             $("#asset_command").click(function() {L.SMMAdmin.AssetCommand(map)});
             $("#asset_track").click(function() {L.SMMAdmin.TrackPosition(map)});
             $("#admin_close").click(function() {AdminDialog.destroy()});

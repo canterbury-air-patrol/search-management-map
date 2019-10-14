@@ -14,7 +14,7 @@ L.POIAdder = function(map, pos, replaces, label) {
         '<div class="btn-group"><button class="btn btn-primary" id="poi-dialog-create-' + RAND_NUM + '">Create</button>',
         '<button class="btn btn-danger" id="poi-dialog-cancel-' + RAND_NUM + '">Cancel</button></div>',
     ].join('');
-    var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map);
+    var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map).hideClose();
     if (replaces !== -1) {
         $('#poi-dialog-lat-' + RAND_NUM).val(deg_to_dm(pos.lat, true));
         $('#poi-dialog-lon-' + RAND_NUM).val(deg_to_dm(pos.lng, false));

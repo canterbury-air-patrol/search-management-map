@@ -77,7 +77,7 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
         '<button class="btn btn-warning" id="polygonadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
         '</div>',
 	].join('');
-	dialog.setContent(contents).addTo(map);
+	dialog.setContent(contents).addTo(map).hideClose();
 
     points.forEach(function (p) {
         addPointRow(p);
