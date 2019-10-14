@@ -37,6 +37,15 @@ class MissionUser(models.Model):
     )
     role = models.CharField(max_length=1, choices=USER_ROLE, default='M')
 
+    def user_role_name(self):
+        """
+        Return a human-readable name for this users' role.
+        """
+        for row in self.USER_ROLE:
+            if row[0] == self.role:
+                return row[1]
+        return "Unknown"
+
 
 class MissionAsset(models.Model):
     """

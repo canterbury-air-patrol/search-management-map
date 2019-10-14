@@ -24,8 +24,21 @@ class TimeLineEntry(models.Model):
         ('sbg', "Asset Started Search"),
         ('snd', "Asset Finished Search"),
         ('usr', "User defined Event"),
+        ('uad', "User added to mission"),
+        ('uup', "User updated"),
+        ('aad', "Asset added to mission"),
+        ('arm', "Asset removed from mission"),
     )
     event_type = models.CharField(max_length=3, choices=EVENT_TYPE)
+
+    def event_type_str(self):
+        """
+        Convert the event type to a human-readable string
+        """
+        for row in self.EVENT_TYPE:
+            if row[0] == self.event_type:
+                return row[1]
+        return "Unknown"
 
     message = models.TextField()
 

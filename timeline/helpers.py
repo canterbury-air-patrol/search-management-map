@@ -53,3 +53,43 @@ def timeline_record_search_finished(mission, user, asset, obj):
     url = ""
     entry = TimeLineEntry(mission=mission, user=user, event_type='snd', message=message, url=url)
     entry.save()
+
+
+def timeline_record_mission_user_add(mission, actioner, user):
+    """
+    Create a timeline entry for an user being added to a mission
+    """
+    message = "{} Added {} to Mission {}".format(actioner, user, mission.pk)
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=actioner, event_type='uad', message=message, url=url)
+    entry.save()
+
+
+def timeline_record_mission_user_update(mission, actioner, mission_user):
+    """
+    Create a timeline entry for an users role being changed in a mission
+    """
+    message = "{} Changed {} in Mission {} To {}".format(actioner, mission_user.user, mission.pk, mission_user.user_role_name())
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=actioner, event_type='uup', message=message, url=url)
+    entry.save()
+
+
+def timeline_record_mission_asset_add(mission, user, asset):
+    """
+    Create a timeline entry for an asset being added to a mission.
+    """
+    message = "{} Added Asset {} to Mission {}".format(user, asset, mission.pk)
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='aad', message=message, url=url)
+    entry.save()
+
+
+def timeline_record_mission_asset_remove(mission, user, asset):
+    """
+    Create a timeline entry for an asset being removed from a mission.
+    """
+    message = "{} Removed Asset {} from Mission {}".format(user, asset, mission.pk)
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='arm', message=message, url=url)
+    entry.save()

@@ -4,15 +4,17 @@ Mission Create/Management Views.
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
 
 from assets.models import Asset
 from timeline.models import TimeLineEntry
+from timeline.helpers import timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType
-from .forms import MissionForm, MissionAssetForm
+from .forms import MissionForm, MissionUserForm, MissionAssetForm
 from .decorators import mission_is_member, mission_is_admin
 
 
@@ -29,6 +31,8 @@ def mission_details(request, mission_id, mission_user=None):
         'mission_assets': MissionAsset.objects.filter(mission=mission_user.mission),
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
+        'mission_user_add': MissionUserForm(),
+        'mission_asset_add': MissionAssetForm(),
     }
     return render(request, 'mission_details.html', data)
 
@@ -110,6 +114,49 @@ def mission_new(request):
 
 @login_required
 @mission_is_admin
+def mission_user_add(request, mission_id, mission_user):
+    """
+    Add a User to a Mission
+    """
+    form = None
+    if request.method == 'POST':
+        form = MissionUserForm(request.POST)
+        if form.is_valid():
+            # Check if this user is already in this mission
+            try:
+                mission_user = MissionUser.objects.get(user=form.cleaned_data['user'], mission=mission_user.mission)
+                return HttpResponseForbidden("User is already in this Mission")
+            except ObjectDoesNotExist:
+                # Create the new mission<->user
+                mission_user = MissionUser(mission=mission_user.mission, user=form.cleaned_data['user'], creator=request.user)
+                mission_user.save()
+                timeline_record_mission_user_add(mission_user.mission, request.user, form.cleaned_data['user'])
+                return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
+
+    if form is None:
+        form = MissionAssetForm()
+
+    return render(request, 'mission_user_add.html', {'form': form})
+
+
+@login_required
+@mission_is_admin
+def mission_user_make_admin(request, mission_id, mission_user, user_id):
+    """
+    Make an existing user an admin for this mission.
+    """
+    # Find the User
+    user = get_object_or_404(get_user_model(), pk=user_id)
+    # Find the MissionUser
+    mission_user_update = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
+    mission_user_update.role = 'A'
+    mission_user_update.save()
+    timeline_record_mission_user_update(mission_user.mission, request.user, mission_user_update)
+    return HttpResponseRedirect('/mission/{}/details/'.format(mission_id))
+
+
+@login_required
+@mission_is_admin
 def mission_asset_add(request, mission_id, mission_user):
     """
     Add an Asset to a Mission
@@ -126,6 +173,7 @@ def mission_asset_add(request, mission_id, mission_user):
                 # Create the new mission<->asset
                 mission_asset = MissionAsset(mission=mission_user.mission, asset=form.cleaned_data['asset'], creator=request.user)
                 mission_asset.save()
+                timeline_record_mission_asset_add(mission_user.mission, request.user, asset=form.cleaned_data['asset'])
                 return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
 
     if form is None:
@@ -145,5 +193,7 @@ def mission_asset_remove(request, mission_id, mission_user, asset_id):
     mission_asset.remover = request.user
     mission_asset.removed = timezone.now()
     mission_asset.save()
+
+    timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=asset)
 
     return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
