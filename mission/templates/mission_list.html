@@ -31,8 +31,9 @@
                     <td>
                         <a class="btn btn-primary" href="/mission/{{ mission.pk }}/map/">Map</a>
                         <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
+                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/timeline/">Timeline</a>
 {% if mission.is_admin %}
-                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/close/">Close</a>
+                        <a class="btn btn-danger" href="/mission/{{ mission.pk }}/close/">Close</a>
 {% endif %}
                     </td>
                 </tr>
