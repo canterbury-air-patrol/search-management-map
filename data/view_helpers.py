@@ -5,7 +5,7 @@ The functions here should cover the logic associated with making
 views work.
 """
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseForbidden
 from django.core.serializers import serialize
 from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
 from django.shortcuts import get_object_or_404
@@ -14,12 +14,12 @@ from django.utils import timezone
 from .models import PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 
 
-def userobject_not_deleted_or_replaced(objecttype):
+def mission_userobject_not_deleted_or_replaced(objecttype, mission):
     """
     Get all objects that haven't been deleted or replaced.
     Only user created objects have the replaced field.
     """
-    return objecttype.objects.exclude(deleted=True).exclude(replaced_by__isnull=False)
+    return objecttype.objects.filter(mission=mission).exclude(deleted=True).exclude(replaced_by__isnull=False)
 
 
 def to_geojson(objecttype, objects):
@@ -50,7 +50,7 @@ def to_kml(objecttype, objects):
     return HttpResponse(kml_data, 'application/vnd.google-earth.kml+xml')
 
 
-def userobject_replace(objecttype, request, name, object_id, func):
+def userobject_replace(objecttype, request, name, object_id, mission, func):
     """
     Create an object to replace another object of the same type,
 
@@ -61,7 +61,7 @@ def userobject_replace(objecttype, request, name, object_id, func):
         return HttpResponseNotFound("This {} has been deleted".format(name))
     if replaces.replaced_by is not None:
         return HttpResponseNotFound("This {} has already been replaced".format(name))
-    return func(request, replaces=replaces)
+    return func(request, mission=mission, replaces=replaces)
 
 
 def userobject_delete(objecttype, request, name, object_id):
@@ -82,7 +82,25 @@ def userobject_delete(objecttype, request, name, object_id):
     return HttpResponse("Deleted")
 
 
-def point_label_make(request, replaces=None):
+def check_userobject_move(make_func):
+    """
+    Make sure that move doesn't move across missions
+    """
+    def moving_check(*args, **kwargs):
+        try:
+            replaces = kwargs['replaces']
+        except KeyError:
+            replaces = None
+        mission = kwargs['mission']
+        if replaces is not None:
+            if replaces.mission.pk != mission.pk:
+                return HttpResponseForbidden("Moving objects between missions is prohibited")
+        return make_func(*args, **kwargs)
+    return moving_check
+
+
+@check_userobject_move
+def point_label_make(request, mission=None, replaces=None):
     """
     Create or replace a POI based on user supplied data.
     """
@@ -103,7 +121,7 @@ def point_label_make(request, replaces=None):
 
     point = Point(float(poi_lon), float(poi_lat))
 
-    ptl = PointTimeLabel(point=point, label=poi_label, creator=request.user)
+    ptl = PointTimeLabel(point=point, label=poi_label, creator=request.user, mission=mission)
     ptl.save()
 
     if replaces is not None:
@@ -113,7 +131,8 @@ def point_label_make(request, replaces=None):
     return HttpResponse()
 
 
-def user_polygon_make(request, replaces=None):
+@check_userobject_move
+def user_polygon_make(request, mission=None, replaces=None):
     """
     Create a polygon based on user supplied data.
     """
@@ -127,7 +146,7 @@ def user_polygon_make(request, replaces=None):
             point = Point(float(lng), float(lat))
             points.append(point)
         points.append(points[0])
-        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user)
+        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user, mission=mission)
         ptl.save()
         if replaces is not None:
             replaces.replaced_by = ptl
@@ -137,7 +156,8 @@ def user_polygon_make(request, replaces=None):
     return HttpResponseBadRequest()
 
 
-def user_line_make(request, replaces=None):
+@check_userobject_move
+def user_line_make(request, mission=None, replaces=None):
     """
     Create a line (string) based on user supplied data.
     """
@@ -150,7 +170,7 @@ def user_line_make(request, replaces=None):
             lng = request.POST['point{}_lng'.format(i)]
             point = Point(float(lng), float(lat))
             points.append(point)
-        lstl = LineStringTimeLabel(line=LineString(points), label=label, creator=request.user)
+        lstl = LineStringTimeLabel(line=LineString(points), label=label, creator=request.user, mission=mission)
         lstl.save()
         print(lstl)
         if replaces is not None:

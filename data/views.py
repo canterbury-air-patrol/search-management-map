@@ -18,9 +18,17 @@ from django.shortcuts import get_object_or_404, render
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
 from mission.decorators import mission_is_member
+from mission.models import Mission
 from .models import AssetPointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 from .forms import UploadTyphoonData
-from .view_helpers import to_geojson, to_kml, userobject_not_deleted_or_replaced, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
+from .view_helpers import to_geojson, to_kml, mission_userobject_not_deleted_or_replaced, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
+
+
+def mission_get(mission_id):
+    """
+    Convert a mission id into an object
+    """
+    return get_object_or_404(Mission, pk=mission_id)
 
 
 @login_required
@@ -146,14 +154,15 @@ def point_labels_all(request, mission_id, mission_user):
     """
     Get all the current POIs as geojson
     """
-    return to_geojson(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
+    return to_geojson(PointTimeLabel, mission_userobject_not_deleted_or_replaced(PointTimeLabel, mission_user.mission))
 
 
 def point_labels_all_kml(request, mission_id):
     """
     Get all the current POIs as kml
     """
-    return to_kml(PointTimeLabel, userobject_not_deleted_or_replaced(PointTimeLabel))
+    mission = mission_get(mission_id)
+    return to_kml(PointTimeLabel, mission_userobject_not_deleted_or_replaced(PointTimeLabel, mission))
 
 
 @login_required
@@ -162,7 +171,7 @@ def point_label_create(request, mission_id, mission_user):
     """
     Store a new POI
     """
-    return point_label_make(request)
+    return point_label_make(request, mission=mission_user.mission)
 
 
 @login_required
@@ -171,7 +180,7 @@ def point_label_replace(request, mission_id, mission_user, poi):
     """
     Move/relabel a POI
     """
-    return userobject_replace(PointTimeLabel, request, 'POI', poi, point_label_make)
+    return userobject_replace(PointTimeLabel, request, 'POI', poi, mission_user.mission, point_label_make)
 
 
 @login_required
@@ -189,14 +198,15 @@ def user_polygons_all(request, mission_id, mission_user):
     """
     Get all the current user polygons as geojson
     """
-    return to_geojson(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
+    return to_geojson(PolygonTimeLabel, mission_userobject_not_deleted_or_replaced(PolygonTimeLabel, mission_user.mission))
 
 
 def user_polygons_all_kml(request, mission_id):
     """
     Get all the current user polygons as kml
     """
-    return to_kml(PolygonTimeLabel, userobject_not_deleted_or_replaced(PolygonTimeLabel))
+    mission = mission_get(mission_id)
+    return to_kml(PolygonTimeLabel, mission_userobject_not_deleted_or_replaced(PolygonTimeLabel, mission))
 
 
 @login_required
@@ -205,7 +215,7 @@ def user_polygon_create(request, mission_id, mission_user):
     """
     Create a new user polygon
     """
-    return user_polygon_make(request)
+    return user_polygon_make(request, mission=mission_user.mission)
 
 
 @login_required
@@ -214,7 +224,7 @@ def user_polygon_replace(request, mission_id, mission_user, polygon):
     """
     Update the polygon/label of a user polygon
     """
-    return userobject_replace(PolygonTimeLabel, request, 'Polygon', polygon, user_polygon_make)
+    return userobject_replace(PolygonTimeLabel, request, 'Polygon', polygon, mission_user.mission, user_polygon_make)
 
 
 @login_required
@@ -232,14 +242,15 @@ def user_lines_all(request, mission_id, mission_user):
     """
     Get all the current user lines as geojson
     """
-    return to_geojson(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
+    return to_geojson(LineStringTimeLabel, mission_userobject_not_deleted_or_replaced(LineStringTimeLabel, mission_user.mission))
 
 
 def user_lines_all_kml(request, mission_id):
     """
     Get all the current user lines as kml
     """
-    return to_kml(LineStringTimeLabel, userobject_not_deleted_or_replaced(LineStringTimeLabel))
+    mission = mission_get(mission_id)
+    return to_kml(LineStringTimeLabel, mission_userobject_not_deleted_or_replaced(LineStringTimeLabel, mission))
 
 
 @login_required
@@ -248,7 +259,7 @@ def user_line_create(request, mission_id, mission_user):
     """
     Create a new user line
     """
-    return user_line_make(request)
+    return user_line_make(request, mission=mission_user.mission)
 
 
 @login_required
@@ -257,7 +268,7 @@ def user_line_replace(request, mission_id, mission_user, line):
     """
     Update the line/label of a user line
     """
-    return userobject_replace(LineStringTimeLabel, request, 'Line', line, user_line_make)
+    return userobject_replace(LineStringTimeLabel, request, 'Line', line, mission_user.mission, user_line_make)
 
 
 @login_required
