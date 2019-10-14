@@ -1,0 +1,45 @@
+{% load leaflet_tags %}
+{% load staticfiles %}
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>{{ mission.mission_name }} - Timeline</title>
+        <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+        <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
+        <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
+    </head>
+    <body style="height: 100%">
+        <table class="table">
+            <tr><td>Mission</td><td colspan="3">{{ mission.mission_name }}</td></tr>
+            <tr><td>Created</td><td>By</td><td>Closed</td><td>By</td></tr>
+            <tr><td>{{ mission.started }}</td><td>{{ mission.creator }}</td><td>{{ mission.closed }}</td><td>{{ mission.closed_by }}</td></tr>
+        </table>
+Timeline:
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>At</td>
+                    <td>User</td>
+                    <td>Action</td>
+                    <td>Message</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+{% for entry in timeline %}
+                  <tr>
+                      <td>{{ entry.timestamp }}</td>
+                      <td>{{ entry.user }}</td>
+                      <td>{{ entry.event_type }}</td>
+                      <td>{{ entry.message }}</td>
+                      <td>{{ entry.url }}</td>
+                  </tr>
+{% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>
+

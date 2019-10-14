@@ -9,6 +9,7 @@ from . import views
 
 urlpatterns = [
     url(r'^mission/(?P<mission_id>\d+)/details/$', views.mission_details, name='mission_details'),
+    url(r'^mission/(?P<mission_id>\d+)/timeline/$', views.mission_timeline, name='mission_timeline'),
     url(r'^mission/(?P<mission_id>\d+)/assets/add/$', views.mission_asset_add, name='mission_assets_add'),
     url(r'^mission/(?P<mission_id>\d+)/assets/(?P<asset_id>\d+)/remove/$', views.mission_asset_remove, name='mission_assets_remove'),
     url(r'^mission/(?P<mission_id>\d+)/close/$', views.mission_close, name='mission_close'),

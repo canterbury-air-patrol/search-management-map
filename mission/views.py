@@ -9,6 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
 
 from assets.models import Asset
+from timeline.models import TimeLineEntry
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType
 from .forms import MissionForm, MissionAssetForm
@@ -30,6 +31,19 @@ def mission_details(request, mission_id, mission_user=None):
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
     }
     return render(request, 'mission_details.html', data)
+
+
+@login_required
+@mission_is_member
+def mission_timeline(request, mission_id, mission_user):
+    """
+    Mission timeline, a history of everything that happened during a mission.
+    """
+    data = {
+        'mission': mission_user.mission,
+        'timeline': TimeLineEntry.objects.filter(mission=mission_user.mission),
+    }
+    return render(request, 'mission_timeline.html', data)
 
 
 @login_required

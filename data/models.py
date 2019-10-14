@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Length
 from assets.models import Asset
 from mission.models import Mission
+from timeline.helpers import timeline_record_create, timeline_record_delete, timeline_record_update
 
 
 class PointTime(models.Model):
@@ -35,7 +36,30 @@ class PointTime(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
 
+    replaced_by = None
+
     GEOFIELD = 'point'
+
+    # pylint: disable=W0221
+    def save(self, *args, **kwargs):
+        exists = False
+        replaced = False
+        if self.pk is not None:
+            exists = True
+        try:
+            if self.replaced_by:
+                replaced = True
+        except AttributeError:
+            pass
+
+        super().save(*args, **kwargs)
+        if exists:
+            if replaced:
+                timeline_record_update(self.mission, self.creator, self.replaced_by, self)
+            elif self.deleted:
+                timeline_record_delete(self.mission, self.creator, self)
+        else:
+            timeline_record_create(self.mission, self.creator, self)
 
     class Meta:
         abstract = True
@@ -110,7 +134,29 @@ class PolygonTime(models.Model):
     deleted_at = models.DateTimeField(null=True, blank=True)
     mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
 
+    replaced_by = None
+
     GEOFIELD = 'polygon'
+
+    # pylint: disable=W0221
+    def save(self, *args, **kwargs):
+        exists = False
+        replaced = False
+        if self.pk is not None:
+            exists = True
+        try:
+            if self.replaced_by:
+                replaced = True
+        except AttributeError:
+            pass
+        super().save(*args, **kwargs)
+        if exists:
+            if replaced:
+                timeline_record_update(self.mission, self.creator, self.replaced_by, self)
+            elif self.deleted:
+                timeline_record_delete(self.mission, self.creator, self)
+        else:
+            timeline_record_create(self.mission, self.creator, self)
 
     class Meta:
         abstract = True
@@ -157,12 +203,34 @@ class LineStringTime(models.Model):
 
     GEOFIELD = 'line'
 
+    replaced_by = None
+
     def length(self):
         """
         Calculate the total length (in m) of this line
         """
         annotated_self = self.__class__.objects.annotate(length=Length('line')).get(pk=self.pk)
         return annotated_self.length.m
+
+    # pylint: disable=W0221
+    def save(self, *args, **kwargs):
+        exists = False
+        replaced = False
+        if self.pk is not None:
+            exists = True
+        try:
+            if self.replaced_by:
+                replaced = True
+        except AttributeError:
+            pass
+        super().save(*args, **kwargs)
+        if exists:
+            if replaced:
+                timeline_record_update(self.mission, self.creator, self.replaced_by, self)
+            elif self.deleted:
+                timeline_record_delete(self.mission, self.creator, self)
+        else:
+            timeline_record_create(self.mission, self.creator, self)
 
     class Meta:
         abstract = True

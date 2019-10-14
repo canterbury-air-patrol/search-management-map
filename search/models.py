@@ -424,7 +424,7 @@ class PolygonSearch(SearchPath):
                       'sweep_width', )
 
     def __str__(self):
-        return "Polygon Search along {} with {} (sw={})".format(
+        return "Polygon Search inside {} with {} (sw={})".format(
             self.datum,
             self.created_for,
             self.sweep_width)

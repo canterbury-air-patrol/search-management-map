@@ -24,6 +24,7 @@ from data.models import PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission
 from mission.decorators import mission_is_member, mission_asset_get_mission
+from timeline.helpers import timeline_record_search_begin, timeline_record_search_finished
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
 from .view_helpers import mission_search_incomplete, mission_search_completed, check_searches_in_progress
 
@@ -132,6 +133,8 @@ def search_begin(request, search_id, object_class, asset, mission):
     search.inprogress_by = asset
     search.save()
 
+    timeline_record_search_begin(mission, request.user, asset, search)
+
     return to_geojson(object_class, [search])
 
 
@@ -150,6 +153,8 @@ def search_finished(request, search_id, object_class, asset, mission):
     search.completed = timezone.now()
     search.completed_by = asset
     search.save()
+
+    timeline_record_search_finished(mission, request.user, asset, search)
 
     return HttpResponse("Completed")
 

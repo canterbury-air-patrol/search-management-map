@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'assets',
     'data',
     'search',
+    'timeline',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
