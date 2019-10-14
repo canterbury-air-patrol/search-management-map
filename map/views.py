@@ -4,18 +4,20 @@ Views for the map
 These views should only relate to presentation of the UI
 """
 
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
+from mission.models import Mission
 from .forms import AssetSelectorForm
 
 
 @login_required
-def map_main(request):
+def map_main(request, mission_id):
     """
     Present the user the map
     """
-    return render(request, 'map_main.html', {})
+    mission = get_object_or_404(Mission, pk=mission_id)
+    return render(request, 'map_main.html', {'mission': mission})
 
 
 @login_required

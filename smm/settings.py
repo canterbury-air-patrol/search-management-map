@@ -24,6 +24,7 @@ with open(os.path.join(BASE_DIR, 'smm', 'secretkey.txt')) as f:
 # Application definition
 
 INSTALLED_APPS = [
+    'mission',
     'map',
     'assets',
     'data',

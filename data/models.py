@@ -12,6 +12,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models.functions import Length
 from assets.models import Asset
+from mission.models import Mission
 
 
 class PointTime(models.Model):
@@ -32,6 +33,7 @@ class PointTime(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
     deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
     deleted_at = models.DateTimeField(null=True, blank=True)
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
 
     GEOFIELD = 'point'
 
@@ -106,6 +108,7 @@ class PolygonTime(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
     deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
     deleted_at = models.DateTimeField(null=True, blank=True)
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
 
     GEOFIELD = 'polygon'
 
@@ -150,6 +153,7 @@ class LineStringTime(models.Model):
     timestamp = models.DateTimeField(default=timezone.now)
     deleted = models.BooleanField(default=False)
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
 
     GEOFIELD = 'line'
 

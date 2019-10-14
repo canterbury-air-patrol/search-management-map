@@ -1,0 +1,72 @@
+{% load leaflet_tags %}
+{% load staticfiles %}
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>Mission List</title>
+        <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+        <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
+        <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
+    </head>
+    <body style="height: 100%">
+        Current Missions:
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Mission Name</th>
+                    <th scope="col">Started</th>
+                    <th scope="col">By</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+{% for mission in current_missions %}
+                <tr>
+                    <th scope="row">{{ mission.mission_name }}</th>
+                    <td>{{ mission.started }}</td>
+                    <td>{{ mission.creator }}</td>
+                    <td>
+                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/map/">Map</a>
+                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
+{% if mission.is_admin %}
+                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/close/">Close</a>
+{% endif %}
+                    </td>
+                </tr>
+            </tbody>
+{% endfor %}
+        </table>
+
+        Completed Missions:
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Mission Name</th>
+                    <th scope="col">Started</th>
+                    <th scope="col">By</th>
+                    <th scope="col">Closed</th>
+                    <th scope="col">By</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+{% for mission in previous_missions %}
+                <tr>
+                    <th scope="row">{{ mission.mission_name }}</th>
+                    <td>{{ mission.started }}</td>
+                    <td>{{ mission.creator }}</td>
+                    <td>{{ mission.closed }}</td>
+                    <td>{{ mission.closed_by }}</td>
+                    <td>
+                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
+                    </td>
+                </tr>
+            </tbody>
+{% endfor %}
+        </table>
+    </body>
+</html>
+
