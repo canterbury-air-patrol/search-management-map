@@ -21,8 +21,17 @@ from django.utils import timezone
 from assets.models import AssetType, Asset
 from data.models import PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
 from data.view_helpers import to_kml, to_geojson
+from mission.models import Mission
+from mission.decorators import mission_is_member
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
-from .view_helpers import search_json, search_incomplete, search_completed, check_searches_in_progress
+from .view_helpers import search_json, mission_search_incomplete, mission_search_completed, check_searches_in_progress
+
+
+def mission_get(mission_id):
+    """
+    Convert a mission id into an object
+    """
+    return get_object_or_404(Mission, pk=mission_id)
 
 
 @login_required
@@ -169,33 +178,37 @@ def sector_search_json(request, search_id):
 
 
 @login_required
-def sector_search_incomplete(request):
+@mission_is_member
+def sector_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete sector searches (as json)
     """
-    return to_geojson(SectorSearch, search_incomplete(SectorSearch))
+    return to_geojson(SectorSearch, mission_search_incomplete(mission_user.mission, SectorSearch))
 
 
-def sector_search_incomplete_kml(request):
+def sector_search_incomplete_kml(request, mission_id):
     """
     Get a list of all the incomplete sector searches (as kml)
     """
-    return to_kml(SectorSearch, search_incomplete(SectorSearch))
+    mission = mission_get(mission_id)
+    return to_kml(SectorSearch, mission_search_incomplete(mission, SectorSearch))
 
 
 @login_required
-def sector_search_completed(request):
+@mission_is_member
+def sector_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed sector searches (as json)
     """
-    return to_geojson(SectorSearch, search_completed(SectorSearch))
+    return to_geojson(SectorSearch, mission_search_completed(mission_user.mission, SectorSearch))
 
 
-def sector_search_completed_kml(request):
+def sector_search_completed_kml(request, mission_id):
     """
     Get a list of all the completed sector searches (as kml)
     """
-    return to_kml(SectorSearch, search_completed(SectorSearch))
+    mission = mission_get(mission_id)
+    return to_kml(SectorSearch, mission_search_completed(mission, SectorSearch))
 
 
 def sector_search_begin(request, search_id):
@@ -246,33 +259,37 @@ def expanding_box_search_json(request, search_id):
 
 
 @login_required
-def expanding_box_search_incomplete(request):
+@mission_is_member
+def expanding_box_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete expanding box searches (as json)
     """
-    return to_geojson(ExpandingBoxSearch, search_incomplete(ExpandingBoxSearch))
+    return to_geojson(ExpandingBoxSearch, mission_search_incomplete(mission_user.mission, ExpandingBoxSearch))
 
 
-def expanding_box_search_incomplete_kml(request):
+def expanding_box_search_incomplete_kml(request, mission_id):
     """
     Get a list of all the incomplete expanding box searches (as kml)
     """
-    return to_kml(ExpandingBoxSearch, search_incomplete(ExpandingBoxSearch))
+    mission = mission_get(mission_id)
+    return to_kml(ExpandingBoxSearch, mission_search_incomplete(mission, ExpandingBoxSearch))
 
 
 @login_required
-def expanding_box_search_completed(request):
+@mission_is_member
+def expanding_box_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed expanding box searches (as json)
     """
-    return to_geojson(ExpandingBoxSearch, search_completed(ExpandingBoxSearch))
+    return to_geojson(ExpandingBoxSearch, mission_search_completed(mission_user.mission, ExpandingBoxSearch))
 
 
-def expanding_box_search_completed_kml(request):
+def expanding_box_search_completed_kml(request, mission_id):
     """
     Get a list of all the completed expanding box searches (as kml)
     """
-    return to_kml(ExpandingBoxSearch, search_completed(ExpandingBoxSearch))
+    mission = mission_get(mission_id)
+    return to_kml(ExpandingBoxSearch, mission_search_completed(mission, ExpandingBoxSearch))
 
 
 def expanding_box_search_begin(request, search_id):
@@ -333,33 +350,37 @@ def track_line_search_json(request, search_id):
 
 
 @login_required
-def track_line_search_incomplete(request):
+@mission_is_member
+def track_line_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete trackline searches (as json)
     """
-    return to_geojson(TrackLineSearch, search_incomplete(TrackLineSearch))
+    return to_geojson(TrackLineSearch, mission_search_incomplete(mission_user.mission, TrackLineSearch))
 
 
-def track_line_search_incomplete_kml(request):
+def track_line_search_incomplete_kml(request, mission_id):
     """
     Get a list of all the incomplete trackline searches (as kml)
     """
-    return to_kml(TrackLineSearch, search_incomplete(TrackLineSearch))
+    mission = mission_get(mission_id)
+    return to_kml(TrackLineSearch, mission_search_incomplete(mission, TrackLineSearch))
 
 
 @login_required
-def track_line_search_completed(request):
+@mission_is_member
+def track_line_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed trackline searches (as json)
     """
-    return to_geojson(TrackLineSearch, search_completed(TrackLineSearch))
+    return to_geojson(TrackLineSearch, mission_search_completed(mission_user.mission, TrackLineSearch))
 
 
-def track_line_search_completed_kml(request):
+def track_line_search_completed_kml(request, mission_id):
     """
     Get a list of all the completed trackline searches (as kml)
     """
-    return to_kml(TrackLineSearch, search_completed(TrackLineSearch))
+    mission = mission_get(mission_id)
+    return to_kml(TrackLineSearch, mission_search_completed(mission, TrackLineSearch))
 
 
 def track_line_search_begin(request, search_id):
@@ -410,33 +431,37 @@ def creeping_line_track_search_json(request, search_id):
 
 
 @login_required
-def creeping_line_track_search_incomplete(request):
+@mission_is_member
+def creeping_line_track_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete creeping line ahead searches (as json)
     """
-    return to_geojson(TrackLineCreepingSearch, search_incomplete(TrackLineCreepingSearch))
+    return to_geojson(TrackLineCreepingSearch, mission_search_incomplete(mission_user.mission, TrackLineCreepingSearch))
 
 
-def creeping_line_track_search_incomplete_kml(request):
+def creeping_line_track_search_incomplete_kml(request, mission_id):
     """
     Get a list of all the incomplete creeping line ahead searches (as kml)
     """
-    return to_kml(TrackLineCreepingSearch, search_incomplete(TrackLineCreepingSearch))
+    mission = mission_get(mission_id)
+    return to_kml(TrackLineCreepingSearch, mission_search_incomplete(mission, TrackLineCreepingSearch))
 
 
 @login_required
-def creeping_line_track_search_completed(request):
+@mission_is_member
+def creeping_line_track_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed creeping line ahead searches (as json)
     """
-    return to_geojson(TrackLineCreepingSearch, search_completed(TrackLineCreepingSearch))
+    return to_geojson(TrackLineCreepingSearch, mission_search_completed(mission_user.mission, TrackLineCreepingSearch))
 
 
-def creeping_line_track_search_completed_kml(request):
+def creeping_line_track_search_completed_kml(request, mission_id):
     """
     Get a list of all the completed creeping line ahead searches (as kml)
     """
-    return to_kml(TrackLineCreepingSearch, search_completed(TrackLineCreepingSearch))
+    mission = mission_get(mission_id)
+    return to_kml(TrackLineCreepingSearch, mission_search_completed(mission, TrackLineCreepingSearch))
 
 
 def creeping_line_track_search_begin(request, search_id):
@@ -489,33 +514,37 @@ def creeping_line_polygon_search_json(request, search_id):
 
 
 @login_required
-def creeping_line_polygon_search_incomplete(request):
+@mission_is_member
+def creeping_line_polygon_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete creeping line ahead searches (as json)
     """
-    return to_geojson(PolygonSearch, search_incomplete(PolygonSearch))
+    return to_geojson(PolygonSearch, mission_search_incomplete(mission_user.mission, PolygonSearch))
 
 
-def creeping_line_polygon_search_incomplete_kml(request):
+def creeping_line_polygon_search_incomplete_kml(request, mission_id):
     """
     Get a list of all the incomplete creeping line ahead searches (as kml)
     """
-    return to_kml(PolygonSearch, search_incomplete(PolygonSearch))
+    mission = mission_get(mission_id)
+    return to_kml(PolygonSearch, mission_search_incomplete(mission, PolygonSearch))
 
 
 @login_required
-def creeping_line_polygon_search_completed(request):
+@mission_is_member
+def creeping_line_polygon_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed creeping line ahead searches (as json)
     """
-    return to_geojson(PolygonSearch, search_completed(PolygonSearch))
+    return to_geojson(PolygonSearch, mission_search_completed(mission_user.mission, PolygonSearch))
 
 
-def creeping_line_polygon_search_completed_kml(request):
+def creeping_line_polygon_search_completed_kml(request, mission_id):
     """
     Get a list of all the completed creeping line ahead searches (as kml)
     """
-    return to_kml(PolygonSearch, search_completed(PolygonSearch))
+    mission = mission_get(mission_id)
+    return to_kml(PolygonSearch, mission_search_completed(mission, PolygonSearch))
 
 
 def creeping_line_polygon_search_begin(request, search_id):

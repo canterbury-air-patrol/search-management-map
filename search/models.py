@@ -187,7 +187,7 @@ class SectorSearch(SearchPath):
         for point in points_order:
             points.append(GEOSGeometry(reference_points[point]))
 
-        search = SectorSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width())
+        search = SectorSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), mission=params.from_geo().mission)
         if save:
             search.save()
 
@@ -287,7 +287,7 @@ class ExpandingBoxSearch(SearchPath):
         points = [GEOSGeometry(p) for p in cursor.fetchone()]
 
         search = ExpandingBoxSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(),
-                                    iterations=params.iterations(), first_bearing=params.first_bearing())
+                                    iterations=params.iterations(), first_bearing=params.first_bearing(), mission=params.from_geo().mission)
         if save:
             search.save()
 
@@ -321,7 +321,7 @@ class TrackLineSearch(SearchPath):
         """
         Create a track line search that follows a user created line
         """
-        search = TrackLineSearch(line=params.from_geo().line, creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width())
+        search = TrackLineSearch(line=params.from_geo().line, creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), mission=params.from_geo().mission)
         if save:
             search.save()
         return search
@@ -403,7 +403,7 @@ class TrackLineCreepingSearch(SearchPath):
                 points.append(GEOSGeometry(segment['b']))
                 reverse = True
 
-        search = TrackLineCreepingSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), width=params.width())
+        search = TrackLineCreepingSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), width=params.width(), mission=params.from_geo().mission)
         if save:
             search.save()
 
@@ -457,7 +457,8 @@ class PolygonSearch(SearchPath):
             creator=params.creator(),
             datum=params.from_geo(),
             created_for=params.asset_type(),
-            sweep_width=params.sweep_width())
+            sweep_width=params.sweep_width(),
+            mission=params.from_geo().mission)
         if save:
             search.save()
         return search

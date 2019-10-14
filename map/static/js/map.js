@@ -440,7 +440,7 @@ function mapInit(map) {
 
 
     realtime = L.realtime({
-            url: "/search/sector/incomplete/",
+            url: "/mission/" + mission_id + "/search/sector/incomplete/",
             type: 'json',
         }, {
             interval: searchIncompleteUpdateFreq,
@@ -453,7 +453,7 @@ function mapInit(map) {
 
 
     realtime = L.realtime({
-            url: "/search/sector/completed/",
+            url: "/mission/" + mission_id + "/search/sector/completed/",
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
@@ -464,7 +464,7 @@ function mapInit(map) {
     overlayAdd("Sector Searches (completed)", realtime);
 
     realtime = L.realtime({
-            url: "/search/expandingbox/incomplete/",
+            url: "/mission/" + mission_id + "/search/expandingbox/incomplete/",
             type: 'json',
         }, {
             interval: searchIncompleteUpdateFreq,
@@ -476,7 +476,7 @@ function mapInit(map) {
     overlayAdd("ExpandingBox Searches (incomplete)", realtime);
 
     realtime = L.realtime({
-            url: "/search/expandingbox/completed/",
+            url: "/mission/" + mission_id + "/search/expandingbox/completed/",
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
@@ -488,7 +488,7 @@ function mapInit(map) {
 
 
     realtime = L.realtime({
-            url: "/search/trackline/incomplete/",
+            url: "/mission/" + mission_id + "/search/trackline/incomplete/",
             type: 'json',
         }, {
             interval: searchIncompleteUpdateFreq,
@@ -500,7 +500,7 @@ function mapInit(map) {
     overlayAdd("Track Line Searches (incomplete)", realtime);
 
     realtime = L.realtime({
-            url: "/search/trackline/completed/",
+            url: "/mission/" + mission_id + "/search/trackline/completed/",
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
@@ -511,7 +511,7 @@ function mapInit(map) {
     overlayAdd("Track Line Searches (completed)", realtime);
 
     realtime = L.realtime({
-            url: "/search/creepingline/track/incomplete/",
+            url: "/mission/" + mission_id + "/search/creepingline/track/incomplete/",
             type: 'json',
         }, {
             interval: searchIncompleteUpdateFreq,
@@ -523,7 +523,7 @@ function mapInit(map) {
     overlayAdd("Track Creeping Line Searches (incomplete)", realtime);
 
     realtime = L.realtime({
-            url: "/search/creepingline/track/completed/",
+            url: "/mission/" + mission_id + "/search/creepingline/track/completed/",
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
@@ -534,7 +534,7 @@ function mapInit(map) {
     overlayAdd("Track Creeping Line Searches (completed)", realtime);
 
 	  realtime = L.realtime({
-            url: "/search/creepingline/polygon/incomplete/",
+            url: "/mission/" + mission_id + "/search/creepingline/polygon/incomplete/",
             type: 'json',
         }, {
             interval: searchIncompleteUpdateFreq,
@@ -546,7 +546,7 @@ function mapInit(map) {
     overlayAdd("Polygon Creeping Line Searches (incomplete)", realtime);
 
     realtime = L.realtime({
-            url: "/search/creepingline/polygon/completed/",
+            url: "/mission/" + mission_id + "/search/creepingline/polygon/completed/",
             type: 'json',
         }, {
             interval: searchCompleteUpdateFreq,
