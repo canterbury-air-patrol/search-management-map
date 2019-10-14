@@ -14,10 +14,62 @@
     <body style="height: 100%">
         <a class="btn btn-primary" href="/mission/{{ mission.pk }}/map/">Map</a>
 
-        <table>
+        <table class="table">
             <tr><td>Started</td><td>{{ mission.started }}</td></tr>
             <tr><td>Creator</td><td>{{ mission.creator }}</td></tr>
         </table>
+
+        Current Users:
+        <table class="table">
+            <thead>
+                 <tr>
+                     <td>User</td>
+                     <td>Options</td>
+                 </tr>
+            </thead>
+            <tbody>
+{% for user in mission_users %}
+                  <tr>
+                      <td>{{ user.user }}</td>
+                      <td>
+{% if user.user != me %}
+                          <a class="btn btn-danger" href="/mission/{{ mission.pk }}/users/{{ user.user.pk }}/remove/">Remove</a>
+{% else %}
+You cannot modify yourself.
+{% endif %}
+                      </td>
+                  </tr>
+{% endfor %}
+            </tbody>
+        </table>
+
+
+        Current Assets:
+        <table class="table">
+            <thead>
+                 <tr>
+                     <td>Asset</td>
+                     <td>Added</td>
+                     <td>Removed</td>
+                     <td>Options</td>
+                 </tr>
+            </thead>
+            <tbody>
+{% for asset in mission_assets %}
+                  <tr>
+                      <td>{{ asset.asset.name }}</td>
+                      <td>{{ asset.added }}</td>
+                      <td>{{ asset.removed }}</td>
+                      <td>
+{% if not asset.removed %}
+<a class="btn btn-danger" href="/mission/{{ mission.pk }}/assets/{{ asset.asset.pk }}/remove/">Remove</a>
+{% endif %}
+                      </td>
+                  </tr>
+{% endfor %}
+            </tbody>
+        </table>
+
     </body>
 </html>
 

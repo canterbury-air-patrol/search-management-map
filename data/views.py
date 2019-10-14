@@ -10,14 +10,15 @@ import csv
 from datetime import datetime
 import pytz
 
-from django.http import HttpResponse, Http404, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
 
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
-from mission.decorators import mission_is_member
+from assets.decorators import asset_is_recorder
+from mission.decorators import mission_is_member, mission_asset_get_mission
 from mission.models import Mission
 from .models import AssetPointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
 from .forms import UploadTyphoonData
@@ -40,7 +41,7 @@ def assets_position_latest(request, mission_id, mission_user):
     assets = Asset.objects.all()
     positions = []
     for asset in assets:
-        points = AssetPointTime.objects.filter(asset=asset).order_by('-timestamp')[:1]
+        points = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset).order_by('-timestamp')[:1]
         for point in points:
             positions.append(point)
 
@@ -48,7 +49,9 @@ def assets_position_latest(request, mission_id, mission_user):
 
 
 @login_required
-def asset_record_position(request, asset_name):
+@asset_is_recorder
+@mission_asset_get_mission
+def asset_record_position(request, asset_name, asset, mission):
     """
     Record the current position of an asset.
 
@@ -57,10 +60,6 @@ def asset_record_position(request, asset_name):
 
     Return the last command that applies to an object
     """
-    asset = get_object_or_404(Asset, name=asset_name)
-    if asset.owner != request.user:
-        Http404("Wrong User for Asset")
-
     lat = ''
     lon = ''
     fix = None
@@ -102,7 +101,7 @@ def asset_record_position(request, asset_name):
         alt = None
 
     if point:
-        AssetPointTime(asset=asset, point=point, creator=request.user, alt=alt, heading=heading, fix=fix).save()
+        AssetPointTime(asset=asset, point=point, creator=request.user, alt=alt, heading=heading, fix=fix, mission=mission).save()
     else:
         return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
 
@@ -123,7 +122,8 @@ def asset_record_position(request, asset_name):
 
 
 @login_required
-def asset_position_history(request, asset_name):
+@mission_is_member
+def asset_position_history(request, mission_id, mission_user, asset_name):
     """
     Get the full track from an asset.
 
@@ -137,7 +137,7 @@ def asset_position_history(request, asset_name):
 
     asset = get_object_or_404(Asset, name=asset_name)
 
-    positions = AssetPointTime.objects.filter(asset=asset)
+    positions = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset)
     if since is not None:
         positions = positions.filter(timestamp__gt=since)
     if oldest == 'last':

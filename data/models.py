@@ -62,8 +62,8 @@ class AssetPointTime(PointTime):
 
     class Meta:
         indexes = [
-            models.Index(fields=['asset', '-timestamp']),
-            models.Index(fields=['asset', 'timestamp']),
+            models.Index(fields=['mission', 'asset', '-timestamp']),
+            models.Index(fields=['mission', 'asset', 'timestamp']),
         ]
 
 
