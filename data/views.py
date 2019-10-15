@@ -105,7 +105,7 @@ def asset_record_position(request, asset_name, asset, mission):
     else:
         return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
 
-    asset_command = AssetCommand.last_command_for_asset(asset)
+    asset_command = AssetCommand.last_command_for_asset(asset, mission)
     if asset_command:
         data = {
             'action': asset_command.command,

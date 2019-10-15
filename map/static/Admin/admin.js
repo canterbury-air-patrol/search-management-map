@@ -45,7 +45,7 @@ L.SMMAdmin.AssetCommand = function(map) {
             data.push({name: 'latitude', value: coords.lat })
             data.push({name: 'longitude', value: coords.lng })
         }
-        $.post('/assets/command/set/', data, function(data) {
+        $.post('/mission/' + mission_id + '/assets/command/set/', data, function(data) {
             console.log(data);
             if (data === "Created") {
                 if (gotoPoint != null) {
@@ -57,7 +57,7 @@ L.SMMAdmin.AssetCommand = function(map) {
             $("#assetcommanddialog").html(data);
         });
     })
-    $.get("/assets/command/set/", {}, function(data) {
+    $.get("/mission/" + mission_id + "/assets/command/set/", {}, function(data) {
          $("#assetcommanddialog").html(data);
          $("#id_command").on('change', changeSelectedCommand)
     });

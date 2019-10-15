@@ -76,6 +76,8 @@ class AssetCommand(models.Model):
     position = models.PointField(geography=True, null=True, blank=True)
     reason = models.TextField()
 
+    mission = models.ForeignKey('mission.Mission', on_delete=models.PROTECT, null=True)
+
     GEOFIELD = 'position'
     GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason',)
 
@@ -83,11 +85,11 @@ class AssetCommand(models.Model):
         return "Command {} to {}".format(self.asset, self.get_command_display())
 
     @staticmethod
-    def last_command_for_asset(asset):
+    def last_command_for_asset(asset, mission):
         """
         Find the current command that applies to an asset
         """
         try:
-            return AssetCommand.objects.filter(asset=asset).order_by('-issued')[0]
+            return AssetCommand.objects.filter(asset=asset, mission=mission).order_by('-issued')[0]
         except IndexError:
             return None

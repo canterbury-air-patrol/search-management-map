@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import render
 
+from mission.decorators import mission_is_member
+
 from .models import AssetType, Asset, AssetCommand
 from .forms import AssetCommandForm
 
@@ -55,13 +57,14 @@ def assets_mine_list(request):
 
 
 @login_required
-def asset_command_set(request):
+@mission_is_member
+def asset_command_set(request, mission_id, mission_user):
     """
     Set the command for a given asset.
     """
     form = None
     if request.method == 'POST':
-        form = AssetCommandForm(request.POST)
+        form = AssetCommandForm(request.POST, mission=mission_user.mission)
         if form.is_valid():
             point = None
             if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
@@ -71,11 +74,11 @@ def asset_command_set(request):
                     point = Point(float(longitude), float(latitude))
                 except (ValueError, TypeError):
                     HttpResponseBadRequest('Invalid lat/long')
-            asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point)
+            asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point, mission=mission_user.mission)
             asset_command.save()
             return HttpResponse("Created")
 
     if form is None:
-        form = AssetCommandForm()
+        form = AssetCommandForm(mission=mission_user.mission)
 
     return render(request, 'asset-command-form.html', {'form': form})
