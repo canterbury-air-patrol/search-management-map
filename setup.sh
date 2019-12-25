@@ -66,7 +66,7 @@ then
 fi
 mkdir -p map/static/fontawesome/webfonts
 mkdir -p tmp
-(cd tmp; unzip ../dl/${FONTAWESOME_WEBFONTS_FILE}; cp -dpR fontawesome-free-${FONTAWESOME_VERSION}-web/webfonts/* ../map/static/fontawesome/webfonts/)
+(cd tmp; unzip ../dl/${FONTAWESOME_WEBFONTS_FILE}; cp -pR fontawesome-free-${FONTAWESOME_VERSION}-web/webfonts/* ../map/static/fontawesome/webfonts/)
 rm -fr tmp
 
 echo ""
