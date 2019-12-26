@@ -3,8 +3,8 @@ L.SMMAdmin = {}
 L.SMMAdmin.AssetCommand = function(map) {
     var contents = [
         "<div id='assetcommanddialog'></div>",
-        "<div><button class='btn btn-default' id='command_create'>Set</button>",
-        "<button class='btn btn-default' id='command_cancel'>Cancel</button></div>",
+        "<div><button class='btn btn-primary' id='command_create'>Set</button>",
+        "<button class='btn btn-danger' id='command_cancel'>Cancel</button></div>",
     ].join('');
     var assetCommandDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
     var gotoPoint = null;
@@ -72,9 +72,9 @@ L.SMMAdmin.TrackPosition = function(map) {
         "<div>" + assetSelect + "</div>",
         "<div id='track-position-error'></div>",
         "<div><table><tr><th>Lat</th><th>Long</th><th>Alt</th><th>Heading</th></tr><tr><td id='track-position-lat'></td><td id='track-position-lon'></td><td id='track-position-alt'></td><td id='track-position-heading'></td></tr></table></div>",
-        "<div><button class='btn btn-default' id='record_start'>Start</button>",
-        "<button class='btn btn-default' id='record_stop'>Stop</button>",
-        "<button class='btn btn-default' id='record_close'>Close</button></div>",
+        "<div><button class='btn btn-primary' id='record_start'>Start</button>",
+        "<button class='btn btn-danger' id='record_stop'>Stop</button>",
+        "<button class='btn btn-danger' id='record_close'>Close</button></div>",
     ].join('');
     var trackPositionDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
 
@@ -187,9 +187,9 @@ L.Control.SMMAdmin = L.Control.extend({
         L.DomEvent.on(link, 'click', L.DomEvent.stop);
         L.DomEvent.on(link, 'click', function () {
             var contents = [
-                "<div><button class='btn btn-default' id='asset_command'>Set Asset Command</button></div>",
-                "<div><button class='btn btn-default' id='asset_track'>Track as Asset</button></div>",
-                "<div><button class='btn btn-default' id='admin_close'>Close</button>",
+                "<div><button class='btn btn-light' id='asset_command'>Set Asset Command</button></div>",
+                "<div><button class='btn btn-light' id='asset_track'>Track as Asset</button></div>",
+                "<div><button class='btn btn-danger' id='admin_close'>Close</button>",
             ].join('');
             var AdminDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(map).hideClose();
             $("#asset_command").click(function() {L.SMMAdmin.AssetCommand(map)});

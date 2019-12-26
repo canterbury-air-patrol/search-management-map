@@ -106,9 +106,9 @@ function poiCreate(poi, layer) {
     popupContent += '<dt class="poi-lat-label col-sm-2">Lat</dt><dd class="poi-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
     popupContent += '<dt class="poi-lng-label col-sm-2">Long</dt><dd class="poi-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
 
-    popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
+    popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button></div>'
+    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent);
 }
@@ -127,9 +127,9 @@ function userPolygonCreate(poly, layer) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     }
 
-    popupContent += '<div class="btn-group"><button class="btn btn-default" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+    popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
+    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
@@ -146,9 +146,9 @@ function userLineCreate(line, layer) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     })
 
-    popupContent += '<dev class="btn-group"><button class="btn btn-default" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
+    popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-default" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
+    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
 
     layer.bindPopup(popupContent, { minWidth: 200 });
 }

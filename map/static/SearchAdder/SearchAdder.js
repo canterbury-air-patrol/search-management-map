@@ -47,7 +47,7 @@ L.SearchAdder = function(map, objectType, objectID) {
     ])
 
     contents += [
-        '<div class="btn-group"><button class="btn btn-default" id="SearchAdder-preview-' + RAND_NUM + '">Preview</button>',
+        '<div class="btn-group"><button class="btn btn-warning" id="SearchAdder-preview-' + RAND_NUM + '">Preview</button>',
         '<button class="btn btn-primary" id="SearchAdder-create-' + RAND_NUM + '">Create</button>',
         '<button class="btn btn-danger" id="SearchAdder-cancel-' + RAND_NUM + '">Cancel</button></div>',
     ].join('');
