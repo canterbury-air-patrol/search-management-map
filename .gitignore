@@ -8,4 +8,6 @@ db.sqlite3
 dl/
 tmp/
 todo.org
-static/
+/static/
+images/full/
+images/thumbnail/

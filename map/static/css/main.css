@@ -16,3 +16,7 @@
 .poi-label, .poi-lat-label, .poi-lng-label {
    font-weight: 700 !important;
 }
+
+.image-label, .image-lat-label, .image-lng-label {
+   font-weight: 700 !important;
+}

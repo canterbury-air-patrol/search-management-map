@@ -369,6 +369,27 @@ function creepingLinePolygonSearchCompleteCreate(line, layer) {
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
+function imageCreate(image, layer) {
+    var ImageDesc = image.properties.description;
+    var imageID = image.properties.pk;
+    var coords = image.geometry.coordinates;
+
+    var popupContent = '<dl class="row"><dt class="image-label col-sm-2">Image</dt><dd class="image-name col-sm-10">' + ImageDesc + '</dd>';
+
+    popupContent += '<dt class="image-lat-label col-sm-2">Lat</dt><dd class="image-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
+    popupContent += '<dt class="image-lng-label col-sm-2">Long</dt><dd class="image-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
+
+    popupContent += '<div style="width: 128px"><a href="/mission/' + mission_id + '/image/' + imageID + '/full/"><img src="/mission/' + mission_id + '/image/' + imageID + '/thumbnail/" /></a></div>';
+
+    if (image.properties.priority) {
+        popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/unset/\');">Deprioritize</button>';
+    } else {
+        popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/set/\');">Prioritize</button>';
+    }
+    popupContent += '</div>'
+    layer.bindPopup(popupContent);
+}
+
 // eslint-disable-next-line no-unused-vars
 function mapInit(map) {
     myMap = map;
@@ -385,6 +406,7 @@ function mapInit(map) {
         keepCurrentZoomLevel: true,
         locateOptions: { enableHighAccuracy: true},
     }).addTo(map);
+    L.control.imageuploader({}).addTo(map);
     L.control.smmadmin({}).addTo(map);
 
     var assetUpdateFreq = 3 * 1000;
@@ -392,6 +414,7 @@ function mapInit(map) {
     var userDataUpdateFreq = 10 * 1000;
     var searchIncompleteUpdateFreq = 30 * 1000;
     var searchCompleteUpdateFreq = 60 * 1000;
+    var imageAllUpdateFreq = 60 * 1000;
 
     var realtime = L.realtime({
             url: "/mission/" + mission_id + "/data/assets/positions/latest/",
@@ -555,4 +578,32 @@ function mapInit(map) {
         });
 
     overlayAdd("Polygon Creeping Line Searches (completed)", realtime);
+    
+    realtime = L.realtime({
+             url: "/mission/" + mission_id + "/image/list/all/",
+             type: 'json',
+         }, {
+             interval: imageAllUpdateFreq,
+             onEachFeature: imageCreate,
+             getFeatureId: function(feature) { return feature.properties.pk; }
+         });
+
+     overlayAdd("Images (all)", realtime);
+    
+    realtime = L.realtime({
+            url: "/mission/" + mission_id + "/image/list/important/",
+            type: 'json',
+        }, {
+            interval: imageAllUpdateFreq,
+            onEachFeature: imageCreate,
+            getFeatureId: function(feature) { return feature.properties.pk; },
+            pointToLayer: function(feature, latlng) {
+              return L.marker(latlng, {'icon': L.icon({
+                  iconUrl: '/static/icons/image-x-generic.png',
+                  iconSize: [24, 24],
+              })});
+            },
+        }).addTo(map);
+
+    overlayAdd("Images (prioritized)", realtime);
 }

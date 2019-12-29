@@ -22,6 +22,7 @@ urlpatterns = [
     re_path(r'', include('assets.urls')),
     re_path(r'', include('search.urls')),
     re_path(r'', include('data.urls')),
+    re_path(r'', include('images.urls')),
     re_path(r'', include('mission.urls')),
     re_path(r'', include('map.urls')),
 ]

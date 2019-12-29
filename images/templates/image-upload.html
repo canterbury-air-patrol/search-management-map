@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<form method="post" enctype="multipart/form-data" id="image_upload_form" action="/mission/{{ mission.pk }}/image/upload/">
+{% csrf_token %}
+<table>
+{{ form.as_table }}
+</table>
+<input name="latitude" id="image_upload_lat" type="hidden" />
+<input name="longitude" id="image_upload_long" type="hidden" />
+</form>

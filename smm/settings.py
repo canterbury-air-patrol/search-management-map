@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'data',
     'search',
     'timeline',
+    'images',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -140,6 +141,10 @@ LEAFLET_CONFIG['PLUGINS'] = {
     },
     'SMMAdmin': {
         'js': 'Admin/admin.js',
+        'auto-include': True,
+    },
+    'ImageUploader': {
+        'js': 'ImageUploader/ImageUploader.js',
         'auto-include': True,
     },
     'LocateControl': {

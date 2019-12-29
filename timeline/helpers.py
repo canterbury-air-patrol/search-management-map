@@ -93,3 +93,13 @@ def timeline_record_mission_asset_remove(mission, user, asset):
     url = ""
     entry = TimeLineEntry(mission=mission, user=user, event_type='arm', message=message, url=url)
     entry.save()
+
+
+def timeline_record_image_priority_changed(mission, user, image):
+    """
+    Create a timeline entry for an image priority being changed.
+    """
+    message = "{} Updated Image {} Priority ({}) in Mission {}".format(user, image.pk, "important" if image.priority else "normal", mission.pk)
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='ipc', message=message, url=url)
+    entry.save()

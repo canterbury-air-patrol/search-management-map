@@ -1,0 +1,28 @@
+"""
+Models for images
+"""
+
+from django.db import models
+from data.models import PointTime
+
+
+class GeoImage(PointTime):
+    """
+    This is an image that has been uploaded by a user.
+
+    We store the position and a description, plus allow for flagging as important.
+    """
+    description = models.TextField()
+    original_format = models.CharField(max_length=10)
+    priority = models.BooleanField(default=False)
+    replaced_by = models.ForeignKey("GeoImage", on_delete=models.SET_NULL, null=True, blank=True)
+
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'description', 'priority', )
+
+    def __str__(self):
+        return "Image ({}) @ {}".format(self.description, self.point)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'priority']),
+        ]

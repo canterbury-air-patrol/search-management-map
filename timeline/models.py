@@ -28,6 +28,7 @@ class TimeLineEntry(models.Model):
         ('uup', "User updated"),
         ('aad', "Asset added to mission"),
         ('arm', "Asset removed from mission"),
+        ('ipc', "Image priority changed"),
     )
     event_type = models.CharField(max_length=3, choices=EVENT_TYPE)
 

@@ -20,3 +20,6 @@ haversine
 
 # uwsgi
 uwsgi
+
+# image support
+image

@@ -73,7 +73,7 @@ def asset_command_set(request, mission_id, mission_user):
                 try:
                     point = Point(float(longitude), float(latitude))
                 except (ValueError, TypeError):
-                    HttpResponseBadRequest('Invalid lat/long')
+                    return HttpResponseBadRequest('Invalid lat/long')
             asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point, mission=mission_user.mission)
             asset_command.save()
             return HttpResponse("Created")

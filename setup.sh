@@ -4,6 +4,9 @@ pip install wheel
 # Install the required packages
 pip install -r requirements.txt
 
+# Setup the image storage directory
+mkdir -p images/full images/thumbnail
+
 mkdir -p dl
 # Fetch jquery
 JQUERY_VERSION=3.3.1
