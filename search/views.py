@@ -13,7 +13,7 @@ Basic overview of presented API:
  - Details
 """
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
@@ -27,6 +27,7 @@ from mission.decorators import mission_is_member, mission_asset_get_mission
 from timeline.helpers import timeline_record_search_begin, timeline_record_search_finished
 from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
 from .view_helpers import mission_search_incomplete, mission_search_completed, check_searches_in_progress
+from .forms import AssetSearchQueueEntryForm, AssetTypeSearchQueueEntryForm
 
 
 def mission_get(mission_id):
@@ -39,9 +40,14 @@ def mission_get(mission_id):
 @login_required
 @asset_id_in_get_post
 @mission_asset_get_mission
-def find_closest_search(request, asset, mission):
+def find_next_search(request, asset, mission):
     """
-    Find the geographically closest search for the specified asset.
+    Find the next search for this asset
+    Order of preference:
+    - Current in progress search for this specific asset
+    - Oldest queued search for this specific asset
+    - Oldest queued search for this asset type
+    - Geographically closest search for the asset type
     """
     if request.method == 'POST':
         lat = request.POST.get('latitude')
@@ -65,26 +71,52 @@ def find_closest_search(request, asset, mission):
 
     point = Point(long, lat)
 
+    def search_data(search):
+        data = {
+            'object_url': "/search/{}/{}/json/".format(search.url_component(), search.pk),
+            'distance': int(search.distance_from(point)),
+            'length': int(search.length()),
+        }
+        return JsonResponse(data)
+
     # If this asset already has a search in progress, only offer that
     search = check_searches_in_progress(asset)
-    if search is None:
-        for object_type in (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch):
-            possible_search = object_type.find_closest(mission, asset.asset_type, point)
-            if possible_search:
-                if distance is None or possible_search.distance < distance:
-                    search = possible_search
-                    distance = possible_search.distance
+    if search:
+        return search_data(search)
 
-    if search is None:
-        return HttpResponseNotFound("No suitable searches exist")
+    object_type_list = (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch)
 
-    data = {
-        'object_url': "/search/{}/{}/json/".format(search.url_component(), search.pk),
-        'distance': int(search.distance_from(point)),
-        'length': int(search.length()),
-    }
+    queued_timestamp = None
+    for object_type in object_type_list:
+        possible_search = object_type.oldest_queued_for_asset(mission, asset)
+        if possible_search:
+            if queued_timestamp is None or possible_search.queued_at < queued_timestamp:
+                search = possible_search
+                queued_timestamp = search.queued_at
+    if search:
+        return search_data(search)
 
-    return JsonResponse(data)
+    # Check for the oldest queue entry for this asset
+    for object_type in object_type_list:
+        possible_search = object_type.oldest_queued_for_asset_type(mission, asset.asset_type)
+        if possible_search:
+            if queued_timestamp is None or possible_search.queued_at < queued_timestamp:
+                search = possible_search
+                queued_timestamp = search.queued_at
+    if search:
+        return search_data(search)
+
+    for object_type in object_type_list:
+        possible_search = object_type.find_closest(mission, asset.asset_type, point)
+        if possible_search:
+            if distance is None or possible_search.distance < distance:
+                search = possible_search
+                distance = possible_search.distance
+
+    if search:
+        return search_data(search)
+
+    return HttpResponseNotFound("No suitable searches exist")
 
 
 def check_search_state(search, action, asset):
@@ -157,6 +189,56 @@ def search_finished(request, search_id, object_class, asset, mission):
     timeline_record_search_finished(mission, request.user, asset, search)
 
     return HttpResponse("Completed")
+
+
+@login_required
+@mission_is_member
+def search_queue_for_asset(request, mission_id, search_id, object_class, mission_user):
+    """
+    Queue a search for a specific asset
+    """
+    search = get_object_or_404(object_class, pk=search_id)
+
+    # Check if this search has already been queued
+    if search.queued_at:
+        return HttpResponseForbidden("This search is already queued for {}".format(search.get_match()))
+
+    asset = None
+    if request.method == "POST":
+        form = AssetSearchQueueEntryForm(request.POST, mission=mission_user.mission)
+        if form.is_valid():
+            asset = form.cleaned_data['queued_for_asset']
+    if asset is None:
+        return render(request, 'search/queue_for_asset.html', {'form': AssetSearchQueueEntryForm(mission=mission_user.mission)})
+
+    search.queue_search(mission_user=mission_user, assettype=asset.asset_type, asset=asset)
+
+    return HttpResponse("Success")
+
+
+@login_required
+@mission_is_member
+def search_queue_for_asset_type(request, mission_id, search_id, object_class, mission_user):
+    """
+    Queue a search for a specific asset
+    """
+    search = get_object_or_404(object_class, pk=search_id)
+
+    # Check if this search has already been queued
+    if search.queued_at:
+        return HttpResponseForbidden("This search is already queued for {}".format(search.get_match()))
+
+    asset_type = None
+    if request.method == "POST":
+        form = AssetTypeSearchQueueEntryForm(request.POST)
+        if form.is_valid():
+            asset_type = form.cleaned_data['queued_for_assettype']
+    if asset_type is None:
+        return render(request, 'search/queue_for_asset_type.html', {'form': AssetTypeSearchQueueEntryForm()})
+
+    search.queue_search(mission_user=mission_user, assettype=asset_type)
+
+    return HttpResponse("Success")
 
 
 @login_required

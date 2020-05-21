@@ -10,6 +10,7 @@ from django.db import models, connection as dbconn
 from django.db.models import Func
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, LineString
+from django.utils import timezone
 
 from data.models import (LineStringTime,
                          PointTimeLabel,
@@ -18,6 +19,7 @@ from data.models import (LineStringTime,
 from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
 from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
+from timeline.helpers import timeline_record_search_queue
 
 
 def dictfetchall(cursor):
@@ -96,12 +98,23 @@ class SearchPath(LineStringTime):
     completed = models.DateTimeField(null=True, blank=True)
     completed_by = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='completed_by%(app_label)s_%(class)s_related')
 
+    queued_at = models.DateTimeField(null=True, blank=True)
+    queued_for_assettype = models.ForeignKey(AssetType, on_delete=models.PROTECT, null=True, blank=True, related_name='queued_for_assettype%(app_label)s_%(class)s_related')
+    queued_for_asset = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='queued_for_assettype%(app_label)s_%(class)s_related')
+
     def distance_from(self, point):
         """
         Calculate the distance (in m) from a point to the start of this search
         """
         annotated_self = self.__class__.objects.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point)).get(pk=self.pk)
         return annotated_self.distance
+
+    @classmethod
+    def all_waiting(cls, mission):
+        """
+        Get all searches for this mission that haven't been started or deleted
+        """
+        return cls.objects.filter(deleted=False).filter(mission=mission).filter(inprogress_by__isnull=True).filter(completed__isnull=True)
 
     @classmethod
     def find_closest(cls, mission, asset_type, point):
@@ -116,6 +129,51 @@ class SearchPath(LineStringTime):
         except IndexError:
             return None
 
+    def queue_search(self, mission_user, assettype=None, asset=None):
+        '''
+        Queue this search for an asset or assettype
+        '''
+        if self.queued_at is None:
+            self.queued_at = timezone.now()
+            self.queued_for_asset = asset
+            self.queued_for_assettype = assettype
+            self.save()
+            timeline_record_search_queue(mission_user.mission, mission_user.user, self, assettype, asset)
+
+    @classmethod
+    def oldest_queued_for_asset(cls, mission, asset):
+        """
+        Find the oldest queued search for this asset
+        Only entries that haven't already been started/deleted are considered
+        """
+        try:
+            search = cls.all_waiting(mission).filter(asset=asset).filter(queued_at__isnull=False).order_by('queued_at')[0]
+            return search
+        except IndexError:
+            return None
+
+    @classmethod
+    def oldest_queued_for_asset_type(cls, mission, asset_type):
+        """
+        Find the oldest queued search for this asset_type
+        Only entries that haven't already been used/deleted are considered
+        """
+        try:
+            search = cls.all_waiting(mission).filter(asset__isnull=True).filter(assettype=asset_type).filter(queued_at__isnull=False).order_by('queued_at')[0]
+            return search
+        except IndexError:
+            return None
+
+    def get_match(self):
+        """
+        Get the match object associated with this queue entry
+         - an asset, if this search is for a specific asset
+         - an assettype, if this search is for any asset of a type
+        """
+        if self.queued_for_asset:
+            return self.queued_for_asset
+        return self.queued_for_assettype
+
     class Meta:
         abstract = True
         indexes = [
@@ -123,6 +181,7 @@ class SearchPath(LineStringTime):
             models.Index(fields=['created_for']),
             models.Index(fields=['inprogress_by']),
             models.Index(fields=['completed']),
+            models.Index(fields=['deleted', 'mission', 'inprogress_by', 'completed']),
         ]
 
 
@@ -153,7 +212,7 @@ class SectorSearch(SearchPath):
     """
     datum = models.ForeignKey(PointTimeLabel, on_delete=models.PROTECT)
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'queued_at', 'queued_for_asset', 'queued_for_assettype', )
 
     def __str__(self):
         return "Sector Search from {} with {} (sw={})".format(self.datum, self.created_for, self.sweep_width)
@@ -256,7 +315,7 @@ class ExpandingBoxSearch(SearchPath):
     iterations = models.IntegerField()
     first_bearing = models.IntegerField()
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'iterations', 'first_bearing', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'iterations', 'first_bearing', 'queued_at', 'queued_for_asset', 'queued_for_assettype', )
 
     def __str__(self):
         return "Expanding Box Search from {} with {} (sw={}, n={}, start={})".format(self.datum, self.created_for, self.sweep_width, self.iterations, self.first_bearing)
@@ -305,7 +364,7 @@ class TrackLineSearch(SearchPath):
     """
     datum = models.ForeignKey(LineStringTimeLabel, on_delete=models.PROTECT)
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'queued_at', 'queued_for_asset', 'queued_for_assettype', )
 
     def __str__(self):
         return "Track Line Search along {} with {} (sw={})".format(self.datum, self.created_for, self.sweep_width)
@@ -359,7 +418,7 @@ class TrackLineCreepingSearch(SearchPath):
     datum = models.ForeignKey(LineStringTimeLabel, on_delete=models.PROTECT)
     width = models.IntegerField()
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'width', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'width', 'queued_at', 'queued_for_asset', 'queued_for_assettype', )
 
     def __str__(self):
         return "Creeping Search along {} with {} (sw={}, width={})".format(self.datum, self.created_for, self.sweep_width, self.width)
@@ -417,11 +476,7 @@ class PolygonSearch(SearchPath):
     """
     datum = models.ForeignKey(PolygonTimeLabel, on_delete=models.PROTECT)
 
-    GEOJSON_FIELDS = ('pk',
-                      'timestamp',
-                      'created_for',
-                      'inprogress_by',
-                      'sweep_width', )
+    GEOJSON_FIELDS = ('pk', 'timestamp', 'created_for', 'inprogress_by', 'sweep_width', 'queued_at', 'queued_for_asset', 'queued_for_assettype', )
 
     def __str__(self):
         return "Polygon Search inside {} with {} (sw={})".format(

@@ -103,3 +103,16 @@ def timeline_record_image_priority_changed(mission, user, image):
     url = ""
     entry = TimeLineEntry(mission=mission, user=user, event_type='ipc', message=message, url=url)
     entry.save()
+
+
+def timeline_record_search_queue(mission, user, search, assettype, asset):
+    """
+    Create a timeline entry for a search being queued
+    """
+    if asset:
+        message = "{} Queued Search {} for Asset {} in Mission {}".format(user, search, asset, mission.pk)
+    else:
+        message = "{} Queued Search {} for Assets of Type {} in Mission {}".format(user, search, assettype, mission.pk)
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='que', message=message, url=url)
+    entry.save()

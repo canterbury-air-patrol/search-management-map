@@ -166,6 +166,33 @@ function searchDataToPopUp(data) {
     return res;
 }
 
+function searchStatusIncomplete(search) {
+    var InprogressBy = search.properties.inprogress_by;
+    var QueuedAt = search.properties.queued_at;
+    var QueuedForAsset = search.properties.queued_for_asset;
+    var QueuedForAssetType = search.properties.queued_for_assettype;
+
+    var status = "";
+    if (InprogressBy)
+    {
+        status = "In Progress: " + InprogressBy;
+    }
+    else if(QueuedForAsset)
+    {
+        status = "Queued for " + QueuedForAsset + " at " + QueuedAt;
+    }
+    else if(QueuedForAssetType)
+    {
+        status = "Queued for Asset Type at " + QueuedAt;
+    }
+    else
+    {
+        status = "Unassigned";
+    }
+
+    return status;
+}
+
 function sectorSearchIncompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
     var SweepWidth = line.properties.sweep_width;
@@ -174,7 +201,7 @@ function sectorSearchIncompleteCreate(line, layer) {
 
     var data = [
         { css: 'type', label: 'Search Type', value: 'Sector' },
-        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(line) },
         { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
         { css: 'asset-type', label: 'Asset Type', value: AssetType }
     ]
@@ -215,7 +242,7 @@ function expandingBoxSearchIncompleteCreate(line, layer) {
 
     var data = [
         { css: 'type', label: 'Search Type', value: 'Expanding Box' },
-        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(line) },
         { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
         { css: 'first-bearing', label: 'First Bearing', value: EBFirstBearing },
         { css: 'complete-boxes', label: 'Complete Boxes', value: EBIterations },
@@ -259,7 +286,7 @@ function trackLineSearchIncompleteCreate(line, layer) {
 
     var data = [
         { css: 'type', label: 'Search Type', value: 'Track Line' },
-        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(line) },
         { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
         { css: 'asset-type', label: 'Asset Type', value: AssetType }
     ]
@@ -298,7 +325,7 @@ function creepingLineSearchIncompleteCreate(line, layer) {
 
     var data = [
         { css: 'type', label: 'Search Type', value: 'Creeping Line (from line)' },
-        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(line) },
         { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
         { css: 'search-width', label: 'Search Width', value: Width + 'm' },
         { css: 'asset-type', label: 'Asset Type', value: AssetType }
@@ -339,7 +366,7 @@ function creepingLinePolygonSearchIncompleteCreate(line, layer) {
 
     var data = [
         { css: 'type', label: 'Search Type', value: 'Creeping Line (from polygon)' },
-        { css: 'status', label: 'Status', value: (InprogressBy ? 'Inprogress' : 'Not Assigned') },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(line) },
         { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
         { css: 'asset-type', label: 'Asset Type', value: AssetType }
     ]
