@@ -51,7 +51,7 @@ def assets_position_latest(request, mission_user):
 @login_required
 @asset_is_recorder
 @mission_asset_get_mission
-def asset_record_position(request, asset_name, asset, mission):
+def asset_record_position(request, asset, mission):
     """
     Record the current position of an asset.
 
@@ -189,7 +189,7 @@ def point_label_delete(request, mission_user, poi):
     """
     Delete a POI
     """
-    return userobject_delete(GeoTimeLabel, request, 'POI', poi)
+    return userobject_delete(GeoTimeLabel, request, 'POI', poi, mission_user)
 
 
 @login_required
@@ -233,7 +233,7 @@ def user_polygon_delete(request, mission_user, polygon):
     """
     Delete a user polygon
     """
-    return userobject_delete(GeoTimeLabel, request, 'Polygon', polygon)
+    return userobject_delete(GeoTimeLabel, request, 'Polygon', polygon, mission_user)
 
 
 @login_required
@@ -277,7 +277,7 @@ def user_line_delete(request, mission_user, line):
     """
     Delete a user line
     """
-    return userobject_delete(GeoTimeLabel, request, 'Line', line)
+    return userobject_delete(GeoTimeLabel, request, 'Line', line, mission_user)
 
 
 def convert_typhoon_time(timestamp):
@@ -321,7 +321,7 @@ def upload_typhoonh_data(request, mission_user):
                         point = Point(float(row['longitude']), float(row['latitude']))
                         timestring, seconds = convert_typhoon_time(row[''])
                         if seconds != last_second:
-                            AssetPointTime(asset=form.cleaned_data['asset'], alt=float(row['altitude']), heading=float(row['yaw']), point=point, created_at=timestring, creator=request.user).save()
+                            AssetPointTime(asset=form.cleaned_data['asset'], alt=float(row['altitude']), heading=float(row['yaw']), point=point, created_at=timestring, created_by=mission_user.user).save()
                             last_second = seconds
             return HttpResponseRedirect('/')
     else:

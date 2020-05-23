@@ -55,7 +55,7 @@ def userobject_replace(objecttype, request, name, object_id, mission, func):
     return func(request, mission=mission, replaces=replaces)
 
 
-def userobject_delete(objecttype, request, name, object_id):
+def userobject_delete(objecttype, request, name, object_id, mission_user):
     """
     Mark a user object as deleted
 
@@ -66,7 +66,7 @@ def userobject_delete(objecttype, request, name, object_id):
         return HttpResponseNotFound("This {} has already been deleted".format(name))
     if obj.replaced_by is not None:
         return HttpResponseNotFound("This {} has been replaced".format(name))
-    obj.deleted_by = request.user
+    obj.deleted_by = mission_user.user
     obj.deleted_at = timezone.now()
     obj.save()
     return HttpResponse("Deleted")
