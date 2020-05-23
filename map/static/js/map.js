@@ -193,6 +193,46 @@ function searchStatusIncomplete(search) {
     return status;
 }
 
+function searchIncompleteCreate(search, layer) {
+    var SearchID = search.properties.pk;
+    var SweepWidth = search.properties.sweep_width;
+    var AssetType = search.properties.created_for;
+    var InprogressBy = search.properties.inprogress_by;
+    var SearchType = search.properties.search_type;
+
+    var data = [
+        { css: 'type', label: 'Search Type', value: SearchType },
+        { css: 'status', label: 'Status', value: searchStatusIncomplete(search) },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType }
+    ]
+    if (InprogressBy) {
+        data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
+    }
+
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
+}
+
+function searchCompletedCreate(search, layer) {
+    var SearchID = search.properties.pk;
+    var SweepWidth = search.properties.sweep_width;
+    var AssetType = search.properties.created_for;
+    var InprogressBy = search.properties.inprogress_by;
+    var SearchType = search.properties.search_type;
+
+    var data = [
+        { css: 'type', label: 'Search Type', value: SearchType },
+        { css: 'status', label: 'Status', value: 'Completed' },
+        { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+        { css: 'asset-type', label: 'Asset Type', value: AssetType },
+        { css: 'completedby', label: 'Completed By', value: InprogressBy }
+    ]
+
+    var popupContent = searchDataToPopUp(data);
+    layer.bindPopup(popupContent, { minWidth: 200 });
+}
+
 function sectorSearchIncompleteCreate(line, layer) {
     var SectorSearchID = line.properties.pk;
     var SweepWidth = line.properties.sweep_width;
@@ -488,124 +528,27 @@ function mapInit(map) {
 
     overlayAdd("Lines", realtime);
 
+    realtime = L.realtime({
+        url: '/mission/' + mission_id + '/search/incomplete/',
+        type: 'json',
+    }, {
+        interval: searchIncompleteUpdateFreq,
+        color: 'orange',
+        onEachFeature: searchIncompleteCreate,
+        getFeatureId: function(feature) { return feature.properties.pk; }
+    }).addTo(map);
+    overlayAdd("Incomplete Searches", realtime);
 
     realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/sector/incomplete/",
-            type: 'json',
-        }, {
-            interval: searchIncompleteUpdateFreq,
-            color: 'orange',
-            onEachFeature: sectorSearchIncompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        }).addTo(map);
+        url: "/mission/" + mission_id + "/search/completed/",
+        type: 'json',
+    }, {
+        interval: searchCompleteUpdateFreq,
+        onEachFeature: searchCompletedCreate,
+        getFeatureId: function(feature) { return feature.properties.pk; }
+    });
+    overlayAdd("Completed Searches", realtime);
 
-    overlayAdd("Sector Searches (incomplete)", realtime);
-
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/sector/completed/",
-            type: 'json',
-        }, {
-            interval: searchCompleteUpdateFreq,
-            onEachFeature: sectorSearchCompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        });
-
-    overlayAdd("Sector Searches (completed)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/expandingbox/incomplete/",
-            type: 'json',
-        }, {
-            interval: searchIncompleteUpdateFreq,
-            color: 'orange',
-            onEachFeature: expandingBoxSearchIncompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        }).addTo(map);
-
-    overlayAdd("ExpandingBox Searches (incomplete)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/expandingbox/completed/",
-            type: 'json',
-        }, {
-            interval: searchCompleteUpdateFreq,
-            onEachFeature: expandingBoxSearchCompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        });
-
-    overlayAdd("Expanding Box Searches (completed)", realtime);
-
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/trackline/incomplete/",
-            type: 'json',
-        }, {
-            interval: searchIncompleteUpdateFreq,
-            color: 'orange',
-            onEachFeature: trackLineSearchIncompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        }).addTo(map);
-
-    overlayAdd("Track Line Searches (incomplete)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/trackline/completed/",
-            type: 'json',
-        }, {
-            interval: searchCompleteUpdateFreq,
-            onEachFeature: trackLineSearchCompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        });
-
-    overlayAdd("Track Line Searches (completed)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/creepingline/track/incomplete/",
-            type: 'json',
-        }, {
-            interval: searchIncompleteUpdateFreq,
-            color: 'orange',
-            onEachFeature: creepingLineSearchIncompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        }).addTo(map);
-
-    overlayAdd("Track Creeping Line Searches (incomplete)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/creepingline/track/completed/",
-            type: 'json',
-        }, {
-            interval: searchCompleteUpdateFreq,
-            onEachFeature: creepingLineSearchCompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        });
-
-    overlayAdd("Track Creeping Line Searches (completed)", realtime);
-
-	  realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/creepingline/polygon/incomplete/",
-            type: 'json',
-        }, {
-            interval: searchIncompleteUpdateFreq,
-            color: 'orange',
-            onEachFeature: creepingLinePolygonSearchIncompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        }).addTo(map);
-
-    overlayAdd("Polygon Creeping Line Searches (incomplete)", realtime);
-
-    realtime = L.realtime({
-            url: "/mission/" + mission_id + "/search/creepingline/polygon/completed/",
-            type: 'json',
-        }, {
-            interval: searchCompleteUpdateFreq,
-            onEachFeature: creepingLinePolygonSearchCompleteCreate,
-            getFeatureId: function(feature) { return feature.properties.pk; }
-        });
-
-    overlayAdd("Polygon Creeping Line Searches (completed)", realtime);
-    
     realtime = L.realtime({
              url: "/mission/" + mission_id + "/image/list/all/",
              type: 'json',

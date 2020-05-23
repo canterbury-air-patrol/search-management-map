@@ -25,7 +25,7 @@ from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission
 from mission.decorators import mission_is_member, mission_asset_get_mission
 from timeline.helpers import timeline_record_search_begin, timeline_record_search_finished
-from .models import SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, PolygonSearch
+from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
 from .view_helpers import check_searches_in_progress
 from .forms import AssetSearchQueueEntryForm, AssetTypeSearchQueueEntryForm
 
@@ -67,8 +67,6 @@ def find_next_search(request, asset, mission):
     except (ValueError, TypeError):
         return HttpResponseBadRequest('Invalid lat or long')
 
-    distance = None
-
     point = Point(long, lat)
 
     def search_data(search):
@@ -84,35 +82,16 @@ def find_next_search(request, asset, mission):
     if search:
         return search_data(search)
 
-    object_type_list = (SectorSearch, ExpandingBoxSearch, TrackLineSearch, TrackLineCreepingSearch, PolygonSearch)
-
-    queued_timestamp = None
-    for object_type in object_type_list:
-        possible_search = object_type.oldest_queued_for_asset(mission, asset)
-        if possible_search:
-            if queued_timestamp is None or possible_search.queued_at < queued_timestamp:
-                search = possible_search
-                queued_timestamp = search.queued_at
+    search = Search.oldest_queued_for_asset(mission, asset)
     if search:
         return search_data(search)
 
     # Check for the oldest queue entry for this asset
-    for object_type in object_type_list:
-        possible_search = object_type.oldest_queued_for_asset_type(mission, asset.asset_type)
-        if possible_search:
-            if queued_timestamp is None or possible_search.queued_at < queued_timestamp:
-                search = possible_search
-                queued_timestamp = search.queued_at
+    search = Search.oldest_queued_for_asset_type(mission, asset.asset_type)
     if search:
         return search_data(search)
 
-    for object_type in object_type_list:
-        possible_search = object_type.find_closest(mission, asset.asset_type, point)
-        if possible_search:
-            if distance is None or possible_search.distance < distance:
-                search = possible_search
-                distance = possible_search.distance
-
+    search = Search.find_closest(mission, asset.asset_type, point)
     if search:
         return search_data(search)
 
@@ -124,9 +103,9 @@ def check_search_state(search, action, asset):
     Check the current state of a search and provide
     a suitable error response if it's not suitable for desired action
     """
-    if search.deleted:
+    if search.deleted_at is not None:
         return HttpResponseForbidden("Search has been deleted")
-    if search.completed is not None or search.completed_by is not None:
+    if search.completed_at is not None or search.completed_by is not None:
         return HttpResponseForbidden("Search already completed")
 
     if action == 'begin':
@@ -272,7 +251,7 @@ def search_completed_kml(request, mission_id, search_class):
     Get a list of all the completed (search_class) searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(search_class, search_class.all_current_completed(mission, SectorSearch))
+    return to_kml(search_class, search_class.all_current_completed(mission))
 
 
 @login_required
@@ -296,9 +275,9 @@ def sector_search_create(request):
     poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
-    search = SectorSearch.create(SearchParams(poi, asset_type, request.user, sweep_width), save=save)
+    search = Search.create_sector_search(SearchParams(poi, asset_type, request.user, sweep_width), save=save)
 
-    return to_geojson(SectorSearch, [search])
+    return to_geojson(Search, [search])
 
 
 @login_required
@@ -332,9 +311,9 @@ def expanding_box_search_create(request):
     except ValueError:
         first_bearing = 0
 
-    search = ExpandingBoxSearch.create(ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, iterations, first_bearing), save=save)
+    search = Search.create_expanding_box_search(ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, iterations, first_bearing), save=save)
 
-    return to_geojson(ExpandingBoxSearch, [search])
+    return to_geojson(Search, [search])
 
 
 @login_required
@@ -358,9 +337,9 @@ def track_line_search_create(request):
     line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
-    search = TrackLineSearch.create(SearchParams(line, asset_type, request.user, sweep_width), save=save)
+    search = Search.create_track_line_search(SearchParams(line, asset_type, request.user, sweep_width), save=save)
 
-    return to_geojson(TrackLineSearch, [search])
+    return to_geojson(Search, [search])
 
 
 @login_required
@@ -386,9 +365,9 @@ def track_creeping_line_search_create(request):
     line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
-    search = TrackLineCreepingSearch.create(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
+    search = Search.create_track_line_creeping_search(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
 
-    return to_geojson(TrackLineCreepingSearch, [search])
+    return to_geojson(Search, [search])
 
 
 @login_required
@@ -412,9 +391,6 @@ def polygon_creeping_line_search_create(request):
     poly = get_object_or_404(GeoTimeLabel, pk=poly_id, geo_type='polygon')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
-    search = PolygonSearch.create(SearchParams(poly,
-                                               asset_type,
-                                               request.user,
-                                               sweep_width), save=save)
+    search = Search.create_polygon_creeping_line_search(SearchParams(poly, asset_type, request.user, sweep_width), save=save)
 
-    return to_geojson(PolygonSearch, [search])
+    return to_geojson(Search, [search])

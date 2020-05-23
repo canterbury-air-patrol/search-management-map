@@ -6,7 +6,7 @@ from django.forms import ModelForm
 from mission.models import MissionAsset
 from assets.models import Asset
 
-from .models import SearchPath
+from .models import Search
 
 
 class AssetSearchQueueEntryForm(ModelForm):
@@ -20,7 +20,7 @@ class AssetSearchQueueEntryForm(ModelForm):
         self.fields['queued_for_asset'].queryset = Asset.objects.filter(pk__in=[mission_asset.asset.pk for mission_asset in mission_assets])
 
     class Meta:
-        model = SearchPath
+        model = Search
         fields = ['queued_for_asset']
 
 
@@ -29,5 +29,5 @@ class AssetTypeSearchQueueEntryForm(ModelForm):
     Form for selecting an asset type for search queueing
     """
     class Meta:
-        model = SearchPath
-        fields = ['queued_for_assettype']
+        model = Search
+        fields = ['created_for']
