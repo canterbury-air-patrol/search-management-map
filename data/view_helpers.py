@@ -37,7 +37,6 @@ def to_kml(objecttype, objects):
         kml_data += '\n\t\t</Placemark>\n'
 
     kml_data += '\t</Document>\n</kml>'
-    print(kml_data)
 
     return HttpResponse(kml_data, 'application/vnd.google-earth.kml+xml')
 
@@ -165,12 +164,10 @@ def user_line_make(request, mission=None, replaces=None):
             points.append(point)
         lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
         lstl.save()
-        print(lstl)
         if replaces is not None:
             replaces.replaced_by = lstl
             replaces.replaced_at = timezone.now()
             replaces.save()
-            print(replaces)
         return HttpResponse()
 
     return HttpResponseBadRequest()

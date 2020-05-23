@@ -27,7 +27,6 @@ def image_upload(request, mission_id, mission_user):
         if form.is_valid():
             latitude = request.POST.get('latitude')
             longitude = request.POST.get('longitude')
-            print("{} {}".format(latitude, longitude))
             point = None
             try:
                 point = Point(float(longitude), float(latitude))

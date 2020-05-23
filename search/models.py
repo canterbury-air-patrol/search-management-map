@@ -258,10 +258,10 @@ class SectorSearch(SearchPath):
         # that are sweep_width * 3 from the poi
         # with angles: 30,60,90,120,150,180,210,240,270,300,330,360
         # this order makes the points in clock-order
-        query = "SELECT point"
+        query = "SELECT geo"
         for deg in (30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0):
-            query += ", ST_Project(point, {sw}, radians({deg})) AS deg_{deg}".format(**{'sw': params.sweep_width() * 3, 'deg': deg})
-        query += " FROM data_pointtimelabel WHERE id = {}".format(params.from_geo().pk)
+            query += ", ST_Project(geo, {sw}, radians({deg})) AS deg_{deg}".format(**{'sw': params.sweep_width() * 3, 'deg': deg})
+        query += " FROM data_geotimelabel WHERE id = {}".format(params.from_geo().pk)
         cursor = dbconn.cursor()
         cursor.execute(query)
         reference_points = cursor.fetchone()
@@ -272,7 +272,7 @@ class SectorSearch(SearchPath):
         for point in points_order:
             points.append(GEOSGeometry(reference_points[point]))
 
-        search = SectorSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), mission=params.from_geo().mission)
+        search = SectorSearch(geo=LineString(points), created_by=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), mission=params.from_geo().mission)
         if save:
             search.save()
 
@@ -356,21 +356,21 @@ class ExpandingBoxSearch(SearchPath):
         """
         Create an expanding box search from a given poi
         """
-        query = "SELECT p.point, p.first"
+        query = "SELECT p.geo, p.first"
         for i in range(1, params.iterations() + 1):
             dist = math.sqrt(2) * i * params.sweep_width()
-            query += ", ST_Project(p.point, {}, radians({}))".format(dist, 45 + params.first_bearing())
-            query += ", ST_Project(p.point, {}, radians({}))".format(dist, 135 + params.first_bearing())
-            query += ", ST_Project(p.point, {}, radians({}))".format(dist, 225 + params.first_bearing())
-            query += ", ST_Project(p.first, {}, radians({}))".format(dist, 315 + params.first_bearing())
+            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 45 + params.first_bearing())
+            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 135 + params.first_bearing())
+            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 225 + params.first_bearing())
+            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 315 + params.first_bearing())
 
-        query += " FROM (SELECT point, ST_Project(point, {}, radians({})) AS first FROM data_pointtimelabel WHERE id = {}) AS p".format(params.sweep_width(), params.first_bearing(), params.from_geo().pk)
+        query += " FROM (SELECT geo, ST_Project(geo, {}, radians({})) AS first FROM data_geotimelabel WHERE id = {}) AS p".format(params.sweep_width(), params.first_bearing(), params.from_geo().pk)
 
         cursor = dbconn.cursor()
         cursor.execute(query)
         points = [GEOSGeometry(p) for p in cursor.fetchone()]
 
-        search = ExpandingBoxSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(),
+        search = ExpandingBoxSearch(geo=LineString(points), created_by=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(),
                                     iterations=params.iterations(), first_bearing=params.first_bearing(), mission=params.from_geo().mission)
         if save:
             search.save()
@@ -404,7 +404,13 @@ class TrackLineSearch(SearchPath):
         """
         Create a track line search that follows a user created line
         """
-        search = TrackLineSearch(line=params.from_geo().line, creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), mission=params.from_geo().mission)
+        search = TrackLineSearch(
+            geo=params.from_geo().geo,
+            created_by=params.creator(),
+            datum=params.from_geo(),
+            created_for=params.asset_type(),
+            sweep_width=params.sweep_width(),
+            mission=params.from_geo().mission)
         if save:
             search.save()
         return search
@@ -458,8 +464,8 @@ class TrackLineCreepingSearch(SearchPath):
         Create a creeping line ahead search from a line
         """
         segment_query = \
-            "SELECT ST_PointN(line::geometry, pos)::geography AS start, ST_PointN(line::geometry, pos + 1)::geography AS end" \
-            " FROM data_linestringtimelabel, generate_series(1, ST_NPoints(line::geometry) - 1) AS pos WHERE id = {}".format(params.from_geo().pk)
+            "SELECT ST_PointN(geo::geometry, pos)::geography AS start, ST_PointN(geo::geometry, pos + 1)::geography AS end" \
+            " FROM data_geotimelabel, generate_series(1, ST_NPoints(geo::geometry) - 1) AS pos WHERE id = {}".format(params.from_geo().pk)
 
         line_data_query = \
             "SELECT segment.start AS start, ST_Azimuth(segment.start, segment.end) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({}) AS segment".format(segment_query)
@@ -485,7 +491,14 @@ class TrackLineCreepingSearch(SearchPath):
                 points.append(GEOSGeometry(segment['b']))
                 reverse = True
 
-        search = TrackLineCreepingSearch(line=LineString(points), creator=params.creator(), datum=params.from_geo(), created_for=params.asset_type(), sweep_width=params.sweep_width(), width=params.width(), mission=params.from_geo().mission)
+        search = TrackLineCreepingSearch(
+            geo=LineString(points),
+            created_by=params.creator(),
+            datum=params.from_geo(),
+            created_for=params.asset_type(),
+            sweep_width=params.sweep_width(),
+            width=params.width(),
+            mission=params.from_geo().mission)
         if save:
             search.save()
 
@@ -518,7 +531,7 @@ class PolygonSearch(SearchPath):
         Create a polygon search that sweeps across a polygon
         """
         # See class PolygonTimeLabel in data/models.py
-        poly = params.from_geo().polygon
+        poly = params.from_geo().geo
         lrng_lonlat = poly[0]
 
         skew_point = lrng_lonlat[0]
@@ -530,8 +543,8 @@ class PolygonSearch(SearchPath):
         line_lonlat = conv_meters_to_lonlat(line_meters, skew_point)
 
         search = PolygonSearch(
-            line=line_lonlat,
-            creator=params.creator(),
+            geo=line_lonlat,
+            created_by=params.creator(),
             datum=params.from_geo(),
             created_for=params.asset_type(),
             sweep_width=params.sweep_width(),
