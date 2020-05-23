@@ -13,7 +13,7 @@ from .forms import AssetSelectorForm
 
 @login_required
 @mission_is_member
-def map_main(request, mission_id, mission_user=None):
+def map_main(request, mission_user):
     """
     Present the user the map
     """

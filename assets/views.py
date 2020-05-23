@@ -58,7 +58,7 @@ def assets_mine_list(request):
 
 @login_required
 @mission_is_member
-def asset_command_set(request, mission_id, mission_user):
+def asset_command_set(request, mission_user):
     """
     Set the command for a given asset.
     """

@@ -20,7 +20,7 @@ from .decorators import mission_is_member, mission_is_admin
 
 @login_required
 @mission_is_member
-def mission_details(request, mission_id, mission_user=None):
+def mission_details(request, mission_user):
     """
     Missions details and management.
     """
@@ -39,7 +39,7 @@ def mission_details(request, mission_id, mission_user=None):
 
 @login_required
 @mission_is_member
-def mission_timeline(request, mission_id, mission_user):
+def mission_timeline(request, mission_user):
     """
     Mission timeline, a history of everything that happened during a mission.
     """
@@ -52,7 +52,7 @@ def mission_timeline(request, mission_id, mission_user):
 
 @login_required
 @mission_is_admin
-def mission_close(request, mission_id, mission_user=None):
+def mission_close(request, mission_user):
     """
     Close a Mission
     """
@@ -114,7 +114,7 @@ def mission_new(request):
 
 @login_required
 @mission_is_member
-def mission_timeline_add(request, mission_id, mission_user):
+def mission_timeline_add(request, mission_user):
     """
     Add a custom entry to the timeline for a mission.
     """
@@ -125,7 +125,7 @@ def mission_timeline_add(request, mission_id, mission_user):
             entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=form.cleaned_data['message'], timestamp=form.cleaned_data['timestamp'], url=form.cleaned_data['url'], event_type='usr')
             entry.save()
             timeline_record_create(mission_user.mission, request.user, entry)
-            return HttpResponseRedirect("/mission/{}/timeline/".format(mission_id))
+            return HttpResponseRedirect("/mission/{}/timeline/".format(mission_user.mission.pk))
 
     if form is None:
         form = MissionTimeLineEntryForm()
@@ -135,7 +135,7 @@ def mission_timeline_add(request, mission_id, mission_user):
 
 @login_required
 @mission_is_admin
-def mission_user_add(request, mission_id, mission_user):
+def mission_user_add(request, mission_user):
     """
     Add a User to a Mission
     """
@@ -162,7 +162,7 @@ def mission_user_add(request, mission_id, mission_user):
 
 @login_required
 @mission_is_admin
-def mission_user_make_admin(request, mission_id, mission_user, user_id):
+def mission_user_make_admin(request, mission_user, user_id):
     """
     Make an existing user an admin for this mission.
     """
@@ -173,12 +173,12 @@ def mission_user_make_admin(request, mission_id, mission_user, user_id):
     mission_user_update.role = 'A'
     mission_user_update.save()
     timeline_record_mission_user_update(mission_user.mission, request.user, mission_user_update)
-    return HttpResponseRedirect('/mission/{}/details/'.format(mission_id))
+    return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
 
 
 @login_required
 @mission_is_admin
-def mission_asset_add(request, mission_id, mission_user):
+def mission_asset_add(request, mission_user):
     """
     Add an Asset to a Mission
     """
@@ -205,7 +205,7 @@ def mission_asset_add(request, mission_id, mission_user):
 
 @login_required
 @mission_is_admin
-def mission_asset_remove(request, mission_id, mission_user, asset_id):
+def mission_asset_remove(request, mission_user, asset_id):
     """
     Cease using an asset as part of this Mission
     """

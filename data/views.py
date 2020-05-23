@@ -34,7 +34,7 @@ def mission_get(mission_id):
 
 @login_required
 @mission_is_member
-def assets_position_latest(request, mission_id, mission_user):
+def assets_position_latest(request, mission_user):
     """
     Get the last position of each of the know assets
     """
@@ -123,7 +123,7 @@ def asset_record_position(request, asset_name, asset, mission):
 
 @login_required
 @mission_is_member
-def asset_position_history(request, mission_id, mission_user, asset_name):
+def asset_position_history(request, mission_user, asset_name):
     """
     Get the full track from an asset.
 
@@ -150,7 +150,7 @@ def asset_position_history(request, mission_id, mission_user, asset_name):
 
 @login_required
 @mission_is_member
-def point_labels_all(request, mission_id, mission_user):
+def point_labels_all(request, mission_user):
     """
     Get all the current POIs as geojson
     """
@@ -167,7 +167,7 @@ def point_labels_all_kml(request, mission_id):
 
 @login_required
 @mission_is_member
-def point_label_create(request, mission_id, mission_user):
+def point_label_create(request, mission_user):
     """
     Store a new POI
     """
@@ -176,7 +176,7 @@ def point_label_create(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def point_label_replace(request, mission_id, mission_user, poi):
+def point_label_replace(request, mission_user, poi):
     """
     Move/relabel a POI
     """
@@ -185,7 +185,7 @@ def point_label_replace(request, mission_id, mission_user, poi):
 
 @login_required
 @mission_is_member
-def point_label_delete(request, mission_id, mission_user, poi):
+def point_label_delete(request, mission_user, poi):
     """
     Delete a POI
     """
@@ -194,7 +194,7 @@ def point_label_delete(request, mission_id, mission_user, poi):
 
 @login_required
 @mission_is_member
-def user_polygons_all(request, mission_id, mission_user):
+def user_polygons_all(request, mission_user):
     """
     Get all the current user polygons as geojson
     """
@@ -211,7 +211,7 @@ def user_polygons_all_kml(request, mission_id):
 
 @login_required
 @mission_is_member
-def user_polygon_create(request, mission_id, mission_user):
+def user_polygon_create(request, mission_user):
     """
     Create a new user polygon
     """
@@ -220,7 +220,7 @@ def user_polygon_create(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def user_polygon_replace(request, mission_id, mission_user, polygon):
+def user_polygon_replace(request, mission_user, polygon):
     """
     Update the polygon/label of a user polygon
     """
@@ -229,7 +229,7 @@ def user_polygon_replace(request, mission_id, mission_user, polygon):
 
 @login_required
 @mission_is_member
-def user_polygon_delete(request, mission_id, mission_user, polygon):
+def user_polygon_delete(request, mission_user, polygon):
     """
     Delete a user polygon
     """
@@ -238,7 +238,7 @@ def user_polygon_delete(request, mission_id, mission_user, polygon):
 
 @login_required
 @mission_is_member
-def user_lines_all(request, mission_id, mission_user):
+def user_lines_all(request, mission_user):
     """
     Get all the current user lines as geojson
     """
@@ -255,7 +255,7 @@ def user_lines_all_kml(request, mission_id):
 
 @login_required
 @mission_is_member
-def user_line_create(request, mission_id, mission_user):
+def user_line_create(request, mission_user):
     """
     Create a new user line
     """
@@ -264,7 +264,7 @@ def user_line_create(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def user_line_replace(request, mission_id, mission_user, line):
+def user_line_replace(request, mission_user, line):
     """
     Update the line/label of a user line
     """
@@ -273,7 +273,7 @@ def user_line_replace(request, mission_id, mission_user, line):
 
 @login_required
 @mission_is_member
-def user_line_delete(request, mission_id, mission_user, line):
+def user_line_delete(request, mission_user, line):
     """
     Delete a user line
     """
@@ -300,7 +300,7 @@ def convert_typhoon_time(timestamp):
 
 @login_required
 @mission_is_member
-def upload_typhoonh_data(request, mission_id, mission_user):
+def upload_typhoonh_data(request, mission_user):
     """
     Allow the user to upload a telemetry from a Typhoon H to create
     the asset track.

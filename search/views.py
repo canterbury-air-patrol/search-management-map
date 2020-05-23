@@ -172,7 +172,7 @@ def search_finished(request, search_id, object_class, asset, mission):
 
 @login_required
 @mission_is_member
-def search_queue_for_asset(request, mission_id, search_id, object_class, mission_user):
+def search_queue_for_asset(request, search_id, object_class, mission_user):
     """
     Queue a search for a specific asset
     """
@@ -197,7 +197,7 @@ def search_queue_for_asset(request, mission_id, search_id, object_class, mission
 
 @login_required
 @mission_is_member
-def search_queue_for_asset_type(request, mission_id, search_id, object_class, mission_user):
+def search_queue_for_asset_type(request, search_id, object_class, mission_user):
     """
     Queue a search for a specific asset
     """
@@ -222,7 +222,7 @@ def search_queue_for_asset_type(request, mission_id, search_id, object_class, mi
 
 @login_required
 @mission_is_member
-def search_incomplete(request, mission_id, mission_user, search_class):
+def search_incomplete(request, mission_user, search_class):
     """
     Get a list of all the incomplete (search_class) searches (as json)
     """
@@ -239,7 +239,7 @@ def search_incomplete_kml(request, mission_id, search_class):
 
 @login_required
 @mission_is_member
-def search_completed(request, mission_id, mission_user, search_class):
+def search_completed(request, mission_user, search_class):
     """
     Get a list of all the completed (search_class) searches (as json)
     """

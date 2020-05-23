@@ -18,7 +18,7 @@ from .models import GeoImage
 
 
 @mission_is_member
-def image_upload(request, mission_id, mission_user):
+def image_upload(request, mission_user):
     """
     All users (probably an asset) to upload an image with a location (and description)
     """
@@ -34,7 +34,7 @@ def image_upload(request, mission_id, mission_user):
                 return HttpResponseBadRequest('Invalid lat/long')
 
             upload_image_file(mission_user, form.cleaned_data['description'], point, request.FILES['file'])
-            return HttpResponseRedirect('/mission/{}/map/'.format(mission_id))
+            return HttpResponseRedirect('/mission/{}/map/'.format(mission_user.mission.pk))
     else:
         form = UploadImageForm()
 
@@ -48,7 +48,7 @@ def image_upload(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def images_list_all(request, mission_id, mission_user):
+def images_list_all(request, mission_user):
     """
     Get all the current Images as geojson
     """
@@ -57,7 +57,7 @@ def images_list_all(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def images_list_important(request, mission_id, mission_user):
+def images_list_important(request, mission_user):
     """
     Get the current priority Images as geojson
     """
@@ -66,7 +66,7 @@ def images_list_important(request, mission_id, mission_user):
 
 @login_required
 @mission_is_member
-def image_get_full(request, mission_id, image_id, mission_user):
+def image_get_full(request, image_id, mission_user):
     """
     Return the full sized version of the image
     """
@@ -78,7 +78,7 @@ def image_get_full(request, mission_id, image_id, mission_user):
 
 @login_required
 @mission_is_member
-def image_get_thumbnail(request, mission_id, image_id, mission_user):
+def image_get_thumbnail(request, image_id, mission_user):
     """
     Return the thumbnail version of the image
     """
@@ -90,7 +90,7 @@ def image_get_thumbnail(request, mission_id, image_id, mission_user):
 
 @login_required
 @mission_is_member
-def image_priority_set(request, mission_id, image_id, mission_user):
+def image_priority_set(request, image_id, mission_user):
     """
     Set the priority flag on an image
     """
@@ -104,7 +104,7 @@ def image_priority_set(request, mission_id, image_id, mission_user):
 
 @login_required
 @mission_is_member
-def image_priority_unset(request, mission_id, image_id, mission_user):
+def image_priority_unset(request, image_id, mission_user):
     """
     UnSet the priority flag on an image
     """

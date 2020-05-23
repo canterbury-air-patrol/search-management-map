@@ -24,6 +24,7 @@ def mission_is_member(view_func):
     """
     def wrapper_is_member(*args, **kwargs):
         mission_user = mission_user_get(kwargs['mission_id'], args[0].user)
+        kwargs.pop('mission_id')
         return view_func(*args, mission_user=mission_user, **kwargs)
     return wrapper_is_member
 
@@ -34,6 +35,7 @@ def mission_is_admin(view_func):
     """
     def wrapper_is_admin(*args, **kwargs):
         mission_user = mission_user_get(kwargs['mission_id'], args[0].user)
+        kwargs.pop('mission_id')
         if mission_user.role == 'A':
             return view_func(*args, mission_user=mission_user, **kwargs)
         return HttpResponseForbidden("You are not an admin for this Mission")
