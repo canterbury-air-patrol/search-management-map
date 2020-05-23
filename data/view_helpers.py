@@ -11,15 +11,7 @@ from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from .models import PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
-
-
-def mission_userobject_not_deleted_or_replaced(objecttype, mission):
-    """
-    Get all objects that haven't been deleted or replaced.
-    Only user created objects have the replaced field.
-    """
-    return objecttype.objects.filter(mission=mission).exclude(deleted=True).exclude(replaced_by__isnull=False)
+from .models import GeoTimeLabel
 
 
 def to_geojson(objecttype, objects):
@@ -57,7 +49,7 @@ def userobject_replace(objecttype, request, name, object_id, mission, func):
     Checks to make sure the object hasn't already been deleted or replaced.
     """
     replaces = get_object_or_404(objecttype, pk=object_id)
-    if replaces.deleted:
+    if replaces.deleted_at:
         return HttpResponseNotFound("This {} has been deleted".format(name))
     if replaces.replaced_by is not None:
         return HttpResponseNotFound("This {} has already been replaced".format(name))
@@ -121,11 +113,12 @@ def point_label_make(request, mission=None, replaces=None):
 
     point = Point(float(poi_lon), float(poi_lat))
 
-    ptl = PointTimeLabel(point=point, label=poi_label, creator=request.user, mission=mission)
+    ptl = GeoTimeLabel(geo=point, label=poi_label, created_by=request.user, mission=mission, geo_type='poi')
     ptl.save()
 
     if replaces is not None:
         replaces.replaced_by = ptl
+        replaces.replaced_at = timezone.now()
         replaces.save()
 
     return HttpResponse()
@@ -146,10 +139,11 @@ def user_polygon_make(request, mission=None, replaces=None):
             point = Point(float(lng), float(lat))
             points.append(point)
         points.append(points[0])
-        ptl = PolygonTimeLabel(polygon=Polygon(points), label=label, creator=request.user, mission=mission)
+        ptl = GeoTimeLabel(geo=Polygon(points), label=label, created_by=request.user, mission=mission, geo_type='polygon')
         ptl.save()
         if replaces is not None:
             replaces.replaced_by = ptl
+            replaces.replaced_at = timezone.now()
             replaces.save()
         return HttpResponse()
 
@@ -170,11 +164,12 @@ def user_line_make(request, mission=None, replaces=None):
             lng = request.POST['point{}_lng'.format(i)]
             point = Point(float(lng), float(lat))
             points.append(point)
-        lstl = LineStringTimeLabel(line=LineString(points), label=label, creator=request.user, mission=mission)
+        lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
         lstl.save()
         print(lstl)
         if replaces is not None:
             replaces.replaced_by = lstl
+            replaces.replaced_at = timezone.now()
             replaces.save()
             print(replaces)
         return HttpResponse()

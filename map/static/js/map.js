@@ -32,7 +32,7 @@ function assetPathUpdate(name)
                 var lon = route.features[f].geometry.coordinates[0];
                 var lat = route.features[f].geometry.coordinates[1];
                 assetLine.path.push(L.latLng(lat, lon));
-                assetLine.lastUpdate = route.features[f].properties.timestamp;
+                assetLine.lastUpdate = route.features[f].properties.created_at;
             }
             assetLine.track.setLatLngs(assetLine.path);
             assetLine.updating = false;

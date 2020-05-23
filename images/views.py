@@ -9,7 +9,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.gis.geos import Point
 
 from mission.decorators import mission_is_member
-from data.view_helpers import to_geojson, mission_userobject_not_deleted_or_replaced
+from data.view_helpers import to_geojson
 from timeline.helpers import timeline_record_image_priority_changed
 
 from .forms import UploadImageForm
@@ -53,7 +53,7 @@ def images_list_all(request, mission_id, mission_user):
     """
     Get all the current Images as geojson
     """
-    return to_geojson(GeoImage, mission_userobject_not_deleted_or_replaced(GeoImage, mission_user.mission))
+    return to_geojson(GeoImage, GeoImage.all_current(mission_user.mission))
 
 
 @login_required
@@ -62,7 +62,7 @@ def images_list_important(request, mission_id, mission_user):
     """
     Get the current priority Images as geojson
     """
-    return to_geojson(GeoImage, mission_userobject_not_deleted_or_replaced(GeoImage, mission_user.mission).exclude(priority=False))
+    return to_geojson(GeoImage, GeoImage.all_current(mission_user.mission).exclude(priority=False))
 
 
 @login_required

@@ -3,10 +3,10 @@ Models for images
 """
 
 from django.db import models
-from data.models import PointTime
+from data.models import GeoTime
 
 
-class GeoImage(PointTime):
+class GeoImage(GeoTime):
     """
     This is an image that has been uploaded by a user.
 
@@ -17,7 +17,7 @@ class GeoImage(PointTime):
     priority = models.BooleanField(default=False)
     replaced_by = models.ForeignKey("GeoImage", on_delete=models.SET_NULL, null=True, blank=True)
 
-    GEOJSON_FIELDS = ('pk', 'timestamp', 'description', 'priority', )
+    GEOJSON_FIELDS = ('pk', 'created_at', 'description', 'priority', )
 
     def __str__(self):
         return "Image ({}) @ {}".format(self.description, self.point)

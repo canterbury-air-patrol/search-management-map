@@ -20,7 +20,7 @@ from django.utils import timezone
 
 from assets.models import AssetType
 from assets.decorators import asset_id_in_get_post
-from data.models import PointTimeLabel, LineStringTimeLabel, PolygonTimeLabel
+from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission
 from mission.decorators import mission_is_member, mission_asset_get_mission
@@ -247,7 +247,7 @@ def sector_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete sector searches (as json)
     """
-    return to_geojson(SectorSearch, mission_search_incomplete(mission_user.mission, SectorSearch))
+    return to_geojson(SectorSearch, SectorSearch.all_current_incomplete(mission_user.mission))
 
 
 def sector_search_incomplete_kml(request, mission_id):
@@ -255,7 +255,7 @@ def sector_search_incomplete_kml(request, mission_id):
     Get a list of all the incomplete sector searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(SectorSearch, mission_search_incomplete(mission, SectorSearch))
+    return to_kml(SectorSearch, SectorSearch.all_current_incomplete(mission))
 
 
 @login_required
@@ -264,7 +264,7 @@ def sector_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed sector searches (as json)
     """
-    return to_geojson(SectorSearch, mission_search_completed(mission_user.mission, SectorSearch))
+    return to_geojson(SectorSearch, SectorSearch.all_current_completed(mission_user.mission))
 
 
 def sector_search_completed_kml(request, mission_id):
@@ -272,7 +272,7 @@ def sector_search_completed_kml(request, mission_id):
     Get a list of all the completed sector searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(SectorSearch, mission_search_completed(mission, SectorSearch))
+    return to_kml(SectorSearch, SectorSearch.all_current_completed(mission, SectorSearch))
 
 
 @login_required
@@ -293,7 +293,7 @@ def sector_search_create(request):
     else:
         HttpResponseNotFound('Unknown Method')
 
-    poi = get_object_or_404(PointTimeLabel, pk=poi_id)
+    poi = get_object_or_404(PointTimeLabel, pk=poi_id, geo_type='poi')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
     search = SectorSearch.create(SearchParams(poi, asset_type, request.user, sweep_width), save=save)
@@ -307,7 +307,7 @@ def expanding_box_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete expanding box searches (as json)
     """
-    return to_geojson(ExpandingBoxSearch, mission_search_incomplete(mission_user.mission, ExpandingBoxSearch))
+    return to_geojson(ExpandingBoxSearch, ExpandingBoxSearch.all_current_incomplete(mission_user.mission))
 
 
 def expanding_box_search_incomplete_kml(request, mission_id):
@@ -315,7 +315,7 @@ def expanding_box_search_incomplete_kml(request, mission_id):
     Get a list of all the incomplete expanding box searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(ExpandingBoxSearch, mission_search_incomplete(mission, ExpandingBoxSearch))
+    return to_kml(ExpandingBoxSearch, ExpandingBoxSearch.all_current_incomplete(mission))
 
 
 @login_required
@@ -324,7 +324,7 @@ def expanding_box_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed expanding box searches (as json)
     """
-    return to_geojson(ExpandingBoxSearch, mission_search_completed(mission_user.mission, ExpandingBoxSearch))
+    return to_geojson(ExpandingBoxSearch, ExpandingBoxSearch.all_current_completed(mission_user.mission))
 
 
 def expanding_box_search_completed_kml(request, mission_id):
@@ -332,7 +332,7 @@ def expanding_box_search_completed_kml(request, mission_id):
     Get a list of all the completed expanding box searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(ExpandingBoxSearch, mission_search_completed(mission, ExpandingBoxSearch))
+    return to_kml(ExpandingBoxSearch, ExpandingBoxSearch.all_current_completed(mission))
 
 
 @login_required
@@ -357,7 +357,7 @@ def expanding_box_search_create(request):
     else:
         HttpResponseNotFound('Unknown Method')
 
-    poi = get_object_or_404(PointTimeLabel, pk=poi_id)
+    poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
     sweep_width = float(sweep_width)
@@ -377,7 +377,7 @@ def track_line_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete trackline searches (as json)
     """
-    return to_geojson(TrackLineSearch, mission_search_incomplete(mission_user.mission, TrackLineSearch))
+    return to_geojson(TrackLineSearch, TrackLineSearch.all_current_incomplete(mission_user.mission))
 
 
 def track_line_search_incomplete_kml(request, mission_id):
@@ -385,7 +385,7 @@ def track_line_search_incomplete_kml(request, mission_id):
     Get a list of all the incomplete trackline searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(TrackLineSearch, mission_search_incomplete(mission, TrackLineSearch))
+    return to_kml(TrackLineSearch, TrackLineSearch.all_current_incomplete(mission))
 
 
 @login_required
@@ -394,7 +394,7 @@ def track_line_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed trackline searches (as json)
     """
-    return to_geojson(TrackLineSearch, mission_search_completed(mission_user.mission, TrackLineSearch))
+    return to_geojson(TrackLineSearch, TrackLineSearch.all_current_completed(mission_user.mission))
 
 
 def track_line_search_completed_kml(request, mission_id):
@@ -402,7 +402,7 @@ def track_line_search_completed_kml(request, mission_id):
     Get a list of all the completed trackline searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(TrackLineSearch, mission_search_completed(mission, TrackLineSearch))
+    return to_kml(TrackLineSearch, TrackLineSearch.all_current_completed(mission))
 
 
 @login_required
@@ -423,7 +423,7 @@ def track_line_search_create(request):
     else:
         HttpResponseNotFound('Unknown Method')
 
-    line = get_object_or_404(LineStringTimeLabel, pk=line_id)
+    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
     search = TrackLineSearch.create(SearchParams(line, asset_type, request.user, sweep_width), save=save)
@@ -437,7 +437,7 @@ def creeping_line_track_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete creeping line ahead searches (as json)
     """
-    return to_geojson(TrackLineCreepingSearch, mission_search_incomplete(mission_user.mission, TrackLineCreepingSearch))
+    return to_geojson(TrackLineCreepingSearch, TrackLineCreepingSearch.all_current_incomplete(mission_user.mission))
 
 
 def creeping_line_track_search_incomplete_kml(request, mission_id):
@@ -445,7 +445,7 @@ def creeping_line_track_search_incomplete_kml(request, mission_id):
     Get a list of all the incomplete creeping line ahead searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(TrackLineCreepingSearch, mission_search_incomplete(mission, TrackLineCreepingSearch))
+    return to_kml(TrackLineCreepingSearch, TrackLineCreepingSearch.all_current_incomplete(mission))
 
 
 @login_required
@@ -454,7 +454,7 @@ def creeping_line_track_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed creeping line ahead searches (as json)
     """
-    return to_geojson(TrackLineCreepingSearch, mission_search_completed(mission_user.mission, TrackLineCreepingSearch))
+    return to_geojson(TrackLineCreepingSearch, TrackLineCreepingSearch.all_current_completed(mission_user.mission))
 
 
 def creeping_line_track_search_completed_kml(request, mission_id):
@@ -462,7 +462,7 @@ def creeping_line_track_search_completed_kml(request, mission_id):
     Get a list of all the completed creeping line ahead searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(TrackLineCreepingSearch, mission_search_completed(mission, TrackLineCreepingSearch))
+    return to_kml(TrackLineCreepingSearch, TrackLineCreepingSearch.all_current_completed(mission_user.mission))
 
 
 @login_required
@@ -485,7 +485,7 @@ def track_creeping_line_search_create(request):
     else:
         HttpResponseNotFound('Unknown Method')
 
-    line = get_object_or_404(LineStringTimeLabel, pk=line_id)
+    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
     search = TrackLineCreepingSearch.create(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
@@ -499,7 +499,7 @@ def creeping_line_polygon_search_incomplete(request, mission_id, mission_user):
     """
     Get a list of all the incomplete creeping line ahead searches (as json)
     """
-    return to_geojson(PolygonSearch, mission_search_incomplete(mission_user.mission, PolygonSearch))
+    return to_geojson(PolygonSearch, PolygonSearch.all_current_incomplete(mission_user.mission))
 
 
 def creeping_line_polygon_search_incomplete_kml(request, mission_id):
@@ -507,7 +507,7 @@ def creeping_line_polygon_search_incomplete_kml(request, mission_id):
     Get a list of all the incomplete creeping line ahead searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(PolygonSearch, mission_search_incomplete(mission, PolygonSearch))
+    return to_kml(PolygonSearch, PolygonSearch.all_current_incomplete(mission))
 
 
 @login_required
@@ -516,7 +516,7 @@ def creeping_line_polygon_search_completed(request, mission_id, mission_user):
     """
     Get a list of all the completed creeping line ahead searches (as json)
     """
-    return to_geojson(PolygonSearch, mission_search_completed(mission_user.mission, PolygonSearch))
+    return to_geojson(PolygonSearch, PolygonSearch.all_current_completed(mission_user.mission))
 
 
 def creeping_line_polygon_search_completed_kml(request, mission_id):
@@ -524,7 +524,7 @@ def creeping_line_polygon_search_completed_kml(request, mission_id):
     Get a list of all the completed creeping line ahead searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(PolygonSearch, mission_search_completed(mission, PolygonSearch))
+    return to_kml(PolygonSearch, PolygonSearch.all_current_completed(mission))
 
 
 @login_required
@@ -545,7 +545,7 @@ def polygon_creeping_line_search_create(request):
     else:
         HttpResponseNotFound('Unknown Method')
 
-    poly = get_object_or_404(PolygonTimeLabel, pk=poly_id)
+    poly = get_object_or_404(GeoTimeLabel, pk=poly_id, geo_type='polygon')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
 
     search = PolygonSearch.create(SearchParams(poly,

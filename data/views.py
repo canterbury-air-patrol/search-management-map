@@ -20,9 +20,9 @@ from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
 from mission.decorators import mission_is_member, mission_asset_get_mission
 from mission.models import Mission
-from .models import AssetPointTime, PointTimeLabel, PolygonTimeLabel, LineStringTimeLabel
+from .models import AssetPointTime, GeoTimeLabel
 from .forms import UploadTyphoonData
-from .view_helpers import to_geojson, to_kml, mission_userobject_not_deleted_or_replaced, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
+from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
 
 
 def mission_get(mission_id):
@@ -41,7 +41,7 @@ def assets_position_latest(request, mission_id, mission_user):
     assets = Asset.objects.all()
     positions = []
     for asset in assets:
-        points = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset).order_by('-timestamp')[:1]
+        points = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset).order_by('-created_at')[:1]
         for point in points:
             positions.append(point)
 
@@ -139,11 +139,11 @@ def asset_position_history(request, mission_id, mission_user, asset_name):
 
     positions = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset)
     if since is not None:
-        positions = positions.filter(timestamp__gt=since)
+        positions = positions.filter(created_at__gt=since)
     if oldest == 'last':
-        positions = positions.order_by('timestamp')
+        positions = positions.order_by('created_at')
     else:
-        positions = positions.order_by('-timestamp')
+        positions = positions.order_by('-created_at')
 
     return to_geojson(AssetPointTime, positions)
 
@@ -154,7 +154,7 @@ def point_labels_all(request, mission_id, mission_user):
     """
     Get all the current POIs as geojson
     """
-    return to_geojson(PointTimeLabel, mission_userobject_not_deleted_or_replaced(PointTimeLabel, mission_user.mission))
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='poi'))
 
 
 def point_labels_all_kml(request, mission_id):
@@ -162,7 +162,7 @@ def point_labels_all_kml(request, mission_id):
     Get all the current POIs as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(PointTimeLabel, mission_userobject_not_deleted_or_replaced(PointTimeLabel, mission))
+    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='poi'))
 
 
 @login_required
@@ -180,7 +180,7 @@ def point_label_replace(request, mission_id, mission_user, poi):
     """
     Move/relabel a POI
     """
-    return userobject_replace(PointTimeLabel, request, 'POI', poi, mission_user.mission, point_label_make)
+    return userobject_replace(GeoTimeLabel, request, 'POI', poi, mission_user.mission, point_label_make)
 
 
 @login_required
@@ -189,7 +189,7 @@ def point_label_delete(request, mission_id, mission_user, poi):
     """
     Delete a POI
     """
-    return userobject_delete(PointTimeLabel, request, 'POI', poi)
+    return userobject_delete(GeoTimeLabel, request, 'POI', poi)
 
 
 @login_required
@@ -198,7 +198,7 @@ def user_polygons_all(request, mission_id, mission_user):
     """
     Get all the current user polygons as geojson
     """
-    return to_geojson(PolygonTimeLabel, mission_userobject_not_deleted_or_replaced(PolygonTimeLabel, mission_user.mission))
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='polygon'))
 
 
 def user_polygons_all_kml(request, mission_id):
@@ -206,7 +206,7 @@ def user_polygons_all_kml(request, mission_id):
     Get all the current user polygons as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(PolygonTimeLabel, mission_userobject_not_deleted_or_replaced(PolygonTimeLabel, mission))
+    return to_kml(PolygonTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='polygon'))
 
 
 @login_required
@@ -224,7 +224,7 @@ def user_polygon_replace(request, mission_id, mission_user, polygon):
     """
     Update the polygon/label of a user polygon
     """
-    return userobject_replace(PolygonTimeLabel, request, 'Polygon', polygon, mission_user.mission, user_polygon_make)
+    return userobject_replace(GeoTimeLabel, request, 'Polygon', polygon, mission_user.mission, user_polygon_make)
 
 
 @login_required
@@ -233,7 +233,7 @@ def user_polygon_delete(request, mission_id, mission_user, polygon):
     """
     Delete a user polygon
     """
-    return userobject_delete(PolygonTimeLabel, request, 'Polygon', polygon)
+    return userobject_delete(GeoTimeLabel, request, 'Polygon', polygon)
 
 
 @login_required
@@ -242,7 +242,7 @@ def user_lines_all(request, mission_id, mission_user):
     """
     Get all the current user lines as geojson
     """
-    return to_geojson(LineStringTimeLabel, mission_userobject_not_deleted_or_replaced(LineStringTimeLabel, mission_user.mission))
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='line'))
 
 
 def user_lines_all_kml(request, mission_id):
@@ -250,7 +250,7 @@ def user_lines_all_kml(request, mission_id):
     Get all the current user lines as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(LineStringTimeLabel, mission_userobject_not_deleted_or_replaced(LineStringTimeLabel, mission))
+    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='line'))
 
 
 @login_required
@@ -268,7 +268,7 @@ def user_line_replace(request, mission_id, mission_user, line):
     """
     Update the line/label of a user line
     """
-    return userobject_replace(LineStringTimeLabel, request, 'Line', line, mission_user.mission, user_line_make)
+    return userobject_replace(GeoTimeLabel, request, 'Line', line, mission_user.mission, user_line_make)
 
 
 @login_required
@@ -277,7 +277,7 @@ def user_line_delete(request, mission_id, mission_user, line):
     """
     Delete a user line
     """
-    return userobject_delete(LineStringTimeLabel, request, 'Line', line)
+    return userobject_delete(GeoTimeLabel, request, 'Line', line)
 
 
 def convert_typhoon_time(timestamp):
@@ -321,7 +321,7 @@ def upload_typhoonh_data(request, mission_id, mission_user):
                         point = Point(float(row['longitude']), float(row['latitude']))
                         timestring, seconds = convert_typhoon_time(row[''])
                         if seconds != last_second:
-                            AssetPointTime(asset=form.cleaned_data['asset'], alt=float(row['altitude']), heading=float(row['yaw']), point=point, timestamp=timestring, creator=request.user).save()
+                            AssetPointTime(asset=form.cleaned_data['asset'], alt=float(row['altitude']), heading=float(row['yaw']), point=point, created_at=timestring, creator=request.user).save()
                             last_second = seconds
             return HttpResponseRedirect('/')
     else:
