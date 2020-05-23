@@ -90,6 +90,10 @@ class GeoTime(models.Model):
 
     class Meta:
         abstract = True
+        indexes = [
+            # Index for all_current
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'created_at', ])
+        ]
 
 
 class AssetPointTime(GeoTime):
@@ -148,17 +152,12 @@ class GeoTimeLabel(GeoTime):
         geo_type needs to be one of GEO_TYPE
         current_at being None means now, otherwise only objects that existed at the time will be returned
         '''
-        objects = cls.objects.filter(mission=mission).filter(geo_type=geo_type)
-        if current_at:
-            # Filter out any deleted objects
-            objects = objects.filter(Q(deleted_at__isnull=True) | Q(deleted_at__gt=current_at))
-            objects = objects.filter(Q(replaced_at__isnull=True) | Q(replaced_at__gt=current_at))
-            objects = objects.filter(created_at__gt=current_at)
-        else:
-            objects = objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True)
+        objects = cls.all_current(mission, current_at=current_at).filter(geo_type=geo_type)
         return objects
 
     class Meta:
         indexes = [
-            models.Index(fields=['mission', 'geo_type', 'deleted_at', 'replaced_at', 'created_at']),
+            # Indexes for both cases of all_current_of_geo
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'created_at', 'geo_type', ]),
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'geo_type', ]),
         ]

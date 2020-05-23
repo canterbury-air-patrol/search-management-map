@@ -92,7 +92,7 @@ class SearchPath(GeoTime):
     created_for = models.ForeignKey(AssetType, on_delete=models.PROTECT)
     sweep_width = models.IntegerField()
     inprogress_by = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='inprogress_by%(app_label)s_%(class)s_related')
-    completed = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     completed_by = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='completed_by%(app_label)s_%(class)s_related')
 
     queued_at = models.DateTimeField(null=True, blank=True)
@@ -113,7 +113,7 @@ class SearchPath(GeoTime):
         """
         Get all searches for this mission that haven't been started or deleted
         """
-        return cls.objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True).filter(mission=mission).filter(inprogress_by__isnull=True).filter(completed__isnull=True)
+        return cls.all_current_incomplete(mission).filter(inprogress_by__isnull=True)
 
     @classmethod
     def all_current_completed(cls, mission, current_at=None):
@@ -146,8 +146,8 @@ class SearchPath(GeoTime):
         Only searches that haven't been started or deleted and are for the right asset type are considered
         """
         try:
-            search = cls.objects.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point))
-            search = search.filter(mission=mission).filter(created_for=asset_type).filter(inprogress_by__isnull=True).filter(completed__isnull=True).filter(deleted_at__isnull=True).filter(replaced_at__isnull=True).order_by('distance')[0]
+            possibles = cls.all_waiting(mission).filter(created_for=asset_type)
+            search = possibles.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point)).order_by('distance')[0]
             return search
         except IndexError:
             return None
@@ -170,7 +170,7 @@ class SearchPath(GeoTime):
         Only entries that haven't already been started/deleted are considered
         """
         try:
-            search = cls.all_waiting(mission).filter(asset=asset).filter(queued_at__isnull=False).order_by('queued_at')[0]
+            search = cls.all_waiting(mission).filter(queued_for_asset=asset).filter(queued_at__isnull=False).order_by('queued_at')[0]
             return search
         except IndexError:
             return None
@@ -182,7 +182,7 @@ class SearchPath(GeoTime):
         Only entries that haven't already been used/deleted are considered
         """
         try:
-            search = cls.all_waiting(mission).filter(asset__isnull=True).filter(assettype=asset_type).filter(queued_at__isnull=False).order_by('queued_at')[0]
+            search = cls.all_waiting(mission).filter(queued_for_asset__isnull=True).filter(queued_for_assettype=asset_type).filter(queued_at__isnull=False).order_by('queued_at')[0]
             return search
         except IndexError:
             return None
@@ -200,11 +200,15 @@ class SearchPath(GeoTime):
     class Meta:
         abstract = True
         indexes = [
-            models.Index(fields=['mission']),
-            models.Index(fields=['created_for']),
-            models.Index(fields=['inprogress_by']),
-            models.Index(fields=['completed']),
-            models.Index(fields=['deleted_at', 'mission', 'inprogress_by', 'completed']),
+            # Indexes for both cases of all_current_of_*complete*
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'created_at', 'completed_at', ]),
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', ]),
+            # Index for all_waiting
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by',]),
+            # Index for find_closest
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by', 'created_for', ]),
+            # Index for oldest_queued_for_asset*
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by', 'queued_for_asset', 'queued_for_assettype', ]),
         ]
 
 

@@ -20,9 +20,4 @@ class GeoImage(GeoTime):
     GEOJSON_FIELDS = ('pk', 'created_at', 'description', 'priority', )
 
     def __str__(self):
-        return "Image ({}) @ {}".format(self.description, self.point)
-
-    class Meta:
-        indexes = [
-            models.Index(fields=['mission', 'priority']),
-        ]
+        return "Image ({}) @ {}".format(self.description, self.geo)
