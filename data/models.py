@@ -83,7 +83,7 @@ class GeoTime(models.Model):
         if exists:
             if replaced:
                 timeline_record_update(self.mission, self.created_by, self.replaced_by, self)
-            elif self.deleted:
+            elif self.deleted_at:
                 timeline_record_delete(self.mission, self.created_by, self)
         else:
             timeline_record_create(self.mission, self.created_by, self)

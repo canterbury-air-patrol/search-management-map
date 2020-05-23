@@ -63,11 +63,10 @@ def userobject_delete(objecttype, request, name, object_id):
     Checks to make sure the object hasn't already been deleted or replaced.
     """
     obj = get_object_or_404(objecttype, pk=object_id)
-    if obj.deleted:
+    if obj.deleted_at:
         return HttpResponseNotFound("This {} has already been deleted".format(name))
     if obj.replaced_by is not None:
         return HttpResponseNotFound("This {} has been replaced".format(name))
-    obj.deleted = True
     obj.deleted_by = request.user
     obj.deleted_at = timezone.now()
     obj.save()

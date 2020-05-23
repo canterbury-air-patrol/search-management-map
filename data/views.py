@@ -162,7 +162,7 @@ def point_labels_all_kml(request, mission_id):
     Get all the current POIs as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='poi'))
+    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission.mission, geo_type='poi'))
 
 
 @login_required
@@ -206,7 +206,7 @@ def user_polygons_all_kml(request, mission_id):
     Get all the current user polygons as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(PolygonTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='polygon'))
+    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission, geo_type='polygon'))
 
 
 @login_required
@@ -250,7 +250,7 @@ def user_lines_all_kml(request, mission_id):
     Get all the current user lines as kml
     """
     mission = mission_get(mission_id)
-    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='line'))
+    return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission, geo_type='line'))
 
 
 @login_required

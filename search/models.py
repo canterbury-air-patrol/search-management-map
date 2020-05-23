@@ -122,9 +122,9 @@ class SearchPath(GeoTime):
         """
         objects = cls.all_current(mission, current_at=current_at)
         if current_at:
-            objects = objects.filter(completed__lt=current_at)
+            objects = objects.filter(completed_at__lt=current_at)
         else:
-            objects = objects.filter(completed__isnull=False)
+            objects = objects.filter(completed_at__isnull=False)
         return objects
 
     @classmethod
@@ -134,9 +134,9 @@ class SearchPath(GeoTime):
         """
         objects = cls.all_current(mission, current_at=current_at)
         if current_at:
-            objects = objects.filter(completed__gt=current_at)
+            objects = objects.filter(completed_at__gt=current_at)
         else:
-            objects = objects.filter(completed__isnull=True)
+            objects = objects.filter(completed_at__isnull=True)
         return objects
 
     @classmethod
@@ -204,7 +204,7 @@ class SearchPath(GeoTime):
             models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'created_at', 'completed_at', ]),
             models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', ]),
             # Index for all_waiting
-            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by',]),
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by', ]),
             # Index for find_closest
             models.Index(fields=['mission', 'deleted_at', 'replaced_at', 'completed_at', 'inprogress_by', 'created_for', ]),
             # Index for oldest_queued_for_asset*
