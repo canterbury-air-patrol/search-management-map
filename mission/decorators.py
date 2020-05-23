@@ -59,7 +59,6 @@ def mission_asset_get_mission(view_func):
     """
     def wrapper_mission(*args, **kwargs):
         mission_asset = mission_asset_get(kwargs['asset'])
-        kwargs.pop('asset_name')
         if mission_asset is None:
             return HttpResponseForbidden("This Asset is not currently in a mission")
         return view_func(*args, mission=mission_asset.mission, **kwargs)

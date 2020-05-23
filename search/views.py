@@ -71,7 +71,7 @@ def find_next_search(request, asset, mission):
 
     def search_data(search):
         data = {
-            'object_url': "/search/{}/{}/json/".format(search.url_component(), search.pk),
+            'object_url': "/search/{}/json/".format(search.pk),
             'distance': int(search.distance_from(point)),
             'length': int(search.length()),
         }

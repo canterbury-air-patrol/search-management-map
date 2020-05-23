@@ -78,7 +78,7 @@ class FirstPointDistance(Func):
 
     def as_sql(self, compiler, connection, function=None, template=None, arg_joiner=None, **extra_context):
         point_sql = "'SRID=4326;POINT({} {})'::geography".format(self.extra['point'].y, self.extra['point'].x)
-        return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(line::geometry,1)::geography, " + point_sql + ")",
+        return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(geo::geometry,1)::geography, " + point_sql + ")",
                               arg_joiner=arg_joiner, extra_context=extra_context)
 
 
@@ -121,7 +121,7 @@ class Search(GeoTime):
         """
         Calculate the distance (in m) from a point to the start of this search
         """
-        annotated_self = self.__class__.objects.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point)).get(pk=self.pk)
+        annotated_self = self.__class__.objects.annotate(distance=FirstPointDistance('geo', output_field=models.FloatField(), point=point)).get(pk=self.pk)
         return annotated_self.distance
 
     @classmethod
@@ -163,7 +163,7 @@ class Search(GeoTime):
         """
         try:
             possibles = cls.all_waiting(mission).filter(created_for=asset_type)
-            search = possibles.annotate(distance=FirstPointDistance('line', output_field=models.FloatField(), point=point)).order_by('distance')[0]
+            search = possibles.annotate(distance=FirstPointDistance('geo', output_field=models.FloatField(), point=point)).order_by('distance')[0]
             return search
         except IndexError:
             return None

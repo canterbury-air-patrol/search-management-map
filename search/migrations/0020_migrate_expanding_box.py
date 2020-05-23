@@ -25,7 +25,7 @@ def forward_func(apps, schema_editor):
             queued_for_asset=search.queued_for_asset,
             queued_for_assettype=search.queued_for_assettype,
             search_type='Expanding Box',
-            interations=search.interations,
+            iterations=search.iterations,
             first_bearing=search.first_bearing,
             )
         new_search.save()

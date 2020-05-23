@@ -25,7 +25,7 @@ def check_searches_in_progress(asset):
     """
     Check if the specified asset has any searches in progress
     """
-    searches = Search.objects.filter(inprogress_by=asset).exclude(completed__isnull=False)
+    searches = Search.objects.filter(inprogress_by=asset).exclude(completed_at__isnull=False)
     if searches.exists():
         return searches[0]
 
