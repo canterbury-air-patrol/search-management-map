@@ -375,7 +375,6 @@ class Search(GeoTime):
             "SELECT ST_Project(point, {0}, direction + PI()/2) AS A, ST_Project(point, {0}, direction - PI()/2) AS B FROM ({1}) AS linepoints;".format(params.width(), line_points_query)
 
         cursor = dbconn.cursor()
-        print(query)
         cursor.execute(query)
         db_points = dictfetchall(cursor)
 
