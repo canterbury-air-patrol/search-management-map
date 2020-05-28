@@ -105,12 +105,17 @@ def check_search_state(search, action, asset):
     """
     if search.deleted_at is not None:
         return HttpResponseForbidden("Search has been deleted")
+    if search.replaced_by is not None:
+        return HttpResponseNotFound("Search has been replaced")
     if search.completed_at is not None or search.completed_by is not None:
         return HttpResponseForbidden("Search already completed")
 
     if action == 'begin':
         if search.inprogress_by is not None and search.inprogress_by != asset:
             return HttpResponseForbidden("Search already in progress")
+    elif action == 'delete':
+        if search.inprogress_by is not None:
+            return HttpResponseForbidden("Search currently in progress")
     elif action == 'complete':
         if search.inprogress_by is None or search.inprogress_by.id != asset.id:
             return HttpResponseForbidden("Search not in progress by this asset")
@@ -168,6 +173,24 @@ def search_finished(request, search_id, object_class, asset, mission):
     timeline_record_search_finished(mission, request.user, asset, search)
 
     return HttpResponse("Completed")
+
+
+@login_required
+@mission_is_member
+def search_delete(request, search_id, mission_user):
+    """
+    Delete a search
+    """
+    search = get_object_or_404(Search, pk=search_id)
+    error = check_search_state(search, 'delete', None)
+    if error is not None:
+        return error
+
+    search.deleted_by = mission_user.user
+    search.deleted_at = timezone.now()
+    search.save()
+
+    return HttpResponse('Success')
 
 
 @login_required

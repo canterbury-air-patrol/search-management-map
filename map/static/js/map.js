@@ -211,6 +211,13 @@ function searchIncompleteCreate(search, layer) {
     }
 
     var popupContent = searchDataToPopUp(data);
+
+    popupContent += '<div class="btn-group">';
+    if (!InprogressBy) {
+        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/search/' + SearchID + '/delete/\')">Delete</button>'
+    }
+    popupContent += '</div>';
+
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
