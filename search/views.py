@@ -18,16 +18,15 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 
-from assets.models import AssetType
+from assets.models import AssetType, Asset
 from assets.decorators import asset_id_in_get_post
 from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
-from mission.models import Mission
+from mission.models import Mission, MissionAsset
 from mission.decorators import mission_is_member, mission_asset_get_mission
 from timeline.helpers import timeline_record_search_begin, timeline_record_search_finished
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
 from .view_helpers import check_searches_in_progress
-from .forms import AssetSearchQueueEntryForm, AssetTypeSearchQueueEntryForm
 
 
 def mission_get(mission_id):
@@ -195,11 +194,11 @@ def search_delete(request, search_id, mission_user):
 
 @login_required
 @mission_is_member
-def search_queue_for_asset(request, search_id, object_class, mission_user):
+def search_queue(request, search_id, mission_user):
     """
-    Queue a search for a specific asset
+    Queue a search
     """
-    search = get_object_or_404(object_class, pk=search_id)
+    search = get_object_or_404(Search, pk=search_id)
 
     # Check if this search has already been queued
     if search.queued_at:
@@ -207,38 +206,12 @@ def search_queue_for_asset(request, search_id, object_class, mission_user):
 
     asset = None
     if request.method == "POST":
-        form = AssetSearchQueueEntryForm(request.POST, mission=mission_user.mission)
-        if form.is_valid():
-            asset = form.cleaned_data['queued_for_asset']
-    if asset is None:
-        return render(request, 'search/queue_for_asset.html', {'form': AssetSearchQueueEntryForm(mission=mission_user.mission)})
+        if request.POST['asset']:
+            asset = get_object_or_404(Asset, pk=request.POST['asset'])
+            # Make sure this asset is a member of this mission
+            get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
 
-    search.queue_search(mission_user=mission_user, assettype=asset.asset_type, asset=asset)
-
-    return HttpResponse("Success")
-
-
-@login_required
-@mission_is_member
-def search_queue_for_asset_type(request, search_id, object_class, mission_user):
-    """
-    Queue a search for a specific asset
-    """
-    search = get_object_or_404(object_class, pk=search_id)
-
-    # Check if this search has already been queued
-    if search.queued_at:
-        return HttpResponseForbidden("This search is already queued for {}".format(search.get_match()))
-
-    asset_type = None
-    if request.method == "POST":
-        form = AssetTypeSearchQueueEntryForm(request.POST)
-        if form.is_valid():
-            asset_type = form.cleaned_data['queued_for_assettype']
-    if asset_type is None:
-        return render(request, 'search/queue_for_asset_type.html', {'form': AssetTypeSearchQueueEntryForm()})
-
-    search.queue_search(mission_user=mission_user, assettype=asset_type)
+    search.queue_search(mission_user=mission_user, asset=asset)
 
     return HttpResponse("Success")
 

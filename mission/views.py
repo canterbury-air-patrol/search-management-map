@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
 
 from assets.models import Asset
@@ -201,6 +201,27 @@ def mission_asset_add(request, mission_user):
         form = MissionAssetForm()
 
     return render(request, 'mission_asset_add.html', {'form': form})
+
+
+@login_required
+@mission_is_member
+def mission_asset_json(request, mission_user):
+    """
+    List Assets in a Mission
+    """
+    assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
+    assets_json = []
+    for ma in assets:
+        assets_json.append({
+            'id': ma.asset.pk,
+            'name': ma.asset.name,
+            'type_id': ma.asset.asset_type.id,
+            'type_name': ma.asset.asset_type.name,
+        })
+    data = {
+        'assets': assets_json,
+    }
+    return JsonResponse(data)
 
 
 @login_required

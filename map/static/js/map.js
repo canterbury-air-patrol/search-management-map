@@ -153,6 +153,51 @@ function userLineCreate(line, layer) {
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
+function searchQueueDialog(searchID, assetType) {
+    var contents = [
+        "<div>Queue for <select id='queue_" + searchID + "_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>",
+        "<div><select id='queue_" + searchID + "_select_asset'></select></div>",
+        "<div><button class='btn btn-light' id='queue_" + searchID + "_queue'>Queue</button></div>",
+        "<div><button class='btn btn-danger' id='queue_" + searchID + "_cancel'>Cancel</button>",
+    ].join('');
+    var QueueDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(myMap).hideClose();
+    $("#queue_" + searchID + "_select_asset").hide();
+    $.get('/mission/' + mission_id + '/assets/json/', function(data) {
+        $.each(data, function(index, json){
+            for(var at in json) {
+                console.log(json[at]);
+                if (json[at].type_name == assetType)
+                {
+                    $("#queue_" + searchID + "_select_asset").append("<option value='" + json[at].id + "'>" + json[at].name + "</option>");
+                }
+            }
+        })
+    })
+    $("#queue_" + searchID + "_select_type").change(function() {
+        if ($("#queue_" + searchID + "_select_type").val() == "type")
+        {
+            $("#queue_" + searchID + "_select_asset").hide();
+        }
+        else
+        {
+            $("#queue_" + searchID + "_select_asset").show();
+        }
+    });
+    $("#queue_" + searchID + "_queue").click(function() {
+        var data = [
+            {name: 'csrfmiddlewaretoken', value: csrftoken},
+        ];
+        if ($("#queue_" + searchID + "_select_type").val() == "asset")
+        {
+            data.push({name: 'asset', value: $("#queue_" + searchID + "_select_asset").val()});
+        }
+        $.post("/mission/" + mission_id + "/search/" + searchID + "/queue/", data, function(data) {
+            QueueDialog.destroy();
+        });
+    });
+    $("#queue_" + searchID + "_cancel").click(function() {QueueDialog.destroy()});
+}
+
 function searchDataToPopUp(data) {
     var res = '<dl class="search-data row">';
 
@@ -170,20 +215,23 @@ function searchStatusIncomplete(search) {
     var InprogressBy = search.properties.inprogress_by;
     var QueuedAt = search.properties.queued_at;
     var QueuedForAsset = search.properties.queued_for_asset;
-    var QueuedForAssetType = search.properties.queued_for_assettype;
+    var CreatedFor = search.properties.created_for;
 
     var status = "";
     if (InprogressBy)
     {
         status = "In Progress: " + InprogressBy;
     }
-    else if(QueuedForAsset)
+    else if(QueuedAt)
     {
-        status = "Queued for " + QueuedForAsset + " at " + QueuedAt;
-    }
-    else if(QueuedForAssetType)
-    {
-        status = "Queued for Asset Type at " + QueuedAt;
+        if (QueuedForAsset)
+        {
+            status = "Queued for " + QueuedForAsset + " at " + QueuedAt;
+        }
+        else
+        {
+            status = "Queued for " + CreatedFor + " at " + QueuedAt;
+        }
     }
     else
     {
@@ -199,6 +247,7 @@ function searchIncompleteCreate(search, layer) {
     var AssetType = search.properties.created_for;
     var InprogressBy = search.properties.inprogress_by;
     var SearchType = search.properties.search_type;
+    var QueuedAt = search.properties.queued_at;
 
     var data = [
         { css: 'type', label: 'Search Type', value: SearchType },
@@ -215,6 +264,9 @@ function searchIncompleteCreate(search, layer) {
     popupContent += '<div class="btn-group">';
     if (!InprogressBy) {
         popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/search/' + SearchID + '/delete/\')">Delete</button>'
+        if (!QueuedAt) {
+            popupContent += '<button class="btn btn-light" onClick="searchQueueDialog(\'' + SearchID + '\', \'' + AssetType + '\')">Queue</button>'
+        }
     }
     popupContent += '</div>';
 
