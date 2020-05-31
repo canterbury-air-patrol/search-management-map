@@ -13,7 +13,7 @@ Basic overview of presented API:
  - Details
 """
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone

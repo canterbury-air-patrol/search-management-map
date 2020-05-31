@@ -46,7 +46,6 @@ class AssetTypeTestCase(TestCase):
         data = json.loads(serialised)
         self.assertEqual(data[0]['fields']['asset_type'], 'boat')
 
-
     def test_asset_type_description(self):
         """
         Check the description is what was stored

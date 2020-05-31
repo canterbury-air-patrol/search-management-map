@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 
 from .models import Asset, AssetType
 
+
 class AssetTestCase(TestCase):
     """
     Test the functionality associated with assets

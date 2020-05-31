@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 
 from .models import Asset, AssetType, AssetCommand
 
+
 class AssetCommandTestCase(TestCase):
     """
     Test the functionality associated with asset commands

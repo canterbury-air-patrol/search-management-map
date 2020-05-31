@@ -211,12 +211,12 @@ def mission_asset_json(request, mission_user):
     """
     assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
     assets_json = []
-    for ma in assets:
+    for mission_asset in assets:
         assets_json.append({
-            'id': ma.asset.pk,
-            'name': ma.asset.name,
-            'type_id': ma.asset.asset_type.id,
-            'type_name': ma.asset.asset_type.name,
+            'id': mission_asset.asset.pk,
+            'name': mission_asset.asset.name,
+            'type_id': mission_asset.asset.asset_type.id,
+            'type_name': mission_asset.asset.asset_type.name,
         })
     data = {
         'assets': assets_json,
