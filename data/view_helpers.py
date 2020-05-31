@@ -41,13 +41,15 @@ def to_kml(objecttype, objects):
     return HttpResponse(kml_data, 'application/vnd.google-earth.kml+xml')
 
 
-def userobject_replace(objecttype, request, name, object_id, mission, func):
+def geotimelabel_replace(request, name, object_id, geo_type, mission, func):
     """
     Create an object to replace another object of the same type,
 
     Checks to make sure the object hasn't already been deleted or replaced.
     """
-    replaces = get_object_or_404(objecttype, pk=object_id)
+    replaces = get_object_or_404(GeoTimeLabel, pk=object_id)
+    if replaces.geo_type != geo_type:
+        return HttpResponseNotFound("Wrong object type")
     if replaces.deleted_at:
         return HttpResponseNotFound("This {} has been deleted".format(name))
     if replaces.replaced_by is not None:
@@ -55,13 +57,15 @@ def userobject_replace(objecttype, request, name, object_id, mission, func):
     return func(request, mission=mission, replaces=replaces)
 
 
-def userobject_delete(objecttype, request, name, object_id, mission_user):
+def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
     """
     Mark a user object as deleted
 
     Checks to make sure the object hasn't already been deleted or replaced.
     """
-    obj = get_object_or_404(objecttype, pk=object_id)
+    obj = get_object_or_404(GeoTimeLabel, pk=object_id)
+    if obj.geo_type != geo_type:
+        return HttpResponseNotFound("Wrong object type")
     if obj.deleted_at:
         return HttpResponseNotFound("This {} has already been deleted".format(name))
     if obj.replaced_by is not None:

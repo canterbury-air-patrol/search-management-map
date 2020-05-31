@@ -22,7 +22,7 @@ from mission.decorators import mission_is_member, mission_asset_get_mission
 from mission.models import Mission
 from .models import AssetPointTime, GeoTimeLabel
 from .forms import UploadTyphoonData
-from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, userobject_replace, userobject_delete
+from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace, geotimelabel_delete
 
 
 def mission_get(mission_id):
@@ -180,7 +180,7 @@ def point_label_replace(request, mission_user, poi):
     """
     Move/relabel a POI
     """
-    return userobject_replace(GeoTimeLabel, request, 'POI', poi, mission_user.mission, point_label_make)
+    return geotimelabel_replace(request, 'POI', poi, 'poi', mission_user.mission, point_label_make)
 
 
 @login_required
@@ -189,7 +189,7 @@ def point_label_delete(request, mission_user, poi):
     """
     Delete a POI
     """
-    return userobject_delete(GeoTimeLabel, request, 'POI', poi, mission_user)
+    return geotimelabel_delete(request, 'POI', poi, 'poi', mission_user)
 
 
 @login_required
@@ -224,7 +224,7 @@ def user_polygon_replace(request, mission_user, polygon):
     """
     Update the polygon/label of a user polygon
     """
-    return userobject_replace(GeoTimeLabel, request, 'Polygon', polygon, mission_user.mission, user_polygon_make)
+    return geotimelabel_replace(request, 'Polygon', polygon, 'polygon', mission_user.mission, user_polygon_make)
 
 
 @login_required
@@ -233,7 +233,7 @@ def user_polygon_delete(request, mission_user, polygon):
     """
     Delete a user polygon
     """
-    return userobject_delete(GeoTimeLabel, request, 'Polygon', polygon, mission_user)
+    return geotimelabel_delete(request, 'Polygon', polygon, 'polygon', mission_user)
 
 
 @login_required
@@ -268,7 +268,7 @@ def user_line_replace(request, mission_user, line):
     """
     Update the line/label of a user line
     """
-    return userobject_replace(GeoTimeLabel, request, 'Line', line, mission_user.mission, user_line_make)
+    return geotimelabel_replace(request, 'Line', line, 'line', mission_user.mission, user_line_make)
 
 
 @login_required
@@ -277,7 +277,7 @@ def user_line_delete(request, mission_user, line):
     """
     Delete a user line
     """
-    return userobject_delete(GeoTimeLabel, request, 'Line', line, mission_user)
+    return geotimelabel_delete(request, 'Line', line, 'line', mission_user)
 
 
 def convert_typhoon_time(timestamp):
