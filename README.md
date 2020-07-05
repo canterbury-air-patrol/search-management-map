@@ -27,6 +27,11 @@ docker-compose run app ./docker/app/create-admin.sh
 docker-compose up
 ```
 
+#### You can run the tests under docker with:
+```
+docker-compose run app ./docker/app/test.sh
+```
+
 ## Deploying
 [Refer to Django mod_wsgi documentation](https://docs.djangoproject.com/en/2.1/howto/deployment/wsgi/)
 
