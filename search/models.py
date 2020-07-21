@@ -307,7 +307,7 @@ class Search(GeoTime):
             query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 45 + params.first_bearing())
             query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 135 + params.first_bearing())
             query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 225 + params.first_bearing())
-            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 315 + params.first_bearing())
+            query += ", ST_Project(p.first, {}, radians({}))".format(dist, 315 + params.first_bearing())
 
         query += " FROM (SELECT geo, ST_Project(geo, {}, radians({})) AS first FROM data_geotimelabel WHERE id = {}) AS p".format(params.sweep_width(), params.first_bearing(), params.from_geo().pk)
 
