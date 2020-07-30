@@ -54,13 +54,11 @@ class Asset(models.Model):
 
 class AssetCommand(models.Model):
     """
-    An action for the asset to perform
+    An instruction for the asset
 
-    This provides a mechanism for controlling an
-    asset if it is still communicating with this system
-    (and the user has no other means to issue instructions).
-    Commands should be simple and continuous actions,
-    i.e. hold position or return home.
+    This provides a mechanism for letting an
+    asset know about changes to the plan.
+    i.e. The mission has been completed.
     """
     asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
     issued = models.DateTimeField(default=timezone.now)
@@ -70,11 +68,14 @@ class AssetCommand(models.Model):
         ('RON', "Continue"),  # Resume own navigation
         ('CIR', "Circle"),
         ('GOTO', "Goto position"),
+        ('MC', "Mission Complete"), # Return to Base
+        ('AS', "Abandon Search"), # Reassignment
     )
     command = models.CharField(max_length=4, choices=COMMAND_CHOICES)
     REQUIRES_POSITION = ('GOTO',)
     position = models.PointField(geography=True, null=True, blank=True)
     reason = models.TextField()
+    acknowledged = models.BooleanField(default=False)
 
     mission = models.ForeignKey('mission.Mission', on_delete=models.PROTECT, null=True)
 
@@ -85,11 +86,11 @@ class AssetCommand(models.Model):
         return "Command {} to {}".format(self.asset, self.get_command_display())
 
     @staticmethod
-    def last_command_for_asset(asset, mission):
+    def last_command_for_asset(asset):
         """
         Find the current command that applies to an asset
         """
         try:
-            return AssetCommand.objects.filter(asset=asset, mission=mission).order_by('-issued')[0]
+            return AssetCommand.objects.filter(asset=asset).order_by('-issued')[0]
         except IndexError:
             return None

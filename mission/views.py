@@ -9,7 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
 
-from assets.models import Asset
+from assets.models import Asset, AssetCommand
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
@@ -62,6 +62,16 @@ def mission_close(request, mission_user):
     mission_user.mission.closed = timezone.now()
     mission_user.mission.closed_by = request.user
     mission_user.mission.save()
+
+    # Tell all the assets, and free them from this mission
+    assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
+    for mission_asset in assets:
+        command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='MC', reason='The Mission was Closed', mission=mission_user.mission)
+        command.save()
+        mission_asset.remover = request.user
+        mission_asset.removed = timezone.now()
+        mission_asset.save()
+        timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=mission_asset.asset)
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
 
@@ -195,6 +205,9 @@ def mission_asset_add(request, mission_user):
                 mission_asset = MissionAsset(mission=mission_user.mission, asset=form.cleaned_data['asset'], creator=request.user)
                 mission_asset.save()
                 timeline_record_mission_asset_add(mission_user.mission, request.user, asset=form.cleaned_data['asset'])
+                command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='RON', reason='Added to mission', mission=mission_user.mission)
+                command.save()
+
                 return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
 
     if form is None:
@@ -237,5 +250,9 @@ def mission_asset_remove(request, mission_user, asset_id):
     mission_asset.save()
 
     timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=asset)
+
+    # Tell the asset
+    command = AssetCommand(asset=asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission)
+    command.save()
 
     return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))

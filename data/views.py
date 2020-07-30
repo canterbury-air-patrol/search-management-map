@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404, render
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
-from mission.decorators import mission_is_member, mission_asset_get_mission
+from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import Mission
 from .models import AssetPointTime, GeoTimeLabel
 from .forms import UploadTyphoonData
@@ -50,8 +50,7 @@ def assets_position_latest(request, mission_user):
 
 @login_required
 @asset_is_recorder
-@mission_asset_get_mission
-def asset_record_position(request, asset, mission):
+def asset_record_position(request, asset):
     """
     Record the current position of an asset.
 
@@ -100,12 +99,14 @@ def asset_record_position(request, asset, mission):
     except (TypeError, ValueError):
         alt = None
 
-    if point:
-        AssetPointTime(asset=asset, point=point, creator=request.user, alt=alt, heading=heading, fix=fix, mission=mission).save()
-    else:
-        return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
+    mission_asset = mission_asset_get (asset)
+    if mission_asset is not None:
+        if point:
+            AssetPointTime(asset=asset, point=point, creator=request.user, alt=alt, heading=heading, fix=fix, mission=mission_asset.mission).save()
+        else:
+            return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
 
-    asset_command = AssetCommand.last_command_for_asset(asset, mission)
+    asset_command = AssetCommand.last_command_for_asset(asset)
     if asset_command:
         data = {
             'action': asset_command.command,

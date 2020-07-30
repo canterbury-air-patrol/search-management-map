@@ -35,8 +35,8 @@ class AssetCommandTestCase(TestCase):
         Get the latest command for an asset in None mission
         """
         pccr = Asset.objects.get(name='PCCR')
-        command = AssetCommand.last_command_for_asset(asset=pccr, mission=None)
+        command = AssetCommand.last_command_for_asset(asset=pccr)
         self.assertEqual(str(command), "Command PCCR to Continue")
         AssetCommand.objects.create(asset=pccr, issued_by=self.user, command='CIR', reason='test2')
-        command = AssetCommand.last_command_for_asset(asset=pccr, mission=None)
+        command = AssetCommand.last_command_for_asset(asset=pccr)
         self.assertEqual(str(command), "Command PCCR to Circle")
