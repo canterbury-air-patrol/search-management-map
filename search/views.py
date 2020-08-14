@@ -73,6 +73,7 @@ def find_next_search(request, asset, mission):
             'object_url': "/search/{}/json/".format(search.pk),
             'distance': int(search.distance_from(point)),
             'length': int(search.length()),
+            'sweep_width': int(search.sweep_width),
         }
         return JsonResponse(data)
 
