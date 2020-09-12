@@ -166,7 +166,7 @@ def search_finished(request, search_id, object_class, asset, mission):
     if error is not None:
         return error
 
-    search.completed = timezone.now()
+    search.completed_at = timezone.now()
     search.completed_by = asset
     search.save()
 
