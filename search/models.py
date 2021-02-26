@@ -168,16 +168,6 @@ class Search(GeoTime):
         except IndexError:
             return None
 
-    def queue_search(self, mission_user, assettype=None, asset=None):
-        '''
-        Queue this search for an asset or assettype
-        '''
-        if self.queued_at is None:
-            self.queued_at = timezone.now()
-            self.queued_for_asset = asset
-            self.save()
-            timeline_record_search_queue(mission_user.mission, mission_user.user, self, assettype, asset)
-
     @classmethod
     def oldest_queued_for_asset(cls, mission, asset):
         """
@@ -211,6 +201,41 @@ class Search(GeoTime):
         if self.queued_for_asset:
             return self.queued_for_asset
         return self.created_for
+
+    def queue_search(self, mission_user, assettype=None, asset=None):
+        '''
+        Queue this search for an asset or assettype
+        '''
+        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset, queued_for_assettype=assettype)
+        self.refresh_from_db()
+        if self.queued_for_asset == asset and self.queued_for_assettype == assettype:
+            timeline_record_search_queue(mission_user.mission, mission_user.user, self, assettype, asset)
+            return True
+        return False
+
+    def set_inprogress_by(self, asset, user):
+        '''
+        Set the asset that conducting this search
+        '''
+        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(inprogress_by=asset)
+        self.refresh_from_db()
+        if self.inprogress_by == asset:
+            timeline_record_search_begin(self.mission, user, asset, self)
+            return True
+        return False
+
+
+    def delete(self, user):
+        '''
+        Delete this search
+        '''
+        time = timezone.now()
+        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(deleted_at=time, deleted_by=user)
+        self.refresh_from_db()
+        if self.deleted_at == time:
+            timeline_record_delete(self.mission, self.deleted_by, self)
+            return True
+        return False
 
     @staticmethod
     def create_sector_search(params, save=False):

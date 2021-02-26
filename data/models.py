@@ -82,11 +82,37 @@ class GeoTime(models.Model):
         super().save(*args, **kwargs)
         if exists:
             if replaced:
-                timeline_record_update(self.mission, self.created_by, self.replaced_by, self)
+                timeline_record_update(self.mission, self.replaced_by.created_by, self.replaced_by, self)
             elif self.deleted_at:
-                timeline_record_delete(self.mission, self.created_by, self)
+                timeline_record_delete(self.mission, self.deleted_by, self)
         else:
             timeline_record_create(self.mission, self.created_by, self)
+
+    def delete(self, user):
+        '''
+        Delete this object
+        '''
+        time = timezone.now()
+        self.__class__.objects.filter(pk=self.pk, deleted_at__isnull=True, replaced_at__isnull=True).update(deleted_at=time, deleted_by=user)
+        self.refresh_from_db()
+        if self.deleted_at == time:
+            timeline_record_delete(self.mission, self.deleted_by, self)
+            return True
+        return False
+
+    def replace(self, replaced_by):
+        '''
+        Replace this object with a new one
+        '''
+        time = timezone.now()
+        self.__class__.objects.filter(pk=self.pk, deleted_at__isnull=True, replaced_at__isnull=True).update(replaced_at=time, replaced_by=replaced_by)
+        self.refresh_from_db()
+        if self.replaced_at == time:
+            timeline_record_update(self.mission, self.replaced_by.created_by, self.replaced_by, self)
+            return True
+        return False
+
+
 
     class Meta:
         abstract = True

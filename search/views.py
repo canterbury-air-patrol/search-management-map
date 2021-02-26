@@ -142,16 +142,13 @@ def search_begin(request, search_id, object_class, asset, mission):
         if inprogress_search != search:
             return HttpResponseForbidden("Asset already has a search in progress.")
 
+    if search.set_inprogress_by(asset, request.user):
+        return to_geojson(object_class, [search])
+
     error = check_search_state(search, 'begin', asset)
     if error is not None:
         return error
-
-    search.inprogress_by = asset
-    search.save()
-
-    timeline_record_search_begin(mission, request.user, asset, search)
-
-    return to_geojson(object_class, [search])
+    return HttpResponseNotFound('Try Again')
 
 
 @login_required
@@ -186,11 +183,8 @@ def search_delete(request, search_id, mission_user):
     if error is not None:
         return error
 
-    search.deleted_by = mission_user.user
-    search.deleted_at = timezone.now()
-    search.save()
-
-    return HttpResponse('Success')
+    if search.delete(request.user):
+        return HttpResponse('Success')
 
 
 @login_required

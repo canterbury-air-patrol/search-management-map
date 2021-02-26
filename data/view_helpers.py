@@ -66,13 +66,11 @@ def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
     obj = get_object_or_404(GeoTimeLabel, pk=object_id)
     if obj.geo_type != geo_type:
         return HttpResponseNotFound("Wrong object type")
-    if obj.deleted_at:
-        return HttpResponseNotFound("This {} has already been deleted".format(name))
-    if obj.replaced_by is not None:
-        return HttpResponseNotFound("This {} has been replaced".format(name))
-    obj.deleted_by = mission_user.user
-    obj.deleted_at = timezone.now()
-    obj.save()
+    if not obj.delete(request.user):
+        if obj.deleted_at:
+            return HttpResponseNotFound("This {} has already been deleted".format(name))
+        if obj.replaced_by is not None:
+            return HttpResponseNotFound("This {} has been replaced".format(name))
     return HttpResponse("Deleted")
 
 
@@ -119,9 +117,9 @@ def point_label_make(request, mission=None, replaces=None):
     ptl.save()
 
     if replaces is not None:
-        replaces.replaced_by = ptl
-        replaces.replaced_at = timezone.now()
-        replaces.save()
+        if not replaces.replace(ptl):
+            ptl.delete()
+            return HttpResponseBadRequest()
 
     return HttpResponse()
 
@@ -144,9 +142,9 @@ def user_polygon_make(request, mission=None, replaces=None):
         ptl = GeoTimeLabel(geo=Polygon(points), label=label, created_by=request.user, mission=mission, geo_type='polygon')
         ptl.save()
         if replaces is not None:
-            replaces.replaced_by = ptl
-            replaces.replaced_at = timezone.now()
-            replaces.save()
+            if not replaces.replace(ptl):
+                ptl.delete()
+                return HttpResponseBadRequest()
         return HttpResponse()
 
     return HttpResponseBadRequest()
@@ -169,9 +167,9 @@ def user_line_make(request, mission=None, replaces=None):
         lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
         lstl.save()
         if replaces is not None:
-            replaces.replaced_by = lstl
-            replaces.replaced_at = timezone.now()
-            replaces.save()
+            if not replaces.replace(ptl):
+                ptl.delete()
+                return HttpResponseBadRequest()
         return HttpResponse()
 
     return HttpResponseBadRequest()
