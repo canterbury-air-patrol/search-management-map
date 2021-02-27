@@ -24,7 +24,7 @@ from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission, MissionAsset
 from mission.decorators import mission_is_member, mission_asset_get_mission
-from timeline.helpers import timeline_record_search_begin, timeline_record_search_finished
+from timeline.helpers import timeline_record_search_finished
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
 from .view_helpers import check_searches_in_progress
 
@@ -56,9 +56,6 @@ def find_next_search(request, asset, mission):
         long = request.GET.get('longitude')
     else:
         HttpResponseNotFound('Unknown Method')
-
-    if lat is None or long is None:
-        return HttpResponseBadRequest('Invalid lat or long')
 
     try:
         lat = float(lat)
@@ -103,6 +100,7 @@ def check_search_state(search, action, asset):
     Check the current state of a search and provide
     a suitable error response if it's not suitable for desired action
     """
+    # pylint: disable=R0911
     if search.deleted_at is not None:
         return HttpResponseForbidden("Search has been deleted")
     if search.replaced_by is not None:
@@ -174,17 +172,19 @@ def search_finished(request, search_id, object_class, asset, mission):
 
 @login_required
 @mission_is_member
-def search_delete(request, search_id, mission_user):
+def search_delete(request, search_id):
     """
     Delete a search
     """
     search = get_object_or_404(Search, pk=search_id)
-    error = check_search_state(search, 'delete', None)
-    if error is not None:
-        return error
 
     if search.delete(request.user):
         return HttpResponse('Success')
+
+    error = check_search_state(search, 'delete', None)
+    if error is not None:
+        return error
+    return HttpResponseNotFound('Try again')
 
 
 @login_required

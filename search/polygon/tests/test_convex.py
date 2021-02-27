@@ -16,11 +16,9 @@ from search.polygon.convex import (pt_relv,
                                    sublrng,
                                    decomp,
                                    creep_line,
-                                   creep_line_at_angle,
                                    perimeter_subarray,
                                    creep_line_concave,
-                                   conv_lonlat_to_meters,
-                                   conv_meters_to_lonlat)
+                                   conv_lonlat_to_meters)
 
 
 class TestConvex(unittest.TestCase):
@@ -268,6 +266,7 @@ class TestConvex(unittest.TestCase):
 
     def test_creep_line_lonlat(self):
         """ Test creeping line generation over geographic data"""
+        # pylint: disable=R0201
 
         # Triangle
         width_meters = 100
@@ -337,19 +336,20 @@ class TestConvex(unittest.TestCase):
     def test_creep_line_at_angle(self):
         """ Test creeping line generation over convex LinearRing,
         at various angles. """
+        # pylint: disable=R0201
 
         # Angle 0deg = West to East, South to North progression
         # Width = The distance across South to North
         # Angle +90deg = East
 
         # Plain square
-        lrng0 = LinearRing((
-            (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
+        #lrng0 = LinearRing((
+        #    (0, 0), (0, 1), (1, 1), (1, 0), (0, 0)))
 
         # Creeping line @ same size as square
-        lstr0aaa = creep_line_at_angle(lrng0, 1, 0)
-        lstr0aaa_expected = LineString(
-            (0, 0), (1, 0), (1, 1), (0, 1)
-        )
+        #lstr0aaa = creep_line_at_angle(lrng0, 1, 0)
+        #lstr0aaa_expected = LineString(
+        #    (0, 0), (1, 0), (1, 1), (0, 1)
+        #)
 
         #self.assertEqual(lstr0aaa, lstr0aaa_expected)

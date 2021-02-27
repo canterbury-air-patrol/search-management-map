@@ -2,29 +2,16 @@
 Tests for the User Drawn Lines (user created line/time/label)
 """
 
-import json
+from django.contrib.gis.geos import LineString
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
-from django.contrib.gis.geos import Point, LineString
-
-from mission.models import Mission, MissionUser
 from .models import GeoTimeLabel
+from .tests import UserDataTestCase
 
 
-class UserDrawnLineTestCase(TestCase):
+class UserDrawnLineTestCase(UserDataTestCase):
     """
     Test User Drawn Lines
     """
-    def setUp(self):
-        """
-        Create the required objects
-        """
-        self.user = User.objects.create_user('test', password='password')
-        self.user_non_member = User.objects.create_user('test2', password='password')
-        self.mission = Mission.objects.create(creator=self.user)
-        MissionUser(mission=self.mission, user=self.user, role='A', creator=self.user).save()
-
     def test_line_create(self):
         """
         Create a UDL
@@ -48,4 +35,3 @@ class UserDrawnLineTestCase(TestCase):
         for i in range(1, 100):
             self.assertEqual(line.geo[i][0], 172.0 + i * 0.1)
             self.assertEqual(line.geo[i][1], -42 - i * 0.1)
-

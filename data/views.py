@@ -99,7 +99,7 @@ def asset_record_position(request, asset):
     except (TypeError, ValueError):
         alt = None
 
-    mission_asset = mission_asset_get (asset)
+    mission_asset = mission_asset_get(asset)
     if mission_asset is not None:
         if point:
             AssetPointTime(asset=asset, geo=point, created_by=request.user, alt=alt, heading=heading, fix=fix, mission=mission_asset.mission).save()

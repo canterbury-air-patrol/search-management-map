@@ -3,7 +3,7 @@ Tests for the asset command class
 """
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from .models import Asset, AssetType, AssetCommand
 
@@ -17,7 +17,7 @@ class AssetCommandTestCase(TestCase):
         Create objects for the test
         """
         boat = AssetType.objects.create(name='boat')
-        self.user = User.objects.create_user('test', password='password')
+        self.user = get_user_model().objects.create_user('test', password='password')
         pccr = Asset.objects.create(name='PCCR', asset_type=boat, owner=self.user)
         AssetCommand.objects.create(asset=pccr, issued_by=self.user, command='RON', reason='test')
 

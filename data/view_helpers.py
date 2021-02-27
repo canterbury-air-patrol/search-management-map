@@ -9,7 +9,6 @@ from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadReque
 from django.core.serializers import serialize
 from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 
 from .models import GeoTimeLabel
 
@@ -41,6 +40,7 @@ def to_kml(objecttype, objects):
     return HttpResponse(kml_data, 'application/vnd.google-earth.kml+xml')
 
 
+# pylint: disable=R0913
 def geotimelabel_replace(request, name, object_id, geo_type, mission, func):
     """
     Create an object to replace another object of the same type,
@@ -66,7 +66,7 @@ def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
     obj = get_object_or_404(GeoTimeLabel, pk=object_id)
     if obj.geo_type != geo_type:
         return HttpResponseNotFound("Wrong object type")
-    if not obj.delete(request.user):
+    if not obj.delete(mission_user.user):
         if obj.deleted_at:
             return HttpResponseNotFound("This {} has already been deleted".format(name))
         if obj.replaced_by is not None:
@@ -118,7 +118,7 @@ def point_label_make(request, mission=None, replaces=None):
 
     if replaces is not None:
         if not replaces.replace(ptl):
-            ptl.delete()
+            ptl.delete(request.user)
             return HttpResponseBadRequest()
 
     return HttpResponse()
@@ -143,7 +143,7 @@ def user_polygon_make(request, mission=None, replaces=None):
         ptl.save()
         if replaces is not None:
             if not replaces.replace(ptl):
-                ptl.delete()
+                ptl.delete(request.user)
                 return HttpResponseBadRequest()
         return HttpResponse()
 
@@ -167,8 +167,8 @@ def user_line_make(request, mission=None, replaces=None):
         lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
         lstl.save()
         if replaces is not None:
-            if not replaces.replace(ptl):
-                ptl.delete()
+            if not replaces.replace(lstl):
+                lstl.delete(request.user)
                 return HttpResponseBadRequest()
         return HttpResponse()
 

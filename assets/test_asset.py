@@ -6,7 +6,7 @@ import json
 
 from django.test import TestCase, Client
 from django.core import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from .models import Asset, AssetType
 
@@ -21,7 +21,7 @@ class AssetTestCase(TestCase):
         """
         boat = AssetType.objects.create(name='boat')
         wing = AssetType.objects.create(name='wing')
-        user = User.objects.create_user('test', password='password')
+        user = get_user_model().objects.create_user('test', password='password')
         Asset.objects.create(name='PCCR', asset_type=boat)
         Asset.objects.create(name='FX-79-1', asset_type=wing, owner=user)
         Asset.objects.create(name='FX-79-2', asset_type=wing)

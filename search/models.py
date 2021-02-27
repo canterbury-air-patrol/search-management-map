@@ -16,7 +16,7 @@ from data.models import GeoTime, GeoTimeLabel
 from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
 from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
-from timeline.helpers import timeline_record_search_queue
+from timeline.helpers import timeline_record_search_queue, timeline_record_search_begin, timeline_record_delete
 
 
 def dictfetchall(cursor):
@@ -77,6 +77,7 @@ class FirstPointDistance(Func):
     function = 'ST_Distance'
 
     def as_sql(self, compiler, connection, function=None, template=None, arg_joiner=None, **extra_context):
+        # pylint: disable=R0913
         point_sql = "'SRID=4326;POINT({} {})'::geography".format(self.extra['point'].y, self.extra['point'].x)
         return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(geo::geometry,1)::geography, " + point_sql + ")",
                               arg_joiner=arg_joiner, extra_context=extra_context)
@@ -202,14 +203,14 @@ class Search(GeoTime):
             return self.queued_for_asset
         return self.created_for
 
-    def queue_search(self, mission_user, assettype=None, asset=None):
+    def queue_search(self, mission_user, asset=None):
         '''
-        Queue this search for an asset or assettype
+        Queue this search for an asset
         '''
-        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset, queued_for_assettype=assettype)
+        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset)
         self.refresh_from_db()
-        if self.queued_for_asset == asset and self.queued_for_assettype == assettype:
-            timeline_record_search_queue(mission_user.mission, mission_user.user, self, assettype, asset)
+        if self.queued_for_asset == asset:
+            timeline_record_search_queue(mission_user.mission, mission_user.user, self, asset.assettype, asset)
             return True
         return False
 
@@ -223,7 +224,6 @@ class Search(GeoTime):
             timeline_record_search_begin(self.mission, user, asset, self)
             return True
         return False
-
 
     def delete(self, user):
         '''
@@ -480,7 +480,8 @@ class ExpandingBoxSearchParams(SearchParams):
     Parameters for an expanding box search
     """
     def __init__(self, from_geo, asset_type, creator, sweep_width, iterations, first_bearing):
-        super(ExpandingBoxSearchParams, self).__init__(from_geo, asset_type, creator, sweep_width)
+        # pylint: disable=R0913
+        super().__init__(from_geo, asset_type, creator, sweep_width)
         self._iterations = int(iterations)
         if self._iterations < 1:
             raise ValueError("Iterations must be at least 1")
@@ -506,7 +507,8 @@ class TrackLineCreepingSearchParams(SearchParams):
     Parameters for a track line creeping search
     """
     def __init__(self, from_geo, asset_type, creator, sweep_width, width):
-        super(TrackLineCreepingSearchParams, self).__init__(from_geo, asset_type, creator, sweep_width)
+        # pylint: disable=R0913
+        super().__init__(from_geo, asset_type, creator, sweep_width)
         self._width = int(width)
         if self._width < 0:
             raise ValueError("Width must be positive")

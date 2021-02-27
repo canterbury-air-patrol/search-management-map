@@ -16,7 +16,7 @@ class AssetCommandForm(ModelForm):
     """
     def __init__(self, *args, **kwargs):
         self.mission = kwargs.pop('mission')
-        super(AssetCommandForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         mission_assets = MissionAsset.objects.filter(mission=self.mission, removed__isnull=True)
         self.fields['asset'].queryset = Asset.objects.filter(pk__in=[mission_asset.asset.pk for mission_asset in mission_assets])
 

@@ -88,6 +88,7 @@ def decomp(lrng):
     for pt1 in concave_points:
         for pt0 in convex_points:
             if cansee(pt0, pt1, lrng):
+                # pylint: disable=W1114
                 left = sublrng(pt0, pt1, lrng)
                 right = sublrng(pt1, pt0, lrng)
                 tmp = decomp(left) + decomp(right)
@@ -193,12 +194,13 @@ def creep_line(lrng, width):
                         for pnt in i:
                             yield pnt
             except TypeError:
+                # pylint: disable=W0707
                 msg = "{} is of type {}".format(i, type(i))
                 raise TypeError(msg)
 
-    yiter = [y for y in step(ymin, ydist, ymax)]
-    liter = [l for l in stripe(xmin, xmax, yiter)]
-    pts = [p for p in carve(lrng, liter)]
+    yiter = step(ymin, ydist, ymax)
+    liter = stripe(xmin, xmax, yiter)
+    pts = list(carve(lrng, liter))
 
     return LineString(pts)
 
@@ -306,23 +308,23 @@ def perimeter_subarray(pts, pt_arr):
     pts_idx.sort()
 
     # Construct LineString for each segment
-    for count, i1 in enumerate(pts_idx):
-        i0 = pts_idx[count-1]
+    for count, index1 in enumerate(pts_idx):
+        index0 = pts_idx[count-1]
 
         # Yield linestring which wraps over the end
         if count == 0:
-            yield pt_arr[i0:] + pt_arr[:i1+1]
+            yield pt_arr[index0:] + pt_arr[:index1+1]
             continue
 
         # Yield typical linestring segments
-        yield pt_arr[i0:i1+1]
+        yield pt_arr[index0:index1+1]
 
 
 def creep_line_concave(lrng, width):
     """ Return a LineString creeping path across all convex polygons in a
     concave polygon"""
     # Decompose LinearRing into several convex LinearRings
-    lrngs_convex = decomp(LinearRing([pt for pt in lrng]))
+    lrngs_convex = decomp(LinearRing(lrng))
 
     # Create creeping line (LineString) for each convex LinearRing
     creep_lines = [creep_line(lr, width) for lr in lrngs_convex]
@@ -332,9 +334,8 @@ def creep_line_concave(lrng, width):
     creep_line_end_points = [lr[-2] for lr in lrngs_convex]
 
     # Create a pool of end points
-    remaining_points = [pts
-                        for pts in (creep_line_end_points +
-                                    creep_line_start_points)]
+    remaining_points = (creep_line_end_points +
+                                    creep_line_start_points)
 
     # Initialize order of creep lines with the first end point
     i = 0
@@ -360,7 +361,7 @@ def creep_line_concave(lrng, width):
                 if current_segment[1] == pt_arr[0]:
                     found_point = True
                     break
-                elif current_segment[1] == pt_arr[-1]:
+                if current_segment[1] == pt_arr[-1]:
                     pt_arr.reverse()
                     found_point = True
                     break
@@ -373,6 +374,7 @@ def creep_line_concave(lrng, width):
             raise ValueError(msg)
 
         # Add joining line to next creep line
+        # pylint: disable=W0631
         if len(pt_arr) > 1:
             creep_lines_ordered.append(LineString(pt_arr))
 
@@ -398,9 +400,3 @@ def creep_line_concave(lrng, width):
     return LineString([p
                        for l in creep_lines_ordered
                        for p in l])
-
-
-def creep_line_at_angle(lrng, width, angle):
-    """ Returns a LineString creeping path at a set angle
-    across a LinearRing"""
-    pass

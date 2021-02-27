@@ -112,8 +112,6 @@ class GeoTime(models.Model):
             return True
         return False
 
-
-
     class Meta:
         abstract = True
         indexes = [

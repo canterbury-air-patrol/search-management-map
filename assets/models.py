@@ -68,8 +68,8 @@ class AssetCommand(models.Model):
         ('RON', "Continue"),  # Resume own navigation
         ('CIR', "Circle"),
         ('GOTO', "Goto position"),
-        ('MC', "Mission Complete"), # Return to Base
-        ('AS', "Abandon Search"), # Reassignment
+        ('MC', "Mission Complete"),  # Return to Base
+        ('AS', "Abandon Search"),  # Reassignment
     )
     command = models.CharField(max_length=4, choices=COMMAND_CHOICES)
     REQUIRES_POSITION = ('GOTO',)

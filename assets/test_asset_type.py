@@ -5,7 +5,7 @@ import json
 
 from django.test import TestCase, Client
 from django.core import serializers
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from .models import AssetType, Asset
 
@@ -21,7 +21,7 @@ class AssetTypeTestCase(TestCase):
         """
         AssetType.objects.create(name='flying-wing', description='RPAS that are only a wing')
         AssetType.objects.create(name='boat', description='Sea-going vessel')
-        User.objects.create_user('test', password='password')
+        get_user_model().objects.create_user('test', password='password')
 
     def test_asset_type_name(self):
         """

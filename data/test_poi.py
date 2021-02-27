@@ -4,27 +4,17 @@ Tests for the POIs (user created point/time/label)
 
 import json
 
-from django.test import TestCase, Client
-from django.contrib.auth.models import User
+from django.test import Client
 from django.contrib.gis.geos import Point
 
-from mission.models import Mission, MissionUser
 from .models import GeoTimeLabel
+from .tests import UserDataTestCase
 
 
-class POIsTestCase(TestCase):
+class POIsTestCase(UserDataTestCase):
     """
     Test POIs
     """
-    def setUp(self):
-        """
-        Create the required objects
-        """
-        self.user = User.objects.create_user('test', password='password')
-        self.user_non_member = User.objects.create_user('test2', password='password')
-        self.mission = Mission.objects.create(creator=self.user)
-        MissionUser(mission=self.mission, user=self.user, role='A', creator=self.user).save()
-
     def test_poi_create(self):
         """
         Create a POI
@@ -134,6 +124,7 @@ class POIsTestCase(TestCase):
         self.assertEqual(pois[0].replaced_by, None)
         self.assertEqual(pois[0].replaced_at, None)
 
+    # pylint: disable=R0915
     def test_poi_api_relabel(self):
         """
         Check the api for relabelling POIs
