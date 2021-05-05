@@ -5,6 +5,8 @@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+ALLOWED_HOSTS = ['*']
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 
@@ -17,6 +19,7 @@ DATABASES = {
         'HOST': 'POSTGRES_SERVER',
         'NAME': 'POSTGRES_DBNAME',
         'USER': 'POSTGRES_USER',
+        'PASSWORD': 'POSTGRES_PASSWORD',
     }
 }
 
