@@ -8,6 +8,7 @@ import math
 
 from django.db import models, connection as dbconn
 from django.db.models import Func
+from django.contrib.gis.db.models.functions import Distance
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, LineString
 from django.utils import timezone
@@ -164,7 +165,7 @@ class Search(GeoTime):
         """
         try:
             possibles = cls.all_waiting(mission).filter(created_for=asset_type)
-            search = possibles.annotate(distance=FirstPointDistance('geo', output_field=models.FloatField(), point=point)).order_by('distance')[0]
+            search = possibles.annotate(distance=Distance('geo', point)).order_by('distance')[0]
             return search
         except IndexError:
             return None

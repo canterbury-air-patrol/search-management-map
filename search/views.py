@@ -63,7 +63,7 @@ def find_next_search(request, asset, mission):
     except (ValueError, TypeError):
         return HttpResponseBadRequest('Invalid lat or long')
 
-    point = Point(long, lat)
+    point = Point(long, lat, srid=4326)
 
     def search_data(search):
         data = {
