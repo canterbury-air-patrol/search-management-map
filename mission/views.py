@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
 from timeline.models import TimeLineEntry
@@ -77,6 +78,7 @@ def mission_close(request, mission_user):
 
 
 @login_required
+@ensure_csrf_cookie
 def mission_list(request):
     """
     List missions this user can select from.
