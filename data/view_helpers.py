@@ -121,7 +121,7 @@ def point_label_make(request, mission=None, replaces=None):
             ptl.delete(request.user)
             return HttpResponseBadRequest()
 
-    return HttpResponse()
+    return to_geojson(GeoTimeLabel, [ptl])
 
 
 @check_userobject_move
@@ -145,7 +145,7 @@ def user_polygon_make(request, mission=None, replaces=None):
             if not replaces.replace(ptl):
                 ptl.delete(request.user)
                 return HttpResponseBadRequest()
-        return HttpResponse()
+        return to_geojson(GeoTimeLabel, [ptl])
 
     return HttpResponseBadRequest()
 
@@ -170,6 +170,6 @@ def user_line_make(request, mission=None, replaces=None):
             if not replaces.replace(lstl):
                 lstl.delete(request.user)
                 return HttpResponseBadRequest()
-        return HttpResponse()
+    return to_geojson(GeoTimeLabel, [lstl])
 
     return HttpResponseBadRequest()
