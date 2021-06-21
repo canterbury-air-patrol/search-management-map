@@ -19,11 +19,11 @@ mkdir -p map/static/jquery/
 cp dl/${JQUERY_FILE} map/static/jquery/jquery.js
 
 # Fetch leaflet plugins
-LEAFLET_REALTIME_VERSION=2.1.1
+LEAFLET_REALTIME_VERSION=2.2.0
 LEAFLET_REALTIME_FILE=leaflet-realtime-${LEAFLET_REALTIME_VERSION}.tar.gz
 if [ ! -f dl/${LEAFLET_REALTIME_FILE} ]
 then
-	curl -L https://github.com/perliedman/leaflet-realtime/archive/${LEAFLET_REALTIME_VERSION}.tar.gz -o dl/${LEAFLET_REALTIME_FILE}
+	curl -L https://github.com/perliedman/leaflet-realtime/archive/refs/tags/${LEAFLET_REALTIME_VERSION}.tar.gz -o dl/${LEAFLET_REALTIME_FILE}
 fi
 LEAFLET_DIALOG_VERSION=1.0.5
 LEAFLET_DIALOG_FILE=leaflet-dialog-${LEAFLET_DIALOG_VERSION}.tar.gz
