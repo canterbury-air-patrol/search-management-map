@@ -15,4 +15,15 @@ def marine_vectors(request, mission_user):
     data = {
         'mission': mission_user.mission,
     }
+
     return render(request, 'marinesar_vectors.html', data)
+
+
+@login_required
+@mission_is_member
+def marine_sac(request, mission_user):
+    data = {
+        'mission': mission_user.mission,
+    }
+
+    return render(request, 'marinesar_sac.html', data)
