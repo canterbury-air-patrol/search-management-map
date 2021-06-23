@@ -1,0 +1,79 @@
+{% load static %}
+{% load bootstrap4 %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Marine SAR Vectors Work sheet</title>
+    <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
+    <script src="{% static "MarineVectors/MarineVectors.js" %}" type="text/javascript"></script>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
+    <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
+</head>
+<body>
+    <form action="" method="POST">
+        Operation: {{ mission.mission_name }} <br />
+        <label for="subject">Subject:</label> <input type="text" name="subject" /> <br />
+        <label for="LKP">Reference Position:</label> <input type="text" name="LKP" />
+        <label for="LKP_lat">Latitude:</label> <input type="text" name="LKP_lat" />
+        <label for="LKP_lng">Longitude:</label> <input type="text" name="LKP_lng" /> <br />
+        <label for="target_description">Target Description:</label> <input type="text" name="target_description" /><br />
+        <label for="leeway_type">Leeway Type: </label>
+        <select name="leeway_type">
+            <option value="PIW-1">PIW</option>
+            <option value="PIW-2">PIW - Vertical</option>
+            <option value="PIW-3">PIW - Sitting</option>
+            <option value="PIW-4">PIW - Horizontal - Survival Suit</option>
+            <option value="PIW-5">PIW - Horizontal - Scuba Suit</option>
+            <option value="PIW-6">PIW - Horizontal - Deceased</option>
+        </select>
+        <h2>Current:</h2>
+        <table id="current_vectors">
+            <tr>
+                <th>From:</th>
+                <th>To:</th>
+                <th>Direction (&deg;T)</th>
+                <th>Speed (knots)</th>
+                <th>Time Interval</th>
+                <th>Vector direction (&deg;T)</th>
+                <th>Vector distance (NM)</th>
+            </tr>
+        </table>
+        <button id='btn_current_vector' class='btn btn-primary'>Add Current Vector</button>
+        <h2>Wind:</h2>
+        <table id="wind_vectors">
+            <tr>
+                <th>From:</th>
+                <th>To:</th>
+                <th>Direction (&deg;T)</th>
+                <th>Speed (knots)</th>
+                <th>Leeway Direction (&deg;T)</th>
+                <th>Leeway Rate (knots)</th>
+                <th>Time Interval</th>
+                <th>Vector direction (&deg;T)</th>
+                <th>Vector distance (NM)</th>
+            </tr>
+        </table>
+        <button id="btn_wind_vector" class="btn btn-primary">Add Wind Vector</button>
+    </form>
+    <h2>Resulting Total Drift Vector:</h2>
+    Direction: <em id="tdv_result_direction"></em> &deg;T <br />
+    Distance: <em id="tdv_result_distance"></em> NM
+
+    <script>
+        var vectors = new MarineVectors({'multiplier': 0.011, 'modifier': 0.07, 'divergence': 30 });
+
+        $('#btn_current_vector').click(function(e) {
+            vectors.newCurrentVector();
+            vectors.recalculate();
+            e.preventDefault();
+        });
+        $('#btn_wind_vector').click(function(e) {
+            vectors.newWindVector();
+            vectors.recalculate();
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
