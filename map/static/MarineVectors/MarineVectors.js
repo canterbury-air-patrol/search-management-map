@@ -466,7 +466,7 @@ class MarineVectors {
         html += '<td>'
         html += '<label for="leeway_type">Leeway Type:</label>'
         html += '</td>'
-        html += '<td>'
+        html += '<td colspan="2">'
         html += '<select id="leeway_type" name="leeway_type" class="selectpicker" data-live-search="true" />'
         html += '</td>'
         html += '</tr>'
@@ -659,7 +659,7 @@ L.MarineVectors = function(map, pos_name, pos) {
         "<div><button class='btn btn-primary' id='command_show'>Show</button>",
         "<button class='btn btn-danger' id='command_cancel'>Cancel</button></div>",
     ].join('');
-    var marineVectorsDialog = new L.control.dialog({'initOpen': true, size: [1000, 1000]}).setContent(contents).addTo(map).hideClose();
+    var marineVectorsDialog = new L.control.dialog({'initOpen': true, size: [1000, 500]}).setContent(contents).addTo(map).hideClose();
     var marine_vectors = new MarineVectors("mvd_input_table", "mvd_curr_vectors", "mvd_wind_vectors")
     var onMap = null
 
