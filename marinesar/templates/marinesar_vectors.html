@@ -10,26 +10,20 @@
     {% bootstrap_javascript %}
     <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
     <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/js/bootstrap-select.min.js"></script>
 </head>
 <body>
     <form action="" method="POST">
-        Operation: {{ mission.mission_name }} <br />
-        <label for="subject">Subject:</label> <input type="text" name="subject" /> <br />
-        <label for="LKP">Reference Position:</label> <input type="text" name="LKP" />
-        <label for="LKP_lat">Latitude:</label> <input type="text" name="LKP_lat" />
-        <label for="LKP_lng">Longitude:</label> <input type="text" name="LKP_lng" /> <br />
-        <label for="target_description">Target Description:</label> <input type="text" name="target_description" /><br />
-        <label for="leeway_type">Leeway Type: </label>
-        <select name="leeway_type">
-            <option value="PIW-1">PIW</option>
-            <option value="PIW-2">PIW - Vertical</option>
-            <option value="PIW-3">PIW - Sitting</option>
-            <option value="PIW-4">PIW - Horizontal - Survival Suit</option>
-            <option value="PIW-5">PIW - Horizontal - Scuba Suit</option>
-            <option value="PIW-6">PIW - Horizontal - Deceased</option>
-        </select>
+        <table id="vector_inputs_table" class="table">
+            <tr>
+                <td>Operation: </td>
+                <td>{{ mission.mission_name }}</td>
+            </tr>
+        </table>
         <h2>Current:</h2>
-        <table id="current_vectors">
+        <table id="current_vectors" class="table">
             <tr>
                 <th>From:</th>
                 <th>To:</th>
@@ -42,7 +36,7 @@
         </table>
         <button id='btn_current_vector' class='btn btn-primary'>Add Current Vector</button>
         <h2>Wind:</h2>
-        <table id="wind_vectors">
+        <table id="wind_vectors" class="table">
             <tr>
                 <th>From:</th>
                 <th>To:</th>
@@ -62,7 +56,9 @@
     Distance: <em id="tdv_result_distance"></em> NM
 
     <script>
-        var vectors = new MarineVectors({'multiplier': 0.011, 'modifier': 0.07, 'divergence': 30 });
+        var vectors = new MarineVectors("vector_inputs_table");
+
+        vectors.populate_input_table()
 
         $('#btn_current_vector').click(function(e) {
             vectors.newCurrentVector();
