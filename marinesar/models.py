@@ -1,9 +1,16 @@
 """
-Models for the map
-
-There shouldn't be any required
+Models for marine sar tools
 """
 
-from django.db import models
+from data.models import GeoTime
 
 
+class MarineTotalDriftVector(GeoTime):
+    """
+    A Marine Total Drift Vector Calculation
+    """
+
+    GEOJSON_FIELDS = (
+        'pk',
+        'created_at',
+    )

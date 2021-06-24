@@ -108,7 +108,9 @@ function poiCreate(poi, layer) {
 
     popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button></div>'
+    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
+    popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '));">Calculate TDV</button>'
+    popupContent += '</div>'
 
     layer.bindPopup(popupContent);
 }

@@ -370,11 +370,13 @@ search_object_leeway = [
 ]
 
 class MarineVectors {
-    constructor(input_table_id) {
+    constructor(input_table_id, current_vectors_table_id, wind_vectors_table_id) {
         this.current_vectors = []
         this.wind_vectors = []
         this.leeway_data = {}
         this.input_table_id = input_table_id
+        this.current_vectors_table_id = current_vectors_table_id
+        this.wind_vectors_table_id = wind_vectors_table_id
     }
     getResultingVector()
     {
@@ -487,6 +489,35 @@ class MarineVectors {
         this.update_leeway_data()
     }
 
+    populate_data_tables()
+    {
+        var html = '<thead>'
+        html += '<th>From:</th>'
+        html += '<th>To:</th>'
+        html += '<th>Direction (&deg;T)</th>'
+        html += '<th>Speed (knots)</th>'
+        html += '<th>Time Interval</th>'
+        html += '<th>Vector direction (&deg;T)</th>'
+        html += '<th>Vector distance (NM)</th>'
+        html += '</thead>'
+
+        $("#" + this.current_vectors_table_id).html(html)
+
+        var html = '<thead>'
+        html += '<th>From:</th>'
+        html += '<th>To:</th>'
+        html += '<th>Direction (&deg;T)</th>'
+        html += '<th>Speed (knots)</th>'
+        html += '<th>Leeway Direction (&deg;T)</th>'
+        html += '<th>Leeway Rate (knots)</th>'
+        html += '<th>Time Interval</th>'
+        html += '<th>Vector direction (&deg;T)</th>'
+        html += '<th>Vector distance (NM)</th>'
+        html += '</thead>'
+
+        $("#" + this.wind_vectors_table_id).html(html)
+    }
+
     update_leeway_data()
     {
         var leeway_idx = $("#" + this.leeway_selector).val();
@@ -554,7 +585,7 @@ class MarineVectors {
     {
         var curr_vector = this.addCurrentVector()
         var cvc = curr_vector.idx
-        $('#current_vectors').append('<tr>' +
+        $('#' + this.current_vectors_table_id).append('<tr>' +
             '<td><input type="number" minlength="4" maxlength="4" id="curr_time_start_' + cvc + '" name="curr_time_start_' + cvc + '" /></td>' +
             '<td><input type="number" minlength="4" maxlength="4" id="curr_time_end_' + cvc + '" name="curr_time_end_' + cvc + '" /></td>' +
             '<td><input type="number" minlength="3" maxlength="3" max="360" id="curr_direction_' + cvc + '" name="curr_direction_' + cvc + '" /></td>' +
@@ -584,9 +615,10 @@ class MarineVectors {
 
     newWindVector()
     {
-        var wind_vector = vectors.addWindVector()
+        var vectors = this
+        var wind_vector = this.addWindVector()
         var wvc = wind_vector.idx
-        $('#wind_vectors').append('<tr>' +
+        $('#' + this.wind_vectors_table_id).append('<tr>' +
             '<td><input type="number" minlength="4" maxlength="4" id="wind_time_start_' + wvc + '" name="wind_time_start_' + wvc + '" /></td>' +
             '<td><input type="number" minlength="4" maxlength="4" id="wind_time_end_' + wvc + '" name="wind_time_end_' + wvc + '" /></td>' +
             '<td><input type="number" minlength="3" maxlength="3" max="360" id="wind_from_direction_' + wvc + '" name="wind_from_direction_' + wvc + '" /></td>' +
@@ -614,4 +646,98 @@ class MarineVectors {
             vectors.recalculate();
         })
     }
+}
+
+L.MarineVectors = function(map, pos_name, pos) {
+    var contents = [
+        "<div id='marinevectorsdialog'>",
+        "<table id='mvd_input_table'></table>",
+        "<table id='mvd_curr_vectors'></table>",
+        "<button class='btn btn-primary' id='curr_create'>Add Current</button>",
+        "<table id='mvd_wind_vectors'></table></div>",
+        "<button class='btn btn-primary' id='wind_create'>Add Wind</button>",
+        "<div><button class='btn btn-primary' id='command_show'>Show</button>",
+        "<button class='btn btn-danger' id='command_cancel'>Cancel</button></div>",
+    ].join('');
+    var marineVectorsDialog = new L.control.dialog({'initOpen': true, size: [1000, 1000]}).setContent(contents).addTo(map).hideClose();
+    var marine_vectors = new MarineVectors("mvd_input_table", "mvd_curr_vectors", "mvd_wind_vectors")
+    var onMap = null
+
+    marine_vectors.populate_input_table()
+    marine_vectors.populate_data_tables()
+
+    $('#LKP').val(pos_name);
+    $('#LKP_lat').val(deg_to_dm(pos.lat, true));
+    $('#LKP_lng').val(deg_to_dm(pos.lng, false));
+
+    $('#curr_create').click(function() {
+        marine_vectors.newCurrentVector();
+        marine_vectors.recalculate();
+    });
+    $('#wind_create').click(function() {
+        marine_vectors.newWindVector();
+        marine_vectors.recalculate();
+    });
+
+    $("#command_cancel").click(function() {
+        if (onMap !== null) {
+            onMap.remove();
+        }
+        marineVectorsDialog.destroy();
+    })
+    $("#command_show").click(function() {
+        var data = [
+            { name: 'from_lat', value: dm_to_deg($("#LKP_lat").val()) },
+            { name: 'from_lng', value: dm_to_deg($("#LKP_lng").val()) },
+            { name: 'curr_total', value: marine_vectors.current_vectors.length },
+            { name: 'wind_total', value: marine_vectors.wind_vectors.length },
+        ]
+        for (var curr_idx in marine_vectors.current_vectors)
+        {
+            var curr_vector = marine_vectors.current_vectors[curr_idx]
+
+            data.push({ 'name': 'curr_' + curr_idx + '_direction', 'value': curr_vector.getCurrentVectorDirection()})
+            data.push({ 'name': 'curr_' + curr_idx + '_distance', 'value': curr_vector.getCurrentVectorDistance() })
+        }
+
+        for (var wind_idx in marine_vectors.wind_vectors)
+        {
+            var wind_vector = marine_vectors.wind_vectors[wind_idx]
+
+            data.push({ 'name': 'wind_' + wind_idx + '_direction', 'value': wind_vector.getWindVectorDirection()})
+            data.push({ 'name': 'wind_' + wind_idx + '_distance', 'value': wind_vector.getWindVectorDistance() })
+        }
+
+        $.get('/mission/' + mission_id + '/sar/marine/vectors/create/', data, function(data) {
+            if (onMap !== null) {
+                onMap.remove();
+            }
+            onMap = L.geoJSON(data, {color: 'yellow'});
+            onMap.addTo(map);
+        });
+    })
+    $("#command_create").click(function() {
+        var data = [
+            { name: 'csrfmiddlewaretoken', value: csrftoken},
+            { name: 'asset', value: $("#id_asset").val()},
+            { name: 'reason', value: $("#id_reason").val()},
+            { name: 'command', value: $("#id_command").val()},
+        ]
+        if (gotoPoint != null) {
+            var coords = gotoPoint.getLatLng();
+            data.push({name: 'latitude', value: coords.lat })
+            data.push({name: 'longitude', value: coords.lng })
+        }
+        $.post('/mission/' + mission_id + '/assets/command/set/', data, function(data) {
+            console.log(data);
+            if (data === "Created") {
+                if (gotoPoint != null) {
+                    map.removeLayer(gotoPoint);
+                }
+                assetCommandDialog.destroy();
+                return;
+            }
+            $("#assetcommanddialog").html(data);
+        });
+    })
 }

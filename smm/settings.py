@@ -153,4 +153,8 @@ LEAFLET_CONFIG['PLUGINS'] = {
         'css': ['leaflet/locatecontrol/L.Control.Locate.mapbox.min.css', 'leaflet/locatecontrol/L.Control.Locate.min.css'],
         'auto-include': True,
     },
+    'MarineVectors': {
+        'js': 'MarineVectors/MarineVectors.js',
+        'auto-include': True,
+    }
 }
