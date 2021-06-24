@@ -172,13 +172,13 @@ def search_finished(request, search_id, object_class, asset, mission):
 
 @login_required
 @mission_is_member
-def search_delete(request, search_id):
+def search_delete(request, mission_user, search_id):
     """
     Delete a search
     """
     search = get_object_or_404(Search, pk=search_id)
 
-    if search.delete(request.user):
+    if search.delete(mission_user.user):
         return HttpResponse('Success')
 
     error = check_search_state(search, 'delete', None)
