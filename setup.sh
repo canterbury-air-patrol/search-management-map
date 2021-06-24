@@ -9,7 +9,7 @@ mkdir -p images/full images/thumbnail
 
 mkdir -p dl
 # Fetch jquery
-JQUERY_VERSION=3.3.1
+JQUERY_VERSION=3.6.0
 JQUERY_FILE=jquery-${JQUERY_VERSION}.min.js
 if [ ! -f dl/${JQUERY_FILE} ]
 then
@@ -31,7 +31,7 @@ if [ ! -f dl/${LEAFLET_DIALOG_FILE} ]
 then
 	curl -L https://github.com/NBTSolutions/Leaflet.Dialog/archive/v${LEAFLET_DIALOG_VERSION}.tar.gz -o dl/${LEAFLET_DIALOG_FILE}
 fi
-LEAFLET_LOCATECONTROL_VERSION=0.66.2
+LEAFLET_LOCATECONTROL_VERSION=0.73.0
 LEAFLET_LOCATECONTROL_FILE=leaflet-locatecontrol-${LEAFLET_LOCATECONTROL_VERSION}.tar.gz
 if [ ! -f dl/${LEAFLET_LOCATECONTROL_FILE} ]
 then
@@ -53,7 +53,7 @@ mkdir -p map/static/leaflet/locatecontrol/
 rm -fr tmp
 
 # Grab fontawesome
-FONTAWESOME_VERSION=5.8.1
+FONTAWESOME_VERSION=5.15.3
 FONTAWESOME_FILE=fontawesome-v${FONTAWESOME_VERSION}-all.css
 if [ ! -f dl/${FONTAWESOME_FILE} ]
 then
