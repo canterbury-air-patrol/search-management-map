@@ -19,7 +19,6 @@ class MarineSAC {
     recaclculate()
     {
         this.asset_speed = $("#" + this.asset_type + "_search_speed").val()
-        console.log($("#wu_" + this.column).text())
         this.wu = parseFloat($("#wu_" + this.column).text())
         this.fw = parseFloat($("#fw_" + this.column).text())
         this.fatigue = $("#fatigue").checked
@@ -84,6 +83,7 @@ table_rows = [
         'id_prefix': 'search_area',
         'input': true,
         'input_type': 'number',
+        'input_default': 144,
     },
     {
         'display_name': 'Search Hours (T) Total',
@@ -102,6 +102,49 @@ table_rows = [
     {
         'display_name': 'Track Spacing for Whole Area in Available Time',
         'id_prefix': 'achievable_track_spacing',
+    },
+]
+
+input_rows = [
+    {
+        'display_name': 'Target Description',
+        'form_field': 'target_description',
+        'input_type': 'text',
+    },
+    {
+        'display_name': 'Meteorological Visibility (km)',
+        'form_field': 'met_visibility',
+        'input_type': 'number',
+    },
+    {
+        'display_name': 'Wind Speed (knots)',
+        'form_field': 'wind_speed',
+        'input_type': 'number',
+    },
+    {
+        'display_name': 'Sea Height (meters)',
+        'form_field': 'sea_height',
+        'input_type': 'number',
+    },
+    {
+        'display_name': 'Boat Search Speed (knots)',
+        'form_field': 'boat_search_speed',
+        'input_type': 'number',
+    },
+    {
+        'display_name': 'Aircraft Search Speed (knots)',
+        'form_field': 'aircraft_search_speed',
+        'input_type': 'number',
+    },
+    {
+        'display_name': 'Target Type',
+        'form_field': 'target_type',
+        'input_type': 'select',
+    },
+    {
+        'display_name': 'Fatigue',
+        'form_field': 'fatigue',
+        'input_type': 'checkbox',
     },
 ]
 
@@ -273,10 +316,10 @@ search_object_distance = [
 ]
 
 class MarineSACTable {
-    constructor(table_id, target_type_id)
+    constructor(input_table_id, table_id)
     {
+        this.input_table_id = input_table_id
         this.table_id = table_id
-        this.target_type_id = target_type_id
         this.columns = [new MarineSAC("8ft", "boat"), new MarineSAC("14ft", "boat"), new MarineSAC("500ft", "aircraft"), new MarineSAC("1000ft", "aircraft")]
     }
     recaclculate()
@@ -311,7 +354,7 @@ class MarineSACTable {
             for (var idx in visible_distance_data)
             {
                 var data = visible_distance_data[idx]
-                if (data['vis'] < visibility && data['vis'] > highest_seen_vis)
+                if (data['vis'] <= visibility && data['vis'] > highest_seen_vis)
                 {
                     highest_seen_sweep_width = data['sw']
                     highest_seen_vis = data['vis']
@@ -330,6 +373,37 @@ class MarineSACTable {
         }
     }
 
+    populate_input_table()
+    {
+        var sac_table = this
+
+        for (var idx in input_rows)
+        {
+            var row = input_rows[idx]
+
+            var html = '<tr>'
+
+            html += '<td><label for="' + row['form_field'] + '">' + row['display_name'] + '</label></td>'
+            if (row['input_type'] == 'select')
+            {
+                html += '<td><select id="' + row['form_field'] + '" name="' + row['form_field'] + '"></select></td>'
+            }
+            else
+            {
+                html += '<td><input type="' + row['input_type'] + '" id="' + row['form_field'] + '" name="' + row['form_field'] + '"></input></td>'
+            }
+            html += '</tr>'
+            $("#" + this.input_table_id).append(html)
+            $("#" + row['form_field']).change(function()
+            {
+                sac_table.recaclculate()
+            })
+        }
+
+        this.target_type_id = 'target_type'
+        this.populate_target_types()
+    }
+
     populate_target_types()
     {
         var sac_table = this
@@ -343,6 +417,7 @@ class MarineSACTable {
             sac_table.recaclculate()
         })
     }
+
     populate_table()
     {
         var sac_table = this
@@ -359,7 +434,7 @@ class MarineSACTable {
                 if (table_rows[idx]['input'])
                 {
                     html += '<td>'
-                    html += '<input type="' + table_rows[idx]['input_type'] + '" id="' + table_rows[idx]['id_prefix'] + '_' + column.column + '">'
+                    html += '<input type="' + table_rows[idx]['input_type'] + '" id="' + table_rows[idx]['id_prefix'] + '_' + column.column + '" value="' + table_rows[idx]['input_default'] + '" />'
                 }
                 else
                 {

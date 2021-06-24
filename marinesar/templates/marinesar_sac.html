@@ -14,46 +14,14 @@
 <body>
     <form action="" method="POST">
         Operation: {{ mission.mission_name }} <br />
-        <table>
-        <tr>
-            <td><label for="target_description">Target Description:</label></td>
-            <td><input type="text" name="target_description" /></td>
-        </tr>
-        <tr>
-            <td><label for="met_vis">Meteorological Visibility (km):</label></td>
-            <td><input type="number" id="met_visibility" name="met_visibility" /></td>
-        </tr>
-        <tr>
-            <td><label for="wind_speed">Wind Speed (knots):</label></td>
-            <td><input type="number" id="wind_speed" name="wind_speed" /></td>
-        </tr>
-        <tr>
-            <td><label for="sea_height">Sea Height (meters):</label></td>
-            <td><input type="number" id="sea_height" name="sea_height" /></td>
-        </tr>
-        <tr>
-            <td><label for="boat_search_speed">Boat Search Speed (knots):</label></td>
-            <td><input type="number" id="boat_search_speed" name="boat_search_height" /></td>
-        </tr>
-        <tr>
-            <td><label for="aircraft_search_speed">Aircraft Search Speed (knots):</label></td>
-            <td><input type="number" id="aircraft_search_speed" name="aircraft_search_height" /></td>
-        </tr>
-        <tr>
-            <td><label for="target_type">Target Type:</label></td>
-            <td><select id="target_type_select" name="target_type"></select></td>
-        </tr>
-        <tr>
-            <td><label for="fatigue">Fatigue:</label></td>
-            <td><input type="checkbox" id="fatigue" name="fatigue" /></td>
-        </tr>
+        <table id="sac_inputs">
         </table>
         <table class="table" id="data_table">
         </table>
     </form>
     <script>
-        sac_table = new MarineSACTable("data_table", "target_type_select")
-        sac_table.populate_target_types()
+        sac_table = new MarineSACTable("sac_inputs", "data_table")
+        sac_table.populate_input_table()
         sac_table.populate_table()
     </script>
 </body>
