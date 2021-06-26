@@ -324,7 +324,8 @@ def creep_line_concave(lrng, width):
     """ Return a LineString creeping path across all convex polygons in a
     concave polygon"""
     # Decompose LinearRing into several convex LinearRings
-    lrngs_convex = decomp(LinearRing(lrng))
+    #pylint: disable=R1721
+    lrngs_convex = decomp(LinearRing([pt for pt in lrng]))
 
     # Create creeping line (LineString) for each convex LinearRing
     creep_lines = [creep_line(lr, width) for lr in lrngs_convex]
