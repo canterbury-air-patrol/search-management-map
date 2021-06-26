@@ -170,6 +170,6 @@ def user_line_make(request, mission=None, replaces=None):
             if not replaces.replace(lstl):
                 lstl.delete(request.user)
                 return HttpResponseBadRequest()
-    return to_geojson(GeoTimeLabel, [lstl])
+        return to_geojson(GeoTimeLabel, [lstl])
 
     return HttpResponseBadRequest()
