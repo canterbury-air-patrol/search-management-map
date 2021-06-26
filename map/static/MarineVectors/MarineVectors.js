@@ -656,6 +656,9 @@ L.MarineVectors = function(map, pos_name, pos) {
         "<button class='btn btn-primary' id='curr_create'>Add Current</button>",
         "<table id='mvd_wind_vectors'></table></div>",
         "<button class='btn btn-primary' id='wind_create'>Add Wind</button>",
+        "<h2>Resulting Total Drift Vector:</h2>",
+        "Direction: <em id='tdv_result_direction'></em> &deg;T <br />",
+        "Distance: <em id='tdv_result_distance'></em> NM",
         "<div><button class='btn btn-primary' id='command_show'>Show</button>",
         "<button class='btn btn-danger' id='command_cancel'>Cancel</button></div>",
     ].join('');
