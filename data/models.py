@@ -42,6 +42,8 @@ class GeoTime(models.Model):
 
     GEOFIELD = 'geo'
 
+    RECORD_TIMELINE = True
+
     def length(self):
         """
         Calculate the total length (in m) of this line
@@ -80,13 +82,14 @@ class GeoTime(models.Model):
             pass
 
         super().save(*args, **kwargs)
-        if exists:
-            if replaced:
-                timeline_record_update(self.mission, self.replaced_by.created_by, self.replaced_by, self)
-            elif self.deleted_at:
-                timeline_record_delete(self.mission, self.deleted_by, self)
-        else:
-            timeline_record_create(self.mission, self.created_by, self)
+        if self.RECORD_TIMELINE:
+            if exists:
+                if replaced:
+                    timeline_record_update(self.mission, self.replaced_by.created_by, self.replaced_by, self)
+                elif self.deleted_at:
+                    timeline_record_delete(self.mission, self.deleted_by, self)
+            else:
+                timeline_record_create(self.mission, self.created_by, self)
 
     def delete(self, user):
         '''
@@ -134,6 +137,8 @@ class AssetPointTime(GeoTime):
     asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
 
     GEOJSON_FIELDS = ('asset', 'created_at', 'heading', 'fix',)
+
+    RECORD_TIMELINE = False
 
     def __str__(self):
         return "{}: {} {}".format(self.asset, self.geo, self.created_at)
