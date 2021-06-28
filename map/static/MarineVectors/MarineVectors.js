@@ -648,7 +648,7 @@ class MarineVectors {
     }
 }
 
-L.MarineVectors = function(map, pos_name, pos) {
+L.MarineVectors = function(map, pos_name, pos, poi_id) {
     var contents = [
         "<div id='marinevectorsdialog'>",
         "<table id='mvd_input_table'></table>",
@@ -659,8 +659,9 @@ L.MarineVectors = function(map, pos_name, pos) {
         "<h2>Resulting Total Drift Vector:</h2>",
         "Direction: <em id='tdv_result_direction'></em> &deg;T <br />",
         "Distance: <em id='tdv_result_distance'></em> NM",
-        "<div><button class='btn btn-primary' id='command_show'>Show</button>",
-        "<button class='btn btn-danger' id='command_cancel'>Cancel</button></div>",
+        "<div><button class='btn btn-primary' id='tdv_show'>Show</button>",
+        "<div><button class='btn btn-primary' id='tdv_create'>Create</button>",
+        "<button class='btn btn-danger' id='tdv_cancel'>Cancel</button></div>",
     ].join('');
     var marineVectorsDialog = new L.control.dialog({'initOpen': true, size: [1000, 500]}).setContent(contents).addTo(map).hideClose();
     var marine_vectors = new MarineVectors("mvd_input_table", "mvd_curr_vectors", "mvd_wind_vectors")
@@ -682,16 +683,20 @@ L.MarineVectors = function(map, pos_name, pos) {
         marine_vectors.recalculate();
     });
 
-    $("#command_cancel").click(function() {
+    $("#tdv_cancel").click(function() {
         if (onMap !== null) {
             onMap.remove();
         }
         marineVectorsDialog.destroy();
     })
-    $("#command_show").click(function() {
+    var get_data = function()
+    {
         var data = [
             { name: 'from_lat', value: dm_to_deg($("#LKP_lat").val()) },
             { name: 'from_lng', value: dm_to_deg($("#LKP_lng").val()) },
+            { name: 'poi_id', value: poi_id },
+            { name: 'leeway_multiplier', value: marine_vectors.leeway_data['multiplier'] },
+            { name: 'leeway_modifier', value: marine_vectors.leeway_data['modifier'] },
             { name: 'curr_total', value: marine_vectors.current_vectors.length },
             { name: 'wind_total', value: marine_vectors.wind_vectors.length },
         ]
@@ -699,19 +704,30 @@ L.MarineVectors = function(map, pos_name, pos) {
         {
             var curr_vector = marine_vectors.current_vectors[curr_idx]
 
-            data.push({ 'name': 'curr_' + curr_idx + '_direction', 'value': curr_vector.getCurrentVectorDirection()})
-            data.push({ 'name': 'curr_' + curr_idx + '_distance', 'value': curr_vector.getCurrentVectorDistance() })
+            data.push({ name: 'curr_' + curr_idx + '_from', value: curr_vector.time_from })
+            data.push({ name: 'curr_' + curr_idx + '_to', value: curr_vector.time_to })
+            data.push({ name: 'curr_' + curr_idx + '_speed', value: curr_vector.current_speed })
+            data.push({ name: 'curr_' + curr_idx + '_direction', value: curr_vector.getCurrentVectorDirection()})
+            data.push({ name: 'curr_' + curr_idx + '_distance', value: curr_vector.getCurrentVectorDistance() })
         }
 
         for (var wind_idx in marine_vectors.wind_vectors)
         {
             var wind_vector = marine_vectors.wind_vectors[wind_idx]
 
-            data.push({ 'name': 'wind_' + wind_idx + '_direction', 'value': wind_vector.getWindVectorDirection()})
-            data.push({ 'name': 'wind_' + wind_idx + '_distance', 'value': wind_vector.getWindVectorDistance() })
+            data.push({ name: 'wind_' + wind_idx + '_from', value: wind_vector.time_from })
+            data.push({ name: 'wind_' + wind_idx + '_to', value: wind_vector.time_to })
+            data.push({ name: 'wind_' + wind_idx + '_from_direction', value: wind_vector.wind_direction_from })
+            data.push({ name: 'wind_' + wind_idx + '_speed', value: wind_vector.wind_speed })
+            data.push({ name: 'wind_' + wind_idx + '_direction', value: wind_vector.getWindVectorDirection()})
+            data.push({ name: 'wind_' + wind_idx + '_distance', value: wind_vector.getWindVectorDistance() })
         }
 
-        $.get('/mission/' + mission_id + '/sar/marine/vectors/create/', data, function(data) {
+        return data
+    }
+
+    $("#tdv_show").click(function() {
+        $.get('/mission/' + mission_id + '/sar/marine/vectors/create/', get_data(), function(data) {
             if (onMap !== null) {
                 onMap.remove();
             }
@@ -719,28 +735,15 @@ L.MarineVectors = function(map, pos_name, pos) {
             onMap.addTo(map);
         });
     })
-    $("#command_create").click(function() {
-        var data = [
-            { name: 'csrfmiddlewaretoken', value: csrftoken},
-            { name: 'asset', value: $("#id_asset").val()},
-            { name: 'reason', value: $("#id_reason").val()},
-            { name: 'command', value: $("#id_command").val()},
-        ]
-        if (gotoPoint != null) {
-            var coords = gotoPoint.getLatLng();
-            data.push({name: 'latitude', value: coords.lat })
-            data.push({name: 'longitude', value: coords.lng })
-        }
-        $.post('/mission/' + mission_id + '/assets/command/set/', data, function(data) {
-            console.log(data);
-            if (data === "Created") {
-                if (gotoPoint != null) {
-                    map.removeLayer(gotoPoint);
-                }
-                assetCommandDialog.destroy();
-                return;
+    $("#tdv_create").click(function() {
+        var data = get_data()
+        data.push({name: 'csrfmiddlewaretoken', value: csrftoken})
+
+        $.post('/mission/' + mission_id + '/sar/marine/vectors/create/', data, function(data) {
+            if (onMap !== null) {
+                onMap.remove();
             }
-            $("#assetcommanddialog").html(data);
+            marineVectorsDialog.destroy();
         });
     })
 }

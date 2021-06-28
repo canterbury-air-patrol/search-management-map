@@ -7,12 +7,24 @@ These views should only relate to presentation of the UI
 from django.db import connection as dbconn
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import GEOSGeometry, LineString, Point
-from django.shortcuts import render
+from django.http import HttpResponseNotFound, HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 
+from data.models import GeoTimeLabel
 from data.view_helpers import to_geojson
 from mission.decorators import mission_is_member
 
-from .models import MarineTotalDriftVector
+from .models import MarineTotalDriftVector, MarineTotalDriftVectorCurrent, MarineTotalDriftVectorWind
+
+
+def convert_time(time_value):
+    """
+    Convert user-entered time into supported format (i.e. inject :)
+    """
+    if ':' in time_value:
+        return time_value
+    return '{}:{}'.format(time_value[0:2], time_value[2:4])
 
 
 @login_required
@@ -34,22 +46,48 @@ def marine_vectors_create(request, mission_user):
     """
     Create a Marine Total Drift Vector
     """
+
+    user_data = None
+    save = False
+    if request.method == "POST":
+        user_data = request.POST
+        save = True
     if request.method == "GET":
-        print(request.GET)
-        vectors = []
-        lat = request.GET['from_lat']
-        lng = request.GET['from_lng']
-        start_point = Point(float(lng), float(lat))
-        curr_count = int(request.GET['curr_total'])
-        for i in range(0, curr_count):
-            bearing = request.GET['curr_{}_direction'.format(i)]
-            distance = float(request.GET['curr_{}_distance'.format(i)]) * 1852
-            vectors.append({'bearing': bearing, 'distance': distance})
-        wind_count = int(request.GET['wind_total'])
-        for i in range(0, wind_count):
-            bearing = request.GET['wind_{}_direction'.format(i)]
-            distance = float(request.GET['wind_{}_distance'.format(i)]) * 1852
-            vectors.append({'bearing': bearing, 'distance': distance})
+        user_data = request.GET
+    else:
+        HttpResponseNotFound('Unknown Method')
+
+    vectors = []
+    current_vectors = []
+    wind_vectors = []
+    poi_id = user_data.get('poi_id')
+    poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
+    lat = user_data.get('from_lat')
+    lng = user_data.get('from_lng')
+    start_point = Point(float(lng), float(lat))
+    leeway_multiplier = user_data.get('leeway_multiplier')
+    leeway_modifier = user_data.get('leeway_modifier')
+    curr_count = int(user_data.get('curr_total'))
+    for i in range(0, curr_count):
+        time_from = user_data.get('curr_{}_from'.format(i))
+        time_to = user_data.get('curr_{}_to'.format(i))
+        bearing = user_data.get('curr_{}_direction'.format(i))
+        distance = float(user_data.get('curr_{}_distance'.format(i))) * 1852
+        speed = float(user_data.get('curr_{}_speed'.format(i)))
+        vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'bearing': bearing, 'speed': speed, 'distance': distance}
+        current_vectors.append(vector)
+        vectors.append(vector)
+    wind_count = int(user_data.get('wind_total'))
+    for i in range(0, wind_count):
+        time_from = user_data.get('wind_{}_from'.format(i))
+        time_to = user_data.get('wind_{}_to'.format(i))
+        wind_from = user_data.get('wind_{}_from_direction'.format(i))
+        wind_speed = float(user_data.get('wind_{}_speed'.format(i)))
+        bearing = user_data.get('wind_{}_direction'.format(i))
+        distance = float(user_data.get('wind_{}_distance'.format(i))) * 1852
+        vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'wind_direction_from': wind_from, 'speed': wind_speed, 'bearing': bearing, 'distance': distance}
+        wind_vectors.append(vector)
+        vectors.append(vector)
 
     points = [start_point]
     current_point = start_point
@@ -62,9 +100,45 @@ def marine_vectors_create(request, mission_user):
         current_point = GEOSGeometry(reference_points[0])
         points.append(current_point)
 
-    total_drift_vector = MarineTotalDriftVector(geo=LineString(points))
+    total_drift_vector = MarineTotalDriftVector(geo=LineString(points), leeway_multiplier=leeway_multiplier, leeway_modifier=leeway_modifier, mission=mission_user.mission, created_by=mission_user.user, created_at=timezone.now(), datum=poi)
+    if save:
+        total_drift_vector.save()
+        for current in current_vectors:
+            start_time = convert_time(current['from'])
+            end_time = convert_time(current['to'])
+            current_vector = MarineTotalDriftVectorCurrent(total_drift=total_drift_vector, order=current['order'], start_time=start_time, end_time=end_time, direction=current['bearing'], speed=current['speed'])
+            current_vector.save()
+        for wind in wind_vectors:
+            start_time = convert_time(wind['from'])
+            end_time = convert_time(wind['to'])
+            wind_vector = MarineTotalDriftVectorWind(total_drift=total_drift_vector, order=wind['order'], start_time=start_time, end_time=end_time, wind_from_direction=wind['wind_direction_from'], wind_speed=wind['speed'])
+            wind_vector.save()
 
     return to_geojson(MarineTotalDriftVector, [total_drift_vector])
+
+
+@login_required
+@mission_is_member
+def marine_vectors_delete(request, tdv_id, mission_user):
+    """
+    Delete a Marine Total Drift Vector
+    """
+    total_drift = get_object_or_404(MarineTotalDriftVector, mission=mission_user.mission, pk=tdv_id)
+    if not total_drift.delete(mission_user.user):
+        if total_drift.deleted_at:
+            return HttpResponseNotFound("Drift Vector has already been deleted")
+        if total_drift.replaced_by is not None:
+            return HttpResponseNotFound("Drift Vector has been replaced")
+    return HttpResponse('Deleted')
+
+
+@login_required
+@mission_is_member
+def marine_vectors_all(request, mission_user):
+    """
+    Get all the current Total Drift Vectors as geojson
+    """
+    return to_geojson(MarineTotalDriftVector, MarineTotalDriftVector.all_current(mission_user.mission))
 
 
 @login_required

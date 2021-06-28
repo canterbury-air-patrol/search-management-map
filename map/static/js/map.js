@@ -109,7 +109,7 @@ function poiCreate(poi, layer) {
     popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
     popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
     popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '));">Calculate TDV</button>'
+    popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '), ' + poiID + ');">Calculate TDV</button>'
     popupContent += '</div>'
 
     layer.bindPopup(popupContent);
@@ -315,6 +315,18 @@ function imageCreate(image, layer) {
     layer.bindPopup(popupContent);
 }
 
+function tdvCreate(tdv, layer) {
+    var tdvID = tdv.properties.pk;
+
+    var popupContent = '<dl class="row"><dt class="image-label col-sm-2">Total Drift Vector</dt><dd class="image-name col-sm-10">' + tdvID + '</dd>'
+
+    popupContent += '<div class="btn-group">'
+    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/sar/marine/vectors/' + tdvID + '/delete/\')">Delete</button>'
+    popupContent += '</div>'
+
+    layer.bindPopup(popupContent);
+}
+
 // eslint-disable-next-line no-unused-vars
 function mapInit(map) {
     myMap = map;
@@ -340,6 +352,7 @@ function mapInit(map) {
     var searchIncompleteUpdateFreq = 30 * 1000;
     var searchCompleteUpdateFreq = 60 * 1000;
     var imageAllUpdateFreq = 60 * 1000;
+    var marineDataUpdateFreq = 60 * 1000;
 
     var realtime = L.realtime({
             url: "/mission/" + mission_id + "/data/assets/positions/latest/",
@@ -434,4 +447,16 @@ function mapInit(map) {
         }).addTo(map);
 
     overlayAdd("Images (prioritized)", realtime);
+
+    realtime = L.realtime({
+        url: "/mission/" + mission_id + "/sar/marine/vectors/current/",
+        type: 'json',
+    }, {
+        color: 'black',
+        interval: marineDataUpdateFreq,
+        onEachFeature: tdvCreate,
+        getFeatureId: function(feature) { return feature.properties.pk; },
+    }).addTo(map);
+
+    overlayAdd("Marine - Total Drift Vectors", realtime);
 }

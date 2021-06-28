@@ -9,5 +9,7 @@ from . import views
 urlpatterns = [
     url(r'^mission/(?P<mission_id>\d+)/sar/marine/vectors/$', views.marine_vectors, name='marine_vectors'),
     url(r'^mission/(?P<mission_id>\d+)/sar/marine/vectors/create/$', views.marine_vectors_create, name='marine_vectors_create'),
+    url(r'^mission/(?P<mission_id>\d+)/sar/marine/vectors/(?P<tdv_id>\d+)/delete/$', views.marine_vectors_delete, name='marine_vectors_delete'),
+    url(r'^mission/(?P<mission_id>\d+)/sar/marine/vectors/current/$', views.marine_vectors_all, name='marine_vectors_all'),
     url(r'^mission/(?P<mission_id>\d+)/sar/marine/sac/$', views.marine_sac, name='marine_sac'),
 ]
