@@ -21,11 +21,11 @@ def search_json(request, search_id, object_class):
     return to_geojson(object_class, [search])
 
 
-def check_searches_in_progress(asset):
+def check_searches_in_progress(mission, asset):
     """
-    Check if the specified asset has any searches in progress
+    Check if the specified asset has any searches in progress in the specific mission
     """
-    searches = Search.objects.filter(inprogress_by=asset).exclude(completed_at__isnull=False)
+    searches = Search.objects.filter(inprogress_by=asset,mission=mission).exclude(completed_at__isnull=False)
     if searches.exists():
         return searches[0]
 
