@@ -75,7 +75,7 @@ def find_next_search(request, asset, mission):
         return JsonResponse(data)
 
     # If this asset already has a search in progress, only offer that
-    search = check_searches_in_progress(asset)
+    search = check_searches_in_progress(mission, asset)
     if search:
         return search_data(search)
 
