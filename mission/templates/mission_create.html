@@ -8,16 +8,21 @@
         <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
         {% bootstrap_css %}
         {% bootstrap_javascript %}
+        <script>
+            $(window).on('pageshow', function(){
+                 $("#mission_create_btn").attr("disabled", false);
+            });
+        </script>
         <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
         <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
     </head>
     <body style="height: 100%">
-        <form method="POST">
-        {% csrf_token %}
-        <table>
-        {{ form.as_table }}
-        </table>
-        <button id='mission_create_btn' class="btn btn-primary" onclick='$("#mission_create_btn").attr("disabled", true);'>Start</button>
+        <form method="POST" onsubmit='$("#mission_create_btn").attr("disabled", true)'>
+            {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+            </table>
+            <button id='mission_create_btn' class="btn btn-primary">Start</button>
         </form>
     </body>
 </html>
