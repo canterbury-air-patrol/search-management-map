@@ -49,7 +49,7 @@ mkdir -p map/static/leaflet/dialog/
 	cp Leaflet.Dialog-${LEAFLET_DIALOG_VERSION}/Leaflet.Dialog.{js,css} ../map/static/leaflet/dialog/)
 rm -fr tmp; mkdir tmp
 mkdir -p map/static/leaflet/locatecontrol/
-(cd tmp; tar xf ../dl/${LEAFLET_LOCATECONTROL_FILE}; cp leaflet-locatecontrol-${LEAFLET_LOCATECONTROL_VERSION}/dist/*.min.{js,css} ../map/static/leaflet/locatecontrol/)
+(cd tmp; tar xf ../dl/${LEAFLET_LOCATECONTROL_FILE}; cp leaflet-locatecontrol-${LEAFLET_LOCATECONTROL_VERSION}/dist/L.Control.Locate.min.{js,css} ../map/static/leaflet/locatecontrol/)
 rm -fr tmp
 
 # Grab fontawesome
