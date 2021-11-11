@@ -7,7 +7,7 @@
         <title>Search Map</title>
         <script type="text/javascript">
             csrftoken = "{{ csrf_token }}";
-            mission_id = "{{ mission.pk }}";
+            mission_id = "{% if mission == 'all' or mission == 'current' %}{{ mission }}{% else %}{{ mission.pk }}{% endif %}";
         </script>
         {% leaflet_js %}
         {% leaflet_css %}

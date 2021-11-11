@@ -142,6 +142,14 @@ def marine_vectors_all(request, mission_user):
 
 
 @login_required
+def marine_vectors_all_user(request, current_only):
+    """
+    Get all the current Total Drift Vectors as geojson (for all missions)
+    """
+    return to_geojson(MarineTotalDriftVector, MarineTotalDriftVector.all_current_user(request.user, current_only=current_only))
+
+
+@login_required
 @mission_is_member
 def marine_sac(request, mission_user):
     """

@@ -49,6 +49,24 @@ def assets_position_latest(request, mission_user):
 
 
 @login_required
+def assets_position_latest_user(request, current_only):
+    """
+    Get the last position of each of the know assets from all missions
+    """
+    assets = Asset.objects.all()
+    positions = []
+    for asset in assets:
+        points = AssetPointTime.objects
+        if current_only:
+            points = points.filter(mission__closed__isnull=True)
+        points = points.filter(mission__missionuser__user=request.user, asset=asset).order_by('-created_at')[:1]
+        for point in points:
+            positions.append(point)
+
+    return to_geojson(AssetPointTime, positions)
+
+
+@login_required
 @asset_is_recorder
 def asset_record_position(request, asset):
     """
@@ -122,9 +140,7 @@ def asset_record_position(request, asset):
     return HttpResponse("Continue")
 
 
-@login_required
-@mission_is_member
-def asset_position_history(request, mission_user, asset_name):
+def asset_position_history(request, asset_name, mission=None, user=None, current_only=False):
     """
     Get the full track from an asset.
 
@@ -138,7 +154,14 @@ def asset_position_history(request, mission_user, asset_name):
 
     asset = get_object_or_404(Asset, name=asset_name)
 
-    positions = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset)
+    positions = AssetPointTime.objects
+    if mission is not None:
+        positions = positions.filter(mission=mission_user.mission)
+    elif user is not None:
+        positions = positions.filter(mission__missionuser__user=user)
+        if current_only:
+            positions = positions.filter(mission__closed__isnull=True)
+    positions = positions.filter(asset=asset)
     if since is not None:
         positions = positions.filter(created_at__gt=since)
     if oldest == 'last':
@@ -151,11 +174,48 @@ def asset_position_history(request, mission_user, asset_name):
 
 @login_required
 @mission_is_member
-def point_labels_all(request, mission_user):
+def asset_position_history_mission(request, mission_user, asset_name):
     """
-    Get all the current POIs as geojson
+    Get the full track from an asset.
+
+    When from is provided, only points after the timestamp from are considered.
     """
-    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='poi'))
+    return asset_position_history(request, asset_name, mission=mission_user.mission)
+
+
+@login_required
+def asset_position_history_user(request, asset_name, current_only):
+    """
+    Get the full track from an asset.
+
+    When from is provided, only points after the timestamp from are considered.
+    """
+    return asset_position_history(request, asset_name, user=request.user, current_only=current_only)
+
+
+@login_required
+@mission_is_member
+def data_all_specific_mission_type(request, mission_user, geo_type):
+    """
+    Get all the current (geo_type)s as geojson from the specified mission
+    """
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type=geo_type))
+
+
+@login_required
+def data_all_all_missions_type(request, geo_type):
+    """
+    Get all current (geo_type)s from all missions this user is in
+    """
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo_user(request.user, geo_type))
+
+
+@login_required
+def data_all_current_missions_type(request, geo_type):
+    """
+    Get all current (geo_type)s from all missions this user is in
+    """
+    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo_user(request.user, geo_type, current_only=True))
 
 
 def point_labels_all_kml(request, mission_id):
@@ -193,15 +253,6 @@ def point_label_delete(request, mission_user, poi):
     return geotimelabel_delete(request, 'POI', poi, 'poi', mission_user)
 
 
-@login_required
-@mission_is_member
-def user_polygons_all(request, mission_user):
-    """
-    Get all the current user polygons as geojson
-    """
-    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='polygon'))
-
-
 def user_polygons_all_kml(request, mission_id):
     """
     Get all the current user polygons as kml
@@ -235,15 +286,6 @@ def user_polygon_delete(request, mission_user, polygon):
     Delete a user polygon
     """
     return geotimelabel_delete(request, 'Polygon', polygon, 'polygon', mission_user)
-
-
-@login_required
-@mission_is_member
-def user_lines_all(request, mission_user):
-    """
-    Get all the current user lines as geojson
-    """
-    return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission_user.mission, geo_type='line'))
 
 
 def user_lines_all_kml(request, mission_id):

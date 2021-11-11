@@ -56,6 +56,14 @@ def images_list_all(request, mission_user):
 
 
 @login_required
+def images_list_all_user(request, current_only):
+    """
+    Get all the current Images as geojson from all missions
+    """
+    return to_geojson(GeoImage, GeoImage.all_current_user(request.user, current_only=current_only))
+
+
+@login_required
 @mission_is_member
 def images_list_important(request, mission_user):
     """
@@ -63,6 +71,21 @@ def images_list_important(request, mission_user):
     """
     return to_geojson(GeoImage, GeoImage.all_current(mission_user.mission).exclude(priority=False))
 
+
+@login_required
+def images_list_important_user(request, current_only):
+    """
+    Get the current priority Images as geojson from all missions
+    """
+    return to_geojson(GeoImage, GeoImage.all_current_user(request.user, current_only=current_only).exclude(priority=False))
+
+
+@login_required
+def images_list_important_current(request):
+    """
+    Get the current priority Images as geojson from current missions
+    """
+    return to_geojson(GeoImage, GeoImage.all_current_user(request.user, current_only=True).exclude(priority=False))
 
 @login_required
 @mission_is_member

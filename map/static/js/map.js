@@ -106,11 +106,14 @@ function poiCreate(poi, layer) {
     popupContent += '<dt class="poi-lat-label col-sm-2">Lat</dt><dd class="poi-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
     popupContent += '<dt class="poi-lng-label col-sm-2">Long</dt><dd class="poi-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
 
-    popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '), ' + poiID + ');">Calculate TDV</button>'
-    popupContent += '</div>'
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
+        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
+        popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
+        popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '), ' + poiID + ');">Calculate TDV</button>'
+        popupContent += '</div>'
+    }
 
     layer.bindPopup(popupContent);
 }
@@ -129,10 +132,12 @@ function userPolygonCreate(poly, layer) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     }
 
-    popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
-
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
+        popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
+    }
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
 
@@ -148,9 +153,12 @@ function userLineCreate(line, layer) {
         pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
     })
 
-    popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/\')">Delete</button>'
-    popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
+        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/\')">Delete</button>'
+        popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
+    }
 
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
@@ -263,14 +271,17 @@ function searchIncompleteCreate(search, layer) {
 
     var popupContent = searchDataToPopUp(data);
 
-    popupContent += '<div class="btn-group">';
-    if (!InprogressBy) {
-        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/search/' + SearchID + '/delete/\')">Delete</button>'
-        if (!QueuedAt) {
-            popupContent += '<button class="btn btn-light" onClick="searchQueueDialog(\'' + SearchID + '\', \'' + AssetType + '\')">Queue</button>'
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        popupContent += '<div class="btn-group">';
+        if (!InprogressBy) {
+            popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/search/' + SearchID + '/delete/\')">Delete</button>'
+            if (!QueuedAt) {
+                popupContent += '<button class="btn btn-light" onClick="searchQueueDialog(\'' + SearchID + '\', \'' + AssetType + '\')">Queue</button>'
+            }
         }
+        popupContent += '</div>';
     }
-    popupContent += '</div>';
 
     layer.bindPopup(popupContent, { minWidth: 200 });
 }
@@ -306,10 +317,13 @@ function imageCreate(image, layer) {
 
     popupContent += '<div style="width: 128px"><a href="/mission/' + mission_id + '/image/' + imageID + '/full/"><img src="/mission/' + mission_id + '/image/' + imageID + '/thumbnail/" /></a></div>';
 
-    if (image.properties.priority) {
-        popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/unset/\');">Deprioritize</button>';
-    } else {
-        popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/set/\');">Prioritize</button>';
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        if (image.properties.priority) {
+            popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/unset/\');">Deprioritize</button>';
+        } else {
+            popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/set/\');">Prioritize</button>';
+        }
     }
     popupContent += '</div>'
     layer.bindPopup(popupContent);
@@ -320,9 +334,12 @@ function tdvCreate(tdv, layer) {
 
     var popupContent = '<dl class="row"><dt class="image-label col-sm-2">Total Drift Vector</dt><dd class="image-name col-sm-10">' + tdvID + '</dd>'
 
-    popupContent += '<div class="btn-group">'
-    popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/sar/marine/vectors/' + tdvID + '/delete/\')">Delete</button>'
-    popupContent += '</div>'
+    if (mission_id !== 'current' && mission_id !== 'all')
+    {
+        popupContent += '<div class="btn-group">'
+        popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/sar/marine/vectors/' + tdvID + '/delete/\')">Delete</button>'
+        popupContent += '</div>'
+    }
 
     layer.bindPopup(popupContent);
 }
@@ -335,15 +352,17 @@ function mapInit(map) {
 
     map.locate({ setView: true, maxZoom: 16 });
 
-    L.control.poiadder({}).addTo(map);
-    L.control.polygonadder({}).addTo(map);
-    L.control.lineadder({}).addTo(map);
-    L.control.locate({
-        setView: 'untilPan',
-        keepCurrentZoomLevel: true,
-        locateOptions: { enableHighAccuracy: true},
-    }).addTo(map);
-    L.control.imageuploader({}).addTo(map);
+    if (mission_id !== 'current' && mission_id !== 'all') {
+        L.control.poiadder({}).addTo(map);
+        L.control.polygonadder({}).addTo(map);
+        L.control.lineadder({}).addTo(map);
+        L.control.locate({
+            setView: 'untilPan',
+            keepCurrentZoomLevel: true,
+            locateOptions: { enableHighAccuracy: true},
+        }).addTo(map);
+        L.control.imageuploader({}).addTo(map);
+    }
     L.control.smmadmin({}).addTo(map);
 
     var assetUpdateFreq = 3 * 1000;

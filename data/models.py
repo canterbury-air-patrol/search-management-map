@@ -69,6 +69,26 @@ class GeoTime(models.Model):
             objects = objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True)
         return objects
 
+    @classmethod
+    def all_current_user(cls, user, current_at=None, current_only=False):
+        '''
+        Find all the objects that were valid at the current_at time.
+
+        user is the user who is a member of the missions the objects are part of
+        current_at being None means now, otherwise only objects that existed at the time will be returned
+        '''
+        objects = cls.objects.filter(mission__missionuser__user=user)
+        if current_only:
+            objects = objects.filter(mission__closed__isnull=True)
+        if current_at:
+            # Filter out any deleted objects
+            objects = objects.filter(Q(deleted_at__isnull=True) | Q(deleted_at__gt=current_at))
+            objects = objects.filter(Q(replaced_at__isnull=True) | Q(replaced_at__gt=current_at))
+            objects = objects.filter(created_at__gt=current_at)
+        else:
+            objects = objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True)
+        return objects
+
     # pylint: disable=W0221
     def save(self, *args, **kwargs):
         exists = False
@@ -182,6 +202,19 @@ class GeoTimeLabel(GeoTime):
         current_at being None means now, otherwise only objects that existed at the time will be returned
         '''
         objects = cls.all_current(mission, current_at=current_at).filter(geo_type=geo_type)
+        return objects
+
+    @classmethod
+    def all_current_of_geo_user(cls, user, geo_type, current_at=None, current_only=False):
+        '''
+        Find all the objects of the given geo_type that were valid at the current_at time.
+
+        user find all objects that are in a mission this user is in
+        geo_type needs to be one of GEO_TYPE
+        current_at being None means now, otherwise only objects that existed at the time will be returned
+        current_only if True, only consider missions that haven't ended yet
+        '''
+        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only).filter(geo_type=geo_type)
         return objects
 
     class Meta:

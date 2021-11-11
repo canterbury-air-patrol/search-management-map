@@ -23,4 +23,9 @@ urlpatterns = [
     url(r'^search/creepingline/create/track/$', views.track_creeping_line_search_create, name='track_creeping_line_search_create'),
     url(r'^search/creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
     url(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
+
+    url(r'^mission/all/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': False}),
+    url(r'^mission/all/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': False}),
+    url(r'^mission/current/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': True}),
+    url(r'^mission/current/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': True}),
 ]

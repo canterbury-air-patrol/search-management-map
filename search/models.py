@@ -146,11 +146,35 @@ class Search(GeoTime):
         return objects
 
     @classmethod
+    def all_current_completed_user(cls, user, current_at=None, current_only=False):
+        """
+        Get all the searches that are current and completed
+        """
+        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only)
+        if current_at:
+            objects = objects.filter(completed_at__lt=current_at)
+        else:
+            objects = objects.filter(completed_at__isnull=False)
+        return objects
+
+    @classmethod
     def all_current_incomplete(cls, mission, current_at=None):
         """
         Get all the searches that are current and not yet complete
         """
         objects = cls.all_current(mission, current_at=current_at)
+        if current_at:
+            objects = objects.filter(completed_at__gt=current_at)
+        else:
+            objects = objects.filter(completed_at__isnull=True)
+        return objects
+
+    @classmethod
+    def all_current_incomplete_user(cls, user, current_at=None, current_only=False):
+        """
+        Get all the searches that are current and not yet complete
+        """
+        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only)
         if current_at:
             objects = objects.filter(completed_at__gt=current_at)
         else:

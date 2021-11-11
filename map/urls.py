@@ -9,5 +9,7 @@ from . import views
 
 urlpatterns = [
     url(r'^mission/(?P<mission_id>\d+)/map/$', views.map_main, name='map_main'),
+    url(r'^mission/current/map/$', views.map_main_current, name='map_main_current'),
+    url(r'^mission/all/map/$', views.map_main_all, name='map_main_all'),
     url(r'^record/$', views.recording, name='recording'),
 ]

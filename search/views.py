@@ -220,6 +220,14 @@ def search_incomplete(request, mission_user, search_class):
     return to_geojson(search_class, search_class.all_current_incomplete(mission_user.mission))
 
 
+@login_required
+def search_incomplete_user(request, search_class, current_only):
+    """
+    Get a list of all the incomplete (search_class) searches in current missions this user is a member of (as json)
+    """
+    return to_geojson(search_class, search_class.all_current_incomplete_user(request.user, current_only=current_only))
+
+
 def search_incomplete_kml(request, mission_id, search_class):
     """
     Get a list of all the incomplete (search_type) searches (as kml)
@@ -235,6 +243,14 @@ def search_completed(request, mission_user, search_class):
     Get a list of all the completed (search_class) searches (as json)
     """
     return to_geojson(search_class, search_class.all_current_completed(mission_user.mission))
+
+
+@login_required
+def search_completed_user(request, search_class, current_only):
+    """
+    Get a list of all the completed (search_class) searches in all missions this user has been a member of (as json)
+    """
+    return to_geojson(search_class, search_class.all_current_completed_user(request.user, current_only=current_only))
 
 
 def search_completed_kml(request, mission_id, search_class):
