@@ -254,7 +254,7 @@ def mission_asset_remove(request, mission_user, asset_id):
     timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=asset)
 
     # Tell the asset
-    command = AssetCommand(asset=asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission)
+    command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission)
     command.save()
 
     return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
