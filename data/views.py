@@ -156,7 +156,7 @@ def asset_position_history(request, asset_name, mission=None, user=None, current
 
     positions = AssetPointTime.objects
     if mission is not None:
-        positions = positions.filter(mission=mission_user.mission)
+        positions = positions.filter(mission=mission)
     elif user is not None:
         positions = positions.filter(mission__missionuser__user=user)
         if current_only:

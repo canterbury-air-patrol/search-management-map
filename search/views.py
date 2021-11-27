@@ -135,7 +135,7 @@ def search_begin(request, search_id, object_class, asset, mission):
     if search.mission != mission:
         return HttpResponseForbidden("Asset not currently assigned to the mission this search is in.")
 
-    inprogress_search = check_searches_in_progress(asset)
+    inprogress_search = check_searches_in_progress(mission, asset)
     if inprogress_search is not None:
         if inprogress_search != search:
             return HttpResponseForbidden("Asset already has a search in progress.")

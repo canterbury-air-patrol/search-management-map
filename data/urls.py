@@ -10,7 +10,7 @@ from . import views
 urlpatterns = [
     url(r'^mission/(?P<mission_id>\d+)/data/assets/positions/latest/$', views.assets_position_latest, name='assets_position_latest'),
     url(r'^data/assets/(?P<asset_name>.*)/position/add/$', views.asset_record_position, name='asset_record_position'),
-    url(r'^mission/(?P<mission_id>\d+)/data/assets/(?P<asset_name>.*)/position/history/$', views.asset_position_history, name='asset_position_history'),
+    url(r'^mission/(?P<mission_id>\d+)/data/assets/(?P<asset_name>.*)/position/history/$', views.asset_position_history_mission, name='asset_position_history'),
     url(r'^mission/(?P<mission_id>\d+)/data/pois/current/$', views.data_all_specific_mission_type, {'geo_type': 'poi'}),
     url(r'^mission/(?P<mission_id>\d+)/data/pois/current/kml/$', views.point_labels_all_kml, name='point_labels_all_kml'),
     url(r'^mission/(?P<mission_id>\d+)/data/pois/create/$', views.point_label_create, name='point_label_create'),
