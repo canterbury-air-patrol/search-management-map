@@ -134,7 +134,7 @@ function userPolygonCreate(poly, layer) {
 
     if (mission_id !== 'current' && mission_id !== 'all')
     {
-        popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\')">Edit</button>';
+        popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\').create()">Edit</button>';
         popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
         popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
     }
