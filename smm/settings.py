@@ -111,6 +111,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 
 LOGIN_REDIRECT_URL = '/'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 LEAFLET_CONFIG['PLUGINS'] = {
     'realtime': {
         'js': 'leaflet/realtime/leaflet-realtime.js',
