@@ -20,4 +20,4 @@ class GeoImage(GeoTime):
     GEOJSON_FIELDS = ('pk', 'created_at', 'description', 'priority', )
 
     def __str__(self):
-        return "Image ({}) @ {}".format(self.description, self.geo)
+        return "Image ({}) @ {}, {}".format(self.description, self.geo[0], self.geo[1])

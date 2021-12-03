@@ -484,6 +484,9 @@ class Search(GeoTime):
             search.save()
         return search
 
+    def __str__(self):
+        return "{} search from {}, sweep width = {}, asset class = {}".format(self.search_type, self.datum, self.sweep_width, self.created_for)
+
     class Meta:
         indexes = [
             # Indexes for both cases of all_current_of_*complete*

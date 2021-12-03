@@ -23,7 +23,8 @@ def upload_image_file(mission_user, description, point, file):
     # Create an entry in the database for this file
     filename = file.name
     ext = map_ext(filename.split('.')[-1])
-    image = GeoImage(mission=mission_user.mission, creator=mission_user.user, description=description, point=point, original_format=ext)
+
+    image = GeoImage(mission=mission_user.mission, created_by=mission_user.user, description=description, geo=point, original_format=ext)
     image.save()
     full_image = 'images/full/{}.data'.format(image.pk)
     with open(full_image, 'wb') as destination:

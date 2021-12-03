@@ -217,6 +217,9 @@ class GeoTimeLabel(GeoTime):
         objects = cls.all_current_user(user, current_at=current_at, current_only=current_only).filter(geo_type=geo_type)
         return objects
 
+    def __str__(self):
+        return "{} near {}, {}".format(self.geo_type, self.geo.point_on_surface[0], self.geo.point_on_surface[1])
+
     class Meta:
         indexes = [
             # Indexes for both cases of all_current_of_geo
