@@ -39,8 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'leaflet',
-    'bootstrap4',
 ]
 
 MIDDLEWARE = [
@@ -112,51 +110,3 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 LOGIN_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
-LEAFLET_CONFIG['PLUGINS'] = {
-    'realtime': {
-        'js': 'leaflet/realtime/leaflet-realtime.js',
-        'auto-include': True,
-    },
-    'Dialog': {
-        'js': 'leaflet/dialog/Leaflet.Dialog.js',
-        'css': 'leaflet/dialog/Leaflet.Dialog.css',
-        'auto-include': True,
-    },
-    'POIAdder': {
-        'js': 'POIAdder/POIAdder.js',
-        'css': 'POIAdder/POIAdder.css',
-        'auto-include': True,
-    },
-    'PolygonAdder': {
-        'js': 'PolygonAdder/PolygonAdder.js',
-        'css': 'PolygonAdder/PolygonAdder.css',
-        'auto-include': True,
-    },
-    'LineAdder': {
-        'js': 'LineAdder/LineAdder.js',
-        'css': 'LineAdder/LineAdder.css',
-        'auto-include': True,
-    },
-    'SearchAdder': {
-        'js': 'SearchAdder/SearchAdder.js',
-        'auto-include': True,
-    },
-    'SMMAdmin': {
-        'js': 'Admin/admin.js',
-        'auto-include': True,
-    },
-    'ImageUploader': {
-        'js': 'ImageUploader/ImageUploader.js',
-        'auto-include': True,
-    },
-    'LocateControl': {
-        'js': 'leaflet/locatecontrol/L.Control.Locate.min.js',
-        'css': ['leaflet/locatecontrol/L.Control.Locate.mapbox.min.css', 'leaflet/locatecontrol/L.Control.Locate.min.css'],
-        'auto-include': True,
-    },
-    'MarineVectors': {
-        'js': 'MarineVectors/MarineVectors.js',
-        'auto-include': True,
-    }
-}

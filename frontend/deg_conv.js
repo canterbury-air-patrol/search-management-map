@@ -1,4 +1,4 @@
-function deg_to_dm(degs, lat)
+export function deg_to_dm(degs, lat)
 {
     var dir = '';
     if (degs < 0)
@@ -16,7 +16,7 @@ function deg_to_dm(degs, lat)
     return d + ' ' + mins + ' ' + dir;
 }
 
-function dm_to_deg(dm_str)
+export function dm_to_deg(dm_str)
 {
     var parts = dm_str.split(' ');
     var d = parseInt(parts[0]);

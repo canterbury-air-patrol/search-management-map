@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 L.SMMAdmin = {}
 
 L.SMMAdmin.AssetCommand = function(map) {
@@ -22,7 +24,6 @@ L.SMMAdmin.AssetCommand = function(map) {
             $("#longitude").hide();
             if (gotoPoint != null) {
                 map.removeLayer(gotoPoint);
-                delete gotoPoint;
                 gotoPoint = null;
             }
         }

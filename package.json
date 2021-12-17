@@ -1,0 +1,32 @@
+{
+  "devDependencies": {
+    "css-loader": "^4.3.0",
+    "file-loader": "^6.2.0",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.5.0"
+  },
+  "name": "search-management-map-map",
+  "version": "1.0.0",
+  "main": "frontend/map.js",
+  "scripts": {
+    "build": "webpack && cp -dpR dist/* map/static/",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/canterbury-air-patrol/search-management-map.git"
+  },
+  "author": "",
+  "license": "",
+  "description": "",
+  "dependencies": {
+    "bootstrap": "^4.6.1",
+    "jquery": "^3.6.0",
+    "leaflet": "^1.7.1",
+    "leaflet-dialog": "^1.0.5",
+    "leaflet-realtime": "^2.2.0",
+    "leaflet.locatecontrol": "^0.76.0",
+    "popper.js": "^1.16.1"
+  }
+}

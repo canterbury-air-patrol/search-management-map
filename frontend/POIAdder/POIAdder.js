@@ -1,3 +1,7 @@
+import $ from 'jquery';
+
+import { deg_to_dm, dm_to_deg } from '../deg_conv';
+
 L.POIAdder = function(map, pos, replaces, label) {
     var marker = new L.marker(pos, {
         draggable: true,

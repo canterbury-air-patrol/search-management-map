@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 L.Control.ImageUploader = L.Control.extend({
     options: {
         position: 'topleft',

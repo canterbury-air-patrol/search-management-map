@@ -1,3 +1,6 @@
+import $ from 'jquery';
+import { deg_to_dm } from '../deg_conv';
+
 L.PolygonAdder = function(map, currentPoints, replaces, label) {
 	var open = false;
 
@@ -55,7 +58,7 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 			var markerCoords = marker.getLatLng();
 			point.lat = markerCoords.lat;
 			point.lng = markerCoords.lng;
-			for (i = 0; i < points.length; i++) {
+			for (let i = 0; i < points.length; i++) {
 				if (points[i] == point)
 				{
 					updatePointRow(i, point);
