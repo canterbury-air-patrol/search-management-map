@@ -7,7 +7,7 @@ module.exports = {
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/static/',
     },
-    mode: 'development',
+    mode: 'production',
     module: {
         rules: [
             {
