@@ -6,12 +6,6 @@ pytz
 # Database
 psycopg2-binary
 
-# Map specific
-django-leaflet
-
-# Templates
-django-bootstrap4
-
 # Code checking
 pycodestyle
 pylint

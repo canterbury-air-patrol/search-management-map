@@ -1,3 +1,6 @@
+import $ from 'jquery';
+import { deg_to_dm } from '../deg_conv';
+
 L.LineAdder = function(map, currentPoints, replaces, label) {
     var RAND_NUM = Math.floor(Math.random() * 16536);
     var points = currentPoints;
@@ -33,7 +36,7 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
         var markerCoords = marker.getLatLng();
         point.lat = markerCoords.lat;
         point.lng = markerCoords.lng;
-        for (i = 0; i < points.length; i++) {
+        for (let i = 0; i < points.length; i++) {
             if (points[i] == point)
             {
                 updatePointRow(i, point);
@@ -81,7 +84,7 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
     $("#lineadder-dialog-name-" + RAND_NUM).val(label);
 
     $("#lineadder-dialog-next-" + RAND_NUM).click(function() {
-        new_point = map.getCenter();
+        let new_point = map.getCenter();
         addPointRow(new_point);
         points.push(new_point);
         updateMarkers();

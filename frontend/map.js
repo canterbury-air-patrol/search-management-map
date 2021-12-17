@@ -1,3 +1,26 @@
+import $ from 'jquery';
+
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.css';
+
+import L, { LatLng } from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import 'leaflet/dist/images/marker-shadow.png';
+
+import 'leaflet-realtime';
+import 'leaflet-dialog';
+import 'leaflet-dialog/Leaflet.Dialog.css';
+import 'leaflet.locatecontrol';
+
+import './Admin/admin.js';
+import './POIAdder/POIAdder.js';
+import './PolygonAdder/PolygonAdder.js';
+import './LineAdder/LineAdder.js';
+import './ImageUploader/ImageUploader.js';
+import './SearchAdder/SearchAdder.js';
+
+import { deg_to_dm, dm_to_deg } from './deg_conv';
+
 var assetLines = {};
 var layerControl;
 // eslint-disable-next-line no-unused-vars
@@ -211,7 +234,7 @@ function searchQueueDialog(searchID, assetType) {
 function searchDataToPopUp(data) {
     var res = '<dl class="search-data row">';
 
-    for (d in data) {
+    for (var d in data) {
          res += '<dt class="search-' + data[d].css + '-label col-sm-6">' + data[d].label + '</dt>'
          res += '<dd class="search-' + data[d].css + '-value col-sm-6">' + data[d].value + '</dd>'
     }
@@ -345,10 +368,23 @@ function tdvCreate(tdv, layer) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function mapInit(map) {
+function mapInit() {
+    var mapEl = document.createElement('div')
+    mapEl.setAttribute('style','width:100%;height:100%;position:inherit;')
+    document.body.appendChild(mapEl)
+
+    var map = L.map(mapEl);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
     myMap = map;
+
     layerControl = L.control.layers({}, {});
     layerControl.addTo(map);
+
+    map.setView(new LatLng(0, 0), 16);
 
     map.locate({ setView: true, maxZoom: 16 });
 
@@ -479,3 +515,5 @@ function mapInit(map) {
 
     overlayAdd("Marine - Total Drift Vectors", realtime);
 }
+
+mapInit();

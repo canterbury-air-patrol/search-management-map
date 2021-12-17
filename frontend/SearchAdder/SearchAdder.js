@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 L.SearchAdder = function(map, objectType, objectID) {
     var RAND_NUM = Math.floor(Math.random() * 16536);
     var searchSelection = "<select class='form-control' id='SearchAdder-search-type-" + RAND_NUM + "'>";
