@@ -1,3 +1,6 @@
+import $ from 'jquery';
+import { deg_to_dm, dm_to_deg } from '../deg_conv';
+
 var time_fractions = function(human_time) {
     var minutes = human_time % 100;
     var hours = (human_time - minutes) / 100;
@@ -92,7 +95,7 @@ class MarineVectorsWind {
     }
 }
 
-marinesar_vectors_input_rows = [
+let marinesar_vectors_input_rows = [
     {
         'display_name': 'Subject',
         'form_field': 'subject',
@@ -120,7 +123,7 @@ marinesar_vectors_input_rows = [
     },
 ]
 
-search_object_leeway = [
+let search_object_leeway = [
     {
         'description': 'PIW - Unknown',
         'multiplier': 0.011,

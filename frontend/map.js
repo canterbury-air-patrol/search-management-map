@@ -18,6 +18,7 @@ import './PolygonAdder/PolygonAdder.js';
 import './LineAdder/LineAdder.js';
 import './ImageUploader/ImageUploader.js';
 import './SearchAdder/SearchAdder.js';
+import './MarineVectors/MarineVectors.js';
 
 import { deg_to_dm, dm_to_deg } from './deg_conv';
 
@@ -211,41 +212,46 @@ class smm_map {
     };
 
     assetUpdate(asset, oldLayer) {
-        var assetName = asset.properties.asset;
+        let assetName = asset.properties.asset;
         this.assetPathUpdate(assetName);
 
         if (!oldLayer) {return; }
 
-        var coords = asset.geometry.coordinates;
+        let coords = asset.geometry.coordinates;
 
-        var popupContent = '';
-        popupContent += '<dl class="row"><dt class="asset-label col-sm-3">Asset</dt><dd class="asset-name col-sm-9">' + assetName + '</dd>';
+        let popupContent = document.createElement('div');
+        let data = [
+            ['Asset', assetName],
+            ['Lat', deg_to_dm(coords[1], true)],
+            ['Long', deg_to_dm(coords[0])],
+        ]
 
-        popupContent += '<dt class="asset-lat-label col-sm-3">Lat</dt><dd class="asset-lat-val col-sm-9">' + deg_to_dm(coords[1], true) + '</dd>';
-        popupContent += '<dt class="asset--lng-label col-sm-3">Long</dt><dd class="asset-lng-val col-sm-9">' + deg_to_dm(coords[0]) + '</dd>';
+        let alt = asset.properties.alt;
+        let heading = asset.properties.heading;
+        let fix = asset.properties.fix;
 
-        var alt = asset.properties.alt;
-        var heading = asset.properties.heading;
-        var fix = asset.properties.fix;
-
-        if (alt) {
-            popupContent = popupContent + '<dt class="asset-alt-label col-sm-3">Altitude</dt><dd class="asset-alt-val col-sm-9">' + alt + 'm</dd>';
+        if (alt)
+        {
+            data.append(['Altitude', alt]);
+        }
+        if (heading)
+        {
+            data.append(['Heading', heading]);
+        }
+        if (fix)
+        {
+            data.append(['Fix', fix]);
         }
 
-        if (heading) {
-            popupContent = popupContent + '<dt class="asset-heading-label col-sm-3">Heading</dt><dd class="asset-heading-val col-sm-9">' + heading + ' &deg;</dd>';
+        for (let d in data)
+        {
+            popupContent.appendChild(document.createElement('<dl class="row"><dt class="asset-label col-sm-3">' + d[0] + '</dt><dd class="asset-name col-sm-9">' + d[1] + '</dd>'));
         }
-
-        if (fix) {
-            popupContent = popupContent + '<dt class="asset-fix-label col-sm-3">Fix</dt><dd class="asset-fix-val col-sm-9">' + fix + 'd</dd>';
-        }
-
-        popupContent += '</dl>';
 
         oldLayer.bindPopup(popupContent, { minWidth: 200});
 
         if (asset.geometry.type === 'Point') {
-            var c = asset.geometry.coordinates;
+            let c = asset.geometry.coordinates;
             oldLayer.setLatLng([c[1], c[0]]);
             return oldLayer;
         }
@@ -263,23 +269,80 @@ class smm_map {
         }
     };
 
+    createButtonGroup(data)
+    {
+        let btngroup = document.createElement('div');
+        btngroup.className = "btn-group";
+
+        for (let d in data)
+        {
+            let btn_data = data[d];
+            let btn = document.createElement('button');
+            btn.className = "btn " + btn_data['btn-class'];
+            btn.onclick = btn_data['onclick'];
+            btn.textContent = btn_data['label'];
+            btngroup.appendChild(btn);
+        }
+
+        return btngroup;
+    }
+
     poiCreate(poi, layer) {
-        var POILabel = poi.properties.label;
-        var poiID = poi.properties.pk;
-        var coords = poi.geometry.coordinates;
+        let POILabel = poi.properties.label;
+        let poiID = poi.properties.pk;
+        let coords = poi.geometry.coordinates;
 
-        var popupContent = '<dl class="poi row"><dt class="poi-label col-sm-2">POI</dt><dd class="poi-name col-sm-10">' + POILabel + '</dd>';
+        let popupContent = document.createElement('div');
 
-        popupContent += '<dt class="poi-lat-label col-sm-2">Lat</dt><dd class="poi-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
-        popupContent += '<dt class="poi-lng-label col-sm-2">Long</dt><dd class="poi-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
+        let data = [
+            ['POI', POILabel],
+            ['Lat', deg_to_dm(coords[1], true)],
+            ['Long', deg_to_dm(coords[0])],
+        ];
+
+        for (let d in data)
+        {
+            let dl = document.createElement('dl');
+            dl.className="poi row";
+
+            let dt = document.createElement('dt');
+            dt.className="asset-label col-sm-2";
+            dt.textContent = data[d][0];
+            dl.appendChild(dt);
+            let dd = document.createElement('dd');
+            dd.className = 'asset-name col-sm-10';
+            dd.textContent = data[d][1];
+            dl.appendChild(dd);
+
+            popupContent.appendChild(dl);
+        }
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
-            popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.POIAdder(myMap, L.latLng(' + coords[1] + ', ' + coords[0] + '),' + poiID + ',\'' + POILabel + '\');">Move</button>'
-            popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/pois/' + poiID + '/delete/\')">Delete</button>'
-            popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'point\', ' + poiID + ');">Create Search</button>'
-            popupContent += '<button class="btn btn-light" onClick="L.MarineVectors(myMap, \'' + POILabel + '\', L.latLng(' + coords[1] + ', ' + coords[0] + '), ' + poiID + ');">Calculate TDV</button>'
-            popupContent += '</div>'
+            var self = this;
+
+            popupContent.appendChild(this.createButtonGroup([
+                {
+                    'label': 'Move',
+                    'onclick': function() { L.POIAdder(self.map, L.latLng(coords[1], coords[0]), poiID, POILabel); },
+                    'btn-class': 'btn-light'
+                },
+                {
+                    'label': 'Delete',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/data/pois/' + poiID + '/delete/'); },
+                    'btn-class': 'btn-danger'
+                },
+                {
+                    'label': 'Create Search',
+                    'onclick': function() { L.SearchAdder(self.map, 'point', poiID); },
+                    'btn-class': 'btn-light'
+                },
+                {
+                    'label': 'Calculate TDV',
+                    'onclick': function() { L.MarineVectors(self.map, POILabel, L.latLng(coords[1], coords[0]), poiID); },
+                    'btn-class': 'btn-light',
+                }
+            ]));
         }
 
         layer.bindPopup(popupContent);
@@ -287,24 +350,51 @@ class smm_map {
 
 
     userPolygonCreate(poly, layer) {
-        var PolyLabel = poly.properties.label;
-        var PolyID = poly.properties.pk;
-        var coords = poly.geometry.coordinates;
+        let PolyLabel = poly.properties.label;
+        let PolyID = poly.properties.pk;
+        let coords = poly.geometry.coordinates;
 
-        var popupContent = '<dl class="polygon row"><dt class="polygon-label col-sm-3">Polygon</dt><dd class="polygon-name col-sm-9">' + PolyLabel + '</dd></dl>';
+        let popupContent = document.createElement('div');
 
-        var pointList = '';
-        var i = 0;
-        for (i = 0; i < (coords[0].length - 1); i++) {
-            var point = coords[0][i];
-            pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
-        }
+        let dl = document.createElement('dl');
+        dl.className = 'polygon row';
+        popupContent.appendChild(dl);
+
+        let dt = document.createElement('dt');
+        dt.className = 'polygon-label col-sm-3';
+        dt.textContent = 'Polygon';
+        dl.appendChild(dt);
+        let dd = document.createElement('dd');
+        dd.className = 'polygon-name col-sm-9';
+        dd.textContent = PolyLabel;
+        dl.appendChild(dd);
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
-            popupContent += '<div class="btn-group"><button class="btn btn-light" onClick="L.PolygonAdder(myMap, [' + pointList + '], ' + PolyID + ', \'' + PolyLabel + '\').create()">Edit</button>';
-            popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/\')">Delete</button>'
-            popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'polygon\', ' + PolyID + ');">Create Search</button></div>'
+            let self = this;
+            popupContent.appendChild(this.createButtonGroup([
+                {
+                    'label': 'Edit',
+                    'onclick': function() {
+                        let points = [];
+                        for (let i = 0; i < (coords[0].length - 1); i++)
+                        {
+                            points.push(L.latLng(coords[0][i][1], coords[0][i][0]));
+                        }
+                        L.PolygonAdder(self.map, points, PolyID, PolyLabel).create() },
+                    'btn-class': 'btn-light',
+                },
+                {
+                    'label': 'Delete',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/data/userpolygons/' + PolyID + '/delete/'); },
+                    'btn-class': 'btn-danger',
+                },
+                {
+                    'label': 'Create Search',
+                    'onclick': function() { L.SearchAdder(self.map, 'polygon', PolyID); },
+                    'btn-class': 'btn-light'
+                }
+            ]));
         }
         layer.bindPopup(popupContent, { minWidth: 200 });
     };
@@ -314,18 +404,40 @@ class smm_map {
         var LineID = line.properties.pk;
         var coords = line.geometry.coordinates;
 
-        var popupContent = '<dl class="line row"><dt class="line-label col-sm-3">Line</dt><dd class="line-name col-sm-9">' + LineLabel + '</dd></dl>';
+        var popupContent = document.createElement('div');
+        let dl = document.createElement('dl');
+        dl.className = 'line row';
+        let dt = document.createElement('dt');
+        dt.className = 'line-label col-sm-3';
+        dt.textContent = 'Line';
+        dl.appendChild(dt);
+        let dd = document.createElement('dd');
+        dd.className = 'line-name col-sm-9';
+        dd.textContent = LineLabel;
+        dl.appendChild(dd);
+        popupContent.appendChild(dl);
 
-        var pointList = '';
-        coords.forEach(function(point) {
-            pointList += 'L.latLng(' + point[1] + ', ' + point[0] + '), ';
-        })
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
-            popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="L.LineAdder(myMap, [' + pointList + '], ' + LineID + ', \'' + LineLabel + '\')">Edit</button>';
-            popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/\')">Delete</button>'
-            popupContent += '<button class="btn btn-light" onClick="L.SearchAdder(myMap, \'line\', ' + LineID + ');">Create Search</button></div>'
+            let self = this;
+            popupContent.appendChild(this.createButtonGroup([
+                {
+                    'label': 'Edit',
+                    'onclick': function() { L.LineAdder(self.map, coords.map(x => L.latLng(x[1], x[0]) ), LineID, LineLabel); },
+                    'btn-class': 'btn-light',
+                },
+                {
+                    'label': 'Delete',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/data/userlines/' + LineID + '/delete/'); },
+                    'btn-class': 'btn-danger',
+                },
+                {
+                    'label': 'Create Search',
+                    'onclick': function() { L.SearchAdder(self.map, 'line', LineID); },
+                    'btn-class': 'btn-light',
+                }
+            ]))
         }
 
         layer.bindPopup(popupContent, { minWidth: 200 });
@@ -338,7 +450,7 @@ class smm_map {
             "<div><button class='btn btn-light' id='queue_" + searchID + "_queue'>Queue</button></div>",
             "<div><button class='btn btn-danger' id='queue_" + searchID + "_cancel'>Cancel</button>",
         ].join('');
-        var QueueDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(myMap).hideClose();
+        var QueueDialog = new L.control.dialog({'initOpen': true}).setContent(contents).addTo(this.map).hideClose();
         $("#queue_" + searchID + "_select_asset").hide();
         $.get('/mission/' + mission_id + '/assets/json/', function(data) {
             $.each(data, function(index, json){
@@ -351,7 +463,7 @@ class smm_map {
                 }
             })
         })
-        $("#queue_" + searchID + "_select_type").change(function() {
+        $("#queue_" + searchID + "_select_type").on('change', function() {
             if ($("#queue_" + searchID + "_select_type").val() == "type")
             {
                 $("#queue_" + searchID + "_select_asset").hide();
@@ -361,7 +473,7 @@ class smm_map {
                 $("#queue_" + searchID + "_select_asset").show();
             }
         });
-        $("#queue_" + searchID + "_queue").click(function() {
+        $("#queue_" + searchID + "_queue").on('click', function() {
             var data = [
                 {name: 'csrfmiddlewaretoken', value: csrftoken},
             ];
@@ -373,20 +485,25 @@ class smm_map {
                 QueueDialog.destroy();
             });
         });
-        $("#queue_" + searchID + "_cancel").click(function() {QueueDialog.destroy()});
+        $("#queue_" + searchID + "_cancel").on('click', function() {QueueDialog.destroy()});
     }
 
     searchDataToPopUp(data) {
-        var res = '<dl class="search-data row">';
+        let dl = document.createElement('dl');
+        dl.className = 'search-data row';
 
         for (var d in data) {
-                res += '<dt class="search-' + data[d].css + '-label col-sm-6">' + data[d].label + '</dt>'
-                res += '<dd class="search-' + data[d].css + '-value col-sm-6">' + data[d].value + '</dd>'
+            let dt = document.createElement('dt');
+            dt.className = 'search-' + data[d].css + '-label col-sm-6';
+            dt.textContent = data[d].label;
+            dl.appendChild(dt);
+            let dd = document.createElement('dd');
+            dd.className = 'search-' + data[d].css + '-value col-sm-6';
+            dd.textContent = data[d].value;
+            dl.appendChild(dd);
         }
 
-        res += '</dl>';
-
-        return res;
+        return dl;
     };
 
     searchStatusIncomplete(search) {
@@ -420,14 +537,14 @@ class smm_map {
     };
 
     searchIncompleteCreate(search, layer) {
-        var SearchID = search.properties.pk;
-        var SweepWidth = search.properties.sweep_width;
-        var AssetType = search.properties.created_for;
-        var InprogressBy = search.properties.inprogress_by;
-        var SearchType = search.properties.search_type;
-        var QueuedAt = search.properties.queued_at;
+        let SearchID = search.properties.pk;
+        let SweepWidth = search.properties.sweep_width;
+        let AssetType = search.properties.created_for;
+        let InprogressBy = search.properties.inprogress_by;
+        let SearchType = search.properties.search_type;
+        let QueuedAt = search.properties.queued_at;
 
-        var data = [
+        let data = [
             { css: 'type', label: 'Search Type', value: SearchType },
             { css: 'status', label: 'Status', value: this.searchStatusIncomplete(search) },
             { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
@@ -437,31 +554,42 @@ class smm_map {
             data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
         }
 
-        var popupContent = this.searchDataToPopUp(data);
+        var popupContent = document.createElement('div');
+        popupContent.appendChild(this.searchDataToPopUp(data));
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
-            popupContent += '<div class="btn-group">';
-            if (!InprogressBy) {
-                popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/search/' + SearchID + '/delete/\')">Delete</button>'
-                if (!QueuedAt) {
-                    popupContent += '<button class="btn btn-light" onClick="searchQueueDialog(\'' + SearchID + '\', \'' + AssetType + '\')">Queue</button>'
+            let button_data = [];
+            let self = this;
+            if (!InprogressBy)
+            {
+                button_data.push({
+                    'label': 'Delete',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/search/' + SearchID + '/delete/'); },
+                    'btn-class': 'btn-danger',
+                });
+                if (!QueuedAt)
+                {
+                    button_data.push({
+                        'label': 'Queue',
+                        'onclick': function() { self.searchQueueDialog(SearchID, AssetType); },
+                        'btn-class': 'btn-light',
+                    });
                 }
             }
-            popupContent += '</div>';
+            popupContent.appendChild(this.createButtonGroup(button_data));
         }
-
         layer.bindPopup(popupContent, { minWidth: 200 });
     };
 
     searchCompletedCreate(search, layer) {
-        var SearchID = search.properties.pk;
-        var SweepWidth = search.properties.sweep_width;
-        var AssetType = search.properties.created_for;
-        var InprogressBy = search.properties.inprogress_by;
-        var SearchType = search.properties.search_type;
+        let SearchID = search.properties.pk;
+        let SweepWidth = search.properties.sweep_width;
+        let AssetType = search.properties.created_for;
+        let InprogressBy = search.properties.inprogress_by;
+        let SearchType = search.properties.search_type;
 
-        var data = [
+        let data = [
             { css: 'type', label: 'Search Type', value: SearchType },
             { css: 'status', label: 'Status', value: 'Completed' },
             { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
@@ -469,44 +597,99 @@ class smm_map {
             { css: 'completedby', label: 'Completed By', value: InprogressBy }
         ]
 
-        var popupContent = this.searchDataToPopUp(data);
+        let popupContent = this.searchDataToPopUp(data);
         layer.bindPopup(popupContent, { minWidth: 200 });
     };
 
     imageCreate(image, layer) {
-        var ImageDesc = image.properties.description;
-        var imageID = image.properties.pk;
-        var coords = image.geometry.coordinates;
+        let ImageDesc = image.properties.description;
+        let imageID = image.properties.pk;
+        let coords = image.geometry.coordinates;
 
-        var popupContent = '<dl class="row"><dt class="image-label col-sm-2">Image</dt><dd class="image-name col-sm-10">' + ImageDesc + '</dd>';
+        let popupContent = document.createElement('div');
 
-        popupContent += '<dt class="image-lat-label col-sm-2">Lat</dt><dd class="image-lat-val col-sm-10">' + deg_to_dm(coords[1], true) + '</dd>';
-        popupContent += '<dt class="image-lng-label col-sm-2">Long</dt><dd class="image-lng-val col-sm-10">' + deg_to_dm(coords[0]) + '</dd></dl>';
+        let dl = document.createElement('dl');
+        dl.className = 'row';
+        popupContent.appendChild(dl);
 
-        popupContent += '<div style="width: 128px"><a href="/mission/' + mission_id + '/image/' + imageID + '/full/"><img src="/mission/' + mission_id + '/image/' + imageID + '/thumbnail/" /></a></div>';
+        let data = [
+            ['Image', ImageDesc],
+            ['Lat', deg_to_dm(coords[1], true)],
+            ['Long', deg_to_dm(coords[0])],
+        ]
+
+        for (let d in data)
+        {
+            let dt = document.createElement('dt');
+            dt.className="image-label col-sm-2";
+            dt.textContent = data[d][0];
+            dl.appendChild(dt);
+            let dd = document.createElement('dd');
+            dd.className = 'image-name col-sm-10';
+            dd.textContent = data[d][1];
+            dl.appendChild(dd);
+        }
+
+        let div = document.createElement('div');
+        div.style = 'width: 128px';
+        popupContent.appendChild(div);
+        let a = document.createElement('a');
+        a.href = '/mission/' + mission_id + '/image/' + imageID + '/full/';
+        div.appendChild(a);
+        let img = document.createElement('img');
+        img.src = '/mission/' + mission_id + '/image/' + imageID + '/thumbnail/';
+        a.appendChild(img);
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
             if (image.properties.priority) {
-                popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/unset/\');">Deprioritize</button>';
+                popupContent.appendChild(this.createButtonGroup([
+                {
+                    'label': 'Deprioritize',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/image/' + imageID + '/priority/unset/') },
+                    'btn-class': 'btn-light',
+                }
+                ]));
             } else {
-                popupContent += '<dev class="btn-group"><button class="btn btn-light" onClick="$.get(\'/mission/' + mission_id + '/image/' + imageID + '/priority/set/\');">Prioritize</button>';
+                popupContent.appendChild(this.createButtonGroup([
+                    {
+                        'label': 'Prioritize',
+                        'onclick': function() { $.get('/mission/' + mission_id + '/image/' + imageID + '/priority/set/') },
+                        'btn-class': 'btn-light',
+                    }
+                ]));
             }
         }
-        popupContent += '</div>'
         layer.bindPopup(popupContent);
     };
 
     tdvCreate(tdv, layer) {
-        var tdvID = tdv.properties.pk;
+        let tdvID = tdv.properties.pk;
 
-        var popupContent = '<dl class="row"><dt class="image-label col-sm-2">Total Drift Vector</dt><dd class="image-name col-sm-10">' + tdvID + '</dd>'
+        let popupContent = document.createElement('div');
+        let dl = document.createElement('dl');
+        dl.className = 'row';
+        popupContent.appendChild(dl);
+
+        let dt = document.createElement('dt');
+        dt.className = 'image-label col-sm-2';
+        dt.textContent = 'Total Drift Vector';
+        dl.appendChild(dt);
+
+        let dd = document.createElement('dd');
+        dd.className = 'image-name col-sm-10';
+        dd.textContent = tdvID;
+        dl.appendChild(dd);
 
         if (mission_id !== 'current' && mission_id !== 'all')
         {
-            popupContent += '<div class="btn-group">'
-            popupContent += '<button class="btn btn-danger" onClick="$.get(\'/mission/' + mission_id + '/sar/marine/vectors/' + tdvID + '/delete/\')">Delete</button>'
-            popupContent += '</div>'
+            popupContent.appendChild(this.createButtonGroup([
+                {
+                    'label': 'Delete',
+                    'onclick': function() { $.get('/mission/' + mission_id + '/sar/marine/vectors/' + tdvID + '/delete/'); },
+                    'btn-class': 'btn-danger',
+                }
+            ]));
         }
 
         layer.bindPopup(popupContent);
