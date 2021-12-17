@@ -27,7 +27,7 @@ L.SearchAdder = function(map, objectType, objectID) {
     })
     var generateInputs = function(inputs) {
         var res = '';
-        for (i in inputs) {
+        for (let i in inputs) {
             res += '<div class="input-group input-group-sm mb-3" id="SearchAdder-' + inputs[i].id + '-' + RAND_NUM + '">';
                 res += '<div class="input-group-prepend">';
                     res += '<span class="input-group-text">';

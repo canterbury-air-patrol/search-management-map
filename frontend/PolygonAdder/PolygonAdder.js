@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { deg_to_dm } from '../deg_conv';
+import { deg_to_dm, dm_to_deg } from '../deg_conv';
 
 L.PolygonAdder = function(map, currentPoints, replaces, label) {
 	var open = false;

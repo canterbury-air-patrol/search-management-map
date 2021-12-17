@@ -74,7 +74,7 @@ L.Control.POIAdder = L.Control.extend({
 
         var markerImg = L.DomUtil.create('img', 'POIAdder-marker', link);
 
-        markerImg.src = '/static/leaflet/images/marker-icon.png';
+        markerImg.src = '/static/node_modules/leaflet/dist/images/marker-icon.png';
         markerImg.alt = 'Add POI';
 
         L.DomEvent.disableClickPropagation(link);
