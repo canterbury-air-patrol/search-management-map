@@ -12,6 +12,9 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 		var RAND_NUM = Math.floor(Math.random() * 16536);
 		var points = currentPoints;
 		var markers = [];
+		if (points === null) {
+			points = [map.getCenter()];
+		}
 		var polygon = L.polygon(points, { color: 'yellow' }).addTo(map);
 		var dialog = L.control.dialog();
 		
@@ -171,7 +174,7 @@ L.Control.PolygonAdder = L.Control.extend({
 		var link = L.DomUtil.create('a', '', container);
 		link.href = '#';
 		link.title = 'Add Area';
-		link.adder = L.PolygonAdder(map, [map.getCenter()], -1, '');
+		link.adder = L.PolygonAdder(map, null, -1, '');
 
 		var markerImg = L.DomUtil.create('img', 'Polygon-img', link);
 
