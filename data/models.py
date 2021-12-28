@@ -215,7 +215,7 @@ class GeoTimeLabel(GeoTime):
         return objects
 
     def __str__(self):
-        return f"{self.geo_type} near {self.geo.point_on_surface[0]}, {self.geo.point_on_surface[1]}"
+        return f"{self.label} {self.geo_type} near {self.geo.point_on_surface[0]}, {self.geo.point_on_surface[1]}"
 
     class Meta:
         indexes = [
