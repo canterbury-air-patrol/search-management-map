@@ -31,9 +31,33 @@ class smm_map {
     };
 
     setupMap() {
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(this.map);
+        let self = this;
+        $.get('/map/tile/layers/', function(data) {
+            let base_selected = false;
+            let base_layers = {};
+            let extra_layers = {};
+            for (let d in data.layers) {
+                let layer = data.layers[d];
+                let options = {
+                    'attributes': layer['atrributes'],
+                    'minZoom': layer['minZoom'],
+                    'maxZoom': layer['maxZoom'],
+                }
+                if (layer['subdomains'] != '') {
+                    options['subdomains'] = layer['subdomains']
+                }
+                let tile_layer = L.tileLayer(layer.url, options);
+                if (layer.base) {
+                    if (!base_selected) {
+                        tile_layer.addTo(self.map);
+                    }
+                    base_layers[layer.name] = tile_layer;
+                } else {
+                    extra_layers[layer.name] = tile_layer;
+                }
+            }
+            L.control.layers(base_layers, extra_layers).addTo(self.map);
+        })
 
         this.layerControl.addTo(this.map);
 
@@ -61,8 +85,6 @@ class smm_map {
         var searchCompleteUpdateFreq = 60 * 1000;
         var imageAllUpdateFreq = 60 * 1000;
         var marineDataUpdateFreq = 60 * 1000;
-
-        var self = this;
 
         var realtime = L.realtime({
             url: "/mission/" + mission_id + "/data/assets/positions/latest/",
