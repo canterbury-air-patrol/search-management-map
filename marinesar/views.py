@@ -24,7 +24,7 @@ def convert_time(time_value):
     """
     if ':' in time_value:
         return time_value
-    return '{}:{}'.format(time_value[0:2], time_value[2:4])
+    return f'{time_value[0:2]}:{time_value[2:4]}'
 
 
 @login_required
@@ -69,22 +69,22 @@ def marine_vectors_create(request, mission_user):
     leeway_modifier = user_data.get('leeway_modifier')
     curr_count = int(user_data.get('curr_total'))
     for i in range(0, curr_count):
-        time_from = user_data.get('curr_{}_from'.format(i))
-        time_to = user_data.get('curr_{}_to'.format(i))
-        bearing = user_data.get('curr_{}_direction'.format(i))
-        distance = float(user_data.get('curr_{}_distance'.format(i))) * 1852
-        speed = float(user_data.get('curr_{}_speed'.format(i)))
+        time_from = user_data.get(f'curr_{i}_from')
+        time_to = user_data.get(f'curr_{i}_to')
+        bearing = user_data.get(f'curr_{i}_direction')
+        distance = float(user_data.get(f'curr_{i}_distance')) * 1852
+        speed = float(user_data.get(f'curr_{i}_speed'))
         vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'bearing': bearing, 'speed': speed, 'distance': distance}
         current_vectors.append(vector)
         vectors.append(vector)
     wind_count = int(user_data.get('wind_total'))
     for i in range(0, wind_count):
-        time_from = user_data.get('wind_{}_from'.format(i))
-        time_to = user_data.get('wind_{}_to'.format(i))
-        wind_from = user_data.get('wind_{}_from_direction'.format(i))
-        wind_speed = float(user_data.get('wind_{}_speed'.format(i)))
-        bearing = user_data.get('wind_{}_direction'.format(i))
-        distance = float(user_data.get('wind_{}_distance'.format(i))) * 1852
+        time_from = user_data.get(f'wind_{i}_from')
+        time_to = user_data.get(f'wind_{i}_to')
+        wind_from = user_data.get(f'wind_{i}_from_direction')
+        wind_speed = float(user_data.get(f'wind_{i}_speed'))
+        bearing = user_data.get(f'wind_{i}_direction')
+        distance = float(user_data.get(f'wind_{i}_distance')) * 1852
         vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'wind_direction_from': wind_from, 'speed': wind_speed, 'bearing': bearing, 'distance': distance}
         wind_vectors.append(vector)
         vectors.append(vector)
@@ -92,7 +92,7 @@ def marine_vectors_create(request, mission_user):
     points = [start_point]
     current_point = start_point
     for vector in vectors:
-        query = "SELECT ST_Project(ST_SetSRID(ST_Point(" + str(current_point.x) + ", " + str(current_point.y) + "), 4326)::geography, {distance}, radians({bearing}))".format(**vector)
+        query = "SELECT ST_Project(ST_SetSRID(ST_Point(" + str(current_point.x) + ", " + str(current_point.y) + f"), 4326)::geography, {vector['distance']}, radians({vector['bearing']}))"
         cursor = dbconn.cursor()
         cursor.execute(query)
         reference_points = cursor.fetchone()

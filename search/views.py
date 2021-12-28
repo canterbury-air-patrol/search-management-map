@@ -67,7 +67,7 @@ def find_next_search(request, asset, mission):
 
     def search_data(search):
         data = {
-            'object_url': "/search/{}/json/".format(search.pk),
+            'object_url': f"/search/{search.pk}/json/",
             'distance': int(search.distance_from(point)),
             'length': int(search.length()),
             'sweep_width': int(search.sweep_width),
@@ -197,7 +197,7 @@ def search_queue(request, search_id, mission_user):
 
     # Check if this search has already been queued
     if search.queued_at:
-        return HttpResponseForbidden("This search is already queued for {}".format(search.get_match()))
+        return HttpResponseForbidden(f"This search is already queued for {search.get_match()}")
 
     asset = None
     if request.method == "POST":

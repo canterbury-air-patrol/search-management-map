@@ -122,7 +122,7 @@ def asset_record_position(request, asset):
         if point:
             AssetPointTime(asset=asset, geo=point, created_by=request.user, alt=alt, heading=heading, fix=fix, mission=mission_asset.mission).save()
         else:
-            return HttpResponseBadRequest("Invalid lat/lon (%s,%s)" % (lat, lon))
+            return HttpResponseBadRequest(f"Invalid lat/lon ({lat},{lon})")
 
     asset_command = AssetCommand.last_command_for_asset(asset)
     if asset_command:

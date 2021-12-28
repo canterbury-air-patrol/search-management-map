@@ -28,7 +28,7 @@ class POIsTestCase(UserDataTestCase):
         """
         client = Client()
         client.login(username='test', password='password')
-        poi_create_url = '/mission/{}/data/pois/create/'.format(self.mission.pk)
+        poi_create_url = f'/mission/{self.mission.pk}/data/pois/create/'
         response = client.post(poi_create_url, {'lat': -43.5, 'lon': 172.5, 'label': 'Test API POI'})
         self.assertEqual(response.status_code, 200)
         poi = GeoTimeLabel.objects.get(label='Test API POI')
@@ -57,7 +57,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Move API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         client = Client()
         client.login(username='test', password='password')
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'Move API POI 1'})
         self.assertEqual(response.status_code, 200)
         pois = GeoTimeLabel.objects.filter(label='Move API POI 1')
@@ -80,7 +80,7 @@ class POIsTestCase(UserDataTestCase):
         # Check that being logged in is required
         client.logout()
         poi_2 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Move API POI 2', mission=self.mission, created_by=self.user)
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_2.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_2.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -45.5, 'lon': 171.5, 'label': 'Move API POI 2'})
         self.assertEqual(response.status_code, 302)
         # and make sure it didn't actually get created
@@ -94,7 +94,7 @@ class POIsTestCase(UserDataTestCase):
         # and check a non-member cant use this api either
         client.login(username='test2', password='password')
         poi_3 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Move API POI 3', mission=self.mission, created_by=self.user)
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_3.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_3.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -46.5, 'lon': 171.5, 'label': 'Move API POI 3'})
         self.assertEqual(response.status_code, 404)
         # and make sure it didn't actually get created
@@ -113,7 +113,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Move Other API POI 1', mission=self.mission, created_by=self.user, geo_type='other')
         client = Client()
         client.login(username='test', password='password')
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'Move Other API POI 1'})
         self.assertEqual(response.status_code, 404)
         pois = GeoTimeLabel.objects.filter(label='Move Other API POI 1')
@@ -132,7 +132,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Relabel API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         client = Client()
         client.login(username='test', password='password')
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -43.5, 'lon': 172.5, 'label': 'Relabelled API POI 1'})
         self.assertEqual(response.status_code, 200)
         pois = GeoTimeLabel.objects.filter(label='Relabel API POI 1')
@@ -158,7 +158,7 @@ class POIsTestCase(UserDataTestCase):
         # Check that being logged in is required
         client.logout()
         poi_2 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Relabel API POI 2', mission=self.mission, created_by=self.user)
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_2.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_2.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -45.5, 'lon': 171.5, 'label': 'Relabelled API POI 2'})
         self.assertEqual(response.status_code, 302)
         # and make sure it didn't actually get created
@@ -174,7 +174,7 @@ class POIsTestCase(UserDataTestCase):
         # and check a non-member cant use this api either
         client.login(username='test2', password='password')
         poi_3 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Relabel API POI 3', mission=self.mission, created_by=self.user)
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_3.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_3.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -46.5, 'lon': 171.5, 'label': 'Relabelled API POI 3'})
         self.assertEqual(response.status_code, 404)
         # and make sure it didn't actually get created
@@ -195,7 +195,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Relabel Other API POI 1', mission=self.mission, created_by=self.user, geo_type='other')
         client = Client()
         client.login(username='test', password='password')
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'Relabelled Other API POI 1'})
         self.assertEqual(response.status_code, 404)
         pois = GeoTimeLabel.objects.filter(label='Relabel Other API POI 1')
@@ -215,7 +215,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Delete API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         client = Client()
         client.login(username='test', password='password')
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_1.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 200)
         pois = GeoTimeLabel.objects.filter(label='Delete API POI 1')
@@ -229,7 +229,7 @@ class POIsTestCase(UserDataTestCase):
         # Check that being logged in is required
         client.logout()
         poi_2 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Delete API POI 2', mission=self.mission, created_by=self.user)
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_2.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_2.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 302)
         # and make sure it didn't actually get created
@@ -243,7 +243,7 @@ class POIsTestCase(UserDataTestCase):
         # and check a non-member cant use this api either
         client.login(username='test2', password='password')
         poi_3 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Delete API POI 3', mission=self.mission, created_by=self.user)
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_3.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_3.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 404)
         # and make sure it didn't actually get created
@@ -262,7 +262,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Delete Other API POI 1', mission=self.mission, created_by=self.user, geo_type='other')
         client = Client()
         client.login(username='test', password='password')
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_1.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 404)
         pois = GeoTimeLabel.objects.filter(label='Delete Other API POI 1')
@@ -280,7 +280,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Delete/Move API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         client = Client()
         client.login(username='test', password='password')
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_1.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 200)
         pois = GeoTimeLabel.objects.filter(label='Delete/Move API POI 1')
@@ -291,7 +291,7 @@ class POIsTestCase(UserDataTestCase):
             self.assertEqual(poi.deleted_by, self.user)
             self.assertEqual(poi.replaced_by, None)
             self.assertEqual(poi.replaced_at, None)
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'Delete/Move API POI 1'})
         self.assertEqual(response.status_code, 404)
         pois = GeoTimeLabel.objects.filter(label='Delete/Move API POI 1')
@@ -310,7 +310,7 @@ class POIsTestCase(UserDataTestCase):
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='Move/Delete API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         client = Client()
         client.login(username='test', password='password')
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'Moved/Delete API POI 1'})
         self.assertEqual(response.status_code, 200)
         pois = GeoTimeLabel.objects.filter(label='Move/Delete API POI 1')
@@ -333,7 +333,7 @@ class POIsTestCase(UserDataTestCase):
             point = Point(171.5, -44.5)
             self.assertEqual(poi.geo.x, point.x)
             self.assertEqual(poi.geo.y, point.y)
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, poi_1.pk)
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 404)
         pois = GeoTimeLabel.objects.filter(label='Move/Delete API POI 1')
@@ -349,7 +349,7 @@ class POIsTestCase(UserDataTestCase):
         """
         Check the API for listing POIs
         """
-        poi_list_url = '/mission/{}/data/pois/current/'.format(self.mission.pk)
+        poi_list_url = f'/mission/{self.mission.pk}/data/pois/current/'
         client = Client()
         client.login(username='test', password='password')
         # Response should be empty because no POIs have been created yet
@@ -367,7 +367,7 @@ class POIsTestCase(UserDataTestCase):
         self.assertEqual(len(data['features']), 1)
         self.assertEqual(data['features'][0]['properties']['pk'], str(poi_1.pk))
         # Move the POI and see the new one appear
-        poi_replace_url = '/mission/{}/data/pois/{}/replace/'.format(self.mission.pk, poi_1.pk)
+        poi_replace_url = f'/mission/{self.mission.pk}/data/pois/{poi_1.pk}/replace/'
         response = client.post(poi_replace_url, {'lat': -44.5, 'lon': 171.5, 'label': 'List API POI 2'})
         self.assertEqual(response.status_code, 200)
         response = client.get(poi_list_url)
@@ -377,7 +377,7 @@ class POIsTestCase(UserDataTestCase):
         self.assertEqual(len(data['features']), 1)
         self.assertNotEqual(data['features'][0]['properties']['pk'], str(poi_1.pk))
         # Delete the POI and see the list go empty
-        poi_delete_url = '/mission/{}/data/pois/{}/delete/'.format(self.mission.pk, data['features'][0]['properties']['pk'])
+        poi_delete_url = f'/mission/{self.mission.pk}/data/pois/{data["features"][0]["properties"]["pk"]}/delete/'
         response = client.post(poi_delete_url)
         self.assertEqual(response.status_code, 200)
         response = client.get(poi_list_url)

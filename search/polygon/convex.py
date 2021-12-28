@@ -195,7 +195,7 @@ def creep_line(lrng, width):
                             yield pnt
             except TypeError:
                 # pylint: disable=W0707
-                msg = "{} is of type {}".format(i, type(i))
+                msg = f"{i} is of type {type(i)}"
                 raise TypeError(msg)
 
     yiter = step(ymin, ydist, ymax)
@@ -370,8 +370,8 @@ def creep_line_concave(lrng, width):
         # Raise an error if no such point was found
         if not found_point:
             msg = "Could not find next point!\n"
-            msg += "current_segment: {}\n".format(current_segment)
-            msg += "remaining_points: {}\n".format(remaining_points)
+            msg += f"current_segment: {current_segment}\n"
+            msg += f"remaining_points: {remaining_points}\n"
             raise ValueError(msg)
 
         # Add joining line to next creep line

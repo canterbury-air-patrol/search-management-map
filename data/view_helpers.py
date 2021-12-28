@@ -30,8 +30,8 @@ def to_kml(objecttype, objects):
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
                '\t<Document>\n'
     for obj in objects:
-        kml_data += '\t\t<Placemark>\n\t\t\t<name><![CDATA[{}]]></name>\n'.format(str(obj))
-        kml_data += '\t\t\t<description><![CDATA[{}]]></description>\n'.format(str(obj))
+        kml_data += f'\t\t<Placemark>\n\t\t\t<name><![CDATA[{str(obj)}]]></name>\n'
+        kml_data += f'\t\t\t<description><![CDATA[{str(obj)}]]></description>\n'
         kml_data += GEOSGeometry(getattr(obj, objecttype.GEOFIELD)).kml
         kml_data += '\n\t\t</Placemark>\n'
 
@@ -51,9 +51,9 @@ def geotimelabel_replace(request, name, object_id, geo_type, mission, func):
     if replaces.geo_type != geo_type:
         return HttpResponseNotFound("Wrong object type")
     if replaces.deleted_at:
-        return HttpResponseNotFound("This {} has been deleted".format(name))
+        return HttpResponseNotFound(f"This {name} has been deleted")
     if replaces.replaced_by is not None:
-        return HttpResponseNotFound("This {} has already been replaced".format(name))
+        return HttpResponseNotFound(f"This {name} has already been replaced")
     return func(request, mission=mission, replaces=replaces)
 
 
@@ -68,9 +68,9 @@ def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
         return HttpResponseNotFound("Wrong object type")
     if not obj.delete(mission_user.user):
         if obj.deleted_at:
-            return HttpResponseNotFound("This {} has already been deleted".format(name))
+            return HttpResponseNotFound(f"This {name} has already been deleted")
         if obj.replaced_by is not None:
-            return HttpResponseNotFound("This {} has been replaced".format(name))
+            return HttpResponseNotFound(f"This {name} has been replaced")
     return HttpResponse("Deleted")
 
 
@@ -134,8 +134,8 @@ def user_polygon_make(request, mission=None, replaces=None):
         label = request.POST['label']
         points_count = int(request.POST['points'])
         for i in range(0, points_count):
-            lat = request.POST['point{}_lat'.format(i)]
-            lng = request.POST['point{}_lng'.format(i)]
+            lat = request.POST[f'point{i}_lat']
+            lng = request.POST[f'point{i}_lng']
             point = Point(float(lng), float(lat))
             points.append(point)
         points.append(points[0])
@@ -160,8 +160,8 @@ def user_line_make(request, mission=None, replaces=None):
         label = request.POST['label']
         points_count = int(request.POST['points'])
         for i in range(0, points_count):
-            lat = request.POST['point{}_lat'.format(i)]
-            lng = request.POST['point{}_lng'.format(i)]
+            lat = request.POST[f'point{i}_lat']
+            lng = request.POST[f'point{i}_lng']
             point = Point(float(lng), float(lat))
             points.append(point)
         lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')

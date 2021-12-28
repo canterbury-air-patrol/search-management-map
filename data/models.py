@@ -161,7 +161,7 @@ class AssetPointTime(GeoTime):
     RECORD_TIMELINE = False
 
     def __str__(self):
-        return "{}: {} {}".format(self.asset, self.geo, self.created_at)
+        return f"{self.asset}: {self.geo} {self.created_at}"
 
     class Meta:
         indexes = [
@@ -189,9 +189,6 @@ class GeoTimeLabel(GeoTime):
 
     GEOJSON_FIELDS = ('pk', 'created_at', 'label',)
 
-    def __str__(self):
-        return "{}".format(self.label)
-
     @classmethod
     def all_current_of_geo(cls, mission, geo_type, current_at=None):
         '''
@@ -218,7 +215,7 @@ class GeoTimeLabel(GeoTime):
         return objects
 
     def __str__(self):
-        return "{} near {}, {}".format(self.geo_type, self.geo.point_on_surface[0], self.geo.point_on_surface[1])
+        return f"{self.geo_type} near {self.geo.point_on_surface[0]}, {self.geo.point_on_surface[1]}"
 
     class Meta:
         indexes = [

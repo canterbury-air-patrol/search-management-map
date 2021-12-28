@@ -116,7 +116,7 @@ def mission_new(request):
             mission.save()
             # Give the user who created this mission admin permissions
             MissionUser(mission=mission, user=request.user, role='A', creator=request.user).save()
-            return redirect('/mission/{}/details/'.format(mission.pk))
+            return redirect(f'/mission/{mission.pk}/details/')
 
     if form is None:
         form = MissionForm()
@@ -137,7 +137,7 @@ def mission_timeline_add(request, mission_user):
             entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=form.cleaned_data['message'], timestamp=form.cleaned_data['timestamp'], url=form.cleaned_data['url'], event_type='usr')
             entry.save()
             timeline_record_create(mission_user.mission, request.user, entry)
-            return HttpResponseRedirect("/mission/{}/timeline/".format(mission_user.mission.pk))
+            return HttpResponseRedirect(f"/mission/{mission_user.mission.pk}/timeline/")
 
     if form is None:
         form = MissionTimeLineEntryForm()
@@ -164,7 +164,7 @@ def mission_user_add(request, mission_user):
                 mission_user = MissionUser(mission=mission_user.mission, user=form.cleaned_data['user'], creator=request.user)
                 mission_user.save()
                 timeline_record_mission_user_add(mission_user.mission, request.user, form.cleaned_data['user'])
-                return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
+                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
     if form is None:
         form = MissionAssetForm()
@@ -185,7 +185,7 @@ def mission_user_make_admin(request, mission_user, user_id):
     mission_user_update.role = 'A'
     mission_user_update.save()
     timeline_record_mission_user_update(mission_user.mission, request.user, mission_user_update)
-    return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
+    return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
 
 @login_required
@@ -210,7 +210,7 @@ def mission_asset_add(request, mission_user):
                 command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='RON', reason='Added to mission', mission=mission_user.mission)
                 command.save()
 
-                return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
+                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
     if form is None:
         form = MissionAssetForm()
@@ -257,4 +257,4 @@ def mission_asset_remove(request, mission_user, asset_id):
     command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission)
     command.save()
 
-    return HttpResponseRedirect('/mission/{}/details/'.format(mission_user.mission.pk))
+    return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
