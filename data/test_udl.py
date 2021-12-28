@@ -17,7 +17,7 @@ class UserDrawnLineTestCase(UserDataTestCase):
         Create a UDL
         """
         line = GeoTimeLabel.objects.create(geo=LineString((172.5, -43.5), (172.6, -43.6)), created_by=self.user, label='Test Line', geo_type='line', mission=self.mission)
-        self.assertEqual(str(line), "Test Line")
+        self.assertEqual(str(line).startswith("Test Line"), True)
         self.assertEqual(len(line.geo), 2)
         self.assertEqual(line.geo[0][0], 172.5)
         self.assertEqual(line.geo[0][1], -43.5)
@@ -30,7 +30,7 @@ class UserDrawnLineTestCase(UserDataTestCase):
         for i in range(0, 100):
             points.append((172.0 + i * 0.1, -42 - i * 0.1))
         line = GeoTimeLabel.objects.create(geo=LineString(points), created_by=self.user, label='Test Line', geo_type='line', mission=self.mission)
-        self.assertEqual(str(line), "Test Line")
+        self.assertEqual(str(line).startswith("Test Line"), True)
         self.assertEqual(len(line.geo), 100)
         for i in range(1, 100):
             self.assertEqual(line.geo[i][0], 172.0 + i * 0.1)

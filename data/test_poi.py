@@ -20,7 +20,7 @@ class POIsTestCase(UserDataTestCase):
         Create a POI
         """
         poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.user, label='Test Point', geo_type='poi', mission=self.mission)
-        self.assertEqual(str(poi), "Test Point")
+        self.assertEqual(str(poi).startswith("Test Point"), True)
 
     def test_poi_api_create(self):
         """
