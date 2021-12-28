@@ -26,7 +26,7 @@ def upload_image_file(mission_user, description, point, file):
 
     image = GeoImage(mission=mission_user.mission, created_by=mission_user.user, description=description, geo=point, original_format=ext)
     image.save()
-    full_image = 'images/full/{}.data'.format(image.pk)
+    full_image = f'images/full/{image.pk}.data'
     with open(full_image, 'wb') as destination:
         for chunk in file.chunks():
             destination.write(chunk)
@@ -34,4 +34,4 @@ def upload_image_file(mission_user, description, point, file):
     original = Image.open(full_image)
     thumbnail = original.copy()
     thumbnail.thumbnail((128, 128))
-    thumbnail.save('images/thumbnail/{}.data'.format(image.pk), ext)
+    thumbnail.save(f'images/thumbnail/{image.pk}.data', ext)

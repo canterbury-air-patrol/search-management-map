@@ -34,7 +34,7 @@ def image_upload(request, mission_user):
                 return HttpResponseBadRequest('Invalid lat/long')
 
             upload_image_file(mission_user, form.cleaned_data['description'], point, request.FILES['file'])
-            return HttpResponseRedirect('/mission/{}/map/'.format(mission_user.mission.pk))
+            return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/map/')
     else:
         form = UploadImageForm()
 
@@ -97,7 +97,7 @@ def image_get_full(request, image_id, mission_user):
     # Check the image is valid for this mission
     image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
 
-    return FileResponse(open('images/full/{}.data'.format(image_id), 'rb'), filename='original-{}.{}'.format(image_id, image.original_format))
+    return FileResponse(open(f'images/full/{image_id}.data', 'rb'), filename=f'original-{image_id}.{image.original_format}')
 
 
 @login_required
@@ -109,7 +109,7 @@ def image_get_thumbnail(request, image_id, mission_user):
     # Check the image is valid for this mission
     image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
 
-    return FileResponse(open('images/thumbnail/{}.data'.format(image_id), 'rb'), filename='thumbnail-{}.{}'.format(image_id, image.original_format))
+    return FileResponse(open(f'images/thumbnail/{image_id}.data', 'rb'), filename=f'thumbnail-{image_id}.{image.original_format}')
 
 
 @login_required

@@ -83,7 +83,7 @@ class AssetCommand(models.Model):
     GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason',)
 
     def __str__(self):
-        return "Command {} to {}".format(self.asset, self.get_command_display())
+        return f"Command {self.asset} to {self.get_command_display()}"
 
     @staticmethod
     def last_command_for_asset(asset):

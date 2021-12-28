@@ -79,7 +79,7 @@ class FirstPointDistance(Func):
 
     def as_sql(self, compiler, connection, function=None, template=None, arg_joiner=None, **extra_context):
         # pylint: disable=R0913
-        point_sql = "'SRID=4326;POINT({} {})'::geography".format(self.extra['point'].y, self.extra['point'].x)
+        point_sql = f"'SRID=4326;POINT({self.extra['point'].y} {self.extra['point'].x})'::geography"
         return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(geo::geometry,1)::geography, " + point_sql + ")",
                               arg_joiner=arg_joiner, extra_context=extra_context)
 
@@ -295,7 +295,7 @@ class Search(GeoTime):
         query = "SELECT geo"
         for deg in (30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0):
             query += ", ST_Project(geo, {sw}, radians({deg})) AS deg_{deg}".format(**{'sw': params.sweep_width() * 3, 'deg': deg})
-        query += " FROM data_geotimelabel WHERE id = {}".format(params.from_geo().pk)
+        query += f" FROM data_geotimelabel WHERE id = {params.from_geo().pk}"
         cursor = dbconn.cursor()
         cursor.execute(query)
         reference_points = cursor.fetchone()
@@ -354,12 +354,12 @@ class Search(GeoTime):
         query = "SELECT p.geo, p.first"
         for i in range(1, params.iterations() + 1):
             dist = math.sqrt(2) * i * params.sweep_width()
-            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 45 + params.first_bearing())
-            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 135 + params.first_bearing())
-            query += ", ST_Project(p.geo, {}, radians({}))".format(dist, 225 + params.first_bearing())
-            query += ", ST_Project(p.first, {}, radians({}))".format(dist, 315 + params.first_bearing())
+            query += f", ST_Project(p.geo, {dist}, radians({45 + params.first_bearing()}))"
+            query += f", ST_Project(p.geo, {dist}, radians({135 + params.first_bearing()}))"
+            query += f", ST_Project(p.geo, {dist}, radians({225 + params.first_bearing()}))"
+            query += f", ST_Project(p.first, {dist}, radians({315 + params.first_bearing()}))"
 
-        query += " FROM (SELECT geo, ST_Project(geo, {}, radians({})) AS first FROM data_geotimelabel WHERE id = {}) AS p".format(params.sweep_width(), params.first_bearing(), params.from_geo().pk)
+        query += f" FROM (SELECT geo, ST_Project(geo, {params.sweep_width()}, radians({params.first_bearing()})) AS first FROM data_geotimelabel WHERE id = {params.from_geo().pk}) AS p"
 
         cursor = dbconn.cursor()
         cursor.execute(query)
@@ -414,15 +414,15 @@ class Search(GeoTime):
         """
         segment_query = \
             "SELECT ST_PointN(geo::geometry, pos)::geography AS start, ST_PointN(geo::geometry, pos + 1)::geography AS end" \
-            " FROM data_geotimelabel, generate_series(1, ST_NPoints(geo::geometry) - 1) AS pos WHERE id = {}".format(params.from_geo().pk)
+            f" FROM data_geotimelabel, generate_series(1, ST_NPoints(geo::geometry) - 1) AS pos WHERE id = {params.from_geo().pk}"
 
         line_data_query = \
-            "SELECT segment.start AS start, ST_Azimuth(segment.start, segment.end) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({}) AS segment".format(segment_query)
+            f"SELECT segment.start AS start, ST_Azimuth(segment.start, segment.end) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({segment_query}) AS segment"
         line_points_query = \
-            "SELECT direction AS direction, ST_Project(linedata.start, {0} * i, direction) AS point"\
-            " FROM ({1}) AS linedata, generate_series(0, (linedata.distance/{0})::integer) AS i".format(params.sweep_width(), line_data_query)
+            f"SELECT direction AS direction, ST_Project(linedata.start, {params.sweep_width()} * i, direction) AS point"\
+            f" FROM ({line_data_query}) AS linedata, generate_series(0, (linedata.distance/{params.sweep_width()})::integer) AS i"
         query = \
-            "SELECT ST_Project(point, {0}, direction + PI()/2) AS A, ST_Project(point, {0}, direction - PI()/2) AS B FROM ({1}) AS linepoints;".format(params.width(), line_points_query)
+            f"SELECT ST_Project(point, {params.width()}, direction + PI()/2) AS A, ST_Project(point, {params.width()}, direction - PI()/2) AS B FROM ({line_points_query}) AS linepoints;"
 
         cursor = dbconn.cursor()
         cursor.execute(query)
@@ -485,7 +485,7 @@ class Search(GeoTime):
         return search
 
     def __str__(self):
-        return "{} search from {}, sweep width = {}, asset class = {}".format(self.search_type, self.datum, self.sweep_width, self.created_for)
+        return f"{self.search_type} search from {self.datum}, sweep width = {self.sweep_width}, asset class = {self.created_for}"
 
     class Meta:
         indexes = [
