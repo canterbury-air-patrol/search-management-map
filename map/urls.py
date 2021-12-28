@@ -4,12 +4,12 @@ URLs for the map
 This is mapped in at the top level
 """
 
-from django.conf.urls import url
+from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    url(r'^mission/(?P<mission_id>\d+)/map/$', views.map_main, name='map_main'),
-    url(r'^mission/current/map/$', views.map_main_current, name='map_main_current'),
-    url(r'^mission/all/map/$', views.map_main_all, name='map_main_all'),
-    url(r'^record/$', views.recording, name='recording'),
+    re_path(r'^mission/(?P<mission_id>\d+)/map/$', views.map_main, name='map_main'),
+    re_path(r'^mission/current/map/$', views.map_main_current, name='map_main_current'),
+    re_path(r'^mission/all/map/$', views.map_main_all, name='map_main_all'),
+    re_path(r'^record/$', views.recording, name='recording'),
 ]
