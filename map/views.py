@@ -5,10 +5,12 @@ These views should only relate to presentation of the UI
 """
 
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from mission.decorators import mission_is_member
 from .forms import AssetSelectorForm
+from .models import MapTileLayer
 
 
 @login_required
@@ -45,3 +47,13 @@ def recording(request):
         'form': AssetSelectorForm(user=request.user),
     }
     return render(request, 'recorder.html', data)
+
+
+def tile_layer_list(request):
+    """
+    List the tile layers that are currently active
+    """
+    active_tile_layers = MapTileLayer.objects.filter(active=True).order_by('relativeOrder')
+    data = {'layers': list(active_tile_layers.values())}
+
+    return JsonResponse(data)

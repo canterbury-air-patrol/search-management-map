@@ -22,8 +22,3 @@ DATABASES = {
         'PASSWORD': 'POSTGRES_PASSWORD',
     }
 }
-
-# You can write your own leaflet configuration here
-# Refer to: https://django-leaflet.readthedocs.io/en/latest/templates.html
-LEAFLET_CONFIG = {
-}
