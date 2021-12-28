@@ -3,29 +3,29 @@ Urls for search management
 
 These are linked at /search/
 """
-from django.conf.urls import url
+from django.urls import re_path
 from . import views, view_helpers
 from .models import Search
 
 urlpatterns = [
-    url(r'^mission/(?P<mission_id>\d+)/search/incomplete/$', views.search_incomplete, {'search_class': Search}, name='search_incomplete'),
-    url(r'^mission/(?P<mission_id>\d+)/search/incomplete/kml/$', views.search_incomplete_kml, {'search_class': Search}, name='search_incomplete_kml'),
-    url(r'^mission/(?P<mission_id>\d+)/search/completed/$', views.search_completed, {'search_class': Search}, name='search_completed'),
-    url(r'^mission/(?P<mission_id>\d+)/search/completed/kml/$', views.search_completed_kml, {'search_class': Search}, name='search_completed_kml'),
-    url(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/queue/$', views.search_queue, name='search_queue'),
-    url(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/delete/$', views.search_delete, name='search_delete'),
-    url(r'^search/(?P<search_id>\d+)/json/$', view_helpers.search_json, {'object_class': Search}, name='search_json'),
-    url(r'^search/(?P<search_id>\d+)/begin/$', views.search_begin, {'object_class': Search}, name='search_begin'),
-    url(r'^search/(?P<search_id>\d+)/finished/$', views.search_finished, {'object_class': Search}, name='search_finished'),
-    url(r'^search/sector/create/$', views.sector_search_create, name='sector_search_create'),
-    url(r'^search/expandingbox/create/$', views.expanding_box_search_create, name='expanding_box_search_create'),
-    url(r'^search/trackline/create/$', views.track_line_search_create, name='track_line_search_create'),
-    url(r'^search/creepingline/create/track/$', views.track_creeping_line_search_create, name='track_creeping_line_search_create'),
-    url(r'^search/creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
-    url(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/incomplete/$', views.search_incomplete, {'search_class': Search}, name='search_incomplete'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/incomplete/kml/$', views.search_incomplete_kml, {'search_class': Search}, name='search_incomplete_kml'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/completed/$', views.search_completed, {'search_class': Search}, name='search_completed'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/completed/kml/$', views.search_completed_kml, {'search_class': Search}, name='search_completed_kml'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/queue/$', views.search_queue, name='search_queue'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/delete/$', views.search_delete, name='search_delete'),
+    re_path(r'^search/(?P<search_id>\d+)/json/$', view_helpers.search_json, {'object_class': Search}, name='search_json'),
+    re_path(r'^search/(?P<search_id>\d+)/begin/$', views.search_begin, {'object_class': Search}, name='search_begin'),
+    re_path(r'^search/(?P<search_id>\d+)/finished/$', views.search_finished, {'object_class': Search}, name='search_finished'),
+    re_path(r'^search/sector/create/$', views.sector_search_create, name='sector_search_create'),
+    re_path(r'^search/expandingbox/create/$', views.expanding_box_search_create, name='expanding_box_search_create'),
+    re_path(r'^search/trackline/create/$', views.track_line_search_create, name='track_line_search_create'),
+    re_path(r'^search/creepingline/create/track/$', views.track_creeping_line_search_create, name='track_creeping_line_search_create'),
+    re_path(r'^search/creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
+    re_path(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
 
-    url(r'^mission/all/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': False}),
-    url(r'^mission/all/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': False}),
-    url(r'^mission/current/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': True}),
-    url(r'^mission/current/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': True}),
+    re_path(r'^mission/all/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': False}),
+    re_path(r'^mission/all/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': False}),
+    re_path(r'^mission/current/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': True}),
+    re_path(r'^mission/current/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': True}),
 ]
