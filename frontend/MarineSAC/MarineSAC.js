@@ -1,3 +1,5 @@
+import $ from 'jquery';
+
 class MarineSAC {
     constructor(column, asset_type)
     {
@@ -51,7 +53,7 @@ class MarineSAC {
     }
 }
 
-table_rows = [
+let table_rows = [
     {
         'display_name': 'Uncorrected Sweep Width (Wu) `NM`',
         'id_prefix': 'wu',
@@ -105,7 +107,7 @@ table_rows = [
     },
 ]
 
-input_rows = [
+let input_rows = [
     {
         'display_name': 'Target Description',
         'form_field': 'target_description',
@@ -148,19 +150,19 @@ input_rows = [
     },
 ]
 
-search_weather_impact_small_object = {
+let search_weather_impact_small_object = {
     'low': 1.0,
     'medium': 0.5,
     'high': 0.25,
 }
 
-search_weather_impact_large_object = {
+let search_weather_impact_large_object = {
     'low': 1.0,
     'medium': 0.8,
     'high': 0.5,
 }
 
-search_object_distance = [
+let search_object_distance = [
     {
         'object': 'Person in Water',
         'weather_corrections': search_weather_impact_small_object,
@@ -2368,7 +2370,7 @@ search_object_distance = [
 
 ]
 
-class MarineSACTable {
+export class MarineSACTable {
     constructor(input_table_id, table_id)
     {
         this.input_table_id = input_table_id

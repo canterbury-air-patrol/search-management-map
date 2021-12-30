@@ -1,9 +1,12 @@
 const path = require('path');
 
 module.exports = {
-    entry: './frontend/map.js',
+    entry: {
+        map: './frontend/map.js',
+        marinesac: './frontend/marinesac.js',
+    },
     output: {
-        filename: 'frontend.js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/static/',
     },
