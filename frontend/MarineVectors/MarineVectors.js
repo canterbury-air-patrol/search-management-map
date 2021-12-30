@@ -372,7 +372,7 @@ let search_object_leeway = [
     },
 ]
 
-class MarineVectors {
+export class MarineVectors {
     constructor(input_table_id, current_vectors_table_id, wind_vectors_table_id) {
         this.current_vectors = []
         this.wind_vectors = []
