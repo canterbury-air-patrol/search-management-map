@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
     entry: {
         map: './frontend/map.js',
+        pretty: './frontend/pretty.js',
         marinesac: './frontend/marinesac.js',
     },
     output: {

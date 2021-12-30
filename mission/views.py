@@ -167,7 +167,7 @@ def mission_user_add(request, mission_user):
                 return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
     if form is None:
-        form = MissionAssetForm()
+        form = MissionUserForm()
 
     return render(request, 'mission_user_add.html', {'form': form})
 

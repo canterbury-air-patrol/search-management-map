@@ -1,15 +1,9 @@
-{% load leaflet_tags %}
-{% load static %}
-{% load bootstrap4 %}
 <!DOCTYPE html>
 <html style="height: 100%">
     <head>
         <title>Add an Asset to a Mission</title>
-        <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
-        {% bootstrap_css %}
-        {% bootstrap_javascript %}
-        <link rel="stylesheet" href="{% static "css/main.css" %}" type="text/css" />
-        <link rel="stylesheet" href="{% static "fontawesome/css/all.css" %}" type="text/css" />
+        <base href="/static/" />
+        <script type="module" src="pretty.js"></script>
     </head>
     <body style="height: 100%">
         <form method="POST">

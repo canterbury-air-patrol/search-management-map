@@ -4,14 +4,13 @@
     <head>
         <title>Search Map</title>
         <base href="/static/" />
-        <script type="module" src="frontend.js"></script>
+        <script type="module" src="map.js"></script>
         <script type="text/javascript">
             csrftoken = "{{ csrf_token }}";
             mission_id = "{% if mission == 'all' or mission == 'current' %}{{ mission }}{% else %}{{ mission.pk }}{% endif %}";
         </script>
     </head>
     <body style="height: 100%">
-        <div id="main_map" onload="var data = mapInit()"></div>
 	{% csrf_token %}
     </body>
 </html>
