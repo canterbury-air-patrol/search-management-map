@@ -1,4 +1,7 @@
-django
+django==4.*
+
+# Timezone support
+pytz
 
 # Database
 psycopg2-binary
