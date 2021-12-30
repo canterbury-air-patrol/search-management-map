@@ -5,6 +5,7 @@ module.exports = {
         map: './frontend/map.js',
         pretty: './frontend/pretty.js',
         marinesac: './frontend/marinesac.js',
+        marinevectors: './frontend/marinevectors.js',
     },
     output: {
         filename: '[name].js',
