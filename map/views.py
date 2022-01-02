@@ -19,6 +19,7 @@ def map_main(request, mission_user):
     """
     return render(request, 'map_main.html', {'mission': mission_user.mission})
 
+
 @login_required
 def map_main_all(request):
     """
@@ -26,12 +27,14 @@ def map_main_all(request):
     """
     return render(request, 'map_main.html', {'mission': 'all'})
 
+
 @login_required
 def map_main_current(request):
     """
     Present the user a map showing all current missions they can see on it
     """
     return render(request, 'map_main.html', {'mission': 'current'})
+
 
 @login_required
 def recording(request):

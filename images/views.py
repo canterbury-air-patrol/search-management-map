@@ -87,6 +87,7 @@ def images_list_important_current(request):
     """
     return to_geojson(GeoImage, GeoImage.all_current_user(request.user, current_only=True).exclude(priority=False))
 
+
 @login_required
 @mission_is_member
 def image_get_full(request, image_id, mission_user):
