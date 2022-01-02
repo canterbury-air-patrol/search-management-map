@@ -1,0 +1,22 @@
+name: Run Check Code
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install apt depends
+        run: |
+          sudo apt install gdal-bin libgdal-dev
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Setup venv
+        run: |
+          ./setup-venv.sh
+      - name: check-code
+        run: |
+          ./check-code.sh
