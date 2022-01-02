@@ -1,5 +1,2 @@
-jquery/
-leaflet/
-fontawesome/
-frontend.js
-frontend.js.LICENSE.txt
+*.js
+*.js.*
