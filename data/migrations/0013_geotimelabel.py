@@ -1,6 +1,5 @@
 from django.conf import settings
 from django.db import migrations, models
-from django.contrib.gis.geos import Point
 import django.contrib.gis.db.models
 
 

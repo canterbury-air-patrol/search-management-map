@@ -4,10 +4,12 @@ Mission Create/Management Views.
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
@@ -58,7 +60,9 @@ def mission_close(request, mission_user):
     Close a Mission
     """
     if mission_user.mission.closed is not None:
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        if url_has_allowed_host_and_scheme(request.META.get('HTTP_REFERER'), settings.ALLOWED_HOSTS):
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+        return redirect('/')
 
     mission_user.mission.closed = timezone.now()
     mission_user.mission.closed_by = request.user
@@ -74,7 +78,9 @@ def mission_close(request, mission_user):
         mission_asset.save()
         timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=mission_asset.asset)
 
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    if url_has_allowed_host_and_scheme(request.META.get('HTTP_REFERER'), settings.ALLOWED_HOSTS):
+        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
+    return redirect('/')
 
 
 @login_required
@@ -199,18 +205,16 @@ def mission_asset_add(request, mission_user):
         form = MissionAssetForm(request.POST)
         if form.is_valid():
             # Check if this asset is in any other missions currently
-            try:
-                mission_asset = MissionAsset.objects.get(asset=form.cleaned_data['asset'], removed__isnull=True)
+            if MissionAsset.objects.filter(asset=form.cleaned_data['asset'], removed__isnull=True).exists():
                 return HttpResponseForbidden("Asset is already in another Mission")
-            except ObjectDoesNotExist:
-                # Create the new mission<->asset
-                mission_asset = MissionAsset(mission=mission_user.mission, asset=form.cleaned_data['asset'], creator=request.user)
-                mission_asset.save()
-                timeline_record_mission_asset_add(mission_user.mission, request.user, asset=form.cleaned_data['asset'])
-                command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='RON', reason='Added to mission', mission=mission_user.mission)
-                command.save()
+            # Create the new mission<->asset
+            mission_asset = MissionAsset(mission=mission_user.mission, asset=form.cleaned_data['asset'], creator=request.user)
+            mission_asset.save()
+            timeline_record_mission_asset_add(mission_user.mission, request.user, asset=form.cleaned_data['asset'])
+            command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='RON', reason='Added to mission', mission=mission_user.mission)
+            command.save()
 
-                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+            return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
     if form is None:
         form = MissionAssetForm()

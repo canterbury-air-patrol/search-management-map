@@ -97,7 +97,7 @@ def image_get_full(request, image_id, mission_user):
     # Check the image is valid for this mission
     image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
 
-    return FileResponse(open(f'images/full/{image_id}.data', 'rb'), filename=f'original-{image_id}.{image.original_format}')
+    return FileResponse(open(f'images/full/{image.pk}.data', 'rb'), filename=f'original-{image.pk}.{image.original_format}')
 
 
 @login_required
@@ -109,7 +109,7 @@ def image_get_thumbnail(request, image_id, mission_user):
     # Check the image is valid for this mission
     image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
 
-    return FileResponse(open(f'images/thumbnail/{image_id}.data', 'rb'), filename=f'thumbnail-{image_id}.{image.original_format}')
+    return FileResponse(open(f'images/thumbnail/{image.pk}.data', 'rb'), filename=f'thumbnail-{image.pk}.{image.original_format}')
 
 
 @login_required

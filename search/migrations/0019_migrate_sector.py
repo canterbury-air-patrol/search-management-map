@@ -1,8 +1,4 @@
-from django.conf import settings
-from django.db import migrations, models
-from django.contrib.gis.geos import Point
-import django.contrib.gis.db.models
-
+from django.db import migrations
 
 def forward_func(apps, schema_editor):
     SectorSearch = apps.get_model('search', 'SectorSearch')
