@@ -20,7 +20,7 @@ import './ImageUploader/ImageUploader.js';
 import './SearchAdder/SearchAdder.js';
 import './MarineVectors/MarineVectors.js';
 
-import { deg_to_dm, dm_to_deg } from './deg_conv';
+import { deg_to_dm } from './deg_conv';
 
 class smm_map {
     constructor(map_elem) {
@@ -57,7 +57,7 @@ class smm_map {
                 }
             }
             L.control.layers(base_layers, extra_layers).addTo(self.map);
-        })
+        });
 
         this.layerControl.addTo(this.map);
 
@@ -199,12 +199,12 @@ class smm_map {
 
     assetPathUpdate(name)
     {
-        if (!(name in assetLines)) {
+        if (!(name in this.assetLines)) {
             var track = L.polyline([], {color: 'red'});
-            assetLines[name] = {track: track, updating: false, lastUpdate: null, path: []};
+            this.assetLines[name] = {track: track, updating: false, lastUpdate: null, path: []};
             this.overlayAdd(name, track);
         }
-        var assetLine = assetLines[name]
+        var assetLine = this.assetLines[name]
         if (assetLine.updating) { return; }
         assetLine.updating = true;
 
@@ -246,7 +246,7 @@ class smm_map {
             ['Asset', assetName],
             ['Lat', deg_to_dm(coords[1], true)],
             ['Long', deg_to_dm(coords[0])],
-        ]
+        ];
 
         let alt = asset.properties.alt;
         let heading = asset.properties.heading;
@@ -282,11 +282,11 @@ class smm_map {
     assetCreate(asset) {
         var assetName = asset.properties.asset;
 
-        if(!(assetName in assetLines))
+        if(!(assetName in this.assetLines))
         {
             /* Create an overlay for this object */
             var track = L.polyline([], {color: 'red'});
-            assetLines[assetName] = {track: track, updating: false};
+            this.assetLines[assetName] = {track: track, updating: false};
             this.overlayAdd(assetName, track);
         }
     };
@@ -459,7 +459,7 @@ class smm_map {
                     'onclick': function() { L.SearchAdder(self.map, 'line', LineID); },
                     'btn-class': 'btn-light',
                 }
-            ]))
+            ]));
         }
 
         layer.bindPopup(popupContent, { minWidth: 200 });
@@ -638,7 +638,7 @@ class smm_map {
             ['Image', ImageDesc],
             ['Lat', deg_to_dm(coords[1], true)],
             ['Long', deg_to_dm(coords[0])],
-        ]
+        ];
 
         for (let d in data)
         {

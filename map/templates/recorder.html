@@ -3,14 +3,15 @@
 <html style="height: 100%">
     <head>
         <title>Search Map Recorder</title>
+        <base href="/static/" />
+        <script type="module" src="pretty.js"></script>
         <script type="text/javascript">
             csrftoken = "{{ csrf_token }}";
         </script>
-        <script src="{% static "jquery/jquery.js" %}" type="text/javascript"></script>
         <script>
 
 function errorHandler(error) {
-    var msg = null;
+    let msg = null;
     switch(error.code) {
         case error.PERMISSION_DENIED:
              msg = "No permision given to access location";
@@ -25,23 +26,18 @@ function errorHandler(error) {
              msg = "Unknown error: " + error.code;
              break;
     }
-    if (msg == null) {
-         $("#error_label").text('');
-         $("#error_text").text('');
-    } else {
-         $("#error_label").text('Error');
-         $("#error_text").text(msg);
-    }
+    $("#error_label").text('Error');
+    $("#error_text").text(msg);
 }
 
 function updatePosition(position) {
-    var latitude = position.coords.latitude;
-    var longitude = position.coords.longitude;
-    var altitude = position.coords.altitude;
-    var heading = position.coords.heading;
+    let latitude = position.coords.latitude;
+    let longitude = position.coords.longitude;
+    let altitude = position.coords.altitude;
+    let heading = position.coords.heading;
 
-    var asset_name = $("#id_asset option:selected").text();
-    var data = {
+    let asset_name = $("#id_asset option:selected").text();
+    let data = {
         lat: latitude,
         lon: longitude,
         alt: altitude,
@@ -58,12 +54,12 @@ function updatePosition(position) {
 
 function startRecording(){
     if (navigator.geolocation) {
-        var options = {
+        let options = {
             timeout:60000,
             enableHighAccuracy: true
         };
-        geoLoc = navigator.geolocation;
-        watchID = geoLoc.watchPosition(updatePosition, errorHandler, options);
+        let geoLoc = navigator.geolocation;
+        var watchID = geoLoc.watchPosition(updatePosition, errorHandler, options);
     }
 }
         </script>
@@ -74,7 +70,7 @@ function startRecording(){
             {{ form }}
         </table>
         </form>
-        <button class="btn" onClick="startRecording()">Record</button>
+        <button class="btn btn-primary" onClick="startRecording()">Record</button>
         <table>
             <tr><td id='error_label'></td><td id='error_text'></td></tr>
             <tr><td>Latitude</td><td>Longitude</td><td>Altitude</td><td>Heading</td></tr>

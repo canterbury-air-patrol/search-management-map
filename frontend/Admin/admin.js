@@ -1,5 +1,7 @@
 import $ from 'jquery';
 
+import { deg_to_dm } from '../deg_conv';
+
 L.SMMAdmin = {}
 
 L.SMMAdmin.AssetCommand = function(map) {
@@ -98,16 +100,16 @@ L.SMMAdmin.TrackPosition = function(map) {
     }
     updateButtons();
 
-    $("#record_start").click(function() { state = 'running'; updateButtons(); })
-    $("#record_stop").click(function() { state = 'stopped'; updateButtons(); })
-    $("#record_close").click(function() {
+    $("#record_start").on('click', function() { state = 'running'; updateButtons(); })
+    $("#record_stop").on('click', function() { state = 'stopped'; updateButtons(); })
+    $("#record_close").on('click', function() {
         state = 'closed';
         trackPositionDialog.destroy();
         navigator.geolocation.clearWatch(watchID);
     })
 
     var errorHandler = function(error) {
-        var msg = null;
+        let msg = null;
         switch(error.code) {
             case error.PERMISSION_DENIED:
                  msg = "No permision given to access location";
@@ -122,11 +124,7 @@ L.SMMAdmin.TrackPosition = function(map) {
                  msg = "Unknown error: " + error.code;
                  break;
         }
-        if (msg == null) {
-             $("#track-position-error").text('');
-        } else {
-             $("#track-position-error").text('Error: ' + msg);
-        }
+        $("#track-position-error").text('Error: ' + msg);
     }
 
     var updatePosition = function(position) {
