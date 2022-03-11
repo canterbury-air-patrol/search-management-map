@@ -1,6 +1,22 @@
-#!/bin/bash
+#!/bin/bash -ex
 
-./setup.sh
+cp docker/app/local_settings.py smm/local_settings.py
+
+./setup-db.sh
+
+source /code/venv/bin/activate
+pip install gunicorn
+
 ./manage.py makemigrations
 ./manage.py migrate
-gunicorn smm.wsgi:application -b 0.0.0.0:8080
+
+if [ "$1" == "test" ]
+then
+    ./manage.py test
+else
+    if [ ! -z "$DJANGO_SUPERUSER_USERNAME" ] && [ ! -z "$DJANGO_SUPERUSER_PASSWORD" ]
+    then
+        ./manage.py createsuperuser --noinput
+    fi
+    gunicorn smm.wsgi:application -b 0.0.0.0:8080
+fi

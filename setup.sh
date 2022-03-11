@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -ex
 
 pip install wheel
 # Install the required packages
@@ -14,24 +14,14 @@ echo ""
 # Create the local settings file from the template
 if [ ! -f smm/local_settings.py ]
 then
-	grep -q docker /proc/self/cgroup
-	RETCODE=$?
-	if [ $RETCODE -eq 0 ]
-	then
-		cp docker/app/local_settings.py smm/local_settings.py
-	else
-		cp smm/local_settings.py.template smm/local_settings.py
-	fi
+	cp smm/local_settings.py.template smm/local_settings.py
 	echo ""
 	echo "Create smm/local_settings.py from template"
 	echo "You should check this reflects your required settings"
         echo "At a minimum you will need to set your postgis parameters"
 fi
 
-[ ! -z "$DB_HOST" ] && sed -i "s|'HOST': .*|'HOST': '$DB_HOST',|" smm/local_settings.py || true
-[ ! -z "$DB_USER" ] && sed -i "s|'USER': .*|'USER': '$DB_USER',|" smm/local_settings.py || true
-[ ! -z "$DB_NAME" ] && sed -i "s|'NAME': .*|'NAME': '$DB_NAME',|" smm/local_settings.py || true
-[ ! -z "$DB_PASS" ] && sed -i "s|'PASSWORD': .*|'PASSWORD': '$DB_PASS',|" smm/local_settings.py || true
+./setup-db.sh
 
 if [ ! -f smm/secretkey.txt ]
 then
