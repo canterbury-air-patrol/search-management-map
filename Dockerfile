@@ -6,4 +6,5 @@ WORKDIR /code
 COPY . /code/
 RUN rm -fr /code/smm/local_settings.py /code/venv
 RUN ./setup-venv.sh
-CMD ./docker/app/start.sh
+
+ENTRYPOINT /code/docker/app/start.sh
