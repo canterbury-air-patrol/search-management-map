@@ -3,14 +3,25 @@ version: '3'
 services:
   db:
     image: mdillon/postgis
+    healthcheck:
+      test: "pg_isready --username=postgres"
+      timeout: 10s
+      retries: 20
   app:
     build: .
-    volumes:
-      - ./:/code/
     expose:
       - "8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_NAME=postgres
+      - DB_PASS=password
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_PASSWORD=administrator
+      - DJANGO_SUPERUSER_EMAIL=me@example.com
   web:
     image: nginx
     ports:
