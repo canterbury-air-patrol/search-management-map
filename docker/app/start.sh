@@ -1,14 +1,16 @@
 #!/bin/bash -ex
 
-cp docker/app/local_settings.py smm/local_settings.py
+cp smm/local_settings.py.template smm/local_settings.py
 
 ./setup-db.sh
 
 source /code/venv/bin/activate
-pip install gunicorn
 
 ./manage.py makemigrations
 ./manage.py migrate
+
+sed -i 's/DEBUG =.*/DEBUG = True/' smm/local_settings.py
+sed -i 's/HOSTNAME/${HOSTNAME}/' smm/local_settings.py
 
 if [ "$1" == "test" ]
 then
@@ -18,5 +20,5 @@ else
     then
         ./manage.py createsuperuser --noinput
     fi
-    gunicorn smm.wsgi:application -b 0.0.0.0:8080
+    ./manage.py runserver 0.0.0.0:8080
 fi

@@ -7,7 +7,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8080', 'http://HOSTNAME']
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
