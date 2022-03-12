@@ -9,8 +9,8 @@ services:
       retries: 20
   app:
     build: .
-    expose:
-      - "8080"
+    ports:
+      - "8080:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -22,12 +22,3 @@ services:
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_PASSWORD=administrator
       - DJANGO_SUPERUSER_EMAIL=me@example.com
-  web:
-    image: nginx
-    ports:
-      - 8080:8080
-    volumes:
-      - ./static/:/static/
-      - ./docker/nginx:/etc/nginx/conf.d
-    depends_on:
-      - app
