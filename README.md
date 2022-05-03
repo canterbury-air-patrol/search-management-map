@@ -23,7 +23,6 @@ cd search-management-map
 ```
 git clone https://github.com/canterbury-air-patrol/search-management-map.git
 cd search-management-map
-docker-compose run app ./docker/app/create-admin.sh
 docker-compose up
 ```
 
