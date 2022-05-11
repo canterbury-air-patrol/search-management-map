@@ -39,7 +39,7 @@ class smm_map {
             for (let d in data.layers) {
                 let layer = data.layers[d];
                 let options = {
-                    'attributes': layer['atrributes'],
+                    'attribution': layer['attribution'],
                     'minZoom': layer['minZoom'],
                     'maxZoom': layer['maxZoom'],
                 }
