@@ -21,10 +21,10 @@
   "license": "",
   "description": "",
   "dependencies": {
+    "@canterbury-air-patrol/leaflet-dialog": "^1.1.1",
     "bootstrap": "^4.6.1",
     "jquery": "^3.6.0",
-    "leaflet": "^1.7.1",
-    "leaflet-dialog": "^1.0.5",
+    "leaflet": "^1.8.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet.locatecontrol": "^0.76.0",
     "popper.js": "^1.16.1"
