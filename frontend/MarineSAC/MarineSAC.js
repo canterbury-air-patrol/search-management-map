@@ -23,7 +23,7 @@ class MarineSAC {
         this.asset_speed = $("#" + this.asset_type + "_search_speed").val()
         this.wu = parseFloat($("#wu_" + this.column).text())
         this.fw = parseFloat($("#fw_" + this.column).text())
-        this.fatigue = $("#fatigue").checked
+        this.fatigue = $("#fatigue").is(':checked')
         this.practical_track_spacing = parseFloat($("#practical_track_spacing_" + this.column).val())
         this.search_area = parseInt($("#search_area_" + this.column).val())
         this.available_search_hours = parseInt($("#available_search_hours_" + this.column).val())
