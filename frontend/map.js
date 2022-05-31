@@ -8,8 +8,8 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet/dist/images/marker-shadow.png';
 
 import 'leaflet-realtime';
-import 'leaflet-dialog';
-import 'leaflet-dialog/Leaflet.Dialog.css';
+import '@canterbury-air-patrol/leaflet-dialog';
+import '@canterbury-air-patrol/leaflet-dialog/Leaflet.Dialog.css';
 import 'leaflet.locatecontrol';
 
 import './Admin/admin.js';
