@@ -5,7 +5,9 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 import L, { LatLng } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet/dist/images/marker-shadow.png';
+import marker_icon from 'leaflet/dist/images/marker-icon.png';
+import marker_icon_2x from 'leaflet/dist/images/marker-icon-2x.png';
+import marker_icon_shadow from 'leaflet/dist/images/marker-shadow.png';
 
 import 'leaflet-realtime';
 import '@canterbury-air-patrol/leaflet-dialog';
@@ -31,6 +33,10 @@ class smm_map {
     };
 
     setupMap() {
+        L.Icon.Default.prototype.options.iconUrl = marker_icon
+        L.Icon.Default.prototype.options.iconRetinaUrl = marker_icon_2x
+        L.Icon.Default.prototype.options.shadowUrl = marker_icon_shadow
+
         let self = this;
         $.get('/map/tile/layers/', function(data) {
             let base_selected = false;
@@ -158,8 +164,8 @@ class smm_map {
             }, {
                 interval: imageAllUpdateFreq,
                 onEachFeature: function(image, layer) { self.imageCreate(image, layer) },
-                    getFeatureId: function(feature) { return feature.properties.pk; }
-                });
+                getFeatureId: function(feature) { return feature.properties.pk; }
+            });
 
         this.overlayAdd("Images (all)", realtime);
 
