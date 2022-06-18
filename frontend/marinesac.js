@@ -1,8 +1,9 @@
 import 'bootstrap';
 import 'bootstrap/dist/css/bootstrap.css';
+import React from 'react';
+import * as ReactDOM from 'react-dom/client';
 
-import { MarineSACTable } from './MarineSAC/MarineSAC';
+import { MarineSACTable } from '@canterbury-air-patrol/marine-search-area-coverage';
 
-let sac_table = new MarineSACTable("sac_inputs", "data_table")
-sac_table.populate_input_table()
-sac_table.populate_table()
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<MarineSACTable />);
