@@ -1,16 +1,9 @@
 {
-  "devDependencies": {
-    "css-loader": "^4.3.0",
-    "file-loader": "^6.2.0",
-    "style-loader": "^2.0.0",
-    "webpack": "^5.65.0",
-    "webpack-cli": "^4.5.0"
-  },
   "name": "search-management-map-map",
   "version": "1.0.0",
   "main": "frontend/map.js",
   "scripts": {
-    "build": "webpack && cp -dpR dist/* map/static/",
+    "build": "esbuild frontend/{map,marinesac,marinevectors,pretty}.js $(esbuild-config) && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -23,6 +16,8 @@
   "dependencies": {
     "@canterbury-air-patrol/leaflet-dialog": "^1.1.1",
     "bootstrap": "^4.6.1",
+    "esbuild": "^0.14.46",
+    "esbuild-config": "^0.2.0",
     "jquery": "^3.6.0",
     "leaflet": "^1.8.0",
     "leaflet-realtime": "^2.2.0",

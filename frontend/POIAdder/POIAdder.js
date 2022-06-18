@@ -1,5 +1,7 @@
 import $ from 'jquery';
 
+import marker_icon from 'leaflet/dist/images/marker-icon.png'
+
 import { deg_to_dm, dm_to_deg } from '../deg_conv';
 
 L.POIAdder = function(map, pos, replaces, label) {
@@ -74,7 +76,7 @@ L.Control.POIAdder = L.Control.extend({
 
         var markerImg = L.DomUtil.create('img', 'POIAdder-marker', link);
 
-        markerImg.src = '/static/node_modules/leaflet/dist/images/marker-icon.png';
+        markerImg.src = marker_icon;
         markerImg.alt = 'Add POI';
 
         L.DomEvent.disableClickPropagation(link);
