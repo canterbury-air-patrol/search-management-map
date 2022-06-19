@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 import marker_icon from 'leaflet/dist/images/marker-icon.png'
 
-import { deg_to_dm, dm_to_deg } from '../deg_conv';
+import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter';
 
 L.POIAdder = function(map, pos, replaces, label) {
     var marker = new L.marker(pos, {
@@ -22,15 +22,15 @@ L.POIAdder = function(map, pos, replaces, label) {
     ].join('');
     var markerDialog = new L.control.dialog({'initOpen': false}).setContent(contents).addTo(map).hideClose();
     if (replaces !== -1) {
-        $('#poi-dialog-lat-' + RAND_NUM).val(deg_to_dm(pos.lat, true));
-        $('#poi-dialog-lon-' + RAND_NUM).val(deg_to_dm(pos.lng, false));
+        $('#poi-dialog-lat-' + RAND_NUM).val(degreesToDM(pos.lat, true));
+        $('#poi-dialog-lon-' + RAND_NUM).val(degreesToDM(pos.lng, false));
         $('#poi-dialog-create-' + RAND_NUM).html('Update');
         markerDialog.open();
     }
     $('#poi-dialog-create-' + RAND_NUM).click(function() {
          var data = {
-             lat: dm_to_deg ($('#poi-dialog-lat-' + RAND_NUM).val()),
-             lon: dm_to_deg ($('#poi-dialog-lon-' + RAND_NUM).val()),
+             lat: DMToDegrees ($('#poi-dialog-lat-' + RAND_NUM).val()),
+             lon: DMToDegrees ($('#poi-dialog-lon-' + RAND_NUM).val()),
              label: $('#poi-dialog-label-' + RAND_NUM).val(),
              csrfmiddlewaretoken: csrftoken,       
          }
@@ -51,8 +51,8 @@ L.POIAdder = function(map, pos, replaces, label) {
     });
     map.on('dialog:opened', function () {
         var markerCoords = marker.getLatLng();
-        $('#poi-dialog-lat-' + RAND_NUM).val(deg_to_dm(markerCoords.lat, true));
-        $('#poi-dialog-lon-' + RAND_NUM).val(deg_to_dm(markerCoords.lng, false));
+        $('#poi-dialog-lat-' + RAND_NUM).val(degreesToDM(markerCoords.lat, true));
+        $('#poi-dialog-lon-' + RAND_NUM).val(degreesToDM(markerCoords.lng, false));
     });
     marker.on('dragend', function () {
         markerDialog.open();

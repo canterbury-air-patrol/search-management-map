@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { deg_to_dm } from '../deg_conv';
+import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter';
 
 L.LineAdder = function(map, currentPoints, replaces, label) {
     var RAND_NUM = Math.floor(Math.random() * 16536);
@@ -47,7 +47,7 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
 
     var point_count = 0;
     var addPointRow = function(point) {
-        $('#lineadder-points-' + RAND_NUM).append('<div id="lineadder-points-' + RAND_NUM + '-' + point_count + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lat" size="12" value="' + deg_to_dm(point.lat, true) + '" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lon" size="12" value="' + deg_to_dm(point.lng, false) + '" /></div>');
+        $('#lineadder-points-' + RAND_NUM).append('<div id="lineadder-points-' + RAND_NUM + '-' + point_count + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lat" size="12" value="' + degreesToDM(point.lat, true) + '" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + point_count + '-lon" size="12" value="' + degreesToDM(point.lng, false) + '" /></div>');
         point_count++;
     }
 
@@ -57,8 +57,8 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
     }
 
     var updatePointRow = function(row, point) {
-        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lat').val(deg_to_dm(point.lat, true));
-        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lon').val(deg_to_dm(point.lng, false));
+        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lat').val(degreesToDM(point.lat, true));
+        $('#lineadder-points-' + RAND_NUM + '-' + row + '-lon').val(degreesToDM(point.lng, false));
     }
 
     updateMarkers();
@@ -97,8 +97,8 @@ L.LineAdder = function(map, currentPoints, replaces, label) {
             {name: 'points', value: points.length },
         ]
         for(var i = 0; i < points.length; i++) {
-            data.push({name: 'point'+i+'_lat', value: dm_to_deg ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lat").val())})
-            data.push({name: 'point'+i+'_lng', value: dm_to_deg ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lon").val())})
+            data.push({name: 'point'+i+'_lat', value: DMToDegrees ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lat").val())})
+            data.push({name: 'point'+i+'_lng', value: DMToDegrees ($("#lineadder-points-" + RAND_NUM + "-" + i + "-lon").val())})
         }
 
         if (replaces !== -1) {

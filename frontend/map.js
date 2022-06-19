@@ -22,7 +22,7 @@ import './ImageUploader/ImageUploader.js';
 import './SearchAdder/SearchAdder.js';
 import './MarineVectors/MarineVectors.js';
 
-import { deg_to_dm } from './deg_conv';
+import { degreesToDM } from '@canterbury-air-patrol/deg-converter';
 
 class smm_map {
     constructor(map_elem) {
@@ -250,8 +250,8 @@ class smm_map {
         let popupContent = document.createElement('div');
         let data = [
             ['Asset', assetName],
-            ['Lat', deg_to_dm(coords[1], true)],
-            ['Long', deg_to_dm(coords[0])],
+            ['Lat', degreesToDM(coords[1], true)],
+            ['Long', degreesToDM(coords[0])],
         ];
 
         let alt = asset.properties.alt;
@@ -324,8 +324,8 @@ class smm_map {
 
         let data = [
             ['POI', POILabel],
-            ['Lat', deg_to_dm(coords[1], true)],
-            ['Long', deg_to_dm(coords[0])],
+            ['Lat', degreesToDM(coords[1], true)],
+            ['Long', degreesToDM(coords[0])],
         ];
 
         for (let d in data)
@@ -642,8 +642,8 @@ class smm_map {
 
         let data = [
             ['Image', ImageDesc],
-            ['Lat', deg_to_dm(coords[1], true)],
-            ['Long', deg_to_dm(coords[0])],
+            ['Lat', degreesToDM(coords[1], true)],
+            ['Long', degreesToDM(coords[0])],
         ];
 
         for (let d in data)

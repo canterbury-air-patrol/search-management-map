@@ -1,6 +1,6 @@
 import $ from 'jquery';
 
-import { deg_to_dm } from '../deg_conv';
+import { degreesToDM } from '@canterbury-air-patrol/deg-converter';
 
 L.SMMAdmin = {}
 
@@ -141,8 +141,8 @@ L.SMMAdmin.TrackPosition = function(map) {
             heading: heading,
         };
 
-        $("#track-position-lat").text(deg_to_dm(latitude, true));
-        $("#track-position-lon").text(deg_to_dm(longitude, false));
+        $("#track-position-lat").text(degreesToDM(latitude, true));
+        $("#track-position-lon").text(degreesToDM(longitude, false));
         $("#track-position-alt").text(Math.floor(altitude));
         $("#track-position-heading").text(heading);
 
