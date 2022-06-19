@@ -15,6 +15,7 @@
   "description": "",
   "dependencies": {
     "@canterbury-air-patrol/leaflet-dialog": "^1.1.1",
+    "@canterbury-air-patrol/marine-leeway-data": "^0.0.1",
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.1.2",
     "bootstrap": "^4.6.1",
     "esbuild": "^0.14.46",
