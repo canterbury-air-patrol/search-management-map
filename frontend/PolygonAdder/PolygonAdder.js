@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { deg_to_dm, dm_to_deg } from '../deg_conv';
+import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter';
 
 L.PolygonAdder = function(map, currentPoints, replaces, label) {
 	var open = false;
@@ -72,7 +72,7 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 
 		var point_count = 0;
 		var addPointRow = function(point) {
-			$('#polygonadder-points-' + RAND_NUM).append('<div id="polygonadder-points-' + RAND_NUM + '-' + point_count + '"><input type="text" id = "polygonadder-points-' + RAND_NUM + '-' + point_count + '-lat" size="12" value="' + deg_to_dm(point.lat, true) + '" /><input type="text" id = "polygonadder-points-' + RAND_NUM + '-' + point_count + '-lon" size="12" value="' + deg_to_dm(point.lng, false) + '" /></div>');
+			$('#polygonadder-points-' + RAND_NUM).append('<div id="polygonadder-points-' + RAND_NUM + '-' + point_count + '"><input type="text" id = "polygonadder-points-' + RAND_NUM + '-' + point_count + '-lat" size="12" value="' + degreesToDM(point.lat, true) + '" /><input type="text" id = "polygonadder-points-' + RAND_NUM + '-' + point_count + '-lon" size="12" value="' + degreesToDM(point.lng, false) + '" /></div>');
 			point_count++;
 		}
 
@@ -82,8 +82,8 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 		}
 
 		var updatePointRow = function(row, point) {
-			$('#polygonadder-points-' + RAND_NUM + '-' + row + '-lat').val(deg_to_dm(point.lat, true));
-			$('#polygonadder-points-' + RAND_NUM + '-' + row + '-lon').val(deg_to_dm(point.lng, false));
+			$('#polygonadder-points-' + RAND_NUM + '-' + row + '-lat').val(degreesToDM(point.lat, true));
+			$('#polygonadder-points-' + RAND_NUM + '-' + row + '-lon').val(degreesToDM(point.lng, false));
 		}
 		updateMarkers();
 
@@ -121,8 +121,8 @@ L.PolygonAdder = function(map, currentPoints, replaces, label) {
 				{ name: 'points', value: points.length },
 			];
 			for (var i = 0; i < points.length; i++) {
-				data.push({ name: 'point' + i + '_lat', value: dm_to_deg ($("#polygonadder-points-" + RAND_NUM + "-" + i + "-lat").val()) });
-				data.push({ name: 'point' + i + '_lng', value: dm_to_deg ($("#polygonadder-points-" + RAND_NUM + "-" + i + "-lon").val()) });
+				data.push({ name: 'point' + i + '_lat', value: DMToDegrees ($("#polygonadder-points-" + RAND_NUM + "-" + i + "-lat").val()) });
+				data.push({ name: 'point' + i + '_lng', value: DMToDegrees ($("#polygonadder-points-" + RAND_NUM + "-" + i + "-lon").val()) });
 			}
 			if (replaces !== -1) {
 				$.post('/mission/' + mission_id + '/data/userpolygons/' + replaces + '/replace/', data);

@@ -14,6 +14,7 @@
   "license": "",
   "description": "",
   "dependencies": {
+    "@canterbury-air-patrol/deg-converter": "^0.0.1",
     "@canterbury-air-patrol/leaflet-dialog": "^1.1.1",
     "@canterbury-air-patrol/marine-leeway-data": "^0.0.1",
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.1.2",

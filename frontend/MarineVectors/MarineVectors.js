@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import { deg_to_dm, dm_to_deg } from '../deg_conv';
+import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter';
 import { SearchObjectLeeway } from '@canterbury-air-patrol/marine-leeway-data'
 
 var time_fractions = function(human_time) {
@@ -426,8 +426,8 @@ L.MarineVectors = function(map, pos_name, pos, poi_id) {
     marine_vectors.populate_data_tables()
 
     $('#LKP').val(pos_name);
-    $('#LKP_lat').val(deg_to_dm(pos.lat, true));
-    $('#LKP_lng').val(deg_to_dm(pos.lng, false));
+    $('#LKP_lat').val(degreesToDM(pos.lat, true));
+    $('#LKP_lng').val(degreesToDM(pos.lng, false));
 
     $('#curr_create').click(function() {
         marine_vectors.newCurrentVector();
@@ -447,8 +447,8 @@ L.MarineVectors = function(map, pos_name, pos, poi_id) {
     var get_data = function()
     {
         var data = [
-            { name: 'from_lat', value: dm_to_deg($("#LKP_lat").val()) },
-            { name: 'from_lng', value: dm_to_deg($("#LKP_lng").val()) },
+            { name: 'from_lat', value: DMToDegrees($("#LKP_lat").val()) },
+            { name: 'from_lng', value: DMToDegrees($("#LKP_lng").val()) },
             { name: 'poi_id', value: poi_id },
             { name: 'leeway_multiplier', value: marine_vectors.leeway_data['multiplier'] },
             { name: 'leeway_modifier', value: marine_vectors.leeway_data['modifier'] },
