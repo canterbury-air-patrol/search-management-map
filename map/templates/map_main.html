@@ -6,12 +6,9 @@
         <base href="/static/" />
         <link rel="stylesheet" href="map.css">
         <script type="module" src="map.js"></script>
-        <script type="text/javascript">
-            csrftoken = "{{ csrf_token }}";
-            mission_id = "{% if mission == 'all' or mission == 'current' %}{{ mission }}{% else %}{{ mission.pk }}{% endif %}";
-        </script>
     </head>
     <body style="height: 100%">
 	{% csrf_token %}
+    <input type="hidden" value="{% if mission == 'all' or mission == 'current' %}{{ mission }}{% else %}{{ mission.pk }}{% endif %}" name="missionId" id="missionId" />
     </body>
 </html>

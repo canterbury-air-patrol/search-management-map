@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "frontend/map.js",
   "scripts": {
+    "check": "eslint frontend/",
     "build": "esbuild frontend/{map,marinesac,marinevectors,pretty}.js $(esbuild-config) && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -25,5 +26,13 @@
     "leaflet": "^1.8.0",
     "leaflet-realtime": "^2.2.0",
     "leaflet.locatecontrol": "^0.76.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.18.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.3",
+    "eslint-plugin-promise": "^6.0.0",
+    "eslint-plugin-react": "^7.30.0"
   }
 }
