@@ -1,0 +1,35 @@
+name: Run Tests
+
+on: pull_request
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: mdillon/postgis
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update apt database
+        run: sudo apt update
+      - name: Install apt depends
+        run: sudo apt install -y gdal-bin libgdal-dev
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Setup venv
+        run: ./setup-venv.sh
+        env:
+          DB_HOST: localhost
+          DB_USER: postgres
+          DB_PASS: postgres
+          DB_NAME: postgres
+      - name: Run Tests
+        run: ./test-venv.sh
