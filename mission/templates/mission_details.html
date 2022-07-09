@@ -12,8 +12,10 @@
         <a class="btn btn-primary" href="/mission/{{ mission.pk }}/sar/marine/sac/">Search Area Calculator</a>
 
         <table class="table">
+            <tr><td>Name</td><td>{{ mission.mission_name }}</td></tr>
             <tr><td>Started</td><td>{{ mission.started }}</td></tr>
             <tr><td>Creator</td><td>{{ mission.creator }}</td></tr>
+            <tr><td>Description</td><td>{{ mission.mission_description }}</td></tr>
         </table>
 
         Current Users:
