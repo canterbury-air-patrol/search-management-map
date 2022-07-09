@@ -13,7 +13,7 @@ class MissionForm(ModelForm):
     """
     class Meta:
         model = Mission
-        fields = ['mission_name']
+        fields = ['mission_name', 'mission_description']
 
 
 class MissionUserForm(ModelForm):

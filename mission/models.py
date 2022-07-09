@@ -13,7 +13,8 @@ class Mission(models.Model):
     """
     A mission. Missions are used to group users and data related to a specific event, and isolate them from other groups/data.
     """
-    mission_name = models.TextField()
+    mission_name = models.CharField(default='', max_length=200)
+    mission_description = models.TextField(null=True, blank=True)
     started = models.DateTimeField(default=timezone.now)
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
     closed = models.DateTimeField(null=True, blank=True)
