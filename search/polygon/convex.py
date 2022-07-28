@@ -222,8 +222,8 @@ def skew_lonlat(skew_point, tol=1, unit=Unit.METERS, inverse=False):
     pt_plus_half_y = Point(g_x, g_y + 0.5 * tol, srid=4326)
 
     # Obtain distance between points (use first point as reference)
-    d_x = haversine(pt_minus_half_x, pt_plus_half_x, unit=unit) / tol
-    d_y = haversine(pt_minus_half_y, pt_plus_half_y, unit=unit) / tol
+    d_x = haversine_wrapper(pt_minus_half_x, pt_plus_half_x, unit=unit) / tol
+    d_y = haversine_wrapper(pt_minus_half_y, pt_plus_half_y, unit=unit) / tol
     aspect_ratio = [d_x, d_y]
 
     if inverse:
@@ -231,6 +231,18 @@ def skew_lonlat(skew_point, tol=1, unit=Unit.METERS, inverse=False):
 
     return aspect_ratio
 
+def haversine_wrapper(pt1, pt2, unit):
+    return haversine(
+        haversine_point_wrapper(pt1),
+        haversine_point_wrapper(pt2),
+        unit
+        )
+
+def haversine_point_wrapper(pt):
+    if pt.srid == 4326:
+        return (pt[1], pt[0])
+    else:
+        return pt
 
 def skew_by_ratio(ratio, pt_array):
     """ Skew a List of Points by a ratio [ dx, dy ]
