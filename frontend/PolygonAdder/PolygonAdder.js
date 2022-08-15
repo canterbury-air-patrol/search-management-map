@@ -93,12 +93,12 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
         `<input type="text" id="polygonadder-dialog-name-${RAND_NUM}"></input></div>`,
         '<div class="btn-group">',
         `<button class="btn btn-primary" id="polygonadder-dialog-done-${RAND_NUM}">Done</button>`,
-        `<button class="btn btn-warning" id="polygonadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
+        `<button class="btn btn-danger" id="polygonadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
         '</div>',
         `<div id="polygonadder-points-${RAND_NUM}"></div>`,
         '<div class="btn-group">',
         `<button class="btn btn-primary" id="polygonadder-dialog-next-${RAND_NUM}">Next</button>`,
-        `<button class="btn btn-warning" id="polygonadder-dialog-remove-${RAND_NUM}">Remove</button>`,
+        `<button class="btn btn-danger" id="polygonadder-dialog-remove-${RAND_NUM}">Remove</button>`,
         '</div>'
       ].join('')
       dialog.setContent(contents).addTo(map).hideClose()
