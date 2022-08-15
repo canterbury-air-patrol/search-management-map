@@ -71,12 +71,12 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
     '<input type="text" id="lineadder-dialog-name-' + RAND_NUM + '"></input></div>',
     '<div class="btn-group">',
     '<button class="btn btn-primary" id="lineadder-dialog-done-' + RAND_NUM + '">Done</button></div>',
-    '<button class="btn btn-warning" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button>',
+    '<button class="btn btn-danger" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button>',
     '</div>',
     '<div id="lineadder-points-' + RAND_NUM + '"></div>',
     '<div class="btn-group">',
     '<button class="btn btn-primary" id="lineadder-dialog-next-' + RAND_NUM + '">Next</button>',
-    '<button class="btn btn-warning" id="lineadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
+    '<button class="btn btn-danger" id="lineadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
     '</div>'
   ].join('')
   dialog.setContent(contents).addTo(map).hideClose()
