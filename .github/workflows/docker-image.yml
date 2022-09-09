@@ -1,0 +1,30 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "develop" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Docker Login
+      env:
+          DOCKER_LOGIN: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASS }}
+      run: |
+          docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
+
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile.standalone --tag ${{ secrets.DOCKER_REPO }}:${{ github.sha }} --tag ${{ secrets.DOCKER_REPO }}:latest
+
+    - name: Docker Push (commitid)
+      run: docker push ${{ secrets.DOCKER_REPO }}:${{ github.sha }}
+
+    - name: Docker Push (latest)
+      run: docker push ${{ secrets.DOCKER_REPO }}:latest
