@@ -21,7 +21,7 @@ jobs:
           docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
     - name: Build the Docker image
-      run: docker build . --file Dockerfile.standalone --tag ${{ secrets.DOCKER_REPO }}:${{ github.sha }} --tag ${{ secrets.DOCKER_REPO }}:latest
+      run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_REPO }}:${{ github.sha }} --tag ${{ secrets.DOCKER_REPO }}:latest
 
     - name: Docker Push (commitid)
       run: docker push ${{ secrets.DOCKER_REPO }}:${{ github.sha }}
