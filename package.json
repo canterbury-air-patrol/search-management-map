@@ -21,7 +21,7 @@
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.2.1",
     "bootstrap": "^5.2.1",
     "esbuild": "^0.15.8",
-    "esbuild-config": "^0.2.0",
+    "esbuild-config": "^1.0.1",
     "jquery": "^3.6.1",
     "leaflet": "^1.8.0",
     "leaflet-realtime": "^2.2.0",
