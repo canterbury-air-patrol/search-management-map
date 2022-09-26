@@ -20,7 +20,7 @@
     "@canterbury-air-patrol/marine-leeway-data": "^0.0.1",
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.2.1",
     "bootstrap": "^5.2.1",
-    "esbuild": "^0.15.8",
+    "esbuild": "^0.15.9",
     "esbuild-config": "^1.0.1",
     "jquery": "^3.6.1",
     "leaflet": "^1.8.0",
