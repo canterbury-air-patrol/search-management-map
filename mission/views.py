@@ -118,7 +118,7 @@ def mission_new(request):
         form = MissionForm(request.POST)
         if form.is_valid():
             # Create the new mission
-            mission = Mission(mission_name=form.cleaned_data['mission_name'], creator=request.user)
+            mission = Mission(mission_name=form.cleaned_data['mission_name'], mission_description=form.cleaned_data['mission_description'], creator=request.user)
             mission.save()
             # Give the user who created this mission admin permissions
             MissionUser(mission=mission, user=request.user, role='A', creator=request.user).save()
