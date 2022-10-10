@@ -18,7 +18,7 @@
     "@canterbury-air-patrol/deg-converter": "^0.0.1",
     "@canterbury-air-patrol/leaflet-dialog": "^1.1.2",
     "@canterbury-air-patrol/marine-leeway-data": "^0.0.1",
-    "@canterbury-air-patrol/marine-search-area-coverage": "^0.2.1",
+    "@canterbury-air-patrol/marine-search-area-coverage": "^0.3.1",
     "bootstrap": "^5.2.1",
     "esbuild": "^0.15.10",
     "esbuild-config": "^1.0.1",
