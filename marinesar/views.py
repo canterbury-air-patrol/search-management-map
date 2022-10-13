@@ -46,6 +46,7 @@ def marine_vectors_create(request, mission_user):
     """
     Create a Marine Total Drift Vector
     """
+    # pylint: disable=R0914,R0915
 
     user_data = None
     save = False

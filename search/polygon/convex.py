@@ -58,8 +58,10 @@ def lrng_concave_points(lrng):
 
 
 def lrng_cross(lrng):
-    """Returns the cross product of every corner
-        """
+    """
+    Returns the cross product of every corner
+    """
+    # pylint: disable=R1734
     dirl = list()
 
     # Ignore last element (duplicate)
@@ -232,17 +234,22 @@ def skew_lonlat(skew_point, tol=1, unit=Unit.METERS, inverse=False):
     return aspect_ratio
 
 def haversine_wrapper(pt1, pt2, unit):
+    """
+    Wrapper around haversine to correct the lat/lon ordering of points
+    """
     return haversine(
         haversine_point_wrapper(pt1),
         haversine_point_wrapper(pt2),
         unit
         )
 
-def haversine_point_wrapper(pt):
-    if pt.srid == 4326:
-        return (pt[1], pt[0])
-    else:
-        return pt
+def haversine_point_wrapper(point):
+    """
+    Wrapper for haversine points to correct the lat/lon ordering
+    """
+    if point.srid == 4326:
+        return (point[1], point[0])
+    return point
 
 def skew_by_ratio(ratio, pt_array):
     """ Skew a List of Points by a ratio [ dx, dy ]
@@ -353,6 +360,7 @@ def creep_line_concave(lrng, width):
     # Initialize order of creep lines with the first end point
     i = 0
     current_segment = [creep_line_start_points.pop(i), creep_line_end_points.pop(i)]
+    # pylint: disable=R1734
     creep_lines_ordered = list()
     creep_lines_ordered.append(creep_lines.pop(i))
 

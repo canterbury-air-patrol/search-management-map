@@ -111,17 +111,24 @@ class GeoTime(models.Model):
             else:
                 timeline_record_create(self.mission, self.created_by, self)
 
+    def check_and_record_delete(self, time):
+        '''
+        Check if the delete actually occurred
+        If it did, record it in the timeline, and return true
+        '''
+        self.refresh_from_db()
+        if self.deleted_at == time:
+            timeline_record_delete(self.mission, self.deleted_by, self)
+            return True
+        return False
+
     def delete(self, user):
         '''
         Delete this object
         '''
         time = timezone.now()
         self.__class__.objects.filter(pk=self.pk, deleted_at__isnull=True, replaced_at__isnull=True).update(deleted_at=time, deleted_by=user)
-        self.refresh_from_db()
-        if self.deleted_at == time:
-            timeline_record_delete(self.mission, self.deleted_by, self)
-            return True
-        return False
+        return self.check_and_record_delete(time)
 
     def replace(self, replaced_by):
         '''
@@ -215,6 +222,7 @@ class GeoTimeLabel(GeoTime):
         return objects
 
     def __str__(self):
+        # pylint: disable=E1101
         return f"{self.label} {self.geo_type} near {self.geo.point_on_surface[0]}, {self.geo.point_on_surface[1]}"
 
     class Meta:

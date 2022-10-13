@@ -111,6 +111,7 @@ class TestConvex(unittest.TestCase):
             (0, 0), (0, 2), (4, 2), (4, 0),
             (3, 0), (2, 1), (1, 0), (0, 0)))
 
+        # pylint: disable=R1734
         self.assertEqual(lrng_concave_points(lrng0), list())
         self.assertEqual(lrng_concave_points(lrng1), [(2, 1)])
 
@@ -266,8 +267,6 @@ class TestConvex(unittest.TestCase):
 
     def test_creep_line_lonlat(self):
         """ Test creeping line generation over geographic data"""
-        # pylint: disable=R0201
-
         # Triangle
         width_meters = 100
         lrng_lonlat = [(172.53787994384768, -43.49091477463456),
@@ -336,8 +335,6 @@ class TestConvex(unittest.TestCase):
     def test_creep_line_at_angle(self):
         """ Test creeping line generation over convex LinearRing,
         at various angles. """
-        # pylint: disable=R0201
-
         # Angle 0deg = West to East, South to North progression
         # Width = The distance across South to North
         # Angle +90deg = East
