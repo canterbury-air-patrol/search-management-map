@@ -17,7 +17,7 @@ from data.models import GeoTime, GeoTimeLabel
 from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
 from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
-from timeline.helpers import timeline_record_search_queue, timeline_record_search_begin, timeline_record_delete
+from timeline.helpers import timeline_record_search_queue, timeline_record_search_begin
 
 
 def dictfetchall(cursor):
@@ -256,11 +256,7 @@ class Search(GeoTime):
         '''
         time = timezone.now()
         Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(deleted_at=time, deleted_by=user)
-        self.refresh_from_db()
-        if self.deleted_at == time:
-            timeline_record_delete(self.mission, self.deleted_by, self)
-            return True
-        return False
+        self.check_and_record_delete(time)
 
     @staticmethod
     def create_sector_search(params, save=False):

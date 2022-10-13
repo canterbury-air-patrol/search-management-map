@@ -20,4 +20,5 @@ class GeoImage(GeoTime):
     GEOJSON_FIELDS = ('pk', 'created_at', 'description', 'priority', )
 
     def __str__(self):
+        # pylint: disable=E1136
         return f"Image ({self.description}) @ {self.geo[0]}, {self.geo[1]}"
