@@ -89,23 +89,19 @@ def mission_list(request):
     """
     List missions this user can select from.
     """
+    return render(request, 'mission_list.html')
+
+
+@login_required
+def mission_list_data(request):
+    """
+    Provide data for all the missions this user is a member of
+    """
     user_missions = MissionUser.objects.filter(user=request.user)
-    current_missions = []
-    previous_missions = []
-    for user_mission in user_missions:
-        if user_mission.role == 'A':
-            user_mission.mission.is_admin = True
-        if user_mission.mission.closed is not None:
-            previous_missions.append(user_mission.mission)
-        else:
-            current_missions.append(user_mission.mission)
-
     data = {
-        'current_missions': current_missions,
-        'previous_missions': previous_missions,
+        'missions': [ user_mission.mission.jsonObject(user_mission.role == 'A') for user_mission in user_missions ],
     }
-
-    return render(request, 'mission_list.html', data)
+    return JsonResponse(data)
 
 
 @login_required

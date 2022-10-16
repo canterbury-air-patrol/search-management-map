@@ -18,5 +18,6 @@ urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/assets/(?P<asset_id>\d+)/remove/$', views.mission_asset_remove, name='mission_assets_remove'),
     re_path(r'^mission/(?P<mission_id>\d+)/close/$', views.mission_close, name='mission_close'),
     re_path(r'^mission/new/$', views.mission_new, name='mission_new'),
+    re_path(r'^mission/list/$', views.mission_list_data, name='mission_list_data'),
     re_path(r'^$', views.mission_list, name='mission_list'),
 ]

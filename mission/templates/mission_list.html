@@ -4,69 +4,14 @@
     <head>
         <title>Mission List</title>
         <base href="/static/" />
-        <link rel="stylesheet" href="pretty.css">
-        <script type="module" src="pretty.js"></script>
+        <link rel="stylesheet" href="mission/list.css">
+        <script src="mission/list.js"></script>
     </head>
     <body style="height: 100%">
-        Current Missions:
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Mission Name</th>
-                    <th scope="col">Started</th>
-                    <th scope="col">By</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-{% for mission in current_missions %}
-                <tr>
-                    <th scope="row">{{ mission.mission_name }}</th>
-                    <td>{{ mission.started }}</td>
-                    <td>{{ mission.creator }}</td>
-                    <td>
-                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/map/">Map</a>
-                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
-                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/timeline/">Timeline</a>
-{% if mission.is_admin %}
-                        <a class="btn btn-danger" href="/mission/{{ mission.pk }}/close/">Close</a>
-{% endif %}
-                    </td>
-                </tr>
-            </tbody>
-{% endfor %}
-        </table>
-        <a class="btn btn-primary" href="/mission/new/">Start New Mission</a>
-        <a class="btn btn-primary" href="/mission/current/map/">All Current Missions Map</a>
-        <a class="btn btn-primary" href="/mission/all/map/">All Missions Map</a>
-        <br />
-        Completed Missions:
-        <table class="table">
-            <thead>
-                <tr>
-                    <th scope="col">Mission Name</th>
-                    <th scope="col">Started</th>
-                    <th scope="col">By</th>
-                    <th scope="col">Closed</th>
-                    <th scope="col">By</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-{% for mission in previous_missions %}
-                <tr>
-                    <th scope="row">{{ mission.mission_name }}</th>
-                    <td>{{ mission.started }}</td>
-                    <td>{{ mission.creator }}</td>
-                    <td>{{ mission.closed }}</td>
-                    <td>{{ mission.closed_by }}</td>
-                    <td>
-                        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
-                    </td>
-                </tr>
-            </tbody>
-{% endfor %}
-        </table>
+        <div id="root"></div>
     </body>
+    <script>
+        createMissionList('root')
+    </script>
 </html>
 
