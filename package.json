@@ -4,7 +4,7 @@
   "main": "frontend/map.js",
   "scripts": {
     "check": "eslint frontend/",
-    "build": "esbuild frontend/map.js frontend/marinesac.js frontend/marinevectors.js frontend/pretty.js $(esbuild-config) && cp -dpR dist/* map/static/",
+    "build": "esbuild frontend/map.js frontend/marinesac.js frontend/marinevectors.js frontend/pretty.js frontend/mission/list.js $(esbuild-config) && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -25,7 +25,8 @@
     "jquery": "^3.6.1",
     "leaflet": "^1.9.2",
     "leaflet-realtime": "^2.2.0",
-    "leaflet.locatecontrol": "^0.76.0"
+    "leaflet.locatecontrol": "^0.76.0",
+    "react-bootstrap": "^2.5.0"
   },
   "devDependencies": {
     "eslint": "^8.25.0",

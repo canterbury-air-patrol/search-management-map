@@ -1,6 +1,6 @@
 *.js
 *.js.*
-/*.css
+*.css
 /*.png
 /*.ttf
 /*.woff2
