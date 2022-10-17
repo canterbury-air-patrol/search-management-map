@@ -59,6 +59,12 @@ class MissionUser(models.Model):
                 return row[1]
         return "Unknown"
 
+    def is_admin(self):
+        """
+        Return true if this user is an admin
+        """
+        return self.role == 'A'
+
 
 class MissionAsset(models.Model):
     """
