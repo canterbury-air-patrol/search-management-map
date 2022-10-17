@@ -3,40 +3,19 @@
     <head>
         <title>{{ mission.mission_name }} - Timeline</title>
         <base href="/static/" />
-        <link rel="stylesheet" href="pretty.css">
-        <script type="module" src="pretty.js"></script>
+        <link rel="stylesheet" href="mission/timeline.css">
+        <script src="mission/timeline.js"></script>
     </head>
     <body style="height: 100%">
-        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/details/">Details</a>
         <table class="table">
             <tr><td>Mission</td><td colspan="3">{{ mission.mission_name }}</td></tr>
             <tr><td>Created</td><td>By</td><td>Closed</td><td>By</td></tr>
             <tr><td>{{ mission.started }}</td><td>{{ mission.creator }}</td><td>{{ mission.closed }}</td><td>{{ mission.closed_by }}</td></tr>
         </table>
-<a class="btn btn-primary" href="/mission/{{ mission.pk }}/timeline/add/">Add Entry</a>
-Timeline:
-        <table class="table">
-            <thead>
-                <tr>
-                    <td>At</td>
-                    <td>User</td>
-                    <td>Action</td>
-                    <td>Message</td>
-                    <td></td>
-                </tr>
-            </thead>
-            <tbody>
-{% for entry in timeline %}
-                  <tr>
-                      <td>{{ entry.timestamp }}</td>
-                      <td>{{ entry.user }}</td>
-                      <td>{{ entry.event_type_str }}</td>
-                      <td>{{ entry.message }}</td>
-                      <td>{{ entry.url }}</td>
-                  </tr>
-{% endfor %}
-            </tbody>
-        </table>
+        <div id='root'></div>
     </body>
+    <script>
+        createMissionTimeline('root', {{ mission.pk }})
+    </script>
 </html>
 

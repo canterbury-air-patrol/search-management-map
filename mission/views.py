@@ -48,7 +48,6 @@ def mission_timeline(request, mission_user):
     """
     data = {
         'mission': mission_user.mission,
-        'timeline': TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp'),
     }
     return render(request, 'mission_timeline.html', data)
 
@@ -124,6 +123,21 @@ def mission_new(request):
         form = MissionForm()
 
     return render(request, 'mission_create.html', {'form': form})
+
+
+@login_required
+@mission_is_member
+def mission_timeline_json(request, mission_user):
+    """
+    Mission timeline, a history of everything that happened during a mission, in json
+    """
+    timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp')
+
+    data = {
+        'mission': mission_user.mission.as_object(mission_user.is_admin()),
+        'timeline': [timeline_entry.as_object() for timeline_entry in timeline_entries],
+    }
+    return JsonResponse(data)
 
 
 @login_required
