@@ -30,7 +30,7 @@ def mission_details(request, mission_user):
     data = {
         'mission': mission_user.mission,
         'me': request.user,
-        'admin': mission_user.role == 'A',
+        'admin': mission_user.is_admin(),
         'mission_assets': MissionAsset.objects.filter(mission=mission_user.mission),
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
@@ -99,7 +99,7 @@ def mission_list_data(request):
     """
     user_missions = MissionUser.objects.filter(user=request.user)
     data = {
-        'missions': [user_mission.mission.jsonObject(user_mission.role == 'A') for user_mission in user_missions],
+        'missions': [user_mission.mission.as_object(user_mission.is_admin()) for user_mission in user_missions],
     }
     return JsonResponse(data)
 
