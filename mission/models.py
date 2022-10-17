@@ -20,15 +20,18 @@ class Mission(models.Model):
     closed = models.DateTimeField(null=True, blank=True)
     closed_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='closer%(app_label)s_%(class)s_related', null=True, blank=True)
 
-    def jsonObject(self, admin):
+    def as_object(self, admin):
+        """
+        Convert mission to an object that is suitable for returning via JsonResponse
+        """
         return {
             'id': self.pk,
             'name': self.mission_name,
             'description': self.mission_description,
             'started': self.started,
-            'creator': self.creator.username,
+            'creator': self.creator.username,  # pylint: disable=E1101
             'closed': self.closed,
-            'closed_by': self.closed_by.username if self.closed_by else None,
+            'closed_by': self.closed_by.username if self.closed_by else None,  # pylint: disable=E1101
             'admin': admin,
         }
 

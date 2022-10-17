@@ -99,7 +99,7 @@ def mission_list_data(request):
     """
     user_missions = MissionUser.objects.filter(user=request.user)
     data = {
-        'missions': [ user_mission.mission.jsonObject(user_mission.role == 'A') for user_mission in user_missions ],
+        'missions': [user_mission.mission.jsonObject(user_mission.role == 'A') for user_mission in user_missions],
     }
     return JsonResponse(data)
 
