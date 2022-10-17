@@ -45,3 +45,16 @@ class TimeLineEntry(models.Model):
     message = models.TextField()
 
     url = models.TextField(blank=True, null=True)
+
+    def as_object(self):
+        """
+        Return the timeline entry as an object
+        """
+        return {
+            'id': self.pk,
+            'creator': self.user.username,  # pylint: disable=E1101
+            'timestamp': self.timestamp,
+            'event_type': self.event_type_str(),
+            'message': self.message,
+            'url': self.url,
+        }
