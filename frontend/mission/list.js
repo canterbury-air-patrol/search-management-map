@@ -8,32 +8,46 @@ import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
-class MissionRow extends React.Component {
+class MissionListRow extends React.Component {
   render () {
     const mission = this.props.mission
-    const buttons = [
-      (<Button key='map' href={`/mission/${mission.id}/map/` }>Map</Button>),
-      (<Button key='details' href={`/mission/${mission.id}/details/` }>Details</Button>),
-      (<Button key='timeline' href={ `/mission/${mission.id}/timeline/`}>Timeline</Button>)
-    ]
-    if (!mission.closed && mission.admin) {
-      buttons.push((<Button key='close' className='btn-danger' href={ `/mission/${mission.id}/close/` }>Close</Button>))
+    const dataFields = []
+    dataFields.push((<td key='name'>{mission.name}</td>))
+    dataFields.push((<td key='opened'>{(new Date(mission.started)).toLocaleString()}</td>))
+    dataFields.push((<td key='creator'>{mission.creator}</td>))
+
+    if (this.props.showClosed) {
+      dataFields.push((<td key='closed'>{ mission.closed ? (new Date(mission.closed)).toLocaleString() : '' }</td>))
+      dataFields.push((<td key='closer'>{mission.closed_by}</td>))
     }
-    return ((
-      <tr key={mission.id}>
-        <td>{mission.name}</td>
-        <td>{(new Date(mission.started)).toLocaleString()}</td>
-        <td>{mission.creator}</td>
+
+    if (this.props.showButtons) {
+      const buttons = [
+        (<Button key='map' href={`/mission/${mission.id}/map/` }>Map</Button>),
+        (<Button key='details' href={`/mission/${mission.id}/details/` }>Details</Button>),
+        (<Button key='timeline' href={ `/mission/${mission.id}/timeline/`}>Timeline</Button>)
+      ]
+      if (!mission.closed && mission.admin) {
+        buttons.push((<Button key='close' className='btn-danger' href={ `/mission/${mission.id}/close/` }>Close</Button>))
+      }
+      dataFields.push((
         <td>
-          <ButtonGroup>
+          <ButtonGroup key='buttons'>
             { buttons }
           </ButtonGroup>
         </td>
+      ))
+    }
+    return ((
+      <tr key={mission.id}>
+        {dataFields}
       </tr>))
   }
 }
-MissionRow.propTypes = {
-  mission: PropTypes.object.isRequired
+MissionListRow.propTypes = {
+  mission: PropTypes.object.isRequired,
+  showButtons: PropTypes.bool.isRequired,
+  showClosed: PropTypes.bool.isRequired
 }
 
 class ActiveMissionList extends React.Component {
@@ -42,9 +56,11 @@ class ActiveMissionList extends React.Component {
     for (const missionIdx in this.props.missions) {
       const mission = this.props.missions[missionIdx]
       missionRows.push((
-        <MissionRow
+        <MissionListRow
           key={mission.id}
-          mission={mission} />
+          mission={mission}
+          showButtons={true}
+          showClosed={false} />
       ))
     }
     return (
@@ -88,20 +104,24 @@ class CompletedMissionList extends React.Component {
     for (const missionIdx in this.props.missions) {
       const mission = this.props.missions[missionIdx]
       missionRows.push((
-        <MissionRow
+        <MissionListRow
           key={mission.id}
-          mission={mission} />
+          mission={mission}
+          showButtons={true}
+          showClosed={true} />
       ))
     }
     return (
       <Table>
         <thead>
           <tr key='heading'>
-            <th colSpan={4} align='center'>Completed Missions</th>
+            <th colSpan={6} align='center'>Completed Missions</th>
           </tr>
           <tr key='labels'>
             <th>Mission Name</th>
             <th>Started</th>
+            <th>By</th>
+            <th>Closed</th>
             <th>By</th>
             <th>Actions</th>
           </tr>
@@ -116,7 +136,7 @@ CompletedMissionList.propTypes = {
   missions: PropTypes.array.isRequired
 }
 
-export class MissionListPage extends React.Component {
+class MissionListPage extends React.Component {
   constructor (props) {
     super(props)
 
@@ -168,9 +188,11 @@ export class MissionListPage extends React.Component {
   }
 }
 
-export function createMissionList (elementId) {
+function createMissionList (elementId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
   div.render(<MissionListPage />)
 }
+
+export { MissionListRow, MissionListPage }
 
 globalThis.createMissionList = createMissionList
