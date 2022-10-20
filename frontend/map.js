@@ -24,6 +24,9 @@ import './MarineVectors/MarineVectors.js'
 
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMSearchComplete, SMMSearchIncomplete } from './search/map.js'
+import { SMMPOI } from './usergeo/poi.js'
+import { SMMPolygon } from './usergeo/polygon.js'
+import { SMMLine } from './usergeo/line.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
@@ -110,38 +113,17 @@ class SMMMap {
     }).addTo(this.map)
     this.overlayAdd('Assets', realtime)
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/data/pois/current/`,
-      type: 'json'
-    }, {
-      interval: userDataUpdateFreq,
-      onEachFeature: function (poi, layer) { self.poiCreate(poi, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk }
-    }).addTo(this.map)
-    this.overlayAdd('POIs', realtime)
+    this.POIs = new SMMPOI(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.overlayAdd('POIs', this.POIs.realtime().addTo(this.map))
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/data/userpolygons/current/`,
-      type: 'json'
-    }, {
-      interval: userDataUpdateFreq,
-      onEachFeature: function (polygon, layer) { self.userPolygonCreate(polygon, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk }
-    }).addTo(this.map)
-    this.overlayAdd('Polygons', realtime)
+    this.polygons = new SMMPolygon(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.overlayAdd('Polygons', this.polygons.realtime().addTo(this.map))
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/data/userlines/current/`,
-      type: 'json'
-    }, {
-      interval: userDataUpdateFreq,
-      onEachFeature: function (line, layer) { self.userLineCreate(line, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk }
-    }).addTo(this.map)
-    this.overlayAdd('Lines', realtime)
+    this.lines = new SMMLine(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.overlayAdd('Lines', this.lines.realtime().addTo(this.map))
 
-    this.incompleteSearches = new SMMSearchIncomplete(this.map, this.missionId, searchIncompleteUpdateFreq, 'orange')
-    this.completeSearches = new SMMSearchComplete(this.map, this.missionId, searchCompleteUpdateFreq, defaultColor)
+    this.incompleteSearches = new SMMSearchIncomplete(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
+    this.completeSearches = new SMMSearchComplete(this.map, this.csrftoken, this.missionId, searchCompleteUpdateFreq, defaultColor)
 
     this.overlayAdd('Incomplete Searches', this.incompleteSearches.realtime().addTo(this.map))
     this.overlayAdd('Completed Searches', this.completeSearches.realtime())
@@ -291,154 +273,6 @@ class SMMMap {
     }
 
     return btngroup
-  }
-
-  poiCreate (poi, layer) {
-    const POILabel = poi.properties.label
-    const poiID = poi.properties.pk
-    const coords = poi.geometry.coordinates
-
-    const popupContent = document.createElement('div')
-
-    const data = [
-      ['POI', POILabel],
-      ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
-    ]
-
-    for (const d in data) {
-      const dl = document.createElement('dl')
-      dl.className = 'poi row'
-
-      const dt = document.createElement('dt')
-      dt.className = 'asset-label col-sm-2'
-      dt.textContent = data[d][0]
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = 'asset-name col-sm-10'
-      dd.textContent = data[d][1]
-      dl.appendChild(dd)
-
-      popupContent.appendChild(dl)
-    }
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-
-      popupContent.appendChild(this.createButtonGroup([
-        {
-          label: 'Move',
-          onclick: function () { L.POIAdder(self.map, self.missionId, self.csrftoken, L.latLng(coords[1], coords[0]), poiID, POILabel) },
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/pois/${poiID}/delete/`) },
-          'btn-class': 'btn-danger'
-        },
-        {
-          label: 'Create Search',
-          onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'point', poiID) },
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Calculate TDV',
-          onclick: function () { L.MarineVectors(self.map, self.missionId, self.csrftoken, POILabel, L.latLng(coords[1], coords[0]), poiID) },
-          'btn-class': 'btn-light'
-        }
-      ]))
-    }
-
-    layer.bindPopup(popupContent)
-  }
-
-  userPolygonCreate (poly, layer) {
-    const PolyLabel = poly.properties.label
-    const PolyID = poly.properties.pk
-    const coords = poly.geometry.coordinates
-
-    const popupContent = document.createElement('div')
-    const dl = document.createElement('dl')
-    dl.className = 'polygon row'
-    popupContent.appendChild(dl)
-    const dt = document.createElement('dt')
-    dt.className = 'polygon-label col-sm-3'
-    dt.textContent = 'Polygon'
-    dl.appendChild(dt)
-    const dd = document.createElement('dd')
-    dd.className = 'polygon-name col-sm-9'
-    dd.textContent = PolyLabel
-    dl.appendChild(dd)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-      popupContent.appendChild(this.createButtonGroup([
-        {
-          label: 'Edit',
-          onclick: function () {
-            const points = []
-            for (const i in coords[0]) {
-              points.push(L.latLng(coords[0][i][1], coords[0][i][0]))
-            }
-            L.PolygonAdder(self.map, self.missionId, self.csrftoken, points, PolyID, PolyLabel).create()
-          },
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/userpolygons/${PolyID}/delete/`) },
-          'btn-class': 'btn-danger'
-        },
-        {
-          label: 'Create Search',
-          onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'polygon', PolyID) },
-          'btn-class': 'btn-light'
-        }
-      ]))
-    }
-    layer.bindPopup(popupContent, { minWidth: 200 })
-  }
-
-  userLineCreate (line, layer) {
-    const LineLabel = line.properties.label
-    const LineID = line.properties.pk
-    const coords = line.geometry.coordinates
-
-    const popupContent = document.createElement('div')
-    const dl = document.createElement('dl')
-    dl.className = 'line row'
-    const dt = document.createElement('dt')
-    dt.className = 'line-label col-sm-3'
-    dt.textContent = 'Line'
-    dl.appendChild(dt)
-    const dd = document.createElement('dd')
-    dd.className = 'line-name col-sm-9'
-    dd.textContent = LineLabel
-    dl.appendChild(dd)
-    popupContent.appendChild(dl)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-      popupContent.appendChild(this.createButtonGroup([
-        {
-          label: 'Edit',
-          onclick: function () { L.LineAdder(self.map, self.missionId, self.csrftoken, coords.map(x => L.latLng(x[1], x[0])), LineID, LineLabel) },
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/userlines/${LineID}/delete/`) },
-          'btn-class': 'btn-danger'
-        },
-        {
-          label: 'Create Search',
-          onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'line', LineID) },
-          'btn-class': 'btn-light'
-        }
-      ]))
-    }
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
   imageCreate (image, layer) {

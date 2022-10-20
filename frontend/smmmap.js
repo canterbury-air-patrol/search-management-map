@@ -2,8 +2,9 @@ import L from 'leaflet'
 import 'leaflet-realtime'
 
 class SMMRealtime {
-  constructor (map, missionId, interval, color) {
+  constructor (map, csrftoken, missionId, interval, color) {
     this.map = map
+    this.csrftoken = csrftoken
     this.missionId = missionId
     this.interval = interval
     this.color = color
