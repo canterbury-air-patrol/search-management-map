@@ -256,7 +256,7 @@ class Search(GeoTime):
         '''
         time = timezone.now()
         Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(deleted_at=time, deleted_by=user)
-        self.check_and_record_delete(time)
+        return self.check_and_record_delete(time)
 
     @staticmethod
     def create_sector_search(params, save=False):

@@ -178,12 +178,13 @@ def search_delete(request, mission_user, search_id):
     """
     search = get_object_or_404(Search, pk=search_id)
 
-    if search.delete(mission_user.user):
-        return HttpResponse('Success')
-
     error = check_search_state(search, 'delete', None)
     if error is not None:
         return error
+
+    if search.delete(mission_user.user):
+        return HttpResponse('Success')
+
     return HttpResponseNotFound('Try again')
 
 
