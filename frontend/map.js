@@ -28,6 +28,7 @@ import { SMMPOI } from './usergeo/poi.js'
 import { SMMPolygon } from './usergeo/polygon.js'
 import { SMMLine } from './usergeo/line.js'
 import { SMMImageAll, SMMImageImportant } from './image/map.js'
+import { SMMMarineVector } from './marine/vectors.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
@@ -103,7 +104,7 @@ class SMMMap {
     // Default leaflet path color
     const defaultColor = '#3388ff'
 
-    let realtime = L.realtime({
+    const realtime = L.realtime({
       url: `/mission/${this.missionId}/data/assets/positions/latest/`,
       type: 'json'
     }, {
@@ -135,16 +136,8 @@ class SMMMap {
     this.overlayAdd('Images (all)', this.allImages.realtime())
     this.overlayAdd('Images (prioritized', this.importantImages.realtime().addTo(this.map))
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/sar/marine/vectors/current/`,
-      type: 'json'
-    }, {
-      color: 'black',
-      interval: marineDataUpdateFreq,
-      onEachFeature: function (tdv, layer) { self.tdvCreate(tdv, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk }
-    }).addTo(this.map)
-    this.overlayAdd('Marine - Total Drift Vectors', realtime)
+    this.marineVectors = new SMMMarineVector(this.map, this.csrftoken, this.missionId, marineDataUpdateFreq, 'black')
+    this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
   }
 
   overlayAdd (name, layer) {
@@ -236,54 +229,6 @@ class SMMMap {
       this.assetLines[assetName] = { track: assetTrack, updating: false }
       this.overlayAdd(assetName, assetTrack)
     }
-  }
-
-  createButtonGroup (data) {
-    const btngroup = document.createElement('div')
-    btngroup.className = 'btn-group'
-
-    for (const d in data) {
-      const btnData = data[d]
-      const btn = document.createElement('button')
-      btn.className = `btn ${btnData['btn-class']}`
-      btn.onclick = btnData.onclick
-      btn.textContent = btnData.label
-      btngroup.appendChild(btn)
-    }
-
-    return btngroup
-  }
-
-  tdvCreate (tdv, layer) {
-    const tdvID = tdv.properties.pk
-
-    const popupContent = document.createElement('div')
-    const dl = document.createElement('dl')
-    dl.className = 'row'
-    popupContent.appendChild(dl)
-
-    const dt = document.createElement('dt')
-    dt.className = 'image-label col-sm-2'
-    dt.textContent = 'Total Drift Vector'
-    dl.appendChild(dt)
-
-    const dd = document.createElement('dd')
-    dd.className = 'image-name col-sm-10'
-    dd.textContent = tdvID
-    dl.appendChild(dd)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-      popupContent.appendChild(this.createButtonGroup([
-        {
-          label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/sar/marine/vectors/${tdvID}/delete/`) },
-          'btn-class': 'btn-danger'
-        }
-      ]))
-    }
-
-    layer.bindPopup(popupContent)
   }
 }
 
