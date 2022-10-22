@@ -22,21 +22,21 @@ import './ImageUploader/ImageUploader.js'
 import './SearchAdder/SearchAdder.js'
 import './MarineVectors/MarineVectors.js'
 
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMSearchComplete, SMMSearchIncomplete } from './search/map.js'
 import { SMMPOI } from './usergeo/poi.js'
 import { SMMPolygon } from './usergeo/polygon.js'
 import { SMMLine } from './usergeo/line.js'
 import { SMMImageAll, SMMImageImportant } from './image/map.js'
 import { SMMMarineVector } from './marine/vectors.js'
+import { SMMAssets } from './asset/map.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
-    this.assetLines = {}
     this.missionId = missionId
     this.csrftoken = csrftoken
+    this.overlayAdd = this.overlayAdd.bind(this)
     this.setupMap()
   }
 
@@ -104,16 +104,8 @@ class SMMMap {
     // Default leaflet path color
     const defaultColor = '#3388ff'
 
-    const realtime = L.realtime({
-      url: `/mission/${this.missionId}/data/assets/positions/latest/`,
-      type: 'json'
-    }, {
-      interval: assetUpdateFreq,
-      onEachFeature: function (asset) { self.assetCreate(asset) },
-      updateFeature: function (asset) { self.assetUpdate(asset) },
-      getFeatureId: function (feature) { return feature.properties.asset }
-    }).addTo(this.map)
-    this.overlayAdd('Assets', realtime)
+    this.assets = new SMMAssets(this.map, this.csrftoken, this.missionId, assetUpdateFreq, 'red', this.overlayAdd)
+    this.overlayAdd('Assets', this.assets.realtime().addTo(this.map))
 
     this.POIs = new SMMPOI(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('POIs', this.POIs.realtime().addTo(this.map))
@@ -142,93 +134,6 @@ class SMMMap {
 
   overlayAdd (name, layer) {
     this.layerControl.addOverlay(layer, name)
-  }
-
-  assetPathUpdate (name) {
-    if (!(name in this.assetLines)) {
-      const assetTrack = L.polyline([], { color: 'red' })
-      this.assetLines[name] = { track: assetTrack, updating: false, lastUpdate: null, path: [] }
-      this.overlayAdd(name, assetTrack)
-    }
-    const assetLine = this.assetLines[name]
-    if (assetLine.updating) { return }
-    assetLine.updating = true
-
-    let assetUrl = `/mission/${this.missionId}/data/assets/${name}/position/history/?oldest=last`
-    if (assetLine.lastUpdate != null) {
-      assetUrl = `${assetUrl}&from=${assetLine.lastUpdate}`
-    }
-
-    $.ajax({
-      type: 'GET',
-      url: assetUrl,
-      success: function (route) {
-        for (const f in route.features) {
-          const lon = route.features[f].geometry.coordinates[0]
-          const lat = route.features[f].geometry.coordinates[1]
-          assetLine.path.push(L.latLng(lat, lon))
-          assetLine.lastUpdate = route.features[f].properties.created_at
-        }
-        assetLine.track.setLatLngs(assetLine.path)
-        assetLine.updating = false
-      },
-      error: function () {
-        assetLine.updating = false
-      }
-    })
-  }
-
-  assetUpdate (asset, oldLayer) {
-    const assetName = asset.properties.asset
-    this.assetPathUpdate(assetName)
-
-    if (!oldLayer) { return }
-
-    const coords = asset.geometry.coordinates
-
-    const popupContent = document.createElement('div')
-    const data = [
-      ['Asset', assetName],
-      ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
-    ]
-
-    const alt = asset.properties.alt
-    const heading = asset.properties.heading
-    const fix = asset.properties.fix
-
-    if (alt) {
-      data.append(['Altitude', alt])
-    }
-    if (heading) {
-      data.append(['Heading', heading])
-    }
-    if (fix) {
-      data.append(['Fix', fix])
-    }
-
-    for (const d in data) {
-      popupContent.appendChild(document.createElement('<dl class="row"><dt class="asset-label col-sm-3">' + d[0] + '</dt><dd class="asset-name col-sm-9">' + d[1] + '</dd>'))
-    }
-
-    oldLayer.bindPopup(popupContent, { minWidth: 200 })
-
-    if (asset.geometry.type === 'Point') {
-      const c = asset.geometry.coordinates
-      oldLayer.setLatLng([c[1], c[0]])
-      return oldLayer
-    }
-  }
-
-  assetCreate (asset) {
-    const assetName = asset.properties.asset
-
-    if (!(assetName in this.assetLines)) {
-      /* Create an overlay for this object */
-      const assetTrack = L.polyline([], { color: 'red' })
-      this.assetLines[assetName] = { track: assetTrack, updating: false }
-      this.overlayAdd(assetName, assetTrack)
-    }
   }
 }
 
