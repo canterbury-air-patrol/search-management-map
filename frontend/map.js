@@ -27,6 +27,7 @@ import { SMMSearchComplete, SMMSearchIncomplete } from './search/map.js'
 import { SMMPOI } from './usergeo/poi.js'
 import { SMMPolygon } from './usergeo/polygon.js'
 import { SMMLine } from './usergeo/line.js'
+import { SMMImageAll, SMMImageImportant } from './image/map.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
@@ -128,33 +129,11 @@ class SMMMap {
     this.overlayAdd('Incomplete Searches', this.incompleteSearches.realtime().addTo(this.map))
     this.overlayAdd('Completed Searches', this.completeSearches.realtime())
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/image/list/all/`,
-      type: 'json'
-    }, {
-      interval: imageAllUpdateFreq,
-      onEachFeature: function (image, layer) { self.imageCreate(image, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk }
-    })
-    this.overlayAdd('Images (all)', realtime)
+    this.allImages = new SMMImageAll(this.map, this.csrftoken, this.missionId, imageAllUpdateFreq, defaultColor)
+    this.importantImages = new SMMImageImportant(this.map, this.csrftoken, this.missionId, imageAllUpdateFreq, defaultColor)
 
-    realtime = L.realtime({
-      url: `/mission/${this.missionId}/image/list/important/`,
-      type: 'json'
-    }, {
-      interval: imageAllUpdateFreq,
-      onEachFeature: function (image, layer) { self.imageCreate(image, layer) },
-      getFeatureId: function (feature) { return feature.properties.pk },
-      pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, {
-          icon: L.icon({
-            iconUrl: '/static/icons/image-x-generic.png',
-            iconSize: [24, 24]
-          })
-        })
-      }
-    }).addTo(this.map)
-    this.overlayAdd('Images (prioritized)', realtime)
+    this.overlayAdd('Images (all)', this.allImages.realtime())
+    this.overlayAdd('Images (prioritized', this.importantImages.realtime().addTo(this.map))
 
     realtime = L.realtime({
       url: `/mission/${this.missionId}/sar/marine/vectors/current/`,
@@ -273,68 +252,6 @@ class SMMMap {
     }
 
     return btngroup
-  }
-
-  imageCreate (image, layer) {
-    const ImageDesc = image.properties.description
-    const imageID = image.properties.pk
-    const coords = image.geometry.coordinates
-
-    const popupContent = document.createElement('div')
-
-    const dl = document.createElement('dl')
-    dl.className = 'row'
-    popupContent.appendChild(dl)
-
-    const data = [
-      ['Image', ImageDesc],
-      ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
-    ]
-
-    for (const d in data) {
-      const dt = document.createElement('dt')
-      dt.className = 'image-label col-sm-2'
-      dt.textContent = data[d][0]
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = 'image-name col-sm-10'
-      dd.textContent = data[d][1]
-      dl.appendChild(dd)
-    }
-
-    const div = document.createElement('div')
-    div.style = 'width: 128px'
-    popupContent.appendChild(div)
-    const a = document.createElement('a')
-    a.href = `/mission/${this.missionId}/image/${imageID}/full/`
-    div.appendChild(a)
-    const img = document.createElement('img')
-    img.src = `/mission/${this.missionId}/image/${imageID}/thumbnail/`
-    a.appendChild(img)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-      if (image.properties.priority) {
-        popupContent.appendChild(this.createButtonGroup([
-          {
-            label: 'Deprioritize',
-            onclick: function () { $.get(`/mission/${self.missionId}/image/${imageID}/priority/unset/`) },
-            'btn-class': 'btn-light'
-          }
-        ]))
-      } else {
-        popupContent.appendChild(this.createButtonGroup([
-          {
-            label: 'Prioritize',
-            onclick: function () { $.get(`/mission/${self.missionId}/image/${imageID}/priority/set/`) },
-            'btn-class': 'btn-light'
-          }
-        ]))
-      }
-    }
-
-    layer.bindPopup(popupContent)
   }
 
   tdvCreate (tdv, layer) {
