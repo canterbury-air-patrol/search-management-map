@@ -276,7 +276,7 @@ export class MarineVectors {
       $(`#${this.leewaySelector}`).append(html)
     }
 
-    $(`#${this.leewaySelector}`).change(function () {
+    $(`#${this.leewaySelector}`).on('change', function () {
       vectors.update_leeway_data()
     })
   }
@@ -285,10 +285,10 @@ export class MarineVectors {
     for (const idx in this.currentVectors) {
       const currVector = this.currentVectors[idx]
       const cvc = currVector.idx
-      currVector.time_from = $(`#curr_time_start_${cvc}`).val()
-      currVector.time_to = $(`#curr_time_end_${cvc}`).val()
-      currVector.current_direction = $(`#curr_direction_${cvc}`).val()
-      currVector.current_speed = $(`#curr_speed_${cvc}`).val()
+      currVector.timeFrom = $(`#curr_time_start_${cvc}`).val()
+      currVector.timeTo = $(`#curr_time_end_${cvc}`).val()
+      currVector.currentDirection = $(`#curr_direction_${cvc}`).val()
+      currVector.currentSpeed = $(`#curr_speed_${cvc}`).val()
       $(`#curr_time_interval_${cvc}`).text(currVector.getTimeInterval())
       $(`#curr_vector_degrees_${cvc}`).text(currVector.getCurrentVectorDirection())
       $(`#curr_vector_distance_${cvc}`).text(currVector.getCurrentVectorDistance())
@@ -297,8 +297,8 @@ export class MarineVectors {
       const windVector = this.windVectors[idx]
       windVector.updateLeewayData(this.leewayData)
       const wvc = windVector.idx
-      windVector.time_from = $(`#wind_time_start_${wvc}`).val()
-      windVector.time_to = $(`#wind_time_end_${wvc}`).val()
+      windVector.timeFrom = $(`#wind_time_start_${wvc}`).val()
+      windVector.timeTo = $(`#wind_time_end_${wvc}`).val()
       windVector.updateWindDirectFrom($(`#wind_from_direction_${wvc}`).val())
       windVector.updateWindSpeed($(`#wind_speed_${wvc}`).val())
       $(`#wind_leeway_direction_${wvc}`).text(windVector.getWindDirectionTo())
@@ -325,16 +325,16 @@ export class MarineVectors {
         '<td id="curr_vector_distance_' + cvc + '">0</td>' +
     '</tr>')
     const vectors = this
-    $(`#curr_time_start_${cvc}`).change(function () {
+    $(`#curr_time_start_${cvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#curr_time_end_${cvc}`).change(function () {
+    $(`#curr_time_end_${cvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#curr_direction_${cvc}`).change(function () {
+    $(`#curr_direction_${cvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#curr_speed_${cvc}`).change(function () {
+    $(`#curr_speed_${cvc}`).on('change', function () {
       vectors.recalculate()
     })
   }
@@ -354,16 +354,16 @@ export class MarineVectors {
       '<td id="wind_vector_degrees_' + wvc + '">000</td>' +
       '<td id="wind_vector_distance_' + wvc + '">0</td>' +
       '</tr>')
-    $(`#wind_time_start_${wvc}`).change(function () {
+    $(`#wind_time_start_${wvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#wind_time_end_${wvc}`).change(function () {
+    $(`#wind_time_end_${wvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#wind_from_direction_${wvc}`).change(function () {
+    $(`#wind_from_direction_${wvc}`).on('change', function () {
       vectors.recalculate()
     })
-    $(`#wind_speed_${wvc}`).change(function () {
+    $(`#wind_speed_${wvc}`).on('change', function () {
       vectors.recalculate()
     })
   }
