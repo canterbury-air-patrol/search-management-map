@@ -25,21 +25,18 @@ class SMMSearch extends SMMRealtime {
   }
 }
 
-class SMMSearchIncomplete extends SMMSearch {
+class SMMSearchNotStarted extends SMMSearch {
   getUrl () {
-    return `/mission/${this.missionId}/search/incomplete/`
+    return `/mission/${this.missionId}/search/notstarted/`
   }
 
   searchStatusIncomplete (search) {
-    const InprogressBy = search.properties.inprogress_by
     const QueuedAt = search.properties.queued_at
     const QueuedForAsset = search.properties.queued_for_asset
     const CreatedFor = search.properties.created_for
 
     let status = 'Unassigned'
-    if (InprogressBy) {
-      status = `In Progress: ${InprogressBy}`
-    } else if (QueuedAt) {
+    if (QueuedAt) {
       if (QueuedForAsset) {
         status = `Queued for ${QueuedForAsset} at ${QueuedAt}`
       } else {
@@ -54,7 +51,6 @@ class SMMSearchIncomplete extends SMMSearch {
     const SearchID = search.properties.pk
     const SweepWidth = search.properties.sweep_width
     const AssetType = search.properties.created_for
-    const InprogressBy = search.properties.inprogress_by
     const SearchType = search.properties.search_type
     const QueuedAt = search.properties.queued_at
 
@@ -64,9 +60,6 @@ class SMMSearchIncomplete extends SMMSearch {
       { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
       { css: 'asset-type', label: 'Asset Type', value: AssetType }
     ]
-    if (InprogressBy) {
-      data.push({ css: 'inprogress', label: 'Inprogress By', value: InprogressBy })
-    }
 
     const popupContent = document.createElement('div')
     popupContent.appendChild(this.searchDataToPopUp(data))
@@ -74,19 +67,17 @@ class SMMSearchIncomplete extends SMMSearch {
     if (this.missionId !== 'current' && this.missionId !== 'all') {
       const buttonData = []
       const self = this
-      if (!InprogressBy) {
+      buttonData.push({
+        label: 'Delete',
+        onclick: function () { $.get(`/mission/${self.missionId}/search/${SearchID}/delete/`) },
+        'btn-class': 'btn-danger'
+      })
+      if (!QueuedAt) {
         buttonData.push({
-          label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/search/${SearchID}/delete/`) },
-          'btn-class': 'btn-danger'
+          label: 'Queue',
+          onclick: function () { self.searchQueueDialog(SearchID, AssetType) },
+          'btn-class': 'btn-light'
         })
-        if (!QueuedAt) {
-          buttonData.push({
-            label: 'Queue',
-            onclick: function () { self.searchQueueDialog(SearchID, AssetType) },
-            'btn-class': 'btn-light'
-          })
-        }
       }
       popupContent.appendChild(this.createButtonGroup(buttonData))
     }
@@ -137,6 +128,40 @@ class SMMSearchIncomplete extends SMMSearch {
   }
 }
 
+class SMMSearchInprogress extends SMMSearch {
+  getUrl () {
+    return `/mission/${this.missionId}/search/inprogress/`
+  }
+
+  searchStatusInprogress (search) {
+    const InprogressBy = search.properties.inprogress_by
+
+    return `In Progress: ${InprogressBy}`
+  }
+
+  createPopup (search, layer) {
+    const SweepWidth = search.properties.sweep_width
+    const AssetType = search.properties.created_for
+    const InprogressBy = search.properties.inprogress_by
+    const InprogressAt = search.properties.inprogress_at
+    const SearchType = search.properties.search_type
+
+    const data = [
+      { css: 'type', label: 'Search Type', value: SearchType },
+      { css: 'status', label: 'Status', value: this.searchStatusInprogress(search) },
+      { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
+      { css: 'asset-type', label: 'Asset Type', value: AssetType },
+      { css: 'inprogress', label: 'Inprogress By', value: InprogressBy },
+      { css: 'inprogress', label: 'Search Started', value: InprogressAt }
+    ]
+
+    const popupContent = document.createElement('div')
+    popupContent.appendChild(this.searchDataToPopUp(data))
+
+    layer.bindPopup(popupContent, { minWidth: 200 })
+  }
+}
+
 class SMMSearchComplete extends SMMSearch {
   getUrl () {
     return `/mission/${this.missionId}/search/completed/`
@@ -161,4 +186,4 @@ class SMMSearchComplete extends SMMSearch {
   }
 }
 
-export { SMMSearchIncomplete, SMMSearchComplete }
+export { SMMSearchNotStarted, SMMSearchInprogress, SMMSearchComplete }

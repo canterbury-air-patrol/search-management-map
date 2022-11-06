@@ -8,8 +8,10 @@ from . import views, view_helpers
 from .models import Search
 
 urlpatterns = [
-    re_path(r'^mission/(?P<mission_id>\d+)/search/incomplete/$', views.search_incomplete, {'search_class': Search}, name='search_incomplete'),
-    re_path(r'^mission/(?P<mission_id>\d+)/search/incomplete/kml/$', views.search_incomplete_kml, {'search_class': Search}, name='search_incomplete_kml'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/notstarted/$', views.search_notstarted, {'search_class': Search}, name='search_notstarted'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/notstarted/kml/$', views.search_notstarted_kml, {'search_class': Search}, name='search_notstarted_kml'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/inprogress/$', views.search_inprogress, {'search_class': Search}, name='search_inprogress'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/inprogress/kml/$', views.search_inprogress_kml, {'search_class': Search}, name='search_inprogress_kml'),
     re_path(r'^mission/(?P<mission_id>\d+)/search/completed/$', views.search_completed, {'search_class': Search}, name='search_completed'),
     re_path(r'^mission/(?P<mission_id>\d+)/search/completed/kml/$', views.search_completed_kml, {'search_class': Search}, name='search_completed_kml'),
     re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/queue/$', views.search_queue, name='search_queue'),
@@ -24,8 +26,10 @@ urlpatterns = [
     re_path(r'^search/creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
     re_path(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
 
-    re_path(r'^mission/all/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': False}),
+    re_path(r'^mission/all/search/notstarted/$', views.search_notstarted_user, {'search_class': Search, 'current_only': False}),
+    re_path(r'^mission/all/search/inprogress/$', views.search_inprogress_user, {'search_class': Search, 'current_only': False}),
     re_path(r'^mission/all/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': False}),
-    re_path(r'^mission/current/search/incomplete/$', views.search_incomplete_user, {'search_class': Search, 'current_only': True}),
+    re_path(r'^mission/current/search/notstarted/$', views.search_notstarted_user, {'search_class': Search, 'current_only': True}),
+    re_path(r'^mission/current/search/inprogress/$', views.search_inprogress_user, {'search_class': Search, 'current_only': True}),
     re_path(r'^mission/current/search/completed/$', views.search_completed_user, {'search_class': Search, 'current_only': True}),
 ]
