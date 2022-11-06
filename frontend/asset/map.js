@@ -13,10 +13,11 @@ class SMMAsset {
     this.lastUpdate = null
     this.path = []
     this.updating = false
+    this.polyline = L.polyline([], { color: this.color })
   }
 
   overlay () {
-    return L.polyline([], { color: this.color })
+    return this.polyline
   }
 
   update () {
@@ -39,7 +40,7 @@ class SMMAsset {
           self.path.push(L.latLng(lat, lon))
           self.lastUpdate = route.features[f].properties.created_at
         }
-        self.track.setLatLngs(self.path)
+        self.polyline.setLatLngs(self.path)
         self.updating = false
       },
       error: function () {
