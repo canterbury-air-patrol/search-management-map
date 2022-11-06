@@ -7,7 +7,7 @@ all inherting from the abstract model (SearchPath)
 import math
 
 from django.db import models, connection as dbconn
-from django.db.models import Func
+from django.db.models import Func, Q
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, LineString
@@ -131,55 +131,37 @@ class Search(GeoTime):
         """
         Get all searches for this mission that haven't been started or deleted
         """
-        return cls.all_current_incomplete(mission).filter(inprogress_by__isnull=True)
+        return cls.all_current(mission, finished=False).filter(inprogress_by__isnull=True)
 
     @classmethod
-    def all_current_completed(cls, mission, current_at=None):
+    def filter_objects(cls, objects, current_at=None, finished=False):
         """
-        Get all the searches that are current and completed
+        Construct the filter for current_at + finished
         """
-        objects = cls.all_current(mission, current_at=current_at)
         if current_at:
-            objects = objects.filter(completed_at__lt=current_at)
+            if finished:
+                objects = objects.filter(completed_at__lt=current_at)
+            else:
+                objects = objects.filter(Q(completed_at__isnull=True) | Q(completed_at__gt=current_at))
         else:
-            objects = objects.filter(completed_at__isnull=False)
+            objects = objects.filter(completed_at__isnull=(not finished))
         return objects
 
     @classmethod
-    def all_current_completed_user(cls, user, current_at=None, current_only=False):
+    def all_current(cls, mission, current_at=None, finished=False):
         """
-        Get all the searches that are current and completed
+        Get all the searches that are current and finished as per params
         """
-        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only)
-        if current_at:
-            objects = objects.filter(completed_at__lt=current_at)
-        else:
-            objects = objects.filter(completed_at__isnull=False)
-        return objects
+        objects = super(Search, cls).all_current(mission, current_at=current_at)
+        return cls.filter_objects(objects, current_at=current_at, finished=finished)
 
     @classmethod
-    def all_current_incomplete(cls, mission, current_at=None):
+    def all_current_user(cls, user, current_at=None, current_only=False, finished=False):
         """
-        Get all the searches that are current and not yet complete
+        Get all the searches that are current and finished as per params
         """
-        objects = cls.all_current(mission, current_at=current_at)
-        if current_at:
-            objects = objects.filter(completed_at__gt=current_at)
-        else:
-            objects = objects.filter(completed_at__isnull=True)
-        return objects
-
-    @classmethod
-    def all_current_incomplete_user(cls, user, current_at=None, current_only=False):
-        """
-        Get all the searches that are current and not yet complete
-        """
-        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only)
-        if current_at:
-            objects = objects.filter(completed_at__gt=current_at)
-        else:
-            objects = objects.filter(completed_at__isnull=True)
-        return objects
+        objects = super(Search, cls).all_current_user(user, current_at=current_at, current_only=current_only)
+        return cls.filter_objects(objects, current_at=current_at, finished=finished)
 
     @classmethod
     def find_closest(cls, mission, asset_type, point):
