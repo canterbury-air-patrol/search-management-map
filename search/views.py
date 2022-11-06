@@ -214,27 +214,52 @@ def search_queue(request, search_id, mission_user):
 
 @login_required
 @mission_is_member
-def search_incomplete(request, mission_user, search_class):
+def search_notstarted(request, mission_user, search_class):
     """
-    Get a list of all the incomplete (search_class) searches (as json)
+    Get a list of all the not started (search_class) searches (as json)
     """
-    return to_geojson(search_class, search_class.all_current(mission_user.mission, finished=False))
+    return to_geojson(search_class, search_class.all_current(mission_user.mission, started=False, finished=False))
 
 
 @login_required
-def search_incomplete_user(request, search_class, current_only):
+def search_notstarted_user(request, search_class, current_only):
     """
-    Get a list of all the incomplete (search_class) searches in current missions this user is a member of (as json)
+    Get a list of all the not started (search_class) searches in current missions this user is a member of (as json)
     """
-    return to_geojson(search_class, search_class.all_current_user(request.user, current_only=current_only, finished=False))
+    return to_geojson(search_class, search_class.all_current_user(request.user, current_only=current_only, started=False, finished=False))
 
 
-def search_incomplete_kml(request, mission_id, search_class):
+def search_notstarted_kml(request, mission_id, search_class):
     """
-    Get a list of all the incomplete (search_type) searches (as kml)
+    Get a list of all the not started (search_type) searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(search_class, search_class.all_current(mission, finished=False))
+    return to_kml(search_class, search_class.all_current(mission, started=False, finished=False))
+
+
+@login_required
+@mission_is_member
+def search_inprogress(request, mission_user, search_class):
+    """
+    Get a list of all the inprogress (search_class) searches (as json)
+    """
+    return to_geojson(search_class, search_class.all_current(mission_user.mission, started=True, finished=False))
+
+
+@login_required
+def search_inprogress_user(request, search_class, current_only):
+    """
+    Get a list of all the inprogress (search_class) searches in current missions this user is a member of (as json)
+    """
+    return to_geojson(search_class, search_class.all_current_user(request.user, current_only=current_only, started=True, finished=False))
+
+
+def search_inprogress_kml(request, mission_id, search_class):
+    """
+    Get a list of all the inprogress (search_type) searches (as kml)
+    """
+    mission = mission_get(mission_id)
+    return to_kml(search_class, search_class.all_current(mission, started=True, finished=False))
 
 
 @login_required
@@ -243,7 +268,7 @@ def search_completed(request, mission_user, search_class):
     """
     Get a list of all the completed (search_class) searches (as json)
     """
-    return to_geojson(search_class, search_class.all_current(mission_user.mission, finished=True))
+    return to_geojson(search_class, search_class.all_current(mission_user.mission, started=True, finished=True))
 
 
 @login_required
@@ -251,7 +276,7 @@ def search_completed_user(request, search_class, current_only):
     """
     Get a list of all the completed (search_class) searches in all missions this user has been a member of (as json)
     """
-    return to_geojson(search_class, search_class.all_current_user(request.user, current_only=current_only, finished=True))
+    return to_geojson(search_class, search_class.all_current_user(request.user, current_only=current_only, started=True, finished=True))
 
 
 def search_completed_kml(request, mission_id, search_class):
@@ -259,7 +284,7 @@ def search_completed_kml(request, mission_id, search_class):
     Get a list of all the completed (search_class) searches (as kml)
     """
     mission = mission_get(mission_id)
-    return to_kml(search_class, search_class.all_current_completed(mission, finished=True))
+    return to_kml(search_class, search_class.all_current(mission, started=True, finished=True))
 
 
 @login_required

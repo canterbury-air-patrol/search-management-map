@@ -111,6 +111,7 @@ class Search(GeoTime):
         'pk',
         'created_at',
         'created_for',
+        'inprogress_at',
         'inprogress_by',
         'sweep_width',
         'queued_at',
@@ -135,34 +136,40 @@ class Search(GeoTime):
         return cls.all_current(mission, finished=False).filter(inprogress_by__isnull=True)
 
     @classmethod
-    def filter_objects(cls, objects, current_at=None, finished=False):
+    def filter_objects(cls, objects, current_at=None, started=False, finished=False):
         """
         Construct the filter for current_at + finished
         """
         if current_at:
+            if started:
+                objects = objects.filter(inprogress_at__lt=current_at)
+            else:
+                objects = objects.filter(Q(inprogress_at__isnull=True) | Q(inprogress_at__gt=current_at))
             if finished:
                 objects = objects.filter(completed_at__lt=current_at)
             else:
                 objects = objects.filter(Q(completed_at__isnull=True) | Q(completed_at__gt=current_at))
         else:
+            objects = objects.filter(inprogress_at__isnull=(not started))
             objects = objects.filter(completed_at__isnull=(not finished))
         return objects
 
     @classmethod
-    def all_current(cls, mission, current_at=None, finished=False):
+    def all_current(cls, mission, current_at=None, started=False, finished=False):
         """
         Get all the searches that are current and finished as per params
         """
         objects = super(Search, cls).all_current(mission, current_at=current_at)
-        return cls.filter_objects(objects, current_at=current_at, finished=finished)
+        return cls.filter_objects(objects, current_at=current_at, started=started, finished=finished)
 
     @classmethod
-    def all_current_user(cls, user, current_at=None, current_only=False, finished=False):
+    # pylint: disable=R0913
+    def all_current_user(cls, user, current_at=None, current_only=False, started=False, finished=False):
         """
         Get all the searches that are current and finished as per params
         """
         objects = super(Search, cls).all_current_user(user, current_at=current_at, current_only=current_only)
-        return cls.filter_objects(objects, current_at=current_at, finished=finished)
+        return cls.filter_objects(objects, current_at=current_at, started=started, finished=finished)
 
     @classmethod
     def find_closest(cls, mission, asset_type, point):
