@@ -92,6 +92,7 @@ class Search(GeoTime):
     """
     created_for = models.ForeignKey(AssetType, on_delete=models.PROTECT)
     sweep_width = models.IntegerField()
+    inprogress_at = models.DateTimeField(null=True, blank=True)
     inprogress_by = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='inprogress_by%(app_label)s_%(class)s_related')
     completed_at = models.DateTimeField(null=True, blank=True)
     completed_by = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='completed_by%(app_label)s_%(class)s_related')
@@ -225,7 +226,7 @@ class Search(GeoTime):
         '''
         Set the asset that conducting this search
         '''
-        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(inprogress_by=asset)
+        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(inprogress_at=timezone.now(), inprogress_by=asset)
         self.refresh_from_db()
         if self.inprogress_by == asset:
             timeline_record_search_begin(self.mission, user, asset, self)
