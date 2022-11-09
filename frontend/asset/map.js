@@ -85,15 +85,13 @@ class SMMAssets extends SMMRealtime {
   }
 
   createPopup (asset, layer) {
-    console.log(asset)
-
     const assetName = asset.properties.asset
 
     this.createAsset(assetName)
 
     const popupContent = document.createElement('div')
 
-    popupContent.appendChild(document.createElement(`<div>${assetName}</div>`))
+    popupContent.appendChild(document.createTextElement(assetName))
 
     layer.bindPopup(popupContent)
   }
