@@ -31,8 +31,8 @@ class MissionListRow extends React.Component {
         buttons.push((<Button key='close' className='btn-danger' href={ `/mission/${mission.id}/close/` }>Close</Button>))
       }
       dataFields.push((
-        <td>
-          <ButtonGroup key='buttons'>
+        <td key='buttons'>
+          <ButtonGroup>
             { buttons }
           </ButtonGroup>
         </td>
