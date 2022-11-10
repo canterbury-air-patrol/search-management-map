@@ -69,7 +69,7 @@ class SMMAssets extends SMMRealtime {
     }, {
       interval: this.interval,
       onEachFeature: function (asset, layer) { self.createPopup(asset, layer) },
-      updateFeature: function (asset, oldLayer) { self.assetUpdate(asset, oldLayer) },
+      updateFeature: function (asset, oldLayer) { return self.assetUpdate(asset, oldLayer) },
       getFeatureId: function (feature) { return feature.properties.asset }
     })
   }
@@ -91,13 +91,31 @@ class SMMAssets extends SMMRealtime {
 
     const popupContent = document.createElement('div')
 
-    popupContent.appendChild(document.createTextElement(assetName))
+    popupContent.appendChild(document.createTextNode(assetName))
 
-    layer.bindPopup(popupContent)
+    layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
   assetPathUpdate (assetName) {
     this.createAsset(assetName).update()
+  }
+
+  assetDataToPopUp (data) {
+    const dl = document.createElement('dl')
+    dl.className = 'row'
+
+    for (const d in data) {
+      const dt = document.createElement('dt')
+      dt.className = 'asset-label col-sm-3'
+      dt.textContent = data[d][0]
+      dl.appendChild(dt)
+      const dd = document.createElement('dd')
+      dd.className = 'asset-name col-sm-9'
+      dd.textContent = data[d][1]
+      dl.appendChild(dd)
+    }
+
+    return dl
   }
 
   assetUpdate (asset, oldLayer) {
@@ -108,7 +126,6 @@ class SMMAssets extends SMMRealtime {
 
     const coords = asset.geometry.coordinates
 
-    const popupContent = document.createElement('div')
     const data = [
       ['Asset', assetName],
       ['Lat', degreesToDM(coords[1], true)],
@@ -120,20 +137,17 @@ class SMMAssets extends SMMRealtime {
     const fix = asset.properties.fix
 
     if (alt) {
-      data.append(['Altitude', alt])
+      data.push(['Altitude', alt])
     }
     if (heading) {
-      data.append(['Heading', heading])
+      data.push(['Heading', heading])
     }
     if (fix) {
-      data.append(['Fix', fix])
+      data.push(['Fix', fix])
     }
 
-    for (const d in data) {
-      popupContent.appendChild(document.createElement('<dl class="row"><dt class="asset-label col-sm-3">' + d[0] + '</dt><dd class="asset-name col-sm-9">' + d[1] + '</dd>'))
-    }
-
-    oldLayer.bindPopup(popupContent, { minWidth: 200 })
+    const popupContent = this.assetDataToPopUp(data)
+    oldLayer.setPopupContent(popupContent)
 
     if (asset.geometry.type === 'Point') {
       const c = asset.geometry.coordinates
