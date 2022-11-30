@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search Details</title>
+    <base href="/static/search/" />
+    <link rel="stylesheet" href="details.css">
+    <script src="details.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <input type="hidden" value="{{ missionId }}" name="missionId" id="missionId" />
+    <input type="hidden" value="{{ searchId }}" name="searchId" id="searchId" />
+</body>
+<script>
+    createSearchDetailsPage('root', {{ missionId }}, {{ searchId }})
+</script>
+</html>

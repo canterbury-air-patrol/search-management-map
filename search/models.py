@@ -119,7 +119,7 @@ class Search(GeoTime):
         'search_type',
         'iterations',
         'first_bearing',
-        'witdth', )
+        'width', )
 
     def distance_from(self, point):
         """

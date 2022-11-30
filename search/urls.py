@@ -16,6 +16,7 @@ urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/search/completed/kml/$', views.search_completed_kml, {'search_class': Search}, name='search_completed_kml'),
     re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/queue/$', views.search_queue, name='search_queue'),
     re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/delete/$', views.search_delete, name='search_delete'),
+    re_path(r'^mission/(?P<mission_id>\d+)/search/(?P<search_id>\d+)/details/$', views.search_details, name='search_details'),
     re_path(r'^search/(?P<search_id>\d+)/json/$', view_helpers.search_json, {'object_class': Search}, name='search_json'),
     re_path(r'^search/(?P<search_id>\d+)/begin/$', views.search_begin, {'object_class': Search}, name='search_begin'),
     re_path(r'^search/(?P<search_id>\d+)/finished/$', views.search_finished, {'object_class': Search}, name='search_finished'),

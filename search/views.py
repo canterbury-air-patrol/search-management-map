@@ -13,7 +13,7 @@ Basic overview of presented API:
  - Details
 """
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
@@ -210,6 +210,17 @@ def search_queue(request, search_id, mission_user):
     search.queue_search(mission_user=mission_user, asset=asset)
 
     return HttpResponse("Success")
+
+
+@login_required
+@mission_is_member
+def search_details(request, search_id, mission_user):
+    """
+    Show details of a single search
+    """
+    search = get_object_or_404(Search, pk=search_id)
+
+    return render(request, 'search/search_details.html', {'searchId': search.pk, 'missionId': mission_user.mission.pk})
 
 
 @login_required

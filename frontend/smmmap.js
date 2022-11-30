@@ -31,9 +31,18 @@ class SMMRealtime {
       const btnData = data[d]
       const btn = document.createElement('button')
       btn.className = `btn ${btnData['btn-class']}`
-      btn.onclick = btnData.onclick
+      if (btnData.onclick !== undefined) {
+        btn.onclick = btnData.onclick
+      }
       btn.textContent = btnData.label
-      btngroup.appendChild(btn)
+      if (btnData.href !== undefined) {
+        const a = document.createElement('a')
+        a.href = btnData.href
+        a.appendChild(btn)
+        btngroup.appendChild(a)
+      } else {
+        btngroup.appendChild(btn)
+      }
     }
 
     return btngroup
