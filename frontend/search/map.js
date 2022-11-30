@@ -79,6 +79,11 @@ class SMMSearchNotStarted extends SMMSearch {
           'btn-class': 'btn-light'
         })
       }
+      buttonData.push({
+        label: 'Details',
+        href: `/mission/${self.missionId}/search/${SearchID}/details/`,
+        'btn-class': 'btn-light'
+      })
       popupContent.appendChild(this.createButtonGroup(buttonData))
     }
     layer.bindPopup(popupContent, { minWidth: 200 })
