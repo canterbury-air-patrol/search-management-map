@@ -44,6 +44,11 @@ class SMMLine extends SMMRealtime {
           label: 'Create Search',
           onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'line', LineID) },
           'btn-class': 'btn-light'
+        },
+        {
+          label: 'Details',
+          href: `/mission/${self.missionId}/data/userlines/${LineID}/details/`,
+          'btn-class': 'btn-light'
         }
       ]))
     }

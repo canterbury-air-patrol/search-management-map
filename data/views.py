@@ -218,6 +218,34 @@ def data_all_current_missions_type(request, geo_type):
     return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo_user(request.user, geo_type, current_only=True))
 
 
+@login_required
+@mission_is_member
+def usergeo_details(request, geo_type, geo_id, mission_user):
+    """
+    Show details of a single (geo_type)
+    """
+    usergeo = get_object_or_404(GeoTimeLabel, id=geo_id, mission=mission_user.mission, geo_type=geo_type)
+    usergeo_url = ''
+    if geo_type == 'poi':
+        usergeo_url = 'pois'
+    elif geo_type == 'line':
+        usergeo_url = 'userlines'
+    elif geo_type == 'polygon':
+        usergeo_url = 'userpolygons'
+
+    return render(request, 'data/usergeo_details.html', {'userGeoId': usergeo.pk, 'missionId': mission_user.mission.pk, 'userGeoType': usergeo_url})
+
+
+@login_required
+@mission_is_member
+def usergeo_json(request, geo_type, geo_id, mission_user):
+    """
+    Get a (geo_type) object and return it as geojson
+    """
+    usergeo = get_object_or_404(GeoTimeLabel, pk=geo_id, mission=mission_user.mission, geo_type=geo_type)
+    return to_geojson(GeoTimeLabel, [usergeo])
+
+
 def point_labels_all_kml(request, mission_id):
     """
     Get all the current POIs as kml

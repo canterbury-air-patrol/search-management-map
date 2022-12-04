@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geometry Details</title>
+    <base href="/static/usergeo/" />
+    <link rel="stylesheet" href="details.css">
+    <script src="details.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+<script>
+    createUserGeoDetailsPage('root', {{ missionId }}, {{ userGeoId }}, '{{ userGeoType }}')
+</script>
+</html>

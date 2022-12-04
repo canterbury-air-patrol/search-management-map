@@ -194,7 +194,16 @@ class GeoTimeLabel(GeoTime):
     )
     geo_type = models.CharField(max_length=10, choices=GEO_TYPE)
 
-    GEOJSON_FIELDS = ('pk', 'created_at', 'label',)
+    GEOJSON_FIELDS = (
+        'pk',
+        'created_at',
+        'created_by',
+        'deleted_at',
+        'deleted_by',
+        'replaced_at',
+        'replaced_by',
+        'label',
+    )
 
     @classmethod
     def all_current_of_geo(cls, mission, geo_type, current_at=None):
