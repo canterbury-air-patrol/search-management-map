@@ -64,6 +64,11 @@ class SMMPOI extends SMMRealtime {
           label: 'Calculate TDV',
           onclick: function () { L.MarineVectors(self.map, self.missionId, self.csrftoken, POILabel, L.latLng(coords[1], coords[0]), poiID) },
           'btn-class': 'btn-light'
+        },
+        {
+          label: 'Details',
+          href: `/mission/${self.missionId}/data/pois/${poiID}/details/`,
+          'btn-class': 'btn-light'
         }
       ]))
     }

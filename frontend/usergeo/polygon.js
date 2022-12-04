@@ -50,6 +50,11 @@ class SMMPolygon extends SMMRealtime {
           label: 'Create Search',
           onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'polygon', PolyID) },
           'btn-class': 'btn-light'
+        },
+        {
+          label: 'Details',
+          href: `/mission/${self.missionId}/data/userpolygons/${PolyID}/details/`,
+          'btn-class': 'btn-light'
         }
       ]))
     }
