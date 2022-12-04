@@ -10,6 +10,7 @@ import $ from 'jquery'
 
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
+import { GeoJsonMap } from '../geomap'
 
 class SearchDetails extends SMMObjectDetails {
   renderModelSpecificData (tableRows, data) {
@@ -144,6 +145,11 @@ class SearchDetailsPage extends React.Component {
             points={this.state.geometry.coordinates}
           />
         </Collapsible>
+      ))
+      parts.push((
+        <GeoJsonMap key='map'
+          geometry={this.state.geometry}
+        />
       ))
     }
     return (<div>

@@ -57,4 +57,4 @@ GeometryPoints.propTypes = {
   points: PropTypes.array.isRequired
 }
 
-export { GeometryPoints }
+export { GeometryPoints, mapCoordinates }
