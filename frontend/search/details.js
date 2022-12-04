@@ -1,6 +1,5 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
-import { Table } from 'react-bootstrap'
 
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -9,8 +8,8 @@ import Collapsible from 'react-collapsible'
 
 import $ from 'jquery'
 
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMObjectDetails } from '../SMMObjects/details'
+import { GeometryPoints } from '../geometry/details'
 
 class SearchDetails extends SMMObjectDetails {
   renderModelSpecificData (tableRows, data) {
@@ -98,36 +97,6 @@ class SearchDetails extends SMMObjectDetails {
   }
 }
 
-class SearchPoints extends React.Component {
-  render () {
-    const tableRows = []
-    for (const pointIdx in this.props.points) {
-      tableRows.push((
-        <tr key={pointIdx}>
-          <td>{degreesToDM(this.props.points[pointIdx][0])}</td>
-          <td>{degreesToDM(this.props.points[pointIdx][1], true)}</td>
-        </tr>
-      ))
-    }
-    return (
-      <Table>
-        <thead>
-          <tr>
-            <td>Longitude</td>
-            <td>Latitude</td>
-          </tr>
-        </thead>
-        <tbody>
-          { tableRows }
-        </tbody>
-      </Table>
-    )
-  }
-}
-SearchPoints.propTypes = {
-  points: PropTypes.array.isRequired
-}
-
 class SearchDetailsPage extends React.Component {
   constructor (props) {
     super(props)
@@ -171,7 +140,7 @@ class SearchDetailsPage extends React.Component {
     if (this.state.geometry !== null && this.state.geometry.points !== null) {
       parts.push((
         <Collapsible key='points' trigger='Coordinates'>
-          <SearchPoints
+          <GeometryPoints
             points={this.state.geometry.coordinates}
           />
         </Collapsible>
