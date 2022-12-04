@@ -10,12 +10,10 @@ import Collapsible from 'react-collapsible'
 import $ from 'jquery'
 
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
+import { SMMObjectDetails } from '../SMMObjects/details'
 
-class SearchDetails extends React.Component {
-  render () {
-    const data = this.props.data
-    const tableRows = []
-
+class SearchDetails extends SMMObjectDetails {
+  renderModelSpecificData (tableRows, data) {
     tableRows.push((
       <tr key='search_type'>
         <td>Type:</td>
@@ -23,12 +21,6 @@ class SearchDetails extends React.Component {
       </tr>
     ))
 
-    tableRows.push((
-      <tr key='created_at'>
-        <td>Created:</td>
-        <td>{(new Date(data.created_at)).toLocaleString()}</td>
-      </tr>
-    ))
     tableRows.push((
       <tr key='created_for'>
         <td>Asset Type:</td>
@@ -103,18 +95,7 @@ class SearchDetails extends React.Component {
         </tr>
       ))
     }
-
-    return (
-      <Table>
-        <tbody>
-          { tableRows }
-        </tbody>
-      </Table>
-    )
   }
-}
-SearchDetails.propTypes = {
-  data: PropTypes.object.isRequired
 }
 
 class SearchPoints extends React.Component {

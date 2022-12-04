@@ -110,7 +110,12 @@ class Search(GeoTime):
     GEOJSON_FIELDS = (
         'pk',
         'created_at',
+        'created_by',
         'created_for',
+        'deleted_at',
+        'deleted_by',
+        'replaced_at',
+        'replaced_by',
         'inprogress_at',
         'inprogress_by',
         'sweep_width',
