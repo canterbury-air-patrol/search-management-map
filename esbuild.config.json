@@ -1,4 +1,14 @@
 {
+    "entry": [
+        "frontend/map.js",
+        "frontend/marinesac.js",
+        "frontend/marinevectors.js",
+        "frontend/pretty.js",
+        "frontend/mission/list.js",
+        "frontend/mission/timeline.js",
+        "frontend/search/details.js",
+        "frontend/usergeo/details.js"
+    ],
     "bundle": true,
     "minify": true,
     "outdir": "dist",

@@ -4,7 +4,7 @@
   "main": "frontend/map.js",
   "scripts": {
     "check": "eslint frontend/",
-    "build": "esbuild frontend/map.js frontend/marinesac.js frontend/marinevectors.js frontend/pretty.js frontend/mission/list.js frontend/mission/timeline.js frontend/search/details.js frontend/usergeo/details.js $(esbuild-config) && cp -dpR dist/* map/static/",
+    "build": "esbuild $(esbuild-config) && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
