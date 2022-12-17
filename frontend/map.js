@@ -92,7 +92,7 @@ class SMMMap {
       }).addTo(this.map)
       L.control.imageuploader({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
     }
-    L.control.smmadmin({}).addTo(this.map)
+    L.control.smmadmin({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
 
     const assetUpdateFreq = 3 * 1000
     const userDataUpdateFreq = 10 * 1000
