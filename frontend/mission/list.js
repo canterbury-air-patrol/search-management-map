@@ -147,8 +147,8 @@ class MissionListPage extends React.Component {
   }
 
   componentDidMount () {
-    this.updateData()
     $.ajaxSetup({ timeout: 2500 })
+    this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
