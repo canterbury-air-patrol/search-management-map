@@ -230,7 +230,7 @@ class Search(GeoTime):
         Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset)
         self.refresh_from_db()
         if self.queued_for_asset == asset:
-            timeline_record_search_queue(mission_user.mission, mission_user.user, self, asset.assettype, asset)
+            timeline_record_search_queue(mission_user.mission, mission_user.user, self, asset.asset_type, asset)
             return True
         return False
 
