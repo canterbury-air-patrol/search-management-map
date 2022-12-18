@@ -90,6 +90,7 @@ class SMMSearchNotStarted extends SMMSearch {
   }
 
   searchQueueDialog (searchID, assetType) {
+    const self = this
     const contents = [
       `<div>Queue for <select id='queue_${searchID}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
       `<div><select id='queue_${searchID}_select_asset'></select></div>`,
@@ -125,7 +126,7 @@ class SMMSearchNotStarted extends SMMSearch {
           value: $(`#queue_${searchID}_select_asset`).val()
         })
       }
-      $.post(`/mission/${self.mission_id}/search/${searchID}/queue/`, data, function (data) {
+      $.post(`/mission/${self.missionId}/search/${searchID}/queue/`, data, function (data) {
         QueueDialog.destroy()
       })
     })
