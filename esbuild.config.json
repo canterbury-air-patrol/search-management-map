@@ -4,6 +4,7 @@
         "frontend/marinesac.js",
         "frontend/marinevectors.js",
         "frontend/pretty.js",
+        "frontend/asset/ui.js",
         "frontend/mission/list.js",
         "frontend/mission/timeline.js",
         "frontend/search/details.js",

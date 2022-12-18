@@ -94,3 +94,23 @@ class AssetCommand(models.Model):
             return AssetCommand.objects.filter(asset=asset).order_by('-issued')[0]
         except IndexError:
             return None
+
+    @staticmethod
+    def last_command_for_asset_to_json(asset):
+        """
+        Find the current command that applies to an asset
+        Return in the a structure for json
+        """
+        last_command = {}
+        asset_command = AssetCommand.last_command_for_asset(asset)
+        if asset_command:
+            last_command = {
+                'action': asset_command.command,
+                'action_txt': asset_command.get_command_display(),
+                'reason': asset_command.reason,
+                'issued': asset_command.issued,
+            }
+            if asset_command.position:
+                last_command['latitude'] = asset_command.position.y
+                last_command['longitude'] = asset_command.position.x
+        return last_command

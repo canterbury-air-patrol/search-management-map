@@ -4,10 +4,14 @@ Views for assets
 from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
-from mission.decorators import mission_is_member
+from mission.decorators import mission_is_member, mission_asset_get
 
+from search.models import Search
+from search.view_helpers import check_searches_in_progress
+
+from .decorators import asset_is_recorder
 from .models import AssetType, Asset, AssetCommand
 from .forms import AssetCommandForm
 
@@ -52,6 +56,46 @@ def assets_mine_list(request):
     data = {
         'assets': assets_json,
     }
+
+    return JsonResponse(data)
+
+
+@login_required
+@asset_is_recorder
+def assets_ui(request, asset):
+    """
+    Present UI for an Asset
+    """
+    return render(request, 'assets/ui.html', {'assetName': asset.name})
+
+
+@login_required
+def asset_details(request, asset_name):
+    """
+    Provide the details of an asset
+    """
+    asset = get_object_or_404(Asset, name=asset_name)
+
+    data = {
+        'asset_id': asset.pk,
+        'name': asset.name,
+        'asset_type': asset.asset_type.name,
+        'owner': str(asset.owner)
+    }
+
+    data['last_command'] = AssetCommand.last_command_for_asset_to_json(asset)
+
+    mission_asset = mission_asset_get(asset)
+    if mission_asset is not None:
+        data['mission_id'] = mission_asset.mission.pk
+        data['mission_name'] = mission_asset.mission.mission_name
+
+        current_search = check_searches_in_progress(mission_asset.mission, asset)
+        if current_search is not None:
+            data['current_search_id'] = current_search.pk
+        queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
+        if queued_search is not None:
+            data['queued_search_id'] = queued_search.pk
 
     return JsonResponse(data)
 

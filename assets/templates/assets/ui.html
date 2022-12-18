@@ -1,0 +1,16 @@
+{% load static %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>{{assetName}}</title>
+        <base href="/static/asset/" />
+        <link rel="stylesheet" href="ui.css">
+        <script src="ui.js"></script>
+    </head>
+    <body style="height: 100%">
+        <div id="root"></div>
+    </body>
+    <script>
+        createAssetUI('root', '{{assetName}}')
+    </script>
+</html>
