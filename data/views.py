@@ -124,18 +124,7 @@ def asset_record_position(request, asset):
         else:
             return HttpResponseBadRequest("Invalid lat/lon")
 
-    asset_command = AssetCommand.last_command_for_asset(asset)
-    if asset_command:
-        data = {
-            'action': asset_command.command,
-            'action_txt': asset_command.get_command_display(),
-            'reason': asset_command.reason,
-            'issued': asset_command.issued,
-        }
-        if asset_command.position:
-            data['latitude'] = asset_command.position.y
-            data['longitude'] = asset_command.position.x
-        return JsonResponse(data)
+        return JsonResponse(AssetCommand.last_command_for_asset_to_json(asset))
 
     return HttpResponse("Continue")
 
