@@ -14,6 +14,8 @@ class AssetDetailsPicker extends React.Component {
       assets: [],
       selectedAsset: null
     }
+
+    this.changeSelectedAsset = this.changeSelectedAsset.bind(this)
   }
 
   componentDidMount () {
