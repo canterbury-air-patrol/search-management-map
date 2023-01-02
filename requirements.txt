@@ -20,3 +20,6 @@ uwsgi
 
 # image support
 image
+
+# coverage reporting
+coverage==7.0.1
