@@ -3,6 +3,7 @@ Forms for missions
 """
 from django.forms import ModelForm
 
+from assets.models import Asset
 from timeline.models import TimeLineEntry
 from .models import Mission, MissionUser, MissionAsset
 
@@ -29,6 +30,11 @@ class MissionAssetForm(ModelForm):
     """
     Form for adding an asset to a mission
     """
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user')
+        super().__init__(*args, **kwargs)
+        self.fields['asset'].queryset = Asset.objects.filter(owner=self.user)
+
     class Meta:
         model = MissionAsset
         fields = ['asset']

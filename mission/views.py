@@ -35,7 +35,7 @@ def mission_details(request, mission_user):
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
         'mission_user_add': MissionUserForm(),
-        'mission_asset_add': MissionAssetForm(),
+        'mission_asset_add': MissionAssetForm(user=request.user),
     }
     return render(request, 'mission_details.html', data)
 
@@ -212,7 +212,7 @@ def mission_asset_add(request, mission_user):
     """
     form = None
     if request.method == 'POST':
-        form = MissionAssetForm(request.POST)
+        form = MissionAssetForm(request.POST, user=request.user)
         if form.is_valid():
             # Check if this asset is in any other missions currently
             if MissionAsset.objects.filter(asset=form.cleaned_data['asset'], removed__isnull=True).exists():
