@@ -23,6 +23,7 @@
             <thead>
                  <tr>
                      <td>User</td>
+                     <td>Role</td>
                      <td>Options</td>
                  </tr>
             </thead>
@@ -30,10 +31,11 @@
 {% for user in mission_users %}
                   <tr>
                       <td>{{ user.user }}</td>
+                      <td>{{ user.user_role_name }}</td>
                       <td>
 {% if user.user == me %}
 You cannot modify yourself.
-{% elif admin %}
+{% elif admin and user.role != 'A' %}
                           <a class="btn btn-danger" href="/mission/{{ mission.pk }}/users/{{ user.user.pk }}/make/admin/">Make Admin</a>
 {% else %}
 {% endif %}
