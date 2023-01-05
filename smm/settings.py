@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'timeline',
     'images',
     'marinesar',
+    'organization',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
