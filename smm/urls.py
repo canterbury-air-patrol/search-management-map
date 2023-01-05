@@ -26,4 +26,5 @@ urlpatterns = [
     re_path(r'', include('mission.urls')),
     re_path(r'', include('marinesar.urls')),
     re_path(r'', include('map.urls')),
+    re_path(r'', include('organization.urls')),
 ]

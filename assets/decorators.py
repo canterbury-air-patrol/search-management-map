@@ -20,6 +20,19 @@ def asset_is_recorder(view_func):
     return recorder_check
 
 
+def asset_is_owner(view_func):
+    """
+    Make sure the current user is the owner of this asset.
+    """
+    def asset_owner_check(*args, **kwargs):
+        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
+        if asset.owner != args[0].user:
+            return HttpResponseForbidden("Not Authorized, this is not your asset")
+        kwargs.pop('asset_id')
+        return view_func(*args, asset=asset, **kwargs)
+    return asset_owner_check
+
+
 def asset_id_in_get_post(view_func):
     """
     Make sure the asset_id in the GET/POST is a valid assest and this user can act as them.
