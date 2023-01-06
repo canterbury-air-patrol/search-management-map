@@ -23,18 +23,7 @@ def asset_types_list(request):
     """
     asset_types = AssetType.objects.all()
 
-    asset_types_json = []
-    for asset_type in asset_types:
-        asset_types_json.append({
-            'id': asset_type.pk,
-            'name': asset_type.name,
-        })
-
-    data = {
-        'asset_types': asset_types_json,
-    }
-
-    return JsonResponse(data)
+    return JsonResponse({'asset_types': [at.as_object() for at in asset_types]})
 
 
 @login_required
@@ -44,20 +33,7 @@ def assets_mine_list(request):
     """
     assets = Asset.objects.filter(owner=request.user)
 
-    assets_json = []
-    for asset in assets:
-        assets_json.append({
-            'id': asset.pk,
-            'name': asset.name,
-            'type_id': asset.asset_type.id,
-            'type_name': asset.asset_type.name,
-        })
-
-    data = {
-        'assets': assets_json,
-    }
-
-    return JsonResponse(data)
+    return JsonResponse({'assets': [a.as_object() for a in assets]})
 
 
 @login_required
