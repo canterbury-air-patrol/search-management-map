@@ -24,6 +24,15 @@ class AssetType(models.Model):
     name = models.CharField(max_length=50)
     description = models.TextField()
 
+    def as_object(self):
+        """
+        Convert this asset type to an object that is suitable for returning via JsonResponse
+        """
+        return {
+            'id': self.pk,
+            'name': self.name,
+        }
+
     def natural_key(self):
         """
         Use the asset type name when refering to the asset type during serialization (i.e. to geojson).
@@ -41,6 +50,17 @@ class Asset(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     asset_type = models.ForeignKey(AssetType, on_delete=models.PROTECT)
+
+    def as_object(self):
+        """
+        Convert this asset to an object that is suitable for returning via JsonResponse
+        """
+        return {
+            'id': self.pk,
+            'name': self.name,
+            'type_id': self.asset_type.id,
+            'type_name': self.asset_type.name,
+        }
 
     def natural_key(self):
         """
