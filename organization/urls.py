@@ -2,6 +2,7 @@ from django.urls import re_path
 from . import views
 
 urlpatterns = [
+    re_path(r'^organization/$', views.organization_list, name='organization_list'),
     re_path(r'^organization/create/$', views.organization_create, name='organization_create'),
     re_path(r'^organization/list/all/$', views.organization_list_all, name='organization_list_all'),
     re_path(r'^organization/list/mine/$', views.organization_list_mine, name='organization_list_mine'),

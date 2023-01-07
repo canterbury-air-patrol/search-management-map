@@ -2,12 +2,20 @@ from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpRespo
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 
 from assets.decorators import asset_is_owner
 
 from .models import Organization, OrganizationMember, OrganizationAsset
 from .decorators import organization_is_admin, organization_assets_admin
+
+
+@login_required
+def organization_list(request):
+    """
+    Display the organization list/management interface
+    """
+    return render(request, 'organization/list.html')
 
 
 @login_required
