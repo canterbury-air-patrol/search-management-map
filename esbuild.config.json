@@ -8,7 +8,8 @@
         "frontend/mission/list.js",
         "frontend/mission/timeline.js",
         "frontend/search/details.js",
-        "frontend/usergeo/details.js"
+        "frontend/usergeo/details.js",
+        "frontend/organization/list.js"
     ],
     "bundle": true,
     "minify": true,
