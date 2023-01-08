@@ -57,13 +57,12 @@ class OrganizationMember(models.Model):
                 return row[1]
         return "Unknown"
 
-    def as_object(self, user=None):
+    def as_object(self, org=True, user=None):
         """
         Convert the organization member to an object that is suitable for returning via JsonResponse
         """
-        return {
+        data = {
             'id': self.pk,
-            'organization': self.organization.as_object(user=user),
             'user': self.user.username,
             'role': self.user_role_name(),
             'added': self.added,
@@ -71,6 +70,10 @@ class OrganizationMember(models.Model):
             'removed': self.removed,
             'removed_by': self.removed_by.username if self.removed_by else None,  # pylint: disable=E1101
         }
+        if org:
+            data['organization'] = self.organization.as_object(user=user)
+
+        return data
 
     def is_admin(self):
         return self.role == 'A'
@@ -87,16 +90,20 @@ class OrganizationAsset(models.Model):
     removed = models.DateTimeField(null=True, blank=True)
     removed_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='removed_by%(app_label)s_%(class)s_related', null=True, blank=True)
 
-    def as_object(self):
+    def as_object(self, org=True):
         """
         Convert the organization asset to an object that is suitable for returning via JsonResponse
         """
-        return {
+        data = {
             'id': self.pk,
-            'organization': self.organization.as_object(),
             'asset': self.asset.as_object(),
             'added': self.added,
             'added_by': self.added_by.username,  # pylint: disable=E1101
             'removed': self.removed,
             'removed_by': self.removed_by.username if self.removed_by else None,  # pylint: disable=E1101
         }
+
+        if org:
+            data['organization'] = self.organization.as_object()
+
+        return data

@@ -239,3 +239,28 @@ class OrganizationTestCase(TestCase):
         # Check that admins who didn't create the org can add assets
         self.add_user_to_org(user=self.user2, organization=org2, role='A')
         self.add_asset_to_organization(asset=asset2, organization=org2, client=self.client2)
+
+    def test_organization_details(self):
+        """
+        Check the organization details (page)
+        """
+        org_name = 'my-test-org'
+        org = self.create_organization(organization_name=org_name, client=self.client1)
+        org_url = f"/organization/{org['id']}/"
+        json_data = self.get_url_json(org_url)
+        self.assertEqual(json_data['id'], org['id'])
+        self.assertEqual(json_data['name'], org_name)
+        self.assertEqual(len(json_data['members']), 1)
+        self.assertEqual(json_data['members'][0]['user'], self.user1.username)
+        # Add an asset and check the asset is included too
+        asset_type = self.create_asset_type()
+        asset = self.create_asset(name='asset1', asset_type=asset_type, owner=self.user1)
+        self.add_asset_to_organization(asset=asset, organization=org)
+        json_data = self.get_url_json(org_url)
+        self.assertEqual(json_data['id'], org['id'])
+        self.assertEqual(json_data['name'], org_name)
+        self.assertEqual(len(json_data['members']), 1)
+        self.assertEqual(json_data['members'][0]['user'], self.user1.username)
+        self.assertEqual(len(json_data['assets']), 1)
+        self.assertEqual(json_data['assets'][0]['added_by'], self.user1.username)
+        self.assertEqual(json_data['assets'][0]['asset']['name'], 'asset1')
