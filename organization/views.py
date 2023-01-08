@@ -19,6 +19,30 @@ def organization_list(request):
 
 
 @login_required
+def organization_details(request, organization_id):
+    """
+    Dislay or provide the asset details
+    """
+    if request.method != 'GET':
+        return HttpResponseNotAllowed(['GET'])
+
+    organization = get_object_or_404(Organization, pk=organization_id)
+
+    # if json is requested, then send all the data this user is allowed to see
+    if "application/json" in request.META.get('HTTP_ACCEPT'):
+        organization_data = organization.as_object(request.user)
+
+        organization_assets = OrganizationAsset.objects.filter(organization=organization, removed__isnull=True)
+        organization_data['assets'] = [oa.as_object(org=False) for oa in organization_assets]
+        organization_members = OrganizationMember.objects.filter(organization=organization, removed__isnull=True)
+        organization_data['members'] = [om.as_object(org=False) for om in organization_members]
+
+        return JsonResponse(organization_data)
+
+    return render(request, 'organization/details.html', {'organization': organization})
+
+
+@login_required
 def organization_create(request):
     """
     Create an organization
@@ -95,7 +119,7 @@ def organization_user_modify(request, organization_member, username):
         if role is not None:
             om.role = role
             om.save()
-        return JsonResponse(om.as_object())
+        return JsonResponse(om.as_object(request.user))
     else:
         return HttpResponseNotAllowed(['POST'])
 
