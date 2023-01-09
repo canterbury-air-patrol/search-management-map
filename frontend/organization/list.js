@@ -176,4 +176,6 @@ function createOrganizationList (elementId) {
   div.render(<OrganizationListPage csrftoken={csrftoken} />)
 }
 
+export { OrganizationListRow }
+
 globalThis.createOrganizationList = createOrganizationList
