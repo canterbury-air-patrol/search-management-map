@@ -130,6 +130,88 @@ OrganizationAssetList.propTypes = {
   organization_assets: PropTypes.array.isRequired
 }
 
+class OrganizationAssetAdd extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      assetList: [],
+      assetId: null
+    }
+
+    this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
+    this.addOrganizationAsset = this.addOrganizationAsset.bind(this)
+  }
+
+  componentDidMount () {
+    $.ajaxSetup({ timeout: 2500 })
+    this.updateData()
+    this.timer = setInterval(() => this.updateData(), 10000)
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.timer)
+    this.timer = null
+  }
+
+  async updateData () {
+    const self = this
+    await $.getJSON('/assets/mine/json/', function (data) {
+      self.setState(function (oldState) {
+        const newState = {
+          assetList: data.assets
+        }
+        if (oldState.assetId === null && data.assets.length > 0) {
+          newState.assetId = data.assets[0].id
+        }
+        return newState
+      })
+    })
+  }
+
+  updateSelectedAsset (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ assetId: value })
+  }
+
+  addOrganizationAsset () {
+    const self = this
+    $.post(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
+      self.setState({ assetId: null })
+    })
+  }
+
+  render () {
+    const possibleAssets = []
+    for (const assetIdx in this.state.assetList) {
+      const asset = this.state.assetList[assetIdx]
+      possibleAssets.push((<option key={asset.id} value={asset.id}>{asset.name}</option>))
+    }
+    return (
+      <Table>
+        <thead>
+          <tr>
+            <td>Asset</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><select onChange={this.updateSelectedAsset}>{possibleAssets}</select></td>
+            <td><Button onClick={this.addOrganizationAsset}>Add</Button></td>
+          </tr>
+        </tbody>
+      </Table>
+    )
+  }
+}
+OrganizationAssetAdd.propTypes = {
+  organizationId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
+}
+
 class OrganizationDetailsPage extends React.Component {
   constructor (props) {
     super(props)
@@ -188,6 +270,9 @@ class OrganizationDetailsPage extends React.Component {
         <OrganizationAssetList
           organization_assets={this.state.organizationDetails.assets}
           showButtons={true} />
+        <OrganizationAssetAdd
+          organizationId={this.props.organizationId}
+          csrftoken={this.props.csrftoken} />
       </div>
     )
   }
