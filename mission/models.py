@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from assets.models import Asset, AssetType
+from organization.models import Organization
 
 
 class Mission(models.Model):
@@ -95,3 +96,33 @@ class MissionAssetType(models.Model):
     added = models.DateTimeField(default=timezone.now)
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
+
+
+class MissionOrganization(models.Model):
+    """
+    An organization/mission association.
+
+    This is how organizations (groups of users+assets) are added to missions.
+    """
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT)
+    creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
+    added = models.DateTimeField(default=timezone.now)
+    remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
+    removed = models.DateTimeField(null=True, blank=True)
+
+    # This is the highest role an organization member can have, depending on their organization role
+    ORGANIZATION_ROLE = (
+        ('M', 'Member'),
+        ('A', 'Admin'),
+    )
+    role = models.CharField(max_length=1, choices=ORGANIZATION_ROLE, default='M')
+
+    def role_name(self):
+        """
+        Return a human-readable name for this organizations' role.
+        """
+        for row in self.ORGANIZATION_ROLE:
+            if row[0] == self.role:
+                return row[1]
+        return "Unknown"

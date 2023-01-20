@@ -33,6 +33,9 @@ class Organization(models.Model):
             'role': role,
         }
 
+    def __str__(self):
+        return self.name
+
 
 class OrganizationMember(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='organization%(app_label)s_%(class)s_related')

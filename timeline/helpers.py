@@ -55,6 +55,16 @@ def timeline_record_search_finished(mission, user, asset, obj):
     entry.save()
 
 
+def timeline_record_mission_organization_add(mission, actioner, organization):
+    """
+    Create a timeline entry for an organization being added to a mission
+    """
+    message = f"{actioner} Added {organization} to Mission {mission.pk}"
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=actioner, event_type='oad', message=message, url=url)
+    entry.save()
+
+
 def timeline_record_mission_user_add(mission, actioner, user):
     """
     Create a timeline entry for an user being added to a mission

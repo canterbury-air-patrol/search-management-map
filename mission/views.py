@@ -14,10 +14,10 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_create, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
+from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
-from .models import Mission, MissionUser, MissionAsset, MissionAssetType
-from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionTimeLineEntryForm
+from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization
+from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionTimeLineEntryForm, MissionOrganizationForm
 from .decorators import mission_is_member, mission_is_admin
 
 
@@ -31,9 +31,11 @@ def mission_details(request, mission_user):
         'mission': mission_user.mission,
         'me': request.user,
         'admin': mission_user.is_admin(),
+        'mission_organizations': MissionOrganization.objects.filter(mission=mission_user.mission),
         'mission_assets': MissionAsset.objects.filter(mission=mission_user.mission),
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
+        'mission_organization_add': MissionOrganizationForm(),
         'mission_user_add': MissionUserForm(),
         'mission_asset_add': MissionAssetForm(user=request.user),
     }
@@ -159,6 +161,33 @@ def mission_timeline_add(request, mission_user):
         form = MissionTimeLineEntryForm()
 
     return render(request, 'mission_timeline_add.html', {'form': form})
+
+
+@login_required
+@mission_is_admin
+def mission_organization_add(request, mission_user):
+    """
+    Add an Organization to a Mission
+    """
+    form = None
+    if request.method == 'POST':
+        form = MissionOrganizationForm(request.POST)
+        if form.is_valid():
+            # Check if this organization is already in this mission
+            try:
+                MissionOrganization.objects.get(organization=form.cleaned_data['organization'], mission=mission_user.mission)
+                return HttpResponseForbidden("Organization is already in this Mission")
+            except ObjectDoesNotExist:
+                # Create the new mission<->organization
+                mission_user = MissionOrganization(mission=mission_user.mission, organization=form.cleaned_data['organization'], creator=request.user)
+                mission_user.save()
+                timeline_record_mission_organization_add(mission_user.mission, request.user, form.cleaned_data['organization'])
+                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+
+    if form is None:
+        form = MissionUserForm()
+
+    return render(request, 'mission_user_add.html', {'form': form})
 
 
 @login_required
