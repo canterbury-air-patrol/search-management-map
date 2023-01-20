@@ -18,6 +18,42 @@
             <tr><td>Description</td><td>{{ mission.mission_description }}</td></tr>
         </table>
 
+        Current Organizations:
+        <table class="table">
+            <thead>
+                <tr>
+                    <td>Organization</td>
+                    <td>Role</td>
+                    <td>Options</td>
+                </tr>
+            </thead>
+            <tbody>
+{% for mission_organization in mission_organizations %}
+                <tr>
+                    <td><a href="/organization/{{ mission_organization.organization.pk }}/">{{ mission_organization.organization.name }}</a></td>
+                    <td>{{ mission_organization.role_name }}</td>
+                    <td>
+{% if admin %}
+{% endif %}
+                    </td>
+                </tr>
+{% endfor %}
+            </tbody>
+        </table>
+
+{% if admin %}
+        <form action="/mission/{{ mission.pk }}/organizations/add/" method="POST">
+{% csrf_token %}
+            <table class="table">
+                <tr>
+{{ mission_organization_add.as_table }}
+                    <td></td>
+                    <td><button class="btn btn-primary">Add</button></td>
+                </tr>
+            </table>
+        </form>
+{% endif %}
+
         Current Users:
         <table class="table">
             <thead>

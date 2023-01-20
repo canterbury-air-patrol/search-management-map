@@ -5,7 +5,7 @@ from django.forms import ModelForm
 
 from assets.models import Asset
 from timeline.models import TimeLineEntry
-from .models import Mission, MissionUser, MissionAsset
+from .models import Mission, MissionUser, MissionAsset, MissionOrganization
 
 
 class MissionForm(ModelForm):
@@ -47,3 +47,12 @@ class MissionTimeLineEntryForm(ModelForm):
     class Meta:
         model = TimeLineEntry
         fields = ['timestamp', 'message', 'url']
+
+
+class MissionOrganizationForm(ModelForm):
+    """
+    Form for adding an organization to a mission
+    """
+    class Meta:
+        model = MissionOrganization
+        fields = ['organization']
