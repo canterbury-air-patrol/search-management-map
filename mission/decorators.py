@@ -3,10 +3,12 @@ Function decorators to make dealing with missions easier
 """
 
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, Http404
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import Mission, MissionUser, MissionAsset
+from organization.models import OrganizationMember
+
+from .models import Mission, MissionUser, MissionAsset, MissionOrganization
 
 
 def mission_user_get(mission_id, user):
@@ -14,8 +16,15 @@ def mission_user_get(mission_id, user):
     Get the mission_user for the given mission id and user.
     """
     mission = get_object_or_404(Mission, pk=mission_id)
-    mission_user = get_object_or_404(MissionUser, mission=mission, user=user)
-    return mission_user
+    # Find any direct membership first
+    try:
+        mission_user = MissionUser.objects.get(mission=mission, user=user)
+        return mission_user
+    except ObjectDoesNotExist:
+        organization_member = OrganizationMember.objects.filter(organization__in=[mo.organization for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)], user=user, removed__isnull=True)
+        if organization_member:
+            return MissionUser(mission=mission, user=user, role='M')
+    raise Http404("Not Found")
 
 
 def mission_is_member(view_func):

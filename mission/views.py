@@ -13,6 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
+from organization.models import OrganizationMember
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
@@ -99,8 +100,14 @@ def mission_list_data(request):
     Provide data for all the missions this user is a member of
     """
     user_missions = MissionUser.objects.filter(user=request.user)
+    organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)]).distinct('mission')
+    missions = []
+    for user_mission in user_missions:
+        missions.append(user_mission.mission.as_object(user_mission.is_admin()))
+    for organization_mission in organization_missions:
+        missions.append(organization_mission.mission.as_object(False))
     data = {
-        'missions': [user_mission.mission.as_object(user_mission.is_admin()) for user_mission in user_missions],
+        'missions': missions,
     }
     return JsonResponse(data)
 
