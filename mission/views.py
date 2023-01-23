@@ -241,7 +241,7 @@ def mission_user_make_admin(request, mission_user, user_id):
 
 
 @login_required
-@mission_is_admin
+@mission_is_member
 def mission_asset_add(request, mission_user):
     """
     Add an Asset to a Mission

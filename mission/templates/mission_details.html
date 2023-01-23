@@ -122,7 +122,6 @@ Add User to Mission:
 {% endfor %}
             </tbody>
         </table>
-{% if admin %}
 Add Asset to Mission:
         <form action="/mission/{{ mission.pk }}/assets/add/" method="POST">
 {% csrf_token %}
@@ -131,12 +130,9 @@ Add Asset to Mission:
                 <tr>
                     <td></td>
                     <td>
-{% if admin %}
 <button class="btn btn-primary">Add</button></td>
-{% endif %}
                 </tr>
             </table>
-{% endif %}
         </form>
     </body>
 </html>
