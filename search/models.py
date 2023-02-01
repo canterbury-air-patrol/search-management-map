@@ -408,7 +408,7 @@ class Search(GeoTime):
             f" FROM data_geotimelabel, generate_series(1, ST_NPoints(geo::geometry) - 1) AS pos WHERE id = {params.from_geo().pk}"
 
         line_data_query = \
-            f"SELECT segment.start AS start, ST_Azimuth(segment.start, segment.end) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({segment_query}) AS segment"
+            f"SELECT segment.start AS start, ST_Azimuth(segment.start::geometry, segment.end::geometry) AS direction, ST_Distance(segment.start, segment.end) AS distance FROM ({segment_query}) AS segment"
         line_points_query = \
             f"SELECT direction AS direction, ST_Project(linedata.start, {params.sweep_width()} * i, direction) AS point"\
             f" FROM ({line_data_query}) AS linedata, generate_series(0, (linedata.distance/{params.sweep_width()})::integer) AS i"
