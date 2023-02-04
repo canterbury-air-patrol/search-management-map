@@ -290,13 +290,15 @@ def mission_asset_json(request, mission_user):
 
 
 @login_required
-@mission_is_admin
+@mission_is_member
 def mission_asset_remove(request, mission_user, asset_id):
     """
     Cease using an asset as part of this Mission
     """
     asset = get_object_or_404(Asset, pk=asset_id)
     mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+    if mission_user.is_admin() or mission_asset.asset.owner != request.user:
+        HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
     mission_asset.remover = request.user
     mission_asset.removed = timezone.now()
     mission_asset.save()
