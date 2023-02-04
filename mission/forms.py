@@ -2,8 +2,10 @@
 Forms for missions
 """
 from django.forms import ModelForm
+from django.db.models import Q
 
 from assets.models import Asset
+from organization.models import OrganizationAsset, OrganizationMember
 from timeline.models import TimeLineEntry
 from .models import Mission, MissionUser, MissionAsset, MissionOrganization
 
@@ -32,8 +34,18 @@ class MissionAssetForm(ModelForm):
     """
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
+        self.mission = kwargs.pop('mission')
         super().__init__(*args, **kwargs)
-        self.fields['asset'].queryset = Asset.objects.filter(owner=self.user)
+        self.fields['asset'].queryset = Asset.objects.filter(
+            Q(owner=self.user) | Q(pk__in=OrganizationAsset.objects.filter(
+                organization__in=MissionOrganization.objects.filter(
+                    mission=self.mission,
+                    organization__in=OrganizationMember.objects.filter(
+                        user=self.user,
+                        removed__isnull=True)
+                    .values_list('organization'))
+                .values_list('organization'))
+                .values_list('asset')))
 
     class Meta:
         model = MissionAsset

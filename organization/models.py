@@ -88,6 +88,13 @@ class OrganizationMember(models.Model):
     def is_radio_operator(self):
         return self.role in ('A', 'R')
 
+    @classmethod
+    def user_current(cls, user):
+        """
+        Get all the OrganizationMember classes a user is currently in
+        """
+        return cls.objects.filter(user=user, removed__isnull=True)
+
 
 class OrganizationAsset(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='organization_%(app_label)s_%(class)s_related')
