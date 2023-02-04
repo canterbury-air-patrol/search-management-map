@@ -20,6 +20,9 @@ class OrganizationListRow extends React.Component {
     if (this.props.showButtons) {
       const buttons = []
       buttons.push((<Button key='details' href={ `/organization/${organization.id}/` }>Details</Button>))
+      if (organization.role === 'Radio Operator' || organization.role === 'Admin') {
+        buttons.push(<Button key='radio-operator' href={ `/organization/${organization.id}/radio/operator/` }>Radio Operator</Button>)
+      }
       if (organization.role === 'Admin') {
         buttons.push((<Button key='delete' className='btn-danger' onClick={this.delete_organization}>Delete</Button>))
       }

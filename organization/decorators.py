@@ -37,3 +37,16 @@ def organization_assets_admin(view_func):
             return view_func(*args, organization_member=organization_member, **kwargs)
         return HttpResponseForbidden("You are not allowed to modify assets to this Organization")
     return wrapper_is_asset_admin
+
+
+def organization_radio_operator(view_func):
+    """
+    Make sure the user is a member and they are have the radio operator or admin role
+    """
+    def wrapper_is_radio_operator(*args, **kwargs):
+        organization_member = organization_member_get(kwargs['organization_id'], args[0].user)
+        kwargs.pop('organization_id')
+        if organization_member.is_radio_operator():
+            return view_func(*args, organization_member=organization_member, **kwargs)
+        return HttpResponseForbidden("You are not a radio operator for this organization")
+    return wrapper_is_radio_operator
