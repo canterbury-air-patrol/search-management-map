@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from assets.decorators import asset_is_owner
 
 from .models import Organization, OrganizationMember, OrganizationAsset
-from .decorators import organization_is_admin, organization_assets_admin
+from .decorators import organization_is_admin, organization_assets_admin, organization_radio_operator
 
 
 @login_required
@@ -166,3 +166,12 @@ def organization_not_members(request, organization_member):
     return JsonResponse({
         'users': [{'username': user.username, 'id': user.pk} for user in users]
     })
+
+
+@login_required
+@organization_radio_operator
+def organization_radio_operator(request, organization_member):
+    """
+    Present the Radio Operator screen
+    """
+    return render(request, 'organization/radio-operator.html', {'organization': organization_member.organization})

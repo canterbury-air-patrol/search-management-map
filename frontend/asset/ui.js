@@ -324,3 +324,5 @@ function createAssetUI (elementId, assetName) {
 }
 
 globalThis.createAssetUI = createAssetUI
+
+export { AssetCommandView, AssetDetails, AssetUI }
