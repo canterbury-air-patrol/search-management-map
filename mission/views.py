@@ -13,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
-from organization.models import OrganizationMember
+from organization.models import OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
 
@@ -38,7 +38,7 @@ def mission_details(request, mission_user):
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
         'mission_organization_add': MissionOrganizationForm(),
         'mission_user_add': MissionUserForm(),
-        'mission_asset_add': MissionAssetForm(user=request.user),
+        'mission_asset_add': MissionAssetForm(user=request.user, mission=mission_user.mission),
     }
     return render(request, 'mission_details.html', data)
 
@@ -248,7 +248,7 @@ def mission_asset_add(request, mission_user):
     """
     form = None
     if request.method == 'POST':
-        form = MissionAssetForm(request.POST, user=request.user)
+        form = MissionAssetForm(request.POST, user=request.user, mission=mission_user.mission)
         if form.is_valid():
             # Check if this asset is in any other missions currently
             if MissionAsset.objects.filter(asset=form.cleaned_data['asset'], removed__isnull=True).exists():
@@ -263,7 +263,7 @@ def mission_asset_add(request, mission_user):
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
     if form is None:
-        form = MissionAssetForm()
+        form = MissionAssetForm(user=request.user, mission=mission_user.mission)
 
     return render(request, 'mission_asset_add.html', {'form': form})
 
@@ -297,7 +297,9 @@ def mission_asset_remove(request, mission_user, asset_id):
     """
     asset = get_object_or_404(Asset, pk=asset_id)
     mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
-    if mission_user.is_admin() or mission_asset.asset.owner != request.user:
+    if mission_user.is_admin() or \
+       mission_asset.asset.owner != request.user or \
+       OrganizationAsset.objects.filter(asset=asset, organization__in=MissionOrganization.objects.get(organization__in=OrganizationMember.user_current(request.user)).values_list('organization')):
         HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
     mission_asset.remover = request.user
     mission_asset.removed = timezone.now()
