@@ -153,3 +153,16 @@ def organization_asset_modify(request, organization_member, asset):
         return JsonResponse(oa.as_object())
     else:
         return HttpResponseNotAllowed(['POST'])
+
+
+@login_required
+@organization_is_admin
+def organization_not_members(request, organization_member):
+    """
+    Get all users who aren't currently in this organization
+    """
+    organization = get_object_or_404(Organization, id=organization_id)
+    users = get_user_model().objects.exclude(pk__in=[OrganizationMember.objects.filter(removed__isnull=True, organization=organization_member.organization).values_list('user')])
+    return JsonResponse({
+        'users': [{'username': user.username, 'id': user.pk} for user in users]
+    })

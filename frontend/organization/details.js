@@ -69,7 +69,7 @@ class OrganizationMemberList extends React.Component {
         <OrganizationMemberRow
           key={organizationMember.id}
           organization_member={organizationMember}
-          showButtons />
+          showButtons={this.props.showButtons} />
       ))
     }
     return (
@@ -92,7 +92,90 @@ class OrganizationMemberList extends React.Component {
   }
 }
 OrganizationMemberList.propTypes = {
-  organization_members: PropTypes.array.isRequired
+  organization_members: PropTypes.array.isRequired,
+  showButtons: PropTypes.bool
+}
+
+class OrganizationMemberAdd extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      userList: [],
+      userId: null
+    }
+
+    this.updateSelectedUser = this.updateSelectedUser.bind(this)
+    this.addOrganizationMember = this.addOrganizationMember.bind(this)
+  }
+
+  componentDidMount () {
+    $.ajaxSetup({ timeout: 2500 })
+    this.updateData()
+    this.timer = setInterval(() => this.updateData(), 10000)
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.timer)
+    this.timer = null
+  }
+
+  async updateData () {
+    const self = this
+    await $.getJSON(`/organization/${this.props.organizationId}/users/notmember/`, function (data) {
+      self.setState(function (oldState) {
+        const newState = {
+          userList: data.users
+        }
+        if (oldState.userId === null && data.users.length > 0) {
+          newState.userId = data.users[0].id
+        }
+        return newState
+      })
+    })
+  }
+
+  updateSelectedUser (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ memberId: value })
+  }
+
+  addOrganizationMember () {
+    const self = this
+    $.post(`/organization/${this.props.organizationId}/user/${this.state.userId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
+      self.setState({ memberId: null })
+    })
+  }
+
+  render () {
+    const possibleMembers = []
+    for (const userIdx in this.state.userList) {
+      const user = this.state.userList[userIdx]
+      possibleMembers.push((<option key={user.id} value={user.id}>{user.username}</option>))
+    }
+    return (
+      <Table>
+        <thead>
+          <tr>
+            <td>Member</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><select onChange={this.updateSelectedUser}>{possibleMembers}</select></td>
+            <td><Button onClick={this.addOrganizationMember}>Add</Button></td>
+          </tr>
+        </tbody>
+      </Table>
+    )
+  }
+}
+OrganizationMemberAdd.propTypes = {
+  organizationId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 class OrganizationAssetList extends React.Component {
@@ -247,32 +330,49 @@ class OrganizationDetailsPage extends React.Component {
   }
 
   render () {
-    return (
-      <div>
-        <Table>
-          <thead>
-            <tr>
-              <th>Organization Name</th>
-              <th>Created</th>
-              <th>Creator</th>
-              <th>Your Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            <OrganizationListRow
-              organization={this.state.organizationDetails}
-              showButtons={false} />
-          </tbody>
-        </Table>
-        <OrganizationMemberList
+    const organizationSections = [(
+      <Table key='details'>
+        <thead>
+          <tr>
+            <th>Organization Name</th>
+            <th>Created</th>
+            <th>Creator</th>
+            <th>Your Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <OrganizationListRow
+            organization={this.state.organizationDetails}
+            showButtons={false} />
+        </tbody>
+      </Table>
+    )]
+    organizationSections.push((
+      <OrganizationMemberList key='org_members'
           organization_members={this.state.organizationDetails.members}
-          showButtons={true} />
-        <OrganizationAssetList
-          organization_assets={this.state.organizationDetails.assets}
-          showButtons={true} />
-        <OrganizationAssetAdd
+          showButtons={this.state.organizationDetails.role === 'Admin'} />
+    ))
+    if (this.state.organizationDetails.role === 'Admin') {
+      organizationSections.push((
+        <OrganizationMemberAdd key='org_add_member'
           organizationId={this.props.organizationId}
           csrftoken={this.props.csrftoken} />
+      ))
+    }
+    organizationSections.push((
+      <OrganizationAssetList key='org_assets'
+        organization_assets={this.state.organizationDetails.assets}
+        showButtons={true} />
+    ))
+    organizationSections.push((
+      <OrganizationAssetAdd key='org_asset_add'
+        organizationId={this.props.organizationId}
+        csrftoken={this.props.csrftoken} />
+    ))
+
+    return (
+      <div>
+        { organizationSections }
       </div>
     )
   }
