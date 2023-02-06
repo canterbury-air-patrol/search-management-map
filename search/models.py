@@ -155,8 +155,8 @@ class Search(GeoTime):
             else:
                 objects = objects.filter(Q(completed_at__isnull=True) | Q(completed_at__gt=current_at))
         else:
-            objects = objects.filter(inprogress_at__isnull=(not started))
-            objects = objects.filter(completed_at__isnull=(not finished))
+            objects = objects.filter(inprogress_at__isnull=not started)
+            objects = objects.filter(completed_at__isnull=not finished)
         return objects
 
     @classmethod
