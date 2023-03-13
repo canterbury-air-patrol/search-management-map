@@ -8,7 +8,7 @@ psycopg2-binary
 
 # Code checking
 pycodestyle
-pylint==2.16.*
+pylint==2.17.*
 pylint-django
 
 # Numerical
