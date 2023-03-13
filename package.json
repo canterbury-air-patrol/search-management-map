@@ -22,7 +22,7 @@
     "bootstrap": "^5.2.3",
     "esbuild": "^0.17.11",
     "esbuild-config": "^1.0.1",
-    "jquery": "^3.6.3",
+    "jquery": "^3.6.4",
     "leaflet": "^1.9.3",
     "leaflet-realtime": "^2.2.0",
     "leaflet.locatecontrol": "^0.79.0",
