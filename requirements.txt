@@ -22,4 +22,4 @@ uwsgi
 image
 
 # coverage reporting
-coverage==7.2.1
+coverage==7.2.2
