@@ -144,7 +144,8 @@ class OrganizationMemberAdd extends React.Component {
 
   addOrganizationMember () {
     const self = this
-    $.post(`/organization/${this.props.organizationId}/user/${this.state.userId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
+    const user = this.state.userList.find(user => user.username)
+    $.post(`/organization/${this.props.organizationId}/user/${user.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
       self.setState({ memberId: null })
     })
   }
