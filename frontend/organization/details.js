@@ -137,14 +137,14 @@ class OrganizationMemberAdd extends React.Component {
 
   updateSelectedUser (event) {
     const target = event.target
-    const value = target.value
+    const value = Number(target.value)
 
-    this.setState({ memberId: value })
+    this.setState({ userId: value })
   }
 
   addOrganizationMember () {
     const self = this
-    const user = this.state.userList.find(user => user.username)
+    const user = this.state.userList.find(user => user.id === this.state.userId)
     $.post(`/organization/${this.props.organizationId}/user/${user.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
       self.setState({ memberId: null })
     })
