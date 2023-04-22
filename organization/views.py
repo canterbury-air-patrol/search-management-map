@@ -1,8 +1,9 @@
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse
+from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 
 from assets.decorators import asset_is_owner
 
@@ -111,7 +112,7 @@ def organization_user_modify(request, organization_member, username):
     if request.method == 'POST':
         # Create/modify the membership
         try:
-            om = OrganizationMember.objects.get(organization=organization_member.organization, user=target_user)
+            om = OrganizationMember.objects.get(organization=organization_member.organization, user=target_user, removed__isnull=True)
         except ObjectDoesNotExist:
             om = OrganizationMember(organization=organization_member.organization, user=target_user, added_by=request.user)
             om.save()
@@ -120,6 +121,15 @@ def organization_user_modify(request, organization_member, username):
             om.role = role
             om.save()
         return JsonResponse(om.as_object(request.user))
+    elif request.method == 'DELETE':
+        try:
+            om = OrganizationMember.objects.get(organization=organization_member.organization, user=target_user, removed__isnull=True)
+            om.removed = timezone.now()
+            om.removed_by = organization_member.user
+            om.save()
+        except ObjectDoesNotExist:
+            pass
+        return HttpResponse('')
     else:
         return HttpResponseNotAllowed(['POST'])
 
