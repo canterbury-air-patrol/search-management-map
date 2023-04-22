@@ -11,6 +11,23 @@ import $ from 'jquery'
 import { OrganizationListRow } from './list'
 
 class OrganizationMemberRow extends React.Component {
+  constructor (props) {
+    super(props)
+    this.delete = this.delete.bind(this)
+  }
+
+  delete () {
+    const organizationMember = this.props.organization_member
+    const self = this
+    $.ajax({
+      url: `/organization/${this.props.organizationId}/user/${organizationMember.user}/`,
+      type: 'DELETE',
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-CSRFToken', self.props.csrftoken)
+      }
+    })
+  }
+
   render () {
     const organizationMember = this.props.organization_member
     const dataFields = []
@@ -32,6 +49,8 @@ class OrganizationMemberRow extends React.Component {
 }
 OrganizationMemberRow.propTypes = {
   organization_member: PropTypes.object.isRequired,
+  organizationId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string,
   showButtons: PropTypes.bool
 }
 
@@ -68,7 +87,9 @@ class OrganizationMemberList extends React.Component {
       organizationMemberRows.push((
         <OrganizationMemberRow
           key={organizationMember.id}
+          organizationId={this.props.organizationId}
           organization_member={organizationMember}
+          csrftoken={this.props.csrftoken}
           showButtons={this.props.showButtons} />
       ))
     }
@@ -93,6 +114,8 @@ class OrganizationMemberList extends React.Component {
 }
 OrganizationMemberList.propTypes = {
   organization_members: PropTypes.array.isRequired,
+  organizationId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string,
   showButtons: PropTypes.bool
 }
 
@@ -350,7 +373,9 @@ class OrganizationDetailsPage extends React.Component {
     )]
     organizationSections.push((
       <OrganizationMemberList key='org_members'
+          organizationId={this.props.organizationId}
           organization_members={this.state.organizationDetails.members}
+          csrftoken={this.props.csrftoken}
           showButtons={this.state.organizationDetails.role === 'Admin'} />
     ))
     if (this.state.organizationDetails.role === 'Admin') {
