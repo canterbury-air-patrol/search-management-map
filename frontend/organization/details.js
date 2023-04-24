@@ -14,6 +14,8 @@ class OrganizationMemberRow extends React.Component {
   constructor (props) {
     super(props)
     this.delete = this.delete.bind(this)
+    this.updateSelectedRole = this.updateSelectedRole.bind(this)
+    this.saveChanges = this.saveChanges.bind(this)
   }
 
   delete () {
@@ -28,6 +30,29 @@ class OrganizationMemberRow extends React.Component {
     })
   }
 
+  updateSelectedRole (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ selectedRole: value })
+  }
+
+  renderButtons () {
+    const currentRole = this.props.organization_member.role
+    return ((
+      <select onChange={this.updateSelectedRole}>
+        <option value='M' selected={currentRole === 'Member'}>Member</option>
+        <option value='R' selected={currentRole === 'Radio Operator'}>Radio Operator</option>
+        <option value='A' selected={currentRole === 'Admin'}>Admin</option>
+      </select>
+    ))
+  }
+
+  saveChanges () {
+    const user = this.props.organization_member.user
+    $.post(`/organization/${this.props.organizationId}/user/${user}/`, { csrfmiddlewaretoken: this.props.csrftoken, role: this.state.selectedRole }, function () {})
+  }
+
   render () {
     const organizationMember = this.props.organization_member
     const dataFields = []
@@ -37,6 +62,8 @@ class OrganizationMemberRow extends React.Component {
 
     if (this.props.showButtons) {
       const buttons = []
+      buttons.push(this.renderButtons())
+      buttons.push((<Button key='save' onClick={this.saveChanges}>Save</Button>))
       buttons.push((<Button key='delete' className='btn-danger' onClick={this.delete}>Delete</Button>))
       dataFields.push((<td key='buttons'><ButtonGroup key='buttons'>{buttons}</ButtonGroup></td>))
     }
