@@ -49,6 +49,7 @@ class OrganizationMember(models.Model):
         ('M', 'Member'),
         ('A', 'Admin'),
         ('R', 'Radio Operator'),
+        ('b', 'Asset Bridge/Recorder'),
     )
     role = models.CharField(max_length=1, choices=USER_ROLE, default='M')
 
@@ -87,6 +88,9 @@ class OrganizationMember(models.Model):
 
     def is_radio_operator(self):
         return self.role in ('A', 'R')
+
+    def is_asset_recorder(self):
+        return self.role in ('A', 'b')
 
     @classmethod
     def user_current(cls, user):
