@@ -4,6 +4,9 @@ Function decorators for assets
 
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
+
+from organization.helpers import organization_user_is_asset_recorder
+
 from .models import Asset
 
 
@@ -12,8 +15,11 @@ def asset_is_recorder(view_func):
     Make sure the current user is allowed to record (positions) for this asset.
     """
     def recorder_check(*args, **kwargs):
+        allowed = False
         asset = get_object_or_404(Asset, name=kwargs['asset_name'])
-        if asset.owner != args[0].user:
+        if asset.owner == args[0].user or organization_user_is_asset_recorder(args[0].user, asset):
+            allowed = True
+        if not allowed:
             return HttpResponseForbidden("Not Authorized to record the position of this asset")
         kwargs.pop('asset_name')
         return view_func(*args, asset=asset, **kwargs)

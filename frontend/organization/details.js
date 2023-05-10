@@ -44,6 +44,7 @@ class OrganizationMemberRow extends React.Component {
         <option value='M' selected={currentRole === 'Member'}>Member</option>
         <option value='R' selected={currentRole === 'Radio Operator'}>Radio Operator</option>
         <option value='A' selected={currentRole === 'Admin'}>Admin</option>
+        <option value='b' selected={currentRole === 'Asset Bridge/Recorder'}>Asset Bridge/Recorder</option>
       </select>
     ))
   }
