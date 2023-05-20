@@ -1,7 +1,9 @@
 # Installation
 
 ## Requirements
-Search Management Map currently uses [Django](https://www.djangoproject.com/) 4.2, which requires python 3.8 thru 3.11. It uses [PostgreSQL](https://www.postgresql.org/) (Minimum version 12) with the [PostGIS](http://postgis.net/) extension.
+Search Management Map currently uses [Django](https://www.djangoproject.com/) 4.2, which requires python 3.8 thru 3.11.
+
+It uses [PostgreSQL](https://www.postgresql.org/) (Minimum version 12) with the [PostGIS](http://postgis.net/) extension for storing data.
 
 ## Docker
 
@@ -39,7 +41,7 @@ services:
       - DJANGO_SUPERUSER_EMAIL=me@example.com
 ```
 
-This will give you a local instance of SMM running at [http://localhost:8080] that you can login to with user: `admin` and password: `administrator`
+This will give you a local instance of SMM running at [http://localhost:8080](http://localhost:8080) that you can login to with user: `admin` and password: `administrator`
 
 This setup makes use of the [postgis/postgis](https://registry.hub.docker.com/r/postgis/postgis/) docker image. If you want to store the data more permanently than what docker-compose does, you can mount a directory from your host to `/var/lib/postgresql/data` (or the value of the environment variable `PGDATA`)
 
@@ -50,7 +52,7 @@ If you have an existing PostgreSQL server that has the PostGIS extension install
 
 `docker run -e DB_HOST=mydbserver -e DB_USER=dbuser -e DB_NAME=smm -e DB_PASS=dbpass -e DJANGO_SUPERUSER_USERNAME=admin -e DJANGO_SUPERUSER_PASSWORD=administrator -e DJANGO_SUPERUSER_EMAIL=me@example.com -p 127.0.0.1:8080:8080 canterburyairpatrol/search-management-map`
 
-This will give you a local instance of SMM running at [http://localhost:8080] that you can login to with user: `admin` and password: `administrator`.
+This will give you a local instance of SMM running at [http://localhost:8080](http://localhost:8080) that you can login to with user: `admin` and password: `administrator`.
 
 On the database server, either the user `dbuser` needs to have the ability to `CREATE EXTENSION postgis;` on the database `smm`, or you need to run `CREATE EXTENSION postgis;` before SMM first tries to connect, or you will get an error.
 
@@ -68,12 +70,17 @@ These instructions use the venv version of the setup and start scripts. These cr
 Debian Bullseye:
 `apt install git python3 python3-venv python3-dev build-essential npm`
 
-Also, you will need a PostgreSQL server with the PostGIS extension. Potentially you could run one on the localhost by installing it:
+#### PostgreSQL
+You will need a PostgreSQL server with the PostGIS extension.
+
+Potentially you could run one on the localhost by installing it:
 `apt install postgis`
+
 You should create a new user and database for your SMM instance.
 
 ### Fetch the code
 Clone Search Management Map from the GitHub [repo](https://github.com/canterbury-air-patrol/search-management-map/)
+
 `git clone https://github.com/canterbury-air-patrol/search-management-map/`
 
 ### Setup
@@ -85,6 +92,7 @@ You can specify the database settings when running the setup script so you don't
 
 ### Start
 You can start your instance by running:
+
 `./start-venv.sh`
 
 This will run the database migrations and start the server listening on port 8080
