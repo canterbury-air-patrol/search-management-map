@@ -66,13 +66,13 @@ def marine_vectors_create(request, mission_user):
     lat = user_data.get('from_lat')
     lng = user_data.get('from_lng')
     start_point = Point(float(lng), float(lat))
-    leeway_multiplier = user_data.get('leeway_multiplier')
-    leeway_modifier = user_data.get('leeway_modifier')
+    leeway_multiplier = float(user_data.get('leeway_multiplier'))
+    leeway_modifier = float(user_data.get('leeway_modifier'))
     curr_count = int(user_data.get('curr_total'))
     for i in range(0, curr_count):
-        time_from = user_data.get(f'curr_{i}_from')
-        time_to = user_data.get(f'curr_{i}_to')
-        bearing = user_data.get(f'curr_{i}_direction')
+        time_from = int(user_data.get(f'curr_{i}_from'))
+        time_to = int(user_data.get(f'curr_{i}_to'))
+        bearing = int(user_data.get(f'curr_{i}_direction'))
         distance = float(user_data.get(f'curr_{i}_distance')) * 1852
         speed = float(user_data.get(f'curr_{i}_speed'))
         vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'bearing': bearing, 'speed': speed, 'distance': distance}
@@ -80,11 +80,11 @@ def marine_vectors_create(request, mission_user):
         vectors.append(vector)
     wind_count = int(user_data.get('wind_total'))
     for i in range(0, wind_count):
-        time_from = user_data.get(f'wind_{i}_from')
-        time_to = user_data.get(f'wind_{i}_to')
+        time_from = int(user_data.get(f'wind_{i}_from'))
+        time_to = int(user_data.get(f'wind_{i}_to'))
         wind_from = user_data.get(f'wind_{i}_from_direction')
         wind_speed = float(user_data.get(f'wind_{i}_speed'))
-        bearing = user_data.get(f'wind_{i}_direction')
+        bearing = int(user_data.get(f'wind_{i}_direction'))
         distance = float(user_data.get(f'wind_{i}_distance')) * 1852
         vector = {'order': i + 1, 'from': time_from, 'to': time_to, 'wind_direction_from': wind_from, 'speed': wind_speed, 'bearing': bearing, 'distance': distance}
         wind_vectors.append(vector)
@@ -93,7 +93,7 @@ def marine_vectors_create(request, mission_user):
     points = [start_point]
     current_point = start_point
     for vector in vectors:
-        query = "SELECT ST_Project(ST_SetSRID(ST_Point(" + str(current_point.x) + ", " + str(current_point.y) + f"), 4326)::geography, {vector['distance']}, radians({vector['bearing']}))"
+        query = f"SELECT ST_Project(ST_SetSRID(ST_Point({current_point.x}, {current_point.y}), 4326)::geography, {vector['distance']}, radians({vector['bearing']}))"
         cursor = dbconn.cursor()
         cursor.execute(query)
         reference_points = cursor.fetchone()
