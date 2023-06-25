@@ -3,9 +3,9 @@ Views for dealing with images uploaded by users
 
 """
 
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse, HttpResponseNotAllowed
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 
 from mission.decorators import mission_is_member
@@ -35,15 +35,8 @@ def image_upload(request, mission_user):
 
             upload_image_file(mission_user, form.cleaned_data['description'], point, request.FILES['file'])
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/map/')
-    else:
-        form = UploadImageForm()
 
-    data = {
-        'form': form,
-        'mission': mission_user.mission,
-    }
-
-    return render(request, 'image-upload.html', data)
+    return HttpResponseNotAllowed(['POST'])
 
 
 @login_required
