@@ -21,13 +21,27 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
     `<div class="btn-group"><button class="btn btn-primary" id="poi-dialog-create-${RAND_NUM}">Create</button>`,
     `<button class="btn btn-danger" id="poi-dialog-cancel-${RAND_NUM}">Cancel</button></div>`
   ].join('')
-  const markerDialog = L.control.dialog({ initOpen: false }).setContent(contents).addTo(map).hideClose()
+  const markerDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
+  function updateTxtLatLng () {
+    const markerCoords = marker.getLatLng()
+    $(`#poi-dialog-lat-${RAND_NUM}`).val(degreesToDM(markerCoords.lat, true))
+    $(`#poi-dialog-lon-${RAND_NUM}`).val(degreesToDM(markerCoords.lng, false))
+  }
+
   if (replaces !== -1) {
     $(`#poi-dialog-lat-${RAND_NUM}`).val(degreesToDM(pos.lat, true))
     $(`#poi-dialog-lon-${RAND_NUM}`).val(degreesToDM(pos.lng, false))
     $(`#poi-dialog-create-${RAND_NUM}`).html('Update')
-    markerDialog.open()
+  } else {
+    updateTxtLatLng()
   }
+  marker.on('dragend', updateTxtLatLng)
+  function updateLatLng () {
+    const latLng = L.latLng(DMToDegrees($(`#poi-dialog-lat-${RAND_NUM}`).val()), DMToDegrees($(`#poi-dialog-lon-${RAND_NUM}`).val()))
+    marker.setLatLng(latLng)
+  }
+  $(`#poi-dialog-lat-${RAND_NUM}`).on('change keydown paste input', updateLatLng)
+  $(`#poi-dialog-lon-${RAND_NUM}`).on('change keydown paste input', updateLatLng)
   $(`#poi-dialog-create-${RAND_NUM}`).on('click', function () {
     const data = {
       lat: DMToDegrees($(`#poi-dialog-lat-${RAND_NUM}`).val()),
@@ -46,14 +60,6 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
   $(`#poi-dialog-cancel-${RAND_NUM}`).on('click', function () {
     map.removeLayer(marker)
     markerDialog.destroy()
-  })
-  map.on('dialog:opened', function () {
-    const markerCoords = marker.getLatLng()
-    $(`#poi-dialog-lat-${RAND_NUM}`).val(degreesToDM(markerCoords.lat, true))
-    $(`#poi-dialog-lon-${RAND_NUM}`).val(degreesToDM(markerCoords.lng, false))
-  })
-  marker.on('dragend', function () {
-    markerDialog.open()
   })
 }
 
