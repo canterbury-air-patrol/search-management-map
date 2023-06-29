@@ -1,157 +1,101 @@
 import $ from 'jquery'
 import L from 'leaflet'
-import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
+import { MappedMarker } from '../smmleaflet'
 
 L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
-  let open = false
+  const RAND_NUM = Math.floor(Math.random() * 16536)
+  const markers = []
+  const polygon = L.polygon(currentPoints, { color: 'yellow' }).addTo(map)
+  const dialog = L.control.dialog()
 
-  return {
-    isOpen: function () {
-      return open
-    },
+  const contents = [
+    '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
+    `<input type="text" id="polygonadder-dialog-name-${RAND_NUM}" value="${label}"></input></div>`,
+    '<div class="btn-group">',
+    `<button class="btn btn-primary" id="polygonadder-dialog-done-${RAND_NUM}">Done</button>`,
+    `<button class="btn btn-danger" id="polygonadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
+    '</div>',
+    `<div id="polygonadder-points-${RAND_NUM}"></div>`,
+    '<div class="btn-group">',
+    `<button class="btn btn-primary" id="polygonadder-dialog-next-${RAND_NUM}">Next</button>`,
+    `<button class="btn btn-danger" id="polygonadder-dialog-remove-${RAND_NUM}">Remove</button>`,
+    '</div>'
+  ].join('')
+  dialog.setContent(contents).addTo(map).hideClose()
 
-    create: function () {
-      const RAND_NUM = Math.floor(Math.random() * 16536)
-      let points = currentPoints
-      let markers = []
-      if (points === null) {
-        points = [map.getCenter()]
-      }
-      const polygon = L.polygon(points, { color: 'yellow' }).addTo(map)
-      const dialog = L.control.dialog()
-
-      const openAdder = function () {
-        open = true
-        dialog.open()
-      }
-
-      const closeAdder = function () {
-        open = false
-        dialog.destroy()
-      }
-
-      const removeAllMarkers = function () {
-        markers.forEach(function (m) {
-          map.removeLayer(m)
-        })
-      }
-
-      const updateMarkers = function () {
-        // Remove old markers from map
-        removeAllMarkers()
-
-        // recreate markers list
-        markers = []
-        points.forEach(function (p) {
-          const m = L.marker(p, {
-            draggable: true,
-            autopan: true
-          })
-          markers.push(m)
-          m.addTo(map)
-          m.on('dragend', function () {
-            openAdder()
-            updateMarker(p, m)
-          })
-        })
-
-        // Tell the polygon the points have changed
-        polygon.setLatLngs(points)
-      }
-
-      const updateMarker = function (point, marker) {
-        const markerCoords = marker.getLatLng()
-        point.lat = markerCoords.lat
-        point.lng = markerCoords.lng
-        for (let i = 0; i < points.length; i++) {
-          if (points[i] === point) {
-            updatePointRow(i, point)
-          }
-        }
-        updateMarkers()
-      }
-
-      let pointCount = 0
-      const addPointRow = function (point) {
-        $(`#polygonadder-points-${RAND_NUM}`).append(`<div id="polygonadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lat" size="12" value="${degreesToDM(point.lat, true)}" /><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lon" size="12" value="${degreesToDM(point.lng, false)}" /></div>`)
-        pointCount++
-      }
-
-      const removePointRow = function () {
-        pointCount--
-        $(`#polygonadder-points-${RAND_NUM}-${pointCount}`).remove()
-      }
-
-      const updatePointRow = function (row, point) {
-        $(`#polygonadder-points-${RAND_NUM}-${row}-lat`).val(degreesToDM(point.lat, true))
-        $(`#polygonadder-points-${RAND_NUM}-${row}-lon`).val(degreesToDM(point.lng, false))
-      }
-      updateMarkers()
-
-      const contents = [
-        '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
-        `<input type="text" id="polygonadder-dialog-name-${RAND_NUM}"></input></div>`,
-        '<div class="btn-group">',
-        `<button class="btn btn-primary" id="polygonadder-dialog-done-${RAND_NUM}">Done</button>`,
-        `<button class="btn btn-danger" id="polygonadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
-        '</div>',
-        `<div id="polygonadder-points-${RAND_NUM}"></div>`,
-        '<div class="btn-group">',
-        `<button class="btn btn-primary" id="polygonadder-dialog-next-${RAND_NUM}">Next</button>`,
-        `<button class="btn btn-danger" id="polygonadder-dialog-remove-${RAND_NUM}">Remove</button>`,
-        '</div>'
-      ].join('')
-      dialog.setContent(contents).addTo(map).hideClose()
-
-      points.forEach(function (p) {
-        addPointRow(p)
-      })
-      $(`#polygonadder-dialog-name-${RAND_NUM}`).val(label)
-
-      $(`#polygonadder-dialog-next-${RAND_NUM}`).on('click', function () {
-        const newPoint = map.getCenter()
-        addPointRow(newPoint)
-        points.push(newPoint)
-        updateMarkers()
-      })
-
-      $(`#polygonadder-dialog-done-${RAND_NUM}`).on('click', function () {
-        const data = [
-          { name: 'label', value: $(`#polygonadder-dialog-name-${RAND_NUM}`).val() },
-          { name: 'csrfmiddlewaretoken', value: csrftoken },
-          { name: 'points', value: points.length }
-        ]
-        for (const i in points) {
-          data.push({ name: `point${i}_lat`, value: DMToDegrees($(`#polygonadder-points-${RAND_NUM}-${i}-lat`).val()) })
-          data.push({ name: `point${i}_lng`, value: DMToDegrees($(`#polygonadder-points-${RAND_NUM}-${i}-lon`).val()) })
-        }
-        if (replaces !== -1) {
-          $.post(`/mission/${missionId}/data/userpolygons/${replaces}/replace/`, data)
-        } else {
-          $.post(`/mission/${missionId}/data/userpolygons/create/`, data)
-        }
-        removeAllMarkers()
-        map.removeLayer(polygon)
-        closeAdder()
-      })
-
-      $(`#polygonadder-dialog-cancel-${RAND_NUM}`).on('click', function () {
-        removeAllMarkers()
-        map.removeLayer(polygon)
-        closeAdder()
-      })
-
-      $(`#polygonadder-dialog-remove-${RAND_NUM}`).on('click', function () {
-        if (points.length > 1) {
-          points.pop()
-          removePointRow()
-        }
-        updateMarkers()
-      })
-
-      openAdder()
-    }
+  let pointCount = 0
+  const addPointRow = function () {
+    $(`#polygonadder-points-${RAND_NUM}`).append(`<div id="polygonadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`)
+    return pointCount++
   }
+
+  const updatePolygon = function () {
+    const newPoints = []
+    markers.forEach(function (m) {
+      newPoints.push(m.getMarker().getLatLng())
+    })
+    polygon.setLatLngs(newPoints)
+  }
+
+  const addMarker = function (pos) {
+    const pointRow = addPointRow()
+    const mappedMarker = new MappedMarker($(`#polygonadder-points-${RAND_NUM}-${pointRow}-lat`), $(`#polygonadder-points-${RAND_NUM}-${pointRow}-lon`), pos, updatePolygon)
+    mappedMarker.getMarker().addTo(map)
+    markers.push(mappedMarker)
+    updatePolygon()
+  }
+
+  currentPoints.forEach(addMarker)
+
+  const removeAllMarkers = function () {
+    markers.forEach(function (m) { map.removeLayer(m.getMarker()) })
+  }
+
+  const removeMarker = function () {
+    pointCount--
+    $(`#polygonadder-points-${RAND_NUM}-${pointCount}`).remove()
+    const marker = markers.pop()
+    map.removeLayer(marker.getMarker())
+    updatePolygon()
+  }
+
+  $(`#polygonadder-dialog-next-${RAND_NUM}`).on('click', function () {
+    addMarker(map.getCenter())
+  })
+
+  $(`#polygonadder-dialog-done-${RAND_NUM}`).on('click', function () {
+    const data = [
+      { name: 'label', value: $(`#polygonadder-dialog-name-${RAND_NUM}`).val() },
+      { name: 'csrfmiddlewaretoken', value: csrftoken },
+      { name: 'points', value: markers.length }
+    ]
+    for (const i in markers) {
+      const markerLatLng = markers[i].getMarker().getLatLng()
+      data.push({ name: `point${i}_lat`, value: markerLatLng.lat })
+      data.push({ name: `point${i}_lng`, value: markerLatLng.lng })
+    }
+
+    if (replaces !== -1) {
+      $.post(`/mission/${missionId}/data/userpolygons/${replaces}/replace/`, data)
+    } else {
+      $.post(`/mission/${missionId}/data/userpolygons/create/`, data)
+    }
+    removeAllMarkers()
+    map.removeLayer(polygon)
+    dialog.destroy()
+  })
+
+  $(`#polygonadder-dialog-cancel-${RAND_NUM}`).on('click', function () {
+    removeAllMarkers()
+    map.removeLayer(polygon)
+    dialog.destroy()
+  })
+
+  $(`#polygonadder-dialog-remove-${RAND_NUM}`).on('click', function () {
+    if (markers.length > 1) {
+      removeMarker()
+    }
+  })
 }
 
 L.Control.PolygonAdder = L.Control.extend({
@@ -164,14 +108,10 @@ L.Control.PolygonAdder = L.Control.extend({
   },
 
   onAdd: function (map) {
-    const container = (this._container = L.DomUtil.create(
-      'div',
-      'PolygonAdder-container leaflet-bar'
-    ))
+    const container = this._container = L.DomUtil.create('div', 'PolygonAdder-container leaflet-bar')
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Add Area'
-    link.adder = L.PolygonAdder(map, this.options.missionId, this.options.csrftoken, null, -1, '')
 
     const markerImg = L.DomUtil.create('img', 'Polygon-img', link)
 
@@ -180,11 +120,11 @@ L.Control.PolygonAdder = L.Control.extend({
 
     L.DomEvent.disableClickPropagation(link)
 
+    const self = this
+
     L.DomEvent.on(link, 'click', L.DomEvent.stop)
     L.DomEvent.on(link, 'click', function () {
-      if (!link.adder.isOpen()) {
-        link.adder.create()
-      }
+      L.PolygonAdder(map, self.options.missionId, self.options.csrftoken, [map.getCenter()], -1, '')
     })
 
     return container
