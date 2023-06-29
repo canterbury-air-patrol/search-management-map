@@ -37,7 +37,7 @@ class SMMPolygon extends SMMRealtime {
             for (const i in coords[0]) {
               points.push(L.latLng(coords[0][i][1], coords[0][i][0]))
             }
-            L.PolygonAdder(self.map, self.missionId, self.csrftoken, points, PolyID, PolyLabel).create()
+            L.PolygonAdder(self.map, self.missionId, self.csrftoken, points, PolyID, PolyLabel)
           },
           'btn-class': 'btn-light'
         },
