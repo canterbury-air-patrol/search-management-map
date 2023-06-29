@@ -1,74 +1,16 @@
 import $ from 'jquery'
 import L from 'leaflet'
-import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
+import { MappedMarker } from '../smmleaflet'
 
 L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
-  const points = currentPoints
-  let markers = []
-  const line = L.polyline(points, { color: 'yellow' }).addTo(map)
+  const markers = []
+  const line = L.polyline(currentPoints, { color: 'yellow' }).addTo(map)
   const dialog = L.control.dialog()
-
-  const removeAllMarkers = function () {
-    markers.forEach(function (m) { map.removeLayer(m) })
-  }
-
-  const updateMarkers = function () {
-    // Remove old markers from map
-    removeAllMarkers()
-
-    // recreate markers list
-    markers = []
-    points.forEach(function (p) {
-      const m = L.marker(p, {
-        draggable: true,
-        autopan: true
-      })
-      markers.push(m)
-      m.addTo(map)
-      m.on('dragend', function () {
-        updateMarker(p, m)
-        dialog.open()
-      })
-    })
-
-    // Tell the line the points have changed
-    line.setLatLngs(points)
-  }
-
-  const updateMarker = function (point, marker) {
-    const markerCoords = marker.getLatLng()
-    point.lat = markerCoords.lat
-    point.lng = markerCoords.lng
-    for (const i in points) {
-      if (points[i] === point) {
-        updatePointRow(i, point)
-      }
-    }
-    updateMarkers()
-  }
-
-  let pointCount = 0
-  const addPointRow = function (point) {
-    $(`#lineadder-points-${RAND_NUM}`).append('<div id="lineadder-points-' + RAND_NUM + '-' + pointCount + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lat" size="12" value="' + degreesToDM(point.lat, true) + '" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lon" size="12" value="' + degreesToDM(point.lng, false) + '" /></div>')
-    pointCount++
-  }
-
-  const removePointRow = function () {
-    pointCount--
-    $(`#lineadder-points-${RAND_NUM}-${pointCount}`).remove()
-  }
-
-  const updatePointRow = function (row, point) {
-    $(`#lineadder-points-${RAND_NUM}-${row}-lat`).val(degreesToDM(point.lat, true))
-    $(`#lineadder-points-${RAND_NUM}-${row}-lon`).val(degreesToDM(point.lng, false))
-  }
-
-  updateMarkers()
 
   const contents = [
     '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
-    '<input type="text" id="lineadder-dialog-name-' + RAND_NUM + '"></input></div>',
+    '<input type="text" id="lineadder-dialog-name-' + RAND_NUM + '" value="' + label + '"></input></div>',
     '<div class="btn-group">',
     '<button class="btn btn-primary" id="lineadder-dialog-done-' + RAND_NUM + '">Done</button></div>',
     '<button class="btn btn-danger" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button>',
@@ -81,27 +23,56 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
   ].join('')
   dialog.setContent(contents).addTo(map).hideClose()
 
-  points.forEach(function (p) {
-    addPointRow(p)
-  })
-  $(`#lineadder-dialog-name-${RAND_NUM}`).val(label)
+  let pointCount = 0
+  const addPointRow = function () {
+    $(`#lineadder-points-${RAND_NUM}`).append('<div id="lineadder-points-' + RAND_NUM + '-' + pointCount + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lat" size="12" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lon" size="12" /></div>')
+    return pointCount++
+  }
+
+  const updateLine = function () {
+    const newPoints = []
+    markers.forEach(function (m) {
+      newPoints.push(m.getMarker().getLatLng())
+    })
+    line.setLatLngs(newPoints)
+  }
+
+  const addMarker = function (pos) {
+    const pointRow = addPointRow()
+    const mappedMarker = new MappedMarker($(`#lineadder-points-${RAND_NUM}-${pointRow}-lat`), $(`#lineadder-points-${RAND_NUM}-${pointRow}-lon`), pos, updateLine)
+    mappedMarker.getMarker().addTo(map)
+    markers.push(mappedMarker)
+    updateLine()
+  }
+
+  currentPoints.forEach(addMarker)
+
+  const removeAllMarkers = function () {
+    markers.forEach(function (m) { map.removeLayer(m.getMarker()) })
+  }
+
+  const removeMarker = function () {
+    pointCount--
+    $(`#lineadder-points-${RAND_NUM}-${pointCount}`).remove()
+    const marker = markers.pop()
+    map.removeLayer(marker.getMarker())
+    updateLine()
+  }
 
   $(`#lineadder-dialog-next-${RAND_NUM}`).on('click', function () {
-    const newPoint = map.getCenter()
-    addPointRow(newPoint)
-    points.push(newPoint)
-    updateMarkers()
+    addMarker(map.getCenter())
   })
 
   $(`#lineadder-dialog-done-${RAND_NUM}`).on('click', function () {
     const data = [
       { name: 'label', value: $('#lineadder-dialog-name-' + RAND_NUM).val() },
       { name: 'csrfmiddlewaretoken', value: csrftoken },
-      { name: 'points', value: points.length }
+      { name: 'points', value: markers.length }
     ]
-    for (const i in points) {
-      data.push({ name: `point${i}_lat`, value: DMToDegrees($(`#lineadder-points-${RAND_NUM}-${i}-lat`).val()) })
-      data.push({ name: `point${i}_lng`, value: DMToDegrees($(`#lineadder-points-${RAND_NUM}-${i}-lon`).val()) })
+    for (const i in markers) {
+      const markerLatLng = markers[i].getMarker().getLatLng()
+      data.push({ name: `point${i}_lat`, value: markerLatLng.lat })
+      data.push({ name: `point${i}_lng`, value: markerLatLng.lng })
     }
 
     if (replaces !== -1) {
@@ -121,11 +92,9 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
   })
 
   $(`#lineadder-dialog-remove-${RAND_NUM}`).on('click', function () {
-    if (points.length > 1) {
-      points.pop()
-      removePointRow()
+    if (markers.length > 1) {
+      removeMarker()
     }
-    updateMarkers()
   })
 }
 
