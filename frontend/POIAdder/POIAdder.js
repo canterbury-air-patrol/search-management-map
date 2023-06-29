@@ -3,13 +3,9 @@ import $ from 'jquery'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
-import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
+import { MappedMarker } from '../smmleaflet'
 
 L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
-  const marker = L.marker(pos, {
-    draggable: true,
-    autoPan: true
-  }).addTo(map)
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const contents = [
     '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
@@ -22,30 +18,17 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
     `<button class="btn btn-danger" id="poi-dialog-cancel-${RAND_NUM}">Cancel</button></div>`
   ].join('')
   const markerDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-  function updateTxtLatLng () {
-    const markerCoords = marker.getLatLng()
-    $(`#poi-dialog-lat-${RAND_NUM}`).val(degreesToDM(markerCoords.lat, true))
-    $(`#poi-dialog-lon-${RAND_NUM}`).val(degreesToDM(markerCoords.lng, false))
-  }
 
-  if (replaces !== -1) {
-    $(`#poi-dialog-lat-${RAND_NUM}`).val(degreesToDM(pos.lat, true))
-    $(`#poi-dialog-lon-${RAND_NUM}`).val(degreesToDM(pos.lng, false))
-    $(`#poi-dialog-create-${RAND_NUM}`).html('Update')
-  } else {
-    updateTxtLatLng()
-  }
-  marker.on('dragend', updateTxtLatLng)
-  function updateLatLng () {
-    const latLng = L.latLng(DMToDegrees($(`#poi-dialog-lat-${RAND_NUM}`).val()), DMToDegrees($(`#poi-dialog-lon-${RAND_NUM}`).val()))
-    marker.setLatLng(latLng)
-  }
-  $(`#poi-dialog-lat-${RAND_NUM}`).on('change keydown paste input', updateLatLng)
-  $(`#poi-dialog-lon-${RAND_NUM}`).on('change keydown paste input', updateLatLng)
-  $(`#poi-dialog-create-${RAND_NUM}`).on('click', function () {
+  const mappedMarker = new MappedMarker($(`#poi-dialog-lat-${RAND_NUM}`), $(`#poi-dialog-lon-${RAND_NUM}`), pos)
+  mappedMarker.getMarker().addTo(map)
+
+  function createOrReplace () {
+    const marker = mappedMarker.getMarker()
+    const latLng = marker.getLatLng()
+
     const data = {
-      lat: DMToDegrees($(`#poi-dialog-lat-${RAND_NUM}`).val()),
-      lon: DMToDegrees($(`#poi-dialog-lon-${RAND_NUM}`).val()),
+      lat: latLng.lat,
+      lon: latLng.lng,
       label: $(`#poi-dialog-label-${RAND_NUM}`).val(),
       csrfmiddlewaretoken: csrftoken
     }
@@ -56,9 +39,11 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
     }
     map.removeLayer(marker)
     markerDialog.destroy()
-  })
+  }
+
+  $(`#poi-dialog-create-${RAND_NUM}`).on('click', createOrReplace)
   $(`#poi-dialog-cancel-${RAND_NUM}`).on('click', function () {
-    map.removeLayer(marker)
+    map.removeLayer(mappedMarker.getMarker())
     markerDialog.destroy()
   })
 }

@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import L from 'leaflet'
 
-import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
+import { MappedMarker } from '../smmleaflet'
 
 L.Control.ImageUploader = L.Control.extend({
   options: {
@@ -51,31 +51,16 @@ L.Control.ImageUploader = L.Control.extend({
         '</div>'
       ].join('')
       const imageUploadDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-      const imagePoint = L.marker(map.getCenter(), { draggable: true, autoPan: true }).addTo(map)
-      function updateTxtLatLng () {
-        const markerCoords = imagePoint.getLatLng()
-        $('#image_upload_lat').val(degreesToDM(markerCoords.lat, true))
-        $('#image_upload_long').val(degreesToDM(markerCoords.lng, false))
-      }
-      updateTxtLatLng()
-      imagePoint.on('dragend', updateTxtLatLng)
-      function updateLatLng () {
-        const latLng = L.latLng(DMToDegrees($('#image_upload_lat').val()), DMToDegrees($('#image_upload_long').val()))
-        imagePoint.setLatLng(latLng)
-      }
-      $('#image_upload_lat').on('change keydown paste input', updateLatLng)
-      $('#image_upload_long').on('change keydown paste input', updateLatLng)
+      const mappedMarker = new MappedMarker($('#image_upload_lat'), $('#image_upload_long'), map.getCenter())
+      mappedMarker.getMarker().addTo(map)
+
       $('#image_cancel').on('click', function () {
-        map.removeLayer(imagePoint)
+        map.removeLayer(mappedMarker.getMarker())
         imageUploadDialog.destroy()
       })
       $('#image_upload').on('click', function () {
-        // Update the lat/long and then submit the form
-        const coords = imagePoint.getLatLng()
-        $('#image_upload_lat').val(coords.lat)
-        $('#image_upload_long').val(coords.lng)
         $('#image_upload_form').submit()
-        map.removeLayer(imagePoint)
+        map.removeLayer(mappedMarker.getMarker())
         imageUploadDialog.destroy()
       })
     })
