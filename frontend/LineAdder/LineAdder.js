@@ -10,22 +10,22 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
 
   const contents = [
     '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
-    '<input type="text" id="lineadder-dialog-name-' + RAND_NUM + '" value="' + label + '"></input></div>',
+    `<input type="text" id="lineadder-dialog-name-${RAND_NUM}" value="${label}"></input></div>`,
     '<div class="btn-group">',
-    '<button class="btn btn-primary" id="lineadder-dialog-done-' + RAND_NUM + '">Done</button></div>',
-    '<button class="btn btn-danger" id="lineadder-dialog-cancel-' + RAND_NUM + '">Cancel</button>',
+    `<button class="btn btn-primary" id="lineadder-dialog-done-${RAND_NUM}">Done</button>`,
+    `<button class="btn btn-danger" id="lineadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
     '</div>',
-    '<div id="lineadder-points-' + RAND_NUM + '"></div>',
+    `<div id="lineadder-points-${RAND_NUM}"></div>`,
     '<div class="btn-group">',
-    '<button class="btn btn-primary" id="lineadder-dialog-next-' + RAND_NUM + '">Next</button>',
-    '<button class="btn btn-danger" id="lineadder-dialog-remove-' + RAND_NUM + '">Remove</button>',
+    `<button class="btn btn-primary" id="lineadder-dialog-next-${RAND_NUM}">Next</button>`,
+    `<button class="btn btn-danger" id="lineadder-dialog-remove-${RAND_NUM}">Remove</button>`,
     '</div>'
   ].join('')
   dialog.setContent(contents).addTo(map).hideClose()
 
   let pointCount = 0
   const addPointRow = function () {
-    $(`#lineadder-points-${RAND_NUM}`).append('<div id="lineadder-points-' + RAND_NUM + '-' + pointCount + '"><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lat" size="12" /><input type="text" id = "lineadder-points-' + RAND_NUM + '-' + pointCount + '-lon" size="12" /></div>')
+    $(`#lineadder-points-${RAND_NUM}`).append(`<div id="lineadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "lineadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id="lineadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`)
     return pointCount++
   }
 
@@ -65,7 +65,7 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
 
   $(`#lineadder-dialog-done-${RAND_NUM}`).on('click', function () {
     const data = [
-      { name: 'label', value: $('#lineadder-dialog-name-' + RAND_NUM).val() },
+      { name: 'label', value: $(`#lineadder-dialog-name-${RAND_NUM}`).val() },
       { name: 'csrfmiddlewaretoken', value: csrftoken },
       { name: 'points', value: markers.length }
     ]
