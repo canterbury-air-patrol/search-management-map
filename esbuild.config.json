@@ -11,7 +11,8 @@
         "frontend/usergeo/details.js",
         "frontend/organization/list.js",
         "frontend/organization/details.js",
-        "frontend/organization/radio-operator.js"
+        "frontend/organization/radio-operator.js",
+        "frontend/menu/topbar.js"
     ],
     "bundle": true,
     "minify": true,

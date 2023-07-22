@@ -7,6 +7,7 @@ import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { SMMTopBar } from '../menu/topbar'
 
 class OrganizationListRow extends React.Component {
   render () {
@@ -176,7 +177,7 @@ function createOrganizationList (elementId) {
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<OrganizationListPage csrftoken={csrftoken} />)
+  div.render(<><SMMTopBar /><OrganizationListPage csrftoken={csrftoken} /></>)
 }
 
 export { OrganizationListRow }

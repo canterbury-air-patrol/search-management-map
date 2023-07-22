@@ -9,6 +9,7 @@ import * as ReactDOM from 'react-dom/client'
 import $ from 'jquery'
 
 import { MissionHeader } from './header'
+import { SMMMissionTopBar } from '../menu/topbar'
 
 class MissionTimelineEntry extends React.Component {
   render () {
@@ -30,10 +31,7 @@ MissionTimelineEntry.propTypes = {
 
 class MissionTimelineButtons extends React.Component {
   render () {
-    const buttons = [
-      (<Button key='map' href={`/mission/${this.props.missionId}/map/`}>Map</Button>),
-      (<Button key='details' href={`/mission/${this.props.missionId}/details/`}>Details</Button>)
-    ]
+    const buttons = []
     if (!this.props.missionClosed) {
       buttons.push((<Button key='addEntry' href={`/mission/${this.props.missionId}/timeline/add/`}>Add Entry</Button>))
     }
@@ -149,7 +147,7 @@ MissionTimeLine.propTypes = {
 
 export function createMissionTimeline (elementId, missionId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<MissionTimeLine missionId={missionId} />)
+  div.render(<><SMMMissionTopBar missionId={missionId}/><MissionTimeLine missionId={missionId} /></>)
 }
 
 globalThis.createMissionTimeline = createMissionTimeline

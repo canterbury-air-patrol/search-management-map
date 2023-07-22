@@ -3,6 +3,9 @@ import $ from 'jquery'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
+
 import L, { LatLng } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
@@ -29,6 +32,7 @@ import { SMMLine } from './usergeo/line.js'
 import { SMMImageAll, SMMImageImportant } from './image/map.js'
 import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
+import { SMMMissionTopBar } from './menu/topbar.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
@@ -140,12 +144,25 @@ class SMMMap {
 }
 
 function mapInit () {
+  const wrapperEl = document.createElement('div')
+  wrapperEl.setAttribute('style', 'width:100%;height:100%;display:flex;flex-flow:column;')
+  document.body.appendChild(wrapperEl)
+
+  const missionId = encodeURIComponent($('#missionId').val())
+
+  if (missionId !== 'all' && missionId !== 'current') {
+    const menuEl = document.createElement('div')
+    menuEl.setAttribute('style', 'flex: 0 1 auto;')
+    wrapperEl.appendChild(menuEl)
+    const div = ReactDOM.createRoot(menuEl)
+    div.render(<SMMMissionTopBar missionId={missionId} />)
+  }
+
   const mapEl = document.createElement('div')
-  mapEl.setAttribute('style', 'width:100%;height:100%;position:inherit;')
-  document.body.appendChild(mapEl)
+  mapEl.setAttribute('style', 'flex: 1 1 auto;')
+  wrapperEl.appendChild(mapEl)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-  const missionId = encodeURIComponent($('#missionId').val())
 
   return new SMMMap(mapEl, missionId, csrftoken)
 }
