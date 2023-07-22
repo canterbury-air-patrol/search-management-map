@@ -4,13 +4,13 @@
         <title>{{ mission.mission_name }} - Details</title>
         <base href="/static/" />
         <link rel="stylesheet" href="pretty.css">
+        <link rel="stylesheet" href="menu/topbar.css">
         <script type="module" src="pretty.js"></script>
+        <script src="menu/topbar.js"></script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body style="height: 100%">
-        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/map/">Map</a>
-        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/timeline/">Timeline</a>
-        <a class="btn btn-primary" href="/mission/{{ mission.pk }}/sar/marine/sac/">Search Area Calculator</a>
+        <div id="navbar"></div>
 
         <table class="table">
             <tr><td>Name</td><td>{{ mission.mission_name }}</td></tr>
@@ -136,5 +136,8 @@ Add Asset to Mission:
             </table>
         </form>
     </body>
+    <script>
+        createSMMMissionTopBar('navbar', {{ mission.pk }})
+    </script>
 </html>
 

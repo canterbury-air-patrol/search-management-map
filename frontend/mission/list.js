@@ -8,6 +8,7 @@ import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 import { AssetDetailsPicker } from '../asset/picker'
+import { SMMTopBar } from '../menu/topbar'
 
 class MissionListRow extends React.Component {
   render () {
@@ -192,7 +193,7 @@ class MissionListPage extends React.Component {
 
 function createMissionList (elementId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<MissionListPage />)
+  div.render(<><SMMTopBar /><MissionListPage /></>)
 }
 
 export { MissionListRow, MissionListPage }
