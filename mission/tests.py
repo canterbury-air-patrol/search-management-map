@@ -11,9 +11,9 @@ from assets.models import AssetType, Asset
 from .models import Mission, MissionUser, MissionAsset
 
 
-class MissionTestCase(TestCase):
+class MissionBaseTestCase(TestCase):
     """
-    Test Missions API
+    Base functions for testing missions
     """
     def setUp(self):
         """
@@ -47,6 +47,11 @@ class MissionTestCase(TestCase):
         """
         MissionUser(mission=mission, user=self.user2, creator=self.user1).save()
 
+
+class MissionTestCase(MissionBaseTestCase):
+    """
+    Test Missions API
+    """
     def test_mission_create_url(self):
         """
         Create a Mission
@@ -197,6 +202,93 @@ class MissionTestCase(TestCase):
         self.assertEqual(mission_data['missions'][0]['creator'], self.user1.username)
         self.assertIsNotNone(mission_data['missions'][0]['closed'])
         self.assertEqual(mission_data['missions'][0]['closed_by'], self.user1.username)
+
+
+class MissionOrganizationsTestCase(MissionBaseTestCase):
+    """
+    Test Mission and Organization integration
+    """
+
+    def create_organization(self, organization_name='org', client=None):
+        """
+        Create an organization
+        """
+        organization_create_url = '/organization/create/'
+        if client is None:
+            client = self.client1
+        response = client.post(organization_create_url, {'name': organization_name})
+        self.assertEqual(response.status_code, 200)
+        return response.json()
+
+    def add_user_to_org(self, organization=None, user=None, client=None, role='M'):
+        """
+        Add a user to an organization
+        """
+        if client is None:
+            client = self.client1
+        if organization is None:
+            organization = self.create_organization(client=client)
+        organization_user_add_url = f"/organization/{organization['id']}/user/{user}/"
+        response = client.post(organization_user_add_url, {'role': role})
+        self.assertEqual(response.status_code, 200)
+
+    def add_organization_to_mission(self, mission, organization):
+        """
+        Add an organization to a mission
+        """
+        add_org_url = f'/mission/{mission.pk}/organizations/add/'
+        response = self.client1.post(add_org_url, data={'organization': organization['id']}, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.redirect_chain[0][1], 302)
+
+    def test_mission_organization_list(self):
+        """
+        Check that users in organizations can see one copy of the mission in the list
+        """
+        mission_list_url = '/mission/list/'
+        # Check there are no missions in the list
+        response = self.client1.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
+        # Create a mission and check it appears
+        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        response = self.client1.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 1)
+        # Create an organization and add it to this mission
+        org1 = self.create_organization()
+        # Add this organization to the mission
+        self.add_organization_to_mission(mission, org1)
+        # Check the mission list still only has 1 entry
+        response = self.client1.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 1)
+
+    def test_mission_organization_list_for_other(self):
+        """
+        Check that users can see missions because they are a member of an organization added to the mission
+        """
+        mission_list_url = '/mission/list/'
+        # Check there are no missions in the list
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
+        # Create a mission and check it appears
+        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        # Check the other user cant see this mission yet
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
+        # Create an organization and add it to this mission
+        org1 = self.create_organization()
+        # Add this organization to the mission
+        self.add_organization_to_mission(mission, org1)
+        # Add the other user to the organization
+        self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
+        # Check the other user can now see this mission yet
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 1)
 
 
 class MissionAssetsTestCase(TestCase):
