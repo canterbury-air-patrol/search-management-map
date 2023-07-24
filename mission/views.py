@@ -100,7 +100,10 @@ def mission_list_data(request):
     Provide data for all the missions this user is a member of
     """
     user_missions = MissionUser.objects.filter(user=request.user)
-    organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)]).distinct('mission')
+    organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)])
+    organization_missions = organization_missions.exclude(mission__in=[user_mission.mission for user_mission in user_missions])
+    organization_missions = organization_missions.distinct('mission')
+
     missions = []
     for user_mission in user_missions:
         missions.append(user_mission.mission.as_object(user_mission.is_admin()))
