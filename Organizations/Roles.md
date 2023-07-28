@@ -1,3 +1,6 @@
+---
+sort: 2
+---
 # Organization Roles
 Roles in organizations give members access to different functionality related to the organization.
 
