@@ -15,6 +15,7 @@ class SMMTopBar extends React.Component {
           <NavbarBrand href='https://github.com/canterbury-air-patrol/search-management-map/'>Search Management Map</NavbarBrand>
           <Nav.Link href='/'>Missions</Nav.Link>
           <Nav.Link href='/organization/'>Organizations</Nav.Link>
+          <Nav.Link href='/assets/'>Assets</Nav.Link>
         </Nav>
       </Navbar>
     )

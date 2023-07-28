@@ -76,3 +76,5 @@ class AssetTestCase(TestCase):
         self.assertTrue('assets' in data)
         self.assertTrue('name' in data['assets'][0])
         self.assertEqual('FX-79-1', data['assets'][0]['name'])
+        self.assertEqual('wing', data['assets'][0]['type_name'])
+        self.assertEqual('test', data['assets'][0]['owner'])

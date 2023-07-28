@@ -7,7 +7,6 @@ import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { AssetDetailsPicker } from '../asset/picker'
 import { SMMTopBar } from '../menu/topbar'
 
 class MissionListRow extends React.Component {
@@ -180,7 +179,6 @@ class MissionListPage extends React.Component {
   render () {
     return (
       <div>
-        <AssetDetailsPicker />
         <ActiveMissionList
           missions={this.state.knownActiveMissions} />
         <GeneralMissionButtons />

@@ -8,6 +8,7 @@ import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
+import { SMMTopBar } from '../menu/topbar'
 
 class AssetTrackAs extends React.Component {
   constructor (props) {
@@ -320,7 +321,7 @@ AssetUI.propTypes = {
 
 function createAssetUI (elementId, assetName) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<AssetUI asset={assetName} />)
+  div.render(<><SMMTopBar /><AssetUI asset={assetName} /></>)
 }
 
 globalThis.createAssetUI = createAssetUI
