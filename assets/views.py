@@ -37,6 +37,14 @@ def assets_mine_list(request):
 
 
 @login_required
+def assets_list(request):
+    """
+    Main view for managing assets
+    """
+    return render(request, 'assets/list.html', {})
+
+
+@login_required
 @asset_is_recorder
 def assets_ui(request, asset):
     """

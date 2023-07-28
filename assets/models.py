@@ -60,11 +60,12 @@ class Asset(models.Model):
             'name': self.name,
             'type_id': self.asset_type.id,
             'type_name': self.asset_type.name,
+            'owner': str(self.owner)
         }
 
     def natural_key(self):
         """
-        Use the asset name when refering to the asset during serialization (i.e. to geojson).
+        Use the asset name when referring to the asset during serialization (i.e. to geojson).
         """
         return self.name
 

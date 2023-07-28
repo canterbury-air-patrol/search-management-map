@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>{{assetName}}</title>
+        <base href="/static/asset/" />
+        <link rel="stylesheet" href="list.css">
+        <script src="list.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body style="height: 100%">
+        <div id="root"></div>
+    </body>
+    <script>
+        createAssetList('root')
+    </script>
+</html>
