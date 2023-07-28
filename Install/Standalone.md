@@ -9,8 +9,8 @@ These instructions use the venv version of the setup and start scripts. These cr
 
 ## Pre-requisites
 
-Debian Bullseye:
-`apt install git python3 python3-venv python3-dev build-essential npm`
+Debian Bookworm:
+`apt install git python3 python3-venv python3-dev build-essential npm libgdal32`
 
 ### PostgreSQL
 You will need a PostgreSQL server with the PostGIS extension.
@@ -23,7 +23,7 @@ You should create a new user and database for your SMM instance.
 ## Fetch the code
 Clone Search Management Map from the GitHub [repo](https://github.com/canterbury-air-patrol/search-management-map/)
 
-`git clone https://github.com/canterbury-air-patrol/search-management-map/`
+`git clone https://github.com/canterbury-air-patrol/search-management-map.git/`
 
 ## Setup
 You will need to run the `setup-venv.sh` script when you first create your Search Management Map instance. Also, it is useful to run again whenever you update or your python3 version is updated.
