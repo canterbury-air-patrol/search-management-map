@@ -14,6 +14,13 @@ import { SMMOrganizationTopBar } from '../menu/topbar'
 class RadioOperatorAsset extends AssetUI {
   render () {
     return (
+      <>
+      <thead>
+        <tr>
+          <td colSpan={2} align='center' style={ { fontWeight: 'bold' } } className='bg-info'>{this.state.details.name}</td>
+        </tr>
+      </thead>
+      <tbody>
       <tr>
         <td>
         <AssetDetails
@@ -24,6 +31,8 @@ class RadioOperatorAsset extends AssetUI {
           lastCommand={this.state.lastCommand} />
         </td>
       </tr>
+      </tbody>
+      </>
     )
   }
 }

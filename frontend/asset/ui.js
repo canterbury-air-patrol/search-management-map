@@ -305,6 +305,7 @@ class AssetUI extends React.Component {
   render () {
     return (
       <div>
+        <div style={ { fontWeight: 'bold', textAlign: 'center' } } className='bg-info'>{this.state.details.name}</div>
         <AssetDetails
           details={this.state.details} />
         <AssetCommandView
