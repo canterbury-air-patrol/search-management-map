@@ -1,6 +1,5 @@
 import $ from 'jquery'
 import L from 'leaflet'
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 L.SMMAdmin = {}
 
@@ -65,100 +64,6 @@ L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
   })
 }
 
-L.SMMAdmin.TrackPosition = function (map) {
-  let state = 'stopped'
-  let watchID = 0
-
-  const assetSelect = "<select class='form-control' id='track-position-asset'></select>"
-  const contents = [
-    `<div>${assetSelect}</div>`,
-    '<div id="track-position-error"></div>',
-    '<div><table><tr><th>Lat</th><th>Long</th><th>Alt</th><th>Heading</th></tr><tr><td id="track-position-lat"></td><td id="track-position-lon"></td><td id="track-position-alt"></td><td id="track-position-heading"></td></tr></table></div>',
-    '<div><button class="btn btn-primary" id="record_start">Start</button>',
-    '<button class="btn btn-danger" id="record_stop">Stop</button>',
-    '<button class="btn btn-danger" id="record_close">Close</button></div>'
-  ].join('')
-  const trackPositionDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-
-  $.get('/assets/mine/json/', function (data) {
-    $.each(data, function (index, json) {
-      for (const at in json) {
-        $('#track-position-asset').append(`<option value='${json[at].id}'>${json[at].name}</option>`)
-      }
-    })
-  })
-
-  const updateButtons = function () {
-    if (state === 'stopped') {
-      $('#record_start').show()
-      $('#record_stop').hide()
-    } else {
-      $('#record_start').hide()
-      $('#record_stop').show()
-    }
-  }
-  updateButtons()
-
-  $('#record_start').on('click', function () { state = 'running'; updateButtons() })
-  $('#record_stop').on('click', function () { state = 'stopped'; updateButtons() })
-  $('#record_close').on('click', function () {
-    state = 'closed'
-    trackPositionDialog.destroy()
-    navigator.geolocation.clearWatch(watchID)
-  })
-
-  const errorHandler = function (error) {
-    let msg = null
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        msg = 'No permision given to access location'
-        break
-      case error.POSITION_UNAVAILABLE:
-        msg = 'Unable to get the current position'
-        break
-      case error.TIMEOUT:
-        msg = 'Timed out getting position'
-        break
-      default:
-        msg = `Unknown error: ${error.code}`
-        break
-    }
-    $('#track-position-error').text('Error: ' + msg)
-  }
-
-  const updatePosition = function (position) {
-    const latitude = position.coords.latitude
-    const longitude = position.coords.longitude
-    const altitude = position.coords.altitude
-    const newHeading = position.coords.heading
-
-    const assetName = $('#track-position-asset option:selected').text()
-    const data = {
-      lat: latitude,
-      lon: longitude,
-      alt: altitude,
-      heading: newHeading
-    }
-
-    $('#track-position-lat').text(degreesToDM(latitude, true))
-    $('#track-position-lon').text(degreesToDM(longitude, false))
-    $('#track-position-alt').text(Math.floor(altitude))
-    $('#track-position-heading').text(newHeading)
-
-    if (state === 'running') {
-      $.get(`/data/assets/${assetName}/position/add/`, data)
-    }
-  }
-
-  if (navigator.geolocation) {
-    const options = {
-      timeout: 60000,
-      enableHighAccuracy: true
-    }
-    watchID = navigator.geolocation.watchPosition(updatePosition, errorHandler, options)
-  }
-}
-
 L.Control.SMMAdmin = L.Control.extend({
   options: {
     position: 'bottomleft'
@@ -187,12 +92,10 @@ L.Control.SMMAdmin = L.Control.extend({
     L.DomEvent.on(link, 'click', function () {
       const contents = [
         '<div><button class="btn btn-light" id="asset_command">Set Asset Command</button></div>',
-        '<div><button class="btn btn-light" id="asset_track">Track as Asset</button></div>',
         '<div><button class="btn btn-danger" id="admin_close">Close</button>'
       ].join('')
       const AdminDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
       $('#asset_command').on('click', function () { L.SMMAdmin.AssetCommand(map, self.options.missionId, self.options.csrftoken) })
-      $('#asset_track').on('click', function () { L.SMMAdmin.TrackPosition(map) })
       $('#admin_close').on('click', function () { AdminDialog.destroy() })
     })
 
