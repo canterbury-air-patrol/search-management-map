@@ -98,7 +98,7 @@ class AssetTrackAs extends React.Component {
 
   render () {
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Latitude</td>
@@ -130,7 +130,7 @@ AssetTrackAs.propTypes = {
 class AssetCommandView extends React.Component {
   render () {
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Issued:</td>
@@ -247,7 +247,7 @@ class AssetDetails extends React.Component {
     }
 
     return (
-      <Table>
+      <Table responsive>
         <tbody>
           {rows}
         </tbody>

@@ -54,7 +54,7 @@ class OrganizationList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={4} align='center'>Current Organizations</th>
@@ -105,7 +105,7 @@ class OrganizationAdd extends React.Component {
 
   render () {
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Name</td>

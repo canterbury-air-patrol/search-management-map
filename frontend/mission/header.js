@@ -8,7 +8,7 @@ import { MissionListRow } from './list'
 class MissionHeader extends React.Component {
   render () {
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Misssion</td>

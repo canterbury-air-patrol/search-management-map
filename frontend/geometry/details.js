@@ -39,7 +39,7 @@ class GeometryPoints extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Longitude</td>

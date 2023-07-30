@@ -54,7 +54,7 @@ class AssetList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={4} align='center'>My Assets</th>

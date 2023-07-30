@@ -120,7 +120,7 @@ export class MissionTimeLine extends React.Component {
       <div>
         { missionData }
         <MissionTimelineButtons missionId={this.props.missionId} missionClosed={this.state.missionClosed} />
-        <Table>
+        <Table responsive>
           <thead>
             <tr>
               <td key='heading' colSpan={5} align='center'>Timeline</td>
