@@ -9,6 +9,7 @@ import * as ReactDOM from 'react-dom/client'
 import $ from 'jquery'
 
 import { AssetCommandView, AssetDetails, AssetUI } from '../asset/ui'
+import { SMMOrganizationTopBar } from '../menu/topbar'
 
 class RadioOperatorAsset extends AssetUI {
   render () {
@@ -80,7 +81,7 @@ function createRadioOperator (elementId, organizationId) {
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} />)
+  div.render(<><SMMOrganizationTopBar organizationId={organizationId} /><OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} /></>)
 }
 
 globalThis.createRadioOperator = createRadioOperator

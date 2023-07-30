@@ -9,6 +9,7 @@ import * as ReactDOM from 'react-dom/client'
 import $ from 'jquery'
 
 import { OrganizationListRow } from './list'
+import { SMMOrganizationTopBar } from '../menu/topbar'
 
 class OrganizationMemberRow extends React.Component {
   constructor (props) {
@@ -441,7 +442,7 @@ function createOrganizationDetails (elementId, organizationId) {
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<OrganizationDetailsPage organizationId={organizationId} csrftoken={csrftoken} />)
+  div.render(<><SMMOrganizationTopBar organizationId={organizationId} /><OrganizationDetailsPage organizationId={organizationId} csrftoken={csrftoken} /></>)
 }
 
 globalThis.createOrganizationDetails = createOrganizationDetails

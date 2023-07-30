@@ -48,4 +48,28 @@ function createSMMMissionTopBar (elementId, missionId) {
 
 globalThis.createSMMMissionTopBar = createSMMMissionTopBar
 
-export { SMMTopBar, SMMMissionTopBar }
+class SMMOrganizationTopBar extends React.Component {
+  render () {
+    return (
+      <Navbar bg='secondary' data-bs-theme='dark'>
+        <Nav>
+        <Nav.Link href='/organization/'>Organization List</Nav.Link>
+        <Nav.Link href={ `/organization/${this.props.organizationId}/` }>Details</Nav.Link>
+        <Nav.Link href={ `/organization/${this.props.organizationId}/radio/operator/` }>Radio Operator</Nav.Link>
+        </Nav>
+      </Navbar>
+    )
+  }
+}
+SMMOrganizationTopBar.propTypes = {
+  organizationId: PropTypes.number.isRequired
+}
+
+function createSMMOrganizationTopBar (elementId, organizationId) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId))
+  div.render(<SMMMissionTopBar organizationId={organizationId}/>)
+}
+
+globalThis.createSMMOrganizationTopBar = createSMMOrganizationTopBar
+
+export { SMMTopBar, SMMMissionTopBar, SMMOrganizationTopBar }
