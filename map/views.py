@@ -9,7 +9,6 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 
 from mission.decorators import mission_is_member
-from .forms import AssetSelectorForm
 from .models import MapTileLayer
 
 
@@ -36,17 +35,6 @@ def map_main_current(request):
     Present the user a map showing all current missions they can see on it
     """
     return render(request, 'map_main.html', {'mission': 'current'})
-
-
-@login_required
-def recording(request):
-    """
-    Present the user the recording page
-    """
-    data = {
-        'form': AssetSelectorForm(user=request.user),
-    }
-    return render(request, 'recorder.html', data)
 
 
 def tile_layer_list(request):
