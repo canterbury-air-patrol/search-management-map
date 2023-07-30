@@ -10,13 +10,16 @@ import { Nav, Navbar, NavbarBrand } from 'react-bootstrap'
 class SMMTopBar extends React.Component {
   render () {
     return (
-      <Navbar expand='lg' bg='secondary' data-bs-theme='dark'>
-        <Nav>
-          <NavbarBrand href='https://github.com/canterbury-air-patrol/search-management-map/'>Search Management Map</NavbarBrand>
-          <Nav.Link href='/'>Missions</Nav.Link>
-          <Nav.Link href='/organization/'>Organizations</Nav.Link>
-          <Nav.Link href='/assets/'>Assets</Nav.Link>
-        </Nav>
+      <Navbar expand='lg' bg='secondary' data-bs-theme='dark' collapseOnSelect fixed={top} >
+        <NavbarBrand href='https://github.com/canterbury-air-patrol/search-management-map/'>Search Management Map</NavbarBrand>
+        <Navbar.Toggle aria-controls='responsive-navbar-nav' />
+        <Navbar.Collapse id='responsive-navbar-nav'>
+          <Nav>
+            <Nav.Link href='/'>Missions</Nav.Link>
+            <Nav.Link href='/organization/'>Organizations</Nav.Link>
+            <Nav.Link href='/assets/'>Assets</Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
       </Navbar>
     )
   }
