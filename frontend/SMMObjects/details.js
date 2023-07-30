@@ -59,7 +59,7 @@ class SMMObjectDetails extends React.Component {
     this.renderModelSpecificData(tableRows, data)
 
     return (
-      <Table>
+      <Table responsive>
         <tbody>
           {tableRows}
         </tbody>

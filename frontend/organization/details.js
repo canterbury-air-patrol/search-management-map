@@ -123,7 +123,7 @@ class OrganizationMemberList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={4} align='center'>Members</th>
@@ -209,7 +209,7 @@ class OrganizationMemberAdd extends React.Component {
       possibleMembers.push((<option key={user.id} value={user.id}>{user.username}</option>))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Member</td>
@@ -244,7 +244,7 @@ class OrganizationAssetList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={4} align='center'>Assets</th>
@@ -326,7 +326,7 @@ class OrganizationAssetAdd extends React.Component {
       possibleAssets.push((<option key={asset.id} value={asset.id}>{asset.name}</option>))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr>
             <td>Asset</td>
@@ -384,7 +384,7 @@ class OrganizationDetailsPage extends React.Component {
 
   render () {
     const organizationSections = [(
-      <Table key='details'>
+      <Table responsive key='details'>
         <thead>
           <tr>
             <th>Organization Name</th>

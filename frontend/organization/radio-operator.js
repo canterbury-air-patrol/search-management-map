@@ -75,7 +75,7 @@ class OrganizationRadioOperatorPage extends React.Component {
       assets.push((<RadioOperatorAsset key={asset.id} asset={asset.asset.name} />))
     }
     return (
-      <Table>
+      <Table responsive>
         { assets }
       </Table>)
   }

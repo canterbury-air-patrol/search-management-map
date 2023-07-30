@@ -65,7 +65,7 @@ class ActiveMissionList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={4} align='center'>Active Missions</th>
@@ -113,7 +113,7 @@ class CompletedMissionList extends React.Component {
       ))
     }
     return (
-      <Table>
+      <Table responsive>
         <thead>
           <tr key='heading'>
             <th colSpan={6} align='center'>Completed Missions</th>
