@@ -12,4 +12,5 @@ django.setup()
 User = get_user_model()
 user = User.objects.create_user(sys.argv[1], password=sys.argv[2])
 user.is_superuser=True
+user.is_staff=True
 user.save()
