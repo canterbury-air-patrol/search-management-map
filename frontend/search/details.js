@@ -11,6 +11,8 @@ import $ from 'jquery'
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
+import { ExpandingBoxSearch, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
+import { SearchRunner } from '@canterbury-air-patrol/sar-search-runner'
 
 class SearchDetails extends SMMObjectDetails {
   renderModelSpecificData (tableRows, data) {
@@ -98,12 +100,23 @@ class SearchDetails extends SMMObjectDetails {
   }
 }
 
+function createSearch (data) {
+  if (data.search_type === 'Sector') {
+    return new SectorSearch(data.sweep_width, 3, 3, 0)
+  }
+  if (data.search_type === 'Expanding Box') {
+    return new ExpandingBoxSearch(data.sweep_width, data.iterations, data.first_bearing)
+  }
+  return null
+}
+
 class SearchDetailsPage extends React.Component {
   constructor (props) {
     super(props)
 
     this.state = {
       data: null,
+      search: null,
       geometry: null
     }
   }
@@ -122,8 +135,10 @@ class SearchDetailsPage extends React.Component {
   async updateData () {
     const self = this
     await $.get(`/search/${this.props.searchId}/json/`, function (data) {
+      const search = createSearch(data.features['0'].properties)
       self.setState({
         data: data.features['0'].properties,
+        search,
         geometry: data.features['0'].geometry
       })
     })
@@ -136,6 +151,13 @@ class SearchDetailsPage extends React.Component {
         <SearchDetails key='details'
           data={this.state.data}
         />
+      ))
+    }
+    if (this.state.search !== null) {
+      parts.push((
+        <Collapsible key='runner' trigger='Runner'>
+          <SearchRunner search={this.state.search} />
+        </Collapsible>
       ))
     }
     if (this.state.geometry !== null && this.state.geometry.points !== null) {
