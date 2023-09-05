@@ -23,6 +23,14 @@ class SMMSearch extends SMMRealtime {
 
     return dl
   }
+
+  createDetailsButton (SearchID) {
+    return {
+      label: 'Details',
+      href: `/mission/${this.missionId}/search/${SearchID}/details/`,
+      'btn-class': 'btn-light'
+    }
+  }
 }
 
 class SMMSearchNotStarted extends SMMSearch {
@@ -79,11 +87,7 @@ class SMMSearchNotStarted extends SMMSearch {
           'btn-class': 'btn-light'
         })
       }
-      buttonData.push({
-        label: 'Details',
-        href: `/mission/${self.missionId}/search/${SearchID}/details/`,
-        'btn-class': 'btn-light'
-      })
+      buttonData.push(this.createDetailsButton(SearchID))
       popupContent.appendChild(this.createButtonGroup(buttonData))
     }
     layer.bindPopup(popupContent, { minWidth: 200 })
@@ -146,6 +150,7 @@ class SMMSearchInprogress extends SMMSearch {
   }
 
   createPopup (search, layer) {
+    const SearchID = search.properties.pk
     const SweepWidth = search.properties.sweep_width
     const AssetType = search.properties.created_for
     const InprogressBy = search.properties.inprogress_by
@@ -164,6 +169,12 @@ class SMMSearchInprogress extends SMMSearch {
     const popupContent = document.createElement('div')
     popupContent.appendChild(this.searchDataToPopUp(data))
 
+    if (this.missionId !== 'current' && this.missionId !== 'all') {
+      const buttonData = []
+      buttonData.push(this.createDetailsButton(SearchID))
+      popupContent.appendChild(this.createButtonGroup(buttonData))
+    }
+
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 }
@@ -174,6 +185,7 @@ class SMMSearchComplete extends SMMSearch {
   }
 
   createPopup (search, layer) {
+    const SearchID = search.properties.pk
     const SweepWidth = search.properties.sweep_width
     const AssetType = search.properties.created_for
     const InprogressBy = search.properties.inprogress_by
@@ -188,6 +200,13 @@ class SMMSearchComplete extends SMMSearch {
     ]
 
     const popupContent = this.searchDataToPopUp(data)
+
+    if (this.missionId !== 'current' && this.missionId !== 'all') {
+      const buttonData = []
+      buttonData.push(this.createDetailsButton(SearchID))
+      popupContent.appendChild(this.createButtonGroup(buttonData))
+    }
+
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 }
