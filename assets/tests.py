@@ -85,7 +85,7 @@ class AssetTestCase(TestCase):
             asset = self.create_asset()
         if search_id is None:
             search_id = self.create_search(asset=asset, client=client)
-        response = client.post(f'/mission/{self.mission.id}/search/{search_id}/queue/', {'asset': asset.pk})
+        response = client.post(f'/search/{search_id}/queue/', {'asset': asset.pk})
         self.assertEqual(response.status_code, 200)
 
     def begin_search_for_asset(self, asset=None, search_id=None, client=None):

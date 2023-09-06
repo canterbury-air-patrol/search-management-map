@@ -25,6 +25,7 @@ from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission, MissionAsset
 from mission.decorators import mission_is_member, mission_asset_get_mission
 from timeline.helpers import timeline_record_search_finished
+from .decorators import search_from_id, search_get_mission_id
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
 from .view_helpers import check_searches_in_progress
 
@@ -171,13 +172,13 @@ def search_finished(request, search_id, object_class, asset, mission):
 
 
 @login_required
+@search_from_id
+@search_get_mission_id
 @mission_is_member
-def search_delete(request, mission_user, search_id):
+def search_delete(request, mission_user, search):
     """
     Delete a search
     """
-    search = get_object_or_404(Search, pk=search_id)
-
     error = check_search_state(search, 'delete', None)
     if error is not None:
         return error
@@ -189,13 +190,13 @@ def search_delete(request, mission_user, search_id):
 
 
 @login_required
+@search_from_id
+@search_get_mission_id
 @mission_is_member
-def search_queue(request, search_id, mission_user):
+def search_queue(request, search, mission_user):
     """
     Queue a search
     """
-    search = get_object_or_404(Search, pk=search_id)
-
     # Check if this search has already been queued
     if search.queued_at:
         return HttpResponseForbidden(f"This search is already queued for {search.get_match()}")
@@ -213,13 +214,13 @@ def search_queue(request, search_id, mission_user):
 
 
 @login_required
+@search_from_id
+@search_get_mission_id
 @mission_is_member
-def search_details(request, search_id, mission_user):
+def search_details(request, search, mission_user):
     """
     Show details of a single search
     """
-    search = get_object_or_404(Search, pk=search_id)
-
     return render(request, 'search/search_details.html', {'searchId': search.pk, 'missionId': mission_user.mission.pk})
 
 
