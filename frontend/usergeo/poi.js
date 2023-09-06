@@ -52,7 +52,7 @@ class SMMPOI extends SMMRealtime {
         },
         {
           label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/pois/${poiID}/delete/`) },
+          onclick: function () { $.get(`/data/pois/${poiID}/delete/`) },
           'btn-class': 'btn-danger'
         },
         {
@@ -67,7 +67,7 @@ class SMMPOI extends SMMRealtime {
         },
         {
           label: 'Details',
-          href: `/mission/${self.missionId}/data/pois/${poiID}/details/`,
+          href: `/data/pois/${poiID}/details/`,
           'btn-class': 'btn-light'
         }
       ]))

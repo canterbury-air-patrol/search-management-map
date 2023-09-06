@@ -43,7 +43,7 @@ class SMMPolygon extends SMMRealtime {
         },
         {
           label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/userpolygons/${PolyID}/delete/`) },
+          onclick: function () { $.get(`/data/userpolygons/${PolyID}/delete/`) },
           'btn-class': 'btn-danger'
         },
         {
@@ -53,7 +53,7 @@ class SMMPolygon extends SMMRealtime {
         },
         {
           label: 'Details',
-          href: `/mission/${self.missionId}/data/userpolygons/${PolyID}/details/`,
+          href: `/data/userpolygons/${PolyID}/details/`,
           'btn-class': 'btn-light'
         }
       ]))

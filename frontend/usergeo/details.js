@@ -45,7 +45,7 @@ class UserGeoDetailsPage extends React.Component {
 
   async updateData () {
     const self = this
-    await $.get(`/mission/${this.props.missionId}/data/${this.props.userGeoType}/${this.props.userGeoId}/json/`, function (data) {
+    await $.get(`/data/${this.props.userGeoType}/${this.props.userGeoId}/json/`, function (data) {
       self.setState({
         data: data.features['0'].properties,
         geometry: data.features['0'].geometry
