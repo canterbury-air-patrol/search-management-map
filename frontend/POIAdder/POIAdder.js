@@ -35,7 +35,7 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
     if (replaces === -1) {
       $.post(`/mission/${missionId}/data/pois/create/`, data)
     } else {
-      $.post(`/mission/${missionId}/data/pois/${replaces}/replace/`, data)
+      $.post(`/data/pois/${replaces}/replace/`, data)
     }
     map.removeLayer(marker)
     markerDialog.destroy()

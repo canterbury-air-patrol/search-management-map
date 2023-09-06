@@ -76,7 +76,7 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
     }
 
     if (replaces !== -1) {
-      $.post(`/mission/${missionId}/data/userpolygons/${replaces}/replace/`, data)
+      $.post(`/data/userpolygons/${replaces}/replace/`, data)
     } else {
       $.post(`/mission/${missionId}/data/userpolygons/create/`, data)
     }

@@ -5,10 +5,9 @@ The functions here should cover the logic associated with making
 views work.
 """
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.core.serializers import serialize
 from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
-from django.shortcuts import get_object_or_404
 
 from .models import GeoTimeLabel
 
@@ -41,15 +40,12 @@ def to_kml(objecttype, objects):
 
 
 # pylint: disable=R0913
-def geotimelabel_replace(request, name, object_id, geo_type, mission, func):
+def geotimelabel_replace(request, name, replaces, mission, func):
     """
     Create an object to replace another object of the same type,
 
     Checks to make sure the object hasn't already been deleted or replaced.
     """
-    replaces = get_object_or_404(GeoTimeLabel, pk=object_id)
-    if replaces.geo_type != geo_type:
-        return HttpResponseNotFound("Wrong object type")
     if replaces.deleted_at:
         return HttpResponseNotFound(f"This {name} has been deleted")
     if replaces.replaced_by is not None:
@@ -57,15 +53,12 @@ def geotimelabel_replace(request, name, object_id, geo_type, mission, func):
     return func(request, mission=mission, replaces=replaces)
 
 
-def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
+def geotimelabel_delete(request, name, obj, mission_user):
     """
     Mark a user object as deleted
 
     Checks to make sure the object hasn't already been deleted or replaced.
     """
-    obj = get_object_or_404(GeoTimeLabel, pk=object_id)
-    if obj.geo_type != geo_type:
-        return HttpResponseNotFound("Wrong object type")
     if not obj.delete(mission_user.user):
         if obj.deleted_at:
             return HttpResponseNotFound(f"This {name} has already been deleted")
@@ -74,24 +67,6 @@ def geotimelabel_delete(request, name, object_id, geo_type, mission_user):
     return HttpResponse("Deleted")
 
 
-def check_userobject_move(make_func):
-    """
-    Make sure that move doesn't move across missions
-    """
-    def moving_check(*args, **kwargs):
-        try:
-            replaces = kwargs['replaces']
-        except KeyError:
-            replaces = None
-        mission = kwargs['mission']
-        if replaces is not None:
-            if replaces.mission.pk != mission.pk:
-                return HttpResponseForbidden("Moving objects between missions is prohibited")
-        return make_func(*args, **kwargs)
-    return moving_check
-
-
-@check_userobject_move
 def point_label_make(request, mission=None, replaces=None):
     """
     Create or replace a POI based on user supplied data.
@@ -124,7 +99,6 @@ def point_label_make(request, mission=None, replaces=None):
     return to_geojson(GeoTimeLabel, [ptl])
 
 
-@check_userobject_move
 def user_polygon_make(request, mission=None, replaces=None):
     """
     Create a polygon based on user supplied data.
@@ -150,7 +124,6 @@ def user_polygon_make(request, mission=None, replaces=None):
     return HttpResponseBadRequest()
 
 
-@check_userobject_move
 def user_line_make(request, mission=None, replaces=None):
     """
     Create a line (string) based on user supplied data.

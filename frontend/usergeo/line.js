@@ -37,7 +37,7 @@ class SMMLine extends SMMRealtime {
         },
         {
           label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/data/userlines/${LineID}/delete/`) },
+          onclick: function () { $.get(`/data/userlines/${LineID}/delete/`) },
           'btn-class': 'btn-danger'
         },
         {
@@ -47,7 +47,7 @@ class SMMLine extends SMMRealtime {
         },
         {
           label: 'Details',
-          href: `/mission/${self.missionId}/data/userlines/${LineID}/details/`,
+          href: `/data/userlines/${LineID}/details/`,
           'btn-class': 'btn-light'
         }
       ]))

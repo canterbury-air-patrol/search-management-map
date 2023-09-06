@@ -76,7 +76,7 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
     }
 
     if (replaces !== -1) {
-      $.post(`/mission/${missionId}/data/userlines/${replaces}/replace/`, data)
+      $.post(`/data/userlines/${replaces}/replace/`, data)
     } else {
       $.post(`/mission/${missionId}/data/userlines/create/`, data)
     }
