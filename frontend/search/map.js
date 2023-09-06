@@ -27,7 +27,7 @@ class SMMSearch extends SMMRealtime {
   createDetailsButton (SearchID) {
     return {
       label: 'Details',
-      href: `/mission/${this.missionId}/search/${SearchID}/details/`,
+      href: `/search/${SearchID}/details/`,
       'btn-class': 'btn-light'
     }
   }
@@ -77,7 +77,7 @@ class SMMSearchNotStarted extends SMMSearch {
       const self = this
       buttonData.push({
         label: 'Delete',
-        onclick: function () { $.get(`/mission/${self.missionId}/search/${SearchID}/delete/`) },
+        onclick: function () { $.get(`/search/${SearchID}/delete/`) },
         'btn-class': 'btn-danger'
       })
       if (!QueuedAt) {
@@ -130,7 +130,7 @@ class SMMSearchNotStarted extends SMMSearch {
           value: $(`#queue_${searchID}_select_asset`).val()
         })
       }
-      $.post(`/mission/${self.missionId}/search/${searchID}/queue/`, data, function (data) {
+      $.post(`/search/${searchID}/queue/`, data, function (data) {
         QueueDialog.destroy()
       })
     })
