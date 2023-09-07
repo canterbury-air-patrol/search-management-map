@@ -5,13 +5,13 @@ Views for dealing with images uploaded by users
 
 from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse, HttpResponseNotAllowed
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
 from django.contrib.gis.geos import Point
 
 from mission.decorators import mission_is_member
 from data.view_helpers import to_geojson
 from timeline.helpers import timeline_record_image_priority_changed
 
+from .decorators import image_from_id, image_get_mission_id
 from .forms import UploadImageForm
 from .view_helpers import upload_image_file
 from .models import GeoImage
@@ -82,36 +82,35 @@ def images_list_important_current(request):
 
 
 @login_required
+@image_from_id
+@image_get_mission_id
 @mission_is_member
-def image_get_full(request, image_id, mission_user):
+def image_get_full(request, image):
     """
     Return the full sized version of the image
     """
-    # Check the image is valid for this mission
-    image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
-
     return FileResponse(open(f'images/full/{image.pk}.data', 'rb'), filename=f'original-{image.pk}.{image.original_format}')
 
 
 @login_required
+@image_from_id
+@image_get_mission_id
 @mission_is_member
-def image_get_thumbnail(request, image_id, mission_user):
+def image_get_thumbnail(request, image):
     """
     Return the thumbnail version of the image
     """
-    # Check the image is valid for this mission
-    image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
-
     return FileResponse(open(f'images/thumbnail/{image.pk}.data', 'rb'), filename=f'thumbnail-{image.pk}.{image.original_format}')
 
 
 @login_required
+@image_from_id
+@image_get_mission_id
 @mission_is_member
-def image_priority_set(request, image_id, mission_user):
+def image_priority_set(request, image, mission_user):
     """
     Set the priority flag on an image
     """
-    image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
     image.priority = True
     image.save()
     timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
@@ -120,12 +119,13 @@ def image_priority_set(request, image_id, mission_user):
 
 
 @login_required
+@image_from_id
+@image_get_mission_id
 @mission_is_member
-def image_priority_unset(request, image_id, mission_user):
+def image_priority_unset(request, image, mission_user):
     """
     UnSet the priority flag on an image
     """
-    image = get_object_or_404(GeoImage, pk=image_id, mission=mission_user.mission)
     image.priority = False
     image.save()
     timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
