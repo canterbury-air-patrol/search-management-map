@@ -8,10 +8,11 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 
 from mission.decorators import mission_is_member
+from data.decorators import data_get_mission_id
 from data.view_helpers import to_geojson
 from timeline.helpers import timeline_record_image_priority_changed
 
-from .decorators import image_from_id, image_get_mission_id
+from .decorators import image_from_id
 from .forms import UploadImageForm
 from .view_helpers import upload_image_file
 from .models import GeoImage
@@ -83,7 +84,7 @@ def images_list_important_current(request):
 
 @login_required
 @image_from_id
-@image_get_mission_id
+@data_get_mission_id(arg_name='image')
 @mission_is_member
 def image_get_full(request, image):
     """
@@ -94,7 +95,7 @@ def image_get_full(request, image):
 
 @login_required
 @image_from_id
-@image_get_mission_id
+@data_get_mission_id(arg_name='image')
 @mission_is_member
 def image_get_thumbnail(request, image):
     """
@@ -105,7 +106,7 @@ def image_get_thumbnail(request, image):
 
 @login_required
 @image_from_id
-@image_get_mission_id
+@data_get_mission_id(arg_name='image')
 @mission_is_member
 def image_priority_set(request, image, mission_user):
     """
@@ -120,7 +121,7 @@ def image_priority_set(request, image, mission_user):
 
 @login_required
 @image_from_id
-@image_get_mission_id
+@data_get_mission_id(arg_name='image')
 @mission_is_member
 def image_priority_unset(request, image, mission_user):
     """

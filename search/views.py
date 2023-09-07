@@ -20,12 +20,13 @@ from django.utils import timezone
 
 from assets.models import AssetType, Asset
 from assets.decorators import asset_id_in_get_post
+from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission, MissionAsset
 from mission.decorators import mission_is_member, mission_asset_get_mission
 from timeline.helpers import timeline_record_search_finished
-from .decorators import search_from_id, search_get_mission_id
+from .decorators import search_from_id
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
 from .view_helpers import check_searches_in_progress
 
@@ -173,7 +174,7 @@ def search_finished(request, search_id, object_class, asset, mission):
 
 @login_required
 @search_from_id
-@search_get_mission_id
+@data_get_mission_id(arg_name='search')
 @mission_is_member
 def search_delete(request, mission_user, search):
     """
@@ -191,7 +192,7 @@ def search_delete(request, mission_user, search):
 
 @login_required
 @search_from_id
-@search_get_mission_id
+@data_get_mission_id(arg_name='search')
 @mission_is_member
 def search_queue(request, search, mission_user):
     """
@@ -215,7 +216,7 @@ def search_queue(request, search, mission_user):
 
 @login_required
 @search_from_id
-@search_get_mission_id
+@data_get_mission_id(arg_name='search')
 @mission_is_member
 def search_details(request, search, mission_user):
     """

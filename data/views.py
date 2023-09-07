@@ -20,7 +20,7 @@ from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
 from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import Mission
-from .decorators import geotimelabel_from_type_id, geotimelabel_get_mission_id
+from .decorators import geotimelabel_from_type_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel
 from .forms import UploadTyphoonData
 from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace, geotimelabel_delete
@@ -210,7 +210,7 @@ def data_all_current_missions_type(request, geo_type):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def usergeo_details(request, usergeo, mission_user):
     """
@@ -229,7 +229,7 @@ def usergeo_details(request, usergeo, mission_user):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def usergeo_json(request, usergeo):
     """
@@ -257,7 +257,7 @@ def point_label_create(request, mission_user):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def point_label_replace(request, mission_user, usergeo):
     """
@@ -268,7 +268,7 @@ def point_label_replace(request, mission_user, usergeo):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def point_label_delete(request, mission_user, usergeo):
     """
@@ -296,7 +296,7 @@ def user_polygon_create(request, mission_user):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def user_polygon_replace(request, mission_user, usergeo):
     """
@@ -307,7 +307,7 @@ def user_polygon_replace(request, mission_user, usergeo):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def user_polygon_delete(request, mission_user, usergeo):
     """
@@ -335,7 +335,7 @@ def user_line_create(request, mission_user):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def user_line_replace(request, mission_user, usergeo):
     """
@@ -346,7 +346,7 @@ def user_line_replace(request, mission_user, usergeo):
 
 @login_required
 @geotimelabel_from_type_id
-@geotimelabel_get_mission_id
+@data_get_mission_id(arg_name='usergeo')
 @mission_is_member
 def user_line_delete(request, mission_user, usergeo):
     """
