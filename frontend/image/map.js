@@ -60,19 +60,18 @@ class SMMImage extends SMMRealtime {
     div.style = 'width: 128px'
     popupContent.appendChild(div)
     const a = document.createElement('a')
-    a.href = `/mission/${this.missionId}/image/${imageID}/full/`
+    a.href = `/image/${imageID}/full/`
     div.appendChild(a)
     const img = document.createElement('img')
-    img.src = `/mission/${this.missionId}/image/${imageID}/thumbnail/`
+    img.src = `/image/${imageID}/thumbnail/`
     a.appendChild(img)
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
       if (image.properties.priority) {
         popupContent.appendChild(this.createButtonGroup([
           {
             label: 'Deprioritize',
-            onclick: function () { $.get(`/mission/${self.missionId}/image/${imageID}/priority/unset/`) },
+            onclick: function () { $.get(`/image/${imageID}/priority/unset/`) },
             'btn-class': 'btn-light'
           }
         ]))
@@ -80,7 +79,7 @@ class SMMImage extends SMMRealtime {
         popupContent.appendChild(this.createButtonGroup([
           {
             label: 'Prioritize',
-            onclick: function () { $.get(`/mission/${self.missionId}/image/${imageID}/priority/set/`) },
+            onclick: function () { $.get(`/image/${imageID}/priority/set/`) },
             'btn-class': 'btn-light'
           }
         ]))
