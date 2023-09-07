@@ -16,13 +16,3 @@ def search_from_id(view_func):
         kwargs.pop('search_id')
         return view_func(*args, search=search, **kwargs)
     return wrapper_get_search
-
-
-def search_get_mission_id(view_func):
-    """
-    Extract the mission_id from the search object
-    """
-    def wrapper_get_mission_id(*args, **kwargs):
-        mission_id = kwargs['search'].mission.id
-        return view_func(*args, mission_id=mission_id, **kwargs)
-    return wrapper_get_mission_id

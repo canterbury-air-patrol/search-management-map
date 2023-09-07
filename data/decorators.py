@@ -19,11 +19,13 @@ def geotimelabel_from_type_id(view_func):
     return wrapper_get_geotimelabel
 
 
-def geotimelabel_get_mission_id(view_func):
+def data_get_mission_id(arg_name=None):
     """
-    Extract the mission_id from the geotimelabel object
+    Extract the mission_id from the 'arg_name' object (must be a child of geotime)
     """
-    def wrapper_get_mission_id(*args, **kwargs):
-        mission_id = kwargs['usergeo'].mission.id
-        return view_func(*args, mission_id=mission_id, **kwargs)
-    return wrapper_get_mission_id
+    def inner(view_func):
+        def wrapper_get_mission_id(*args, **kwargs):
+            mission_id = kwargs[arg_name].mission.id
+            return view_func(*args, mission_id=mission_id, **kwargs)
+        return wrapper_get_mission_id
+    return inner
