@@ -11,10 +11,12 @@ from django.http import HttpResponseNotFound, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 
+from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_geojson
 from mission.decorators import mission_is_member
 
+from .decorators import total_drift_from_type_id
 from .models import MarineTotalDriftVector, MarineTotalDriftVectorCurrent, MarineTotalDriftVectorWind
 
 
@@ -105,13 +107,13 @@ def marine_vectors_create(request, mission_user):
     if save:
         total_drift_vector.save()
         for current in current_vectors:
-            start_time = convert_time(current['from'])
-            end_time = convert_time(current['to'])
+            start_time = convert_time(str(current['from']))
+            end_time = convert_time(str(current['to']))
             current_vector = MarineTotalDriftVectorCurrent(total_drift=total_drift_vector, order=current['order'], start_time=start_time, end_time=end_time, direction=current['bearing'], speed=current['speed'])
             current_vector.save()
         for wind in wind_vectors:
-            start_time = convert_time(wind['from'])
-            end_time = convert_time(wind['to'])
+            start_time = convert_time(str(wind['from']))
+            end_time = convert_time(str(wind['to']))
             wind_vector = MarineTotalDriftVectorWind(total_drift=total_drift_vector, order=wind['order'], start_time=start_time, end_time=end_time, wind_from_direction=wind['wind_direction_from'], wind_speed=wind['speed'])
             wind_vector.save()
 
@@ -119,16 +121,17 @@ def marine_vectors_create(request, mission_user):
 
 
 @login_required
+@total_drift_from_type_id
+@data_get_mission_id('tdv')
 @mission_is_member
-def marine_vectors_delete(request, tdv_id, mission_user):
+def marine_vectors_delete(request, tdv, mission_user):
     """
     Delete a Marine Total Drift Vector
     """
-    total_drift = get_object_or_404(MarineTotalDriftVector, mission=mission_user.mission, pk=tdv_id)
-    if not total_drift.delete(mission_user.user):
-        if total_drift.deleted_at:
+    if not tdv.delete(mission_user.user):
+        if tdv.deleted_at:
             return HttpResponseNotFound("Drift Vector has already been deleted")
-        if total_drift.replaced_by is not None:
+        if tdv.replaced_by is not None:
             return HttpResponseNotFound("Drift Vector has been replaced")
     return HttpResponse('Deleted')
 
