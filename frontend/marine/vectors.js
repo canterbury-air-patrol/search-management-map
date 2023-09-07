@@ -26,11 +26,10 @@ class SMMMarineVector extends SMMRealtime {
     dl.appendChild(dd)
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
       popupContent.appendChild(this.createButtonGroup([
         {
           label: 'Delete',
-          onclick: function () { $.get(`/mission/${self.missionId}/sar/marine/vectors/${tdvID}/delete/`) },
+          onclick: function () { $.get(`/sar/marine/vectors/${tdvID}/delete/`) },
           'btn-class': 'btn-danger'
         }
       ]))
