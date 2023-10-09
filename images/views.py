@@ -7,7 +7,7 @@ from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileRespon
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 
-from mission.decorators import mission_is_member
+from mission.decorators import mission_is_member, mission_is_member_no_variable
 from data.decorators import data_get_mission_id
 from data.view_helpers import to_geojson
 from timeline.helpers import timeline_record_image_priority_changed
@@ -85,7 +85,7 @@ def images_list_important_current(request):
 @login_required
 @image_from_id
 @data_get_mission_id(arg_name='image')
-@mission_is_member
+@mission_is_member_no_variable
 def image_get_full(request, image):
     """
     Return the full sized version of the image
@@ -96,7 +96,7 @@ def image_get_full(request, image):
 @login_required
 @image_from_id
 @data_get_mission_id(arg_name='image')
-@mission_is_member
+@mission_is_member_no_variable
 def image_get_thumbnail(request, image):
     """
     Return the thumbnail version of the image

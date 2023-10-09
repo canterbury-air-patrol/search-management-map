@@ -27,6 +27,17 @@ def mission_user_get(mission_id, user):
     raise Http404("Not Found")
 
 
+def mission_is_member_no_variable(view_func):
+    """
+    Make sure that user is a member of the mission
+    """
+    def wrapper_is_member(*args, **kwargs):
+        mission_user_get(kwargs['mission_id'], args[0].user)
+        kwargs.pop('mission_id')
+        return view_func(*args, **kwargs)
+    return wrapper_is_member
+
+
 def mission_is_member(view_func):
     """
     Make sure that user is a member of the mission
