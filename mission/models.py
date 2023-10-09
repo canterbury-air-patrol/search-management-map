@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from assets.models import Asset, AssetType
-from organization.models import Organization
+from organization.models import Organization, OrganizationMember
 
 
 class Mission(models.Model):
@@ -35,6 +35,15 @@ class Mission(models.Model):
             'closed_by': self.closed_by.username if self.closed_by else None,  # pylint: disable=E1101
             'admin': admin,
         }
+
+    @classmethod
+    def all_user_missions(cls, user):
+        """
+        Get all missions the given user is a member of (either directly or via an organization)
+        """
+        missions = list(MissionUser.user_missions(user))
+        missions = missions + list(MissionOrganization.mission_user(user))
+        return missions
 
 
 class MissionUser(models.Model):
@@ -68,6 +77,13 @@ class MissionUser(models.Model):
         Return true if this user is an admin
         """
         return self.role == 'A'
+
+    @classmethod
+    def user_missions(cls, user):
+        """
+        Get all missions this user is in
+        """
+        return Mission.objects.filter(missionuser__user=user)
 
 
 class MissionAsset(models.Model):
@@ -126,3 +142,11 @@ class MissionOrganization(models.Model):
             if row[0] == self.role:
                 return row[1]
         return "Unknown"
+
+    @classmethod
+    def mission_user(cls, user):
+        """
+        Get all the missions a user is in because they are in an organization
+        """
+        user_organizations = OrganizationMember.user_current(user)
+        return Mission.objects.filter(missionorganization__organization__in=[user_org.organization for user_org in user_organizations], missionorganization__removed__isnull=True)

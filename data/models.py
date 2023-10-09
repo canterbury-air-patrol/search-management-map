@@ -77,7 +77,8 @@ class GeoTime(models.Model):
         user is the user who is a member of the missions the objects are part of
         current_at being None means now, otherwise only objects that existed at the time will be returned
         '''
-        objects = cls.objects.filter(mission__missionuser__user=user)
+        missions = Mission.all_user_missions(user)
+        objects = cls.objects.filter(mission__in=missions)
         if current_only:
             objects = objects.filter(mission__closed__isnull=True)
         if current_at:
