@@ -1,4 +1,4 @@
-django==5.0
+django==5.0.1
 
 # Timezone support
 pytz
