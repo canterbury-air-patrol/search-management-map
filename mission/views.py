@@ -302,7 +302,7 @@ def mission_asset_remove(request, mission_user, asset_id):
     mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
     if mission_user.is_admin() or \
        mission_asset.asset.owner != request.user or \
-       OrganizationAsset.objects.filter(asset=asset, organization__in=MissionOrganization.objects.get(organization__in=OrganizationMember.user_current(request.user)).values_list('organization')):
+       OrganizationAsset.objects.filter(asset=asset, organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)]).values_list('organization'):
         HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
     mission_asset.remover = request.user
     mission_asset.removed = timezone.now()
