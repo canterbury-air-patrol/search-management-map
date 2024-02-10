@@ -39,9 +39,11 @@ class SMMMap {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
+    this.layerControlAssets = L.control.layers({}, {})
     this.missionId = missionId
     this.csrftoken = csrftoken
     this.overlayAdd = this.overlayAdd.bind(this)
+    this.overlayAddAsset = this.overlayAddAsset.bind(this)
     this.setupMap()
   }
 
@@ -79,6 +81,7 @@ class SMMMap {
 
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)
+    this.layerControlAssets.addTo(this.map)
 
     this.map.setView(new LatLng(0, 0), 16)
 
@@ -107,7 +110,7 @@ class SMMMap {
     // Default leaflet path color
     const defaultColor = '#3388ff'
 
-    this.assets = new SMMAssets(this.map, this.csrftoken, this.missionId, assetUpdateFreq, 'red', this.overlayAdd)
+    this.assets = new SMMAssets(this.map, this.csrftoken, this.missionId, assetUpdateFreq, 'red', this.overlayAddAsset)
     this.overlayAdd('Assets', this.assets.realtime().addTo(this.map))
 
     this.POIs = new SMMPOI(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
@@ -139,6 +142,10 @@ class SMMMap {
 
   overlayAdd (name, layer) {
     this.layerControl.addOverlay(layer, name)
+  }
+
+  overlayAddAsset (name, layer) {
+    this.layerControlAssets.addOverlay(layer, name)
   }
 }
 
