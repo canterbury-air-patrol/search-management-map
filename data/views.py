@@ -11,6 +11,7 @@ from datetime import datetime
 import pytz
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
@@ -21,7 +22,7 @@ from assets.decorators import asset_is_recorder
 from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import Mission
 from .decorators import geotimelabel_from_type_id, data_get_mission_id
-from .models import AssetPointTime, GeoTimeLabel
+from .models import AssetPointTime, GeoTimeLabel, UserPointTime
 from .forms import UploadTyphoonData
 from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace, geotimelabel_delete
 
@@ -97,7 +98,7 @@ def asset_record_position(request, asset):
         alt = request.POST.get('alt')
         heading = request.POST.get('heading')
     else:
-        return HttpResponseBadRequest("Unsupport method")
+        return HttpResponseBadRequest("Unsupported method")
 
     point = None
     try:
@@ -181,6 +182,154 @@ def asset_position_history_user(request, asset_name, current_only):
     When from is provided, only points after the timestamp from are considered.
     """
     return asset_position_history(request, asset_name, user=request.user, current_only=current_only)
+
+
+@login_required
+@mission_is_member
+def users_position_latest(request, mission_user):
+    """
+    Get the last position of each of the know assets
+    """
+    users = get_user_model().objects.all()
+    positions = []
+    for user in users:
+        points = UserPointTime.objects.filter(mission=mission_user.mission, user=user).order_by('-created_at')[:1]
+        for point in points:
+            positions.append(point)
+
+    return to_geojson(UserPointTime, positions)
+
+
+@login_required
+def users_position_latest_user(request, current_only):
+    """
+    Get the last position of each of the know assets from all missions
+    """
+    users = get_user_model().objects.all()
+    positions = []
+    for user in users:
+        points = UserPointTime.objects
+        if current_only:
+            points = points.filter(mission__closed__isnull=True)
+        points = points.filter(mission__missionuser__user=request.user, user=user).order_by('-created_at')[:1]
+        for point in points:
+            positions.append(point)
+
+    return to_geojson(UserPointTime, positions)
+
+
+@login_required
+@mission_is_member
+def user_record_position(request, mission_user, user):
+    """
+    Record the current position of a user.
+
+    Only allows recording of the assets position by the owner.
+    """
+    lat = ''
+    lon = ''
+    fix = None
+    alt = None
+    heading = None
+
+    if request.user.username != user:
+        return HttpResponse('Unauthorized', status=401)
+
+    if request.method == 'GET':
+        lat = request.GET.get('lat')
+        lon = request.GET.get('lon')
+        fix = request.GET.get('fix')
+        alt = request.GET.get('alt')
+        heading = request.GET.get('heading')
+    elif request.method == 'POST':
+        lat = request.POST.get('lat')
+        lon = request.POST.get('lon')
+        fix = request.POST.get('fix')
+        alt = request.POST.get('alt')
+        heading = request.POST.get('heading')
+    else:
+        return HttpResponseBadRequest("Unsupported method")
+
+    point = None
+    try:
+        point = Point(float(lon), float(lat))
+    except (ValueError, TypeError):
+        pass
+
+    try:
+        fix = int(fix)
+    except (TypeError, ValueError):
+        fix = None
+    try:
+        heading = int(heading)
+    except (TypeError, ValueError):
+        heading = None
+    try:
+        alt = float(alt)
+    except (TypeError, ValueError):
+        alt = None
+
+    if point:
+        UserPointTime(user=request.user, geo=point, created_by=request.user, alt=alt, mission=mission_user.mission).save()
+    else:
+        return HttpResponseBadRequest("Invalid lat/lon")
+
+    return HttpResponse("Okay")
+
+
+def user_position_history(request, user, mission=None, requesting_user=None, current_only=False):
+    """
+    Get the full track from an asset.
+
+    When from is provided, only points after the timestamp from are considered.
+    """
+    oldest = 'first'
+    if request.method == 'GET':
+        since = request.GET.get('from')
+        if request.GET.get('oldest'):
+            oldest = request.GET.get('oldest')
+
+    user_object = get_object_or_404(get_user_model(), username=user)
+
+    positions = UserPointTime.objects
+    if mission is not None:
+        positions = positions.filter(mission=mission)
+    elif requesting_user is not None:
+        positions = positions.filter(mission__missionuser__user=requesting_user)
+        if current_only:
+            positions = positions.filter(mission__closed__isnull=True)
+    positions = positions.filter(user=user_object)
+    if since is not None:
+        positions = positions.filter(created_at__gt=since)
+    if oldest == 'last':
+        positions = positions.order_by('created_at')
+    else:
+        positions = positions.order_by('-created_at')
+
+    return to_geojson(UserPointTime, positions)
+
+
+@login_required
+@mission_is_member
+def user_position_history_mission(request, mission_user, user):
+    """
+    Get the full track from a user.
+    In a specific mission.
+
+    When from is provided, only points after the timestamp from are considered.
+    """
+    return user_position_history(request, user, mission=mission_user.mission)
+
+
+@login_required
+def user_position_history_user(request, user, current_only):
+    """
+    Get the full track for a user.
+    Across all (current) missions.
+
+    When from is provided, only points after the timestamp from are considered.
+    """
+    return user_position_history(request, user, requesting_user=request.user, current_only=current_only)
 
 
 @login_required

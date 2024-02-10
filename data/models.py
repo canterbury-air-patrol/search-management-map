@@ -178,6 +178,29 @@ class AssetPointTime(GeoTime):
         ]
 
 
+class UserPointTime(GeoTime):
+    """
+    Stores the position of a user at a specific time
+
+    This is similar to AssetPointTime, but allows users (i.e. a person)
+    to record their position without also having to be an asset.
+    """
+    user = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='user_%(app_label)s_%(class)s_related')
+
+    GEOJSON_FIELDS = ('user', 'created_at', 'alt', )
+
+    RECORD_TIMELINE = False
+
+    def __str__(self):
+        return f"{self.user} @ {self.geo} @ {self.created_at}"
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'user', '-created_at']),
+            models.Index(fields=['mission', 'user', 'created_at'])
+        ]
+
+
 class GeoTimeLabel(GeoTime):
     """
     This is a geometric object the user has defined.
