@@ -38,6 +38,7 @@ class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
+    this.layerControlMaps = L.control.layers({}, {})
     this.missionId = missionId
     this.csrftoken = csrftoken
     this.overlayAdd = this.overlayAdd.bind(this)
@@ -53,8 +54,6 @@ class SMMMap {
 
     $.get('/map/tile/layers/', function (data) {
       let baseSelected = false
-      const layersBase = {}
-      const layersExtra = {}
       for (const d in data.layers) {
         const layer = data.layers[d]
         const options = {
@@ -67,19 +66,19 @@ class SMMMap {
         }
         const tileLayer = L.tileLayer(layer.url, options)
         if (layer.base) {
+          self.layerControlMaps.addBaseLayer(tileLayer, layer.name)
           if (!baseSelected) {
             tileLayer.addTo(self.map)
             baseSelected = true
           }
-          layersBase[layer.name] = tileLayer
         } else {
-          layersExtra[layer.name] = tileLayer
+          self.layerControlMaps.addOverlay(tileLayer, layer.name)
         }
       }
-      L.control.layers(layersBase, layersExtra).addTo(self.map)
     })
 
     this.layerControl.addTo(this.map)
+    this.layerControlMaps.addTo(this.map)
 
     this.map.setView(new LatLng(0, 0), 16)
 
