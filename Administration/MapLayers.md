@@ -17,3 +17,4 @@ This will give you a form where you can specify details about the tile layer.
 * `Subdomains`: If your `Url` includes `{s}`, then you can specify valid subdomains for the url, see more [here](https://leafletjs.com/reference.html#tilelayer-subdomains)
 * `Active`: This needs to be ticked for the layer to appear as an option for users.
 * `RelativeOrder`: Used to determine the order this layer will appear relative to other base or overlays layers
+  * Note: Make sure base layers have lower relative order than your other tile layers, or the base layer might appear over your overlay
