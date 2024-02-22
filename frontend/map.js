@@ -33,6 +33,7 @@ import { SMMImageAll, SMMImageImportant } from './image/map.js'
 import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
 import { SMMMissionTopBar } from './menu/topbar.js'
+import { SMMUserPositions } from './user/map.js'
 
 class SMMMap {
   constructor (mapElem, missionId, csrftoken) {
@@ -40,10 +41,12 @@ class SMMMap {
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
     this.layerControlAssets = L.control.layers({}, {})
+    this.layerControlUsers = L.control.layers({}, {})
     this.missionId = missionId
     this.csrftoken = csrftoken
     this.overlayAdd = this.overlayAdd.bind(this)
     this.overlayAddAsset = this.overlayAddAsset.bind(this)
+    this.overlayAddUser = this.overlayAddUser.bind(this)
     this.setupMap()
   }
 
@@ -82,6 +85,7 @@ class SMMMap {
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)
     this.layerControlAssets.addTo(this.map)
+    this.layerControlUsers.addTo(this.map)
 
     this.map.setView(new LatLng(0, 0), 16)
 
@@ -101,6 +105,7 @@ class SMMMap {
     L.control.smmadmin({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
 
     const assetUpdateFreq = 3 * 1000
+    const userUpdateFreq = 3 * 1000
     const userDataUpdateFreq = 10 * 1000
     const searchIncompleteUpdateFreq = 30 * 1000
     const searchCompleteUpdateFreq = 60 * 1000
@@ -112,6 +117,9 @@ class SMMMap {
 
     this.assets = new SMMAssets(this.map, this.csrftoken, this.missionId, assetUpdateFreq, 'red', this.overlayAddAsset)
     this.overlayAdd('Assets', this.assets.realtime().addTo(this.map))
+
+    this.users = new SMMUserPositions(this.map, this.csrftoken, this.missionId, userUpdateFreq, 'red', this.overlayAddUser)
+    this.overlayAdd('Users', this.users.realtime().addTo(this.map))
 
     this.POIs = new SMMPOI(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('POIs', this.POIs.realtime().addTo(this.map))
@@ -146,6 +154,10 @@ class SMMMap {
 
   overlayAddAsset (name, layer) {
     this.layerControlAssets.addOverlay(layer, name)
+  }
+
+  overlayAddUser (name, layer) {
+    this.layerControlUsers.addOverlay(layer, name)
   }
 }
 
