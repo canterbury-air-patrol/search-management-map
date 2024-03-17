@@ -189,12 +189,10 @@ def creep_line(lrng, width):
                     if reverse:
                         reverse = False
                         i.reverse()
-                        for pnt in i:
-                            yield pnt
+                        yield from i
                     else:
                         reverse = True
-                        for pnt in i:
-                            yield pnt
+                        yield from i
             except TypeError:
                 # pylint: disable=W0707
                 msg = f"{i} is of type {type(i)}"
