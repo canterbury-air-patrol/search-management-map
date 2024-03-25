@@ -19,8 +19,8 @@
     "@canterbury-air-patrol/leaflet-dialog": "^1.1.2",
     "@canterbury-air-patrol/marine-leeway-data": "^0.1.1",
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.4.0",
-    "@canterbury-air-patrol/sar-search-runner": "0.0.3",
     "@canterbury-air-patrol/sar-search-patterns": "0.0.6",
+    "@canterbury-air-patrol/sar-search-runner": "0.0.3",
     "bootstrap": "^5.3.3",
     "esbuild": "^0.20.2",
     "esbuild-config": "^1.0.1",
@@ -30,6 +30,7 @@
     "leaflet.locatecontrol": "^0.79.0",
     "react-bootstrap": "^2.10.2",
     "react-collapsible": "^2.10.0",
+    "react-color": "^2.19.3",
     "react-leaflet": "^4.2.1"
   },
   "devDependencies": {

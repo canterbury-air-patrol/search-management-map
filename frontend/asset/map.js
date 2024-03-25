@@ -4,20 +4,93 @@ import $ from 'jquery'
 
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
+import '@canterbury-air-patrol/leaflet-dialog'
+import React from 'react'
+import PropTypes from 'prop-types'
+import * as ReactDOM from 'react-dom/client'
+import { CompactPicker } from 'react-color'
+
+class AssetColorPicker extends React.Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      color: this.props.color
+    }
+  }
+
+  updateColor = (color) => {
+    this.props.updateColor(color.hex)
+    this.setState({ color })
+  }
+
+  render () {
+    return (
+      <CompactPicker
+        color={this.state.color}
+        onChangeComplete={this.updateColor} />
+    )
+  }
+}
+AssetColorPicker.propTypes = {
+  color: PropTypes.string.isRequired,
+  updateColor: PropTypes.func.isRequired
+}
 
 class SMMAsset {
-  constructor (missionId, assetName, color) {
+  constructor (map, missionId, assetName, color) {
     this.missionId = missionId
     this.assetName = assetName
     this.color = color
+    this.colorDialog = null
     this.lastUpdate = null
     this.path = []
     this.updating = false
+    this.map = map
     this.polyline = L.polyline([], { color: this.color })
+    this.updateColor = this.updateColor.bind(this)
+    this.colorPicker = this.colorPicker.bind(this)
+    this.closeColorPicker = this.closeColorPicker.bind(this)
   }
 
   overlay () {
     return this.polyline
+  }
+
+  updateColor (color) {
+    this.color = color
+    this.polyline.setStyle({
+      color: this.color
+    })
+  }
+
+  closeColorPicker () {
+    this.colorDialog.destroy()
+    this.colorDialog = null
+  }
+
+  colorPicker () {
+    if (this.colorDialog === null) {
+      const dialogContent = document.createElement('div')
+      const label = document.createElement('div')
+      label.textContent = `Color Picker for ${this.assetName}`
+      dialogContent.appendChild(label)
+      const colorPickerDiv = document.createElement('div')
+      dialogContent.appendChild(colorPickerDiv)
+      const btn = document.createElement('button')
+      btn.className = 'btn btn-primary'
+      btn.onclick = this.closeColorPicker
+      btn.textContent = 'Done'
+      dialogContent.appendChild(btn)
+
+      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(dialogContent).addTo(this.map).hideClose()
+      const div = ReactDOM.createRoot(colorPickerDiv)
+      div.render(
+        <AssetColorPicker
+          color={this.color}
+          updateColor={this.updateColor} />)
+    } else {
+      this.colorDialog.show()
+    }
   }
 
   update () {
@@ -77,11 +150,18 @@ class SMMAssets extends SMMRealtime {
   createAsset (assetName) {
     if (!(assetName in this.assetObjects)) {
       /* Create an overlay for this object */
-      const assetObject = new SMMAsset(this.missionId, assetName, this.color)
+      const assetObject = new SMMAsset(this.map, this.missionId, assetName, this.color)
       this.assetObjects[assetName] = assetObject
-      this.overlayAdd(assetName, assetObject.overlay())
+      assetObject.num = Math.round(Math.random() * 10000)
+      this.overlayAdd(`${assetName} <div id='assetNamePicker${assetObject.num}' />`, assetObject.overlay())
     }
-    return this.assetObjects[assetName]
+    const assetObject = this.assetObjects[assetName]
+    $(`#assetNamePicker${assetObject.num}`).on('click', assetObject.colorPicker)
+    $(`#assetNamePicker${assetObject.num}`).css('width', '15px')
+    $(`#assetNamePicker${assetObject.num}`).css('height', '15px')
+    $(`#assetNamePicker${assetObject.num}`).css('display', 'inline-block')
+    $(`#assetNamePicker${assetObject.num}`).css('background-color', assetObject.color)
+    return assetObject
   }
 
   createPopup (asset, layer) {
