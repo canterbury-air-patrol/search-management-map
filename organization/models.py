@@ -19,7 +19,7 @@ class Organization(models.Model):
         """
         role = ''
         try:
-            organization_member = OrganizationMember.objects.get(organization=self, user=user)
+            organization_member = OrganizationMember.objects.get(organization=self, user=user, removed__isnull=True)
             role = organization_member.user_role_name()
         except ObjectDoesNotExist:
             role = ''
