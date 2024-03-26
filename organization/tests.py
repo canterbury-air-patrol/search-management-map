@@ -76,6 +76,18 @@ class OrganizationTestCase(TestCase):
         response = client.post(organization_user_add_url, {'role': role})
         self.assertEqual(response.status_code, 200)
 
+    def del_user_from_org(self, organization=None, user=None, client=None):
+        """
+        Remove a user from the organization
+        """
+        if client is None:
+            client = self.client1
+        if organization is None:
+            organization = self.create_organization(client=client)
+        organization_user_del_url = f"/organization/{organization['id']}/user/{user}/"
+        response = client.delete(organization_user_del_url)
+        self.assertEqual(response.status_code, 200)
+
     def get_org_asset_list(self, organization=None, client=None):
         """
         Get the list of assets in an organization
@@ -211,6 +223,39 @@ class OrganizationTestCase(TestCase):
         # Check that user1 attempting to admin themself results in 403
         response = self.client1.post(organization_user_add_url, {'role': 'M'})
         self.assertEqual(response.status_code, 403)
+
+    def test_organization_user_remove(self):
+        """
+        Test adding then removing a user from an organization
+        """
+        # Check user 2 is not in any orgs
+        org_list = self.get_my_organizations(client=self.client2)
+        self.assertEqual(len(org_list), 0)
+        # Create an org and then add user2
+        org = self.create_organization(organization_name='org', client=self.client1)
+        self.add_user_to_org(organization=org, user=self.user2.username, client=self.client1)
+        org_list = self.get_my_organizations(client=self.client2)
+        self.assertEqual(len(org_list), 1)
+        self.assertEqual(org_list[0]['name'], 'org')
+        self.assertEqual(org_list[0]['role'], 'Member')
+        # Remove user 2 from the org and check they aren't seeing it anymore
+        self.del_user_from_org(organization=org, user=self.user2.username, client=self.client1)
+        org_list = self.get_my_organizations(client=self.client2)
+        self.assertEqual(len(org_list), 0)
+        # Check what happens when the user tries to access the organization they were deleted from
+        organization_details_url = f"/organization/{org['id']}/"
+        response = self.client2.get(organization_details_url)
+        self.assertEqual(response.status_code, 200)
+        response = self.client2.get(organization_details_url, headers={'HTTP_ACCEPT': 'application/json'})
+        self.assertEqual(response.status_code, 200)
+        # Re-add the user and check that nothing explodes
+        self.add_user_to_org(organization=org, user=self.user2.username, client=self.client1)
+        org_list = self.get_my_organizations(client=self.client2)
+        self.assertEqual(len(org_list), 1)
+        response = self.client2.get(organization_details_url)
+        self.assertEqual(response.status_code, 200)
+        response = self.client2.get(organization_details_url, headers={'HTTP_ACCEPT': 'application/json'})
+        self.assertEqual(response.status_code, 200)
 
     def test_organization_asset_add_list(self):
         """
