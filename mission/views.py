@@ -100,7 +100,7 @@ def mission_list_data(request):
     Provide data for all the missions this user is a member of
     """
     user_missions = MissionUser.objects.filter(user=request.user)
-    organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)])
+    organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.user_current(user=request.user)])
     organization_missions = organization_missions.exclude(mission__in=[user_mission.mission for user_mission in user_missions])
     organization_missions = organization_missions.distinct('mission')
 
@@ -292,6 +292,25 @@ def mission_asset_json(request, mission_user):
     return JsonResponse(data)
 
 
+def mission_asset_is_owner(mission_user, asset, user):
+    """
+    Is this user allowed to act on this asset in this mission?
+    """
+    if mission_user.is_admin():
+        return True
+
+    if asset.owner == user:
+        return True
+
+    om_list = OrganizationMember.user_current(user=user)
+    if len(om_list) > 0:
+        orgs_list = [organization_member.organization for organization_member in om_list]
+        if len(OrganizationAsset.objects.filter(asset=asset, organization__in=orgs_list).values_list('organization')) > 0:
+            return True
+
+    return False
+
+
 @login_required
 @mission_is_member
 def mission_asset_remove(request, mission_user, asset_id):
@@ -300,10 +319,9 @@ def mission_asset_remove(request, mission_user, asset_id):
     """
     asset = get_object_or_404(Asset, pk=asset_id)
     mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
-    if mission_user.is_admin() or \
-       mission_asset.asset.owner != request.user or \
-       OrganizationAsset.objects.filter(asset=asset, organization__in=[organization_member.organization for organization_member in OrganizationMember.objects.filter(user=request.user)]).values_list('organization'):
-        HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
+
+    if not mission_asset_is_owner(mission_user, asset, request.user):
+        return HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
     mission_asset.remover = request.user
     mission_asset.removed = timezone.now()
     mission_asset.save()
