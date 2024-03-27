@@ -231,6 +231,18 @@ class MissionOrganizationBaseTestCase(MissionBaseTestCase):
         response = client.post(organization_user_add_url, {'role': role})
         self.assertEqual(response.status_code, 200)
 
+    def del_user_from_org(self, organization=None, user=None, client=None):
+        """
+        Remove a user from the organization
+        """
+        if client is None:
+            client = self.client1
+        if organization is None:
+            organization = self.create_organization(client=client)
+        organization_user_del_url = f"/organization/{organization['id']}/user/{user}/"
+        response = client.delete(organization_user_del_url)
+        self.assertEqual(response.status_code, 200)
+
     def add_organization_to_mission(self, mission, organization):
         """
         Add an organization to a mission
@@ -289,10 +301,40 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         self.add_organization_to_mission(mission, org1)
         # Add the other user to the organization
         self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
-        # Check the other user can now see this mission yet
+        # Check the other user can now see this mission
         response = self.client2.get(mission_list_url)
         mission_data = json.loads(response.content)
         self.assertEqual(len(mission_data['missions']), 1)
+
+    def test_mission_organization_deleted_user(self):
+        """
+        Check that a user removed from an organization no longer sees missions that organization is a member of
+        """
+        mission_list_url = '/mission/list/'
+        # Create an organization, make both users a member
+        org1 = self.create_organization()
+        self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
+        # Check there are no missions in the list
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
+        # Create a mission and check it appears
+        mission = self.create_mission_by_url('test_mission_org_removed', mission_description='test description')
+        # Check the other user cant see this mission yet
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
+        # Add this organization to the mission
+        self.add_organization_to_mission(mission, org1)
+        # Check the other user can now see this mission
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 1)
+        # Remove the user from the organization, check it disappears for them
+        self.del_user_from_org(organization=org1, user=self.user2, client=self.client1)
+        response = self.client2.get(mission_list_url)
+        mission_data = json.loads(response.content)
+        self.assertEqual(len(mission_data['missions']), 0)
 
 
 class MissionAssetsTestCase(TestCase):
@@ -440,3 +482,49 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.status_code, 200)
         assets_data = json.loads(response.content)
         self.assertEqual(len(assets_data['assets']), 0)
+
+    def test_mission_organization_removed_users_add_del_asset(self):
+        """
+        Check that users removed from an organization cannot add/remove organization assets from a mission
+        """
+        # Create a mission
+        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        # Create an organization and add it to this mission
+        org1 = self.create_organization(client=self.client1)
+        # Add second user to organization
+        self.add_user_to_org(organization=org1, user=self.user2, client=self.client1, role='A')
+        # Add an asset to the organization
+        asset = self.create_asset(owner=self.user1)
+        self.add_asset_to_organization(asset=asset, organization=org1, client=self.client1)
+        # Add this organization to the mission
+        self.add_organization_to_mission(mission, org1)
+        # Check a user in the organization can add an organization asset
+        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
+        mission_assets_json = f'/mission/{mission.pk}/assets/json/'
+        response = self.client2.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        self.assertEqual(response.redirect_chain[0][1], 302)
+        # Check a user in the organization can remove the asset
+        mission_del_asset_url = f'/mission/{mission.pk}/assets/{asset.pk}/remove/'
+        response = self.client2.post(mission_del_asset_url, follow=True)
+        self.assertEqual(response.redirect_chain[0][1], 302)
+        response = self.client2.get(mission_assets_json)
+        self.assertEqual(response.status_code, 200)
+        assets_data = json.loads(response.content)
+        self.assertEqual(len(assets_data['assets']), 0)
+        # Remove the user from organization and try again
+        self.del_user_from_org(organization=org1, user=self.user2, client=self.client1)
+        response = self.client2.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        self.assertEqual(response.status_code, 404)
+        # Add the user to mission directly
+        mission_add_user_url = f'/mission/{mission.pk}/users/add/'
+        response = self.client1.post(mission_add_user_url, {'user': self.user2.pk})
+        self.assertEqual(response.status_code, 302)
+        # Try adding the asset
+        response = self.client2.post(mission_add_asset_url, {'asset': asset.pk})
+        self.assertEqual(response.status_code, 200)  # this is a failure, the form is being shown
+        # Add with a user that is actually allowed to
+        response = self.client1.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        self.assertEqual(response.redirect_chain[0][1], 302)
+        # Try removing the asset
+        response = self.client2.post(mission_del_asset_url)
+        self.assertEqual(response.status_code, 403)
