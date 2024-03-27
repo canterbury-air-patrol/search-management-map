@@ -30,7 +30,7 @@ def organization_details(request, organization_id):
     organization = get_object_or_404(Organization, pk=organization_id)
 
     # if json is requested, then send all the data this user is allowed to see
-    if "application/json" in request.META.get('HTTP_ACCEPT'):
+    if "application/json" in request.META.get('HTTP_ACCEPT', ''):
         organization_data = organization.as_object(request.user)
 
         organization_assets = OrganizationAsset.objects.filter(organization=organization, removed__isnull=True)
@@ -92,7 +92,7 @@ def organization_list_mine(request):
     if request.method != 'GET':
         return HttpResponseNotAllowed(['GET'])
 
-    organization_memberships = OrganizationMember.objects.filter(organization__deleted__isnull=True, user=request.user)
+    organization_memberships = OrganizationMember.user_current(user=request.user).filter(organization__deleted__isnull=True)
 
     return JsonResponse({'organizations': [om.organization.as_object(request.user) for om in organization_memberships]})
 
