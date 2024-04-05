@@ -12,6 +12,8 @@ from django.contrib.gis.db import models
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 
+from icons.models import Icon
+
 
 class AssetType(models.Model):
     """
@@ -23,6 +25,7 @@ class AssetType(models.Model):
     """
     name = models.CharField(max_length=50)
     description = models.TextField()
+    icon = models.ForeignKey(Icon, on_delete=models.SET_NULL, null=True, blank=True)
 
     def as_object(self):
         """
@@ -50,6 +53,17 @@ class Asset(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(get_user_model(), on_delete=models.SET_NULL, null=True, blank=True)
     asset_type = models.ForeignKey(AssetType, on_delete=models.PROTECT)
+    icon = models.ForeignKey(Icon, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def icon_url(self):
+        """
+        Return the icon url for this asset
+        """
+        if self.icon is not None:
+            return self.icon.get_url()
+        if self.asset_type.icon is not None:
+            return self.asset_type.icon.get_url()
+        return None
 
     def as_object(self):
         """
@@ -67,6 +81,9 @@ class Asset(models.Model):
             data['status'] = str(status.status)
             data['status_inop'] = status.status.inop
             data['status_since'] = status.since
+        icon_url = self.icon_url()
+        if icon_url is not None:
+            data['icon_url'] = icon_url
         return data
 
     def natural_key(self):

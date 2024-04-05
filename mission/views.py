@@ -304,6 +304,7 @@ def mission_asset_json(request, mission_user):
             'name': mission_asset.asset.name,
             'type_id': mission_asset.asset.asset_type.id,
             'type_name': mission_asset.asset.asset_type.name,
+            'icon_url': mission_asset.asset.icon_url(),
         })
     data = {
         'assets': assets_json,

@@ -137,9 +137,11 @@ class SMMAssets extends SMMRealtime {
     this.assetObjects = {}
     this.createPopup = this.createPopup.bind(this)
     this.assetUpdate = this.assetUpdate.bind(this)
+    this.assetLayer = this.assetLayer.bind(this)
     this.updateAssetNameMap = this.updateAssetNameMap.bind(this)
     this.assetListCB = this.assetListCB.bind(this)
     this.assetNameMap = {}
+    this.assetIconMap = {}
     window.setInterval(this.updateAssetNameMap, interval)
   }
 
@@ -151,6 +153,9 @@ class SMMAssets extends SMMRealtime {
     for (const assetIdx in data.assets) {
       const asset = data.assets[assetIdx]
       this.assetNameMap[asset.id] = asset.name
+      if (asset.icon_url !== undefined) {
+        this.assetIconMap[asset.id] = asset.icon_url
+      }
     }
   }
 
@@ -166,7 +171,8 @@ class SMMAssets extends SMMRealtime {
       interval: this.interval,
       onEachFeature: this.createPopup,
       updateFeature: this.assetUpdate,
-      getFeatureId: function (feature) { return feature.properties.asset }
+      getFeatureId: function (feature) { return feature.properties.asset },
+      pointToLayer: this.assetLayer
     })
   }
 
@@ -187,6 +193,12 @@ class SMMAssets extends SMMRealtime {
     $(`#assetNamePicker${assetId}`).css('display', 'inline-block')
     $(`#assetNamePicker${assetId}`).css('background-color', assetObject.color)
     return assetObject
+  }
+
+  getAssetIcon (assetId) {
+    if (!(assetId in this.assetIconMap)) {
+      return this.assetIconMap[assetId]
+    }
   }
 
   createPopup (asset, layer) {
@@ -221,6 +233,24 @@ class SMMAssets extends SMMRealtime {
     }
 
     return dl
+  }
+
+  assetLayer (asset, latlng) {
+    const iconUrl = this.getAssetIcon(asset.properties.id)
+    if (iconUrl) {
+      return L.marker(latlng, {
+        icon: L.icon({
+          iconUrl,
+          iconSize: [50, 50],
+          iconAnchor: [25, 50]
+        }, {
+          title: this.assetNameMap[asset.properties.id]
+        })
+      })
+    }
+    return L.marker(latlng, {
+      title: this.assetNameMap[asset.properties.id]
+    })
   }
 
   assetUpdate (asset, oldLayer) {
@@ -260,6 +290,20 @@ class SMMAssets extends SMMRealtime {
       if (oldLayer._icon.title !== this.assetNameMap[assetId]) {
         oldLayer._icon.title = this.assetNameMap[assetId]
       }
+
+      const currentIcon = oldLayer.getIcon()
+      if ((assetId in this.assetIconMap)) {
+        const iconUrl = this.assetIconMap[assetId]
+        if (currentIcon.options.iconUrl !== iconUrl) {
+          oldLayer.setIcon(L.icon({
+            iconUrl,
+            iconSize: [50, 50],
+            iconAnchor: [25, 50],
+            title: this.assetNameMap[assetId]
+          }))
+        }
+      }
+
       return oldLayer
     }
   }
