@@ -83,6 +83,8 @@ class AssetListPage extends React.Component {
     this.state = {
       knownAssets: []
     }
+
+    this.updateAssets = this.updateAssets.bind(this)
   }
 
   componentDidMount () {
@@ -97,16 +99,13 @@ class AssetListPage extends React.Component {
   }
 
   async updateData () {
-    const self = this
-    await $.get('/assets/mine/json/', function (data) {
-      self.updateAssets(data.assets)
-    })
+    await $.get('/assets/mine/json/', this.updateAssets)
   }
 
-  updateAssets (assets) {
+  updateAssets (data) {
     this.setState(function () {
       return {
-        knownAssets: assets
+        knownAssets: data.assets
       }
     })
   }
