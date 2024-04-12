@@ -270,7 +270,7 @@ class AssetUI extends React.Component {
       }
     }
 
-    this.currentCommand = this.currentCommand.bind(this)
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   currentCommand (data) {
@@ -290,16 +290,17 @@ class AssetUI extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.get(`/assets/${this.props.asset}/details/`, function (data) {
-      self.setState({
-        details: data
-      })
-      if ('last_command' in data) {
-        self.currentCommand(data.last_command)
-      }
+  updateDataResponse (data) {
+    this.setState({
+      details: data
     })
+    if ('last_command' in data) {
+      this.currentCommand(data.last_command)
+    }
+  }
+
+  async updateData () {
+    await $.get(`/assets/${this.props.asset}/details/`, this.updateDataResponse)
   }
 
   render () {

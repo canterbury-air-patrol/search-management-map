@@ -50,6 +50,8 @@ class SMMAsset {
     this.updateColor = this.updateColor.bind(this)
     this.colorPicker = this.colorPicker.bind(this)
     this.closeColorPicker = this.closeColorPicker.bind(this)
+    this.updateNewRoute = this.updateNewRoute.bind(this)
+    this.updateFailed = this.updateFailed.bind(this)
   }
 
   overlay () {
@@ -93,6 +95,21 @@ class SMMAsset {
     }
   }
 
+  updateNewRoute (route) {
+    for (const f in route.features) {
+      const lon = route.features[f].geometry.coordinates[0]
+      const lat = route.features[f].geometry.coordinates[1]
+      this.path.push(L.latLng(lat, lon))
+      this.lastUpdate = route.features[f].properties.created_at
+    }
+    this.polyline.setLatLngs(this.path)
+    this.updating = false
+  }
+
+  updateFailed () {
+    this.updating = false
+  }
+
   update () {
     if (this.updating) { return }
     this.updating = true
@@ -102,23 +119,11 @@ class SMMAsset {
       assetUrl = `${assetUrl}&from=${this.lastUpdate}`
     }
 
-    const self = this
     $.ajax({
       type: 'GET',
       url: assetUrl,
-      success: function (route) {
-        for (const f in route.features) {
-          const lon = route.features[f].geometry.coordinates[0]
-          const lat = route.features[f].geometry.coordinates[1]
-          self.path.push(L.latLng(lat, lon))
-          self.lastUpdate = route.features[f].properties.created_at
-        }
-        self.polyline.setLatLngs(self.path)
-        self.updating = false
-      },
-      error: function () {
-        self.updating = false
-      }
+      success: this.updateNewRoute,
+      error: this.updateFailed
     })
   }
 }
@@ -128,6 +133,8 @@ class SMMAssets extends SMMRealtime {
     super(map, csrftoken, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
+    this.createPopup = this.createPopup.bind(this)
+    this.assetUpdate = this.assetUpdate.bind(this)
   }
 
   getUrl () {
@@ -135,14 +142,13 @@ class SMMAssets extends SMMRealtime {
   }
 
   realtime () {
-    const self = this
     return L.realtime({
       url: this.getUrl(),
       type: 'json'
     }, {
       interval: this.interval,
-      onEachFeature: function (asset, layer) { self.createPopup(asset, layer) },
-      updateFeature: function (asset, oldLayer) { return self.assetUpdate(asset, oldLayer) },
+      onEachFeature: this.createPopup,
+      updateFeature: this.assetUpdate,
       getFeatureId: function (feature) { return feature.properties.asset }
     })
   }
