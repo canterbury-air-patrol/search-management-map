@@ -26,9 +26,9 @@ import './SearchAdder/SearchAdder.js'
 import './MarineVectors/MarineVectors.js'
 
 import { SMMSearchComplete, SMMSearchInprogress, SMMSearchNotStarted } from './search/map.js'
-import { SMMPOI } from './usergeo/poi.js'
-import { SMMPolygon } from './usergeo/polygon.js'
-import { SMMLine } from './usergeo/line.js'
+import { SMMPOIs } from './usergeo/poi.js'
+import { SMMPolygons } from './usergeo/polygon.js'
+import { SMMLines } from './usergeo/line.js'
 import { SMMImageAll, SMMImageImportant } from './image/map.js'
 import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
@@ -122,13 +122,13 @@ class SMMMap {
     this.users = new SMMUserPositions(this.map, this.csrftoken, this.missionId, userUpdateFreq, 'red', this.overlayAddUser)
     this.overlayAdd('Users', this.users.realtime().addTo(this.map))
 
-    this.POIs = new SMMPOI(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.POIs = new SMMPOIs(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('POIs', this.POIs.realtime().addTo(this.map))
 
-    this.polygons = new SMMPolygon(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.polygons = new SMMPolygons(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('Polygons', this.polygons.realtime().addTo(this.map))
 
-    this.lines = new SMMLine(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.lines = new SMMLines(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('Lines', this.lines.realtime().addTo(this.map))
 
     this.notStartedSearches = new SMMSearchNotStarted(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')

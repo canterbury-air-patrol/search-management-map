@@ -30,6 +30,8 @@ class UserGeoDetailsPage extends React.Component {
       data: null,
       geometry: null
     }
+
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -43,14 +45,15 @@ class UserGeoDetailsPage extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.get(`/data/${this.props.userGeoType}/${this.props.userGeoId}/json/`, function (data) {
-      self.setState({
-        data: data.features['0'].properties,
-        geometry: data.features['0'].geometry
-      })
+  updateDataResponse (data) {
+    this.setState({
+      data: data.features['0'].properties,
+      geometry: data.features['0'].geometry
     })
+  }
+
+  async updateData () {
+    await $.get(`/data/${this.props.userGeoType}/${this.props.userGeoId}/json/`, this.updateDataResponse)
   }
 
   render () {
