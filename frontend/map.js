@@ -47,7 +47,33 @@ class SMMMap {
     this.overlayAdd = this.overlayAdd.bind(this)
     this.overlayAddAsset = this.overlayAddAsset.bind(this)
     this.overlayAddUser = this.overlayAddUser.bind(this)
+    this.mapLayersCallback = this.mapLayersCallback.bind(this)
     this.setupMap()
+  }
+
+  mapLayersCallback (data) {
+    let baseSelected = false
+    for (const d in data.layers) {
+      const layer = data.layers[d]
+      const options = {
+        attribution: layer.attribution,
+        minZoom: layer.minZoom,
+        maxZoom: layer.maxZoom
+      }
+      if (layer.subdomains !== '') {
+        options.subdomains = layer.subdomains
+      }
+      const tileLayer = L.tileLayer(layer.url, options)
+      if (layer.base) {
+        this.layerControlMaps.addBaseLayer(tileLayer, layer.name)
+        if (!baseSelected) {
+          tileLayer.addTo(this.map)
+          baseSelected = true
+        }
+      } else {
+        this.layerControlMaps.addOverlay(tileLayer, layer.name)
+      }
+    }
   }
 
   setupMap () {
@@ -55,32 +81,7 @@ class SMMMap {
     L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
 
-    const self = this
-
-    $.get('/map/tile/layers/', function (data) {
-      let baseSelected = false
-      for (const d in data.layers) {
-        const layer = data.layers[d]
-        const options = {
-          attribution: layer.attribution,
-          minZoom: layer.minZoom,
-          maxZoom: layer.maxZoom
-        }
-        if (layer.subdomains !== '') {
-          options.subdomains = layer.subdomains
-        }
-        const tileLayer = L.tileLayer(layer.url, options)
-        if (layer.base) {
-          self.layerControlMaps.addBaseLayer(tileLayer, layer.name)
-          if (!baseSelected) {
-            tileLayer.addTo(self.map)
-            baseSelected = true
-          }
-        } else {
-          self.layerControlMaps.addOverlay(tileLayer, layer.name)
-        }
-      }
-    })
+    $.get('/map/tile/layers/', this.mapLayersCallback)
 
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)
