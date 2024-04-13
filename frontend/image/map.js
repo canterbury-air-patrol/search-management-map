@@ -7,15 +7,20 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 
 class SMMImage extends SMMRealtime {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+
+    this.createPopup = this.createPopup.bind(this)
+  }
+
   realtime () {
-    const self = this
     return L.realtime({
       url: this.getUrl(),
       type: 'json'
     }, {
       interval: this.interval,
       color: this.color,
-      onEachFeature: function (feature, layer) { self.createPopup(feature, layer) },
+      onEachFeature: this.createPopup,
       getFeatureId: function (feature) { return feature.properties.pk },
       pointToLayer: function (feature, latlng) {
         return L.marker(latlng, {
@@ -91,12 +96,22 @@ class SMMImage extends SMMRealtime {
 }
 
 class SMMImageAll extends SMMImage {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+    this.getUrl = this.getUrl.bind(this)
+  }
+
   getUrl () {
     return `/mission/${this.missionId}/image/list/all/`
   }
 }
 
 class SMMImageImportant extends SMMImage {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+    this.getUrl = this.getUrl.bind(this)
+  }
+
   getUrl () {
     return `/mission/${this.missionId}/image/list/important/`
   }
