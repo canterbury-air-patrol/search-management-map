@@ -7,22 +7,41 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 import { SMMRealtime } from '../smmmap'
 
-class SMMPOI extends SMMRealtime {
-  getUrl () {
-    return `/mission/${this.missionId}/data/pois/current/`
+class SMMPOI {
+  constructor (parent, poi) {
+    this.parent = parent
+    this.coords = poi.geometry.coordinates
+    this.POILabel = poi.properties.label
+    this.poiID = poi.properties.pk
+    this.editCallback = this.editCallback.bind(this)
+    this.deleteCallback = this.deleteCallback.bind(this)
+    this.createSearchCallback = this.createSearchCallback.bind(this)
+    this.calculateTDVCallback = this.calculateTDVCallback.bind(this)
   }
 
-  createPopup (poi, layer) {
-    const POILabel = poi.properties.label
-    const poiID = poi.properties.pk
-    const coords = poi.geometry.coordinates
+  editCallback () {
+    L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.poiID, this.POILabel)
+  }
 
+  deleteCallback () {
+    $.get(`/data/pois/${this.poiID}/delete/`)
+  }
+
+  createSearchCallback () {
+    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'point', this.poiID)
+  }
+
+  calculateTDVCallback () {
+    L.MarineVectors(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.POILabel, L.latLng(this.coords[1], this.coords[0]), this.poiID)
+  }
+
+  createPopup (layer) {
     const popupContent = document.createElement('div')
 
     const data = [
-      ['POI', POILabel],
-      ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
+      ['POI', this.POILabel],
+      ['Lat', degreesToDM(this.coords[1], true)],
+      ['Long', degreesToDM(this.coords[0])]
     ]
 
     for (const d in data) {
@@ -41,33 +60,31 @@ class SMMPOI extends SMMRealtime {
       popupContent.appendChild(dl)
     }
 
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-
-      popupContent.appendChild(this.createButtonGroup([
+    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
+      popupContent.appendChild(this.parent.createButtonGroup([
         {
           label: 'Move',
-          onclick: function () { L.POIAdder(self.map, self.missionId, self.csrftoken, L.latLng(coords[1], coords[0]), poiID, POILabel) },
+          onclick: this.editCallback,
           'btn-class': 'btn-light'
         },
         {
           label: 'Delete',
-          onclick: function () { $.get(`/data/pois/${poiID}/delete/`) },
+          onclick: this.deleteCallback,
           'btn-class': 'btn-danger'
         },
         {
           label: 'Create Search',
-          onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'point', poiID) },
+          onclick: this.createSearchCallback,
           'btn-class': 'btn-light'
         },
         {
           label: 'Calculate TDV',
-          onclick: function () { L.MarineVectors(self.map, self.missionId, self.csrftoken, POILabel, L.latLng(coords[1], coords[0]), poiID) },
+          onclick: this.calculateTDVCallback,
           'btn-class': 'btn-light'
         },
         {
           label: 'Details',
-          href: `/data/pois/${poiID}/details/`,
+          href: `/data/pois/${this.poiID}/details/`,
           'btn-class': 'btn-light'
         }
       ]))
@@ -77,4 +94,27 @@ class SMMPOI extends SMMRealtime {
   }
 }
 
-export { SMMPOI }
+class SMMPOIs extends SMMRealtime {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+    this.poiObjects = {}
+  }
+
+  getUrl () {
+    return `/mission/${this.missionId}/data/pois/current/`
+  }
+
+  getObject (pk, poi) {
+    if (!(pk in this.poiObjects)) {
+      const poiObject = new SMMPOI(this, poi)
+      this.poiObjects[pk] = poiObject
+    }
+    return this.poiObjects[pk]
+  }
+
+  createPopup (poi, layer) {
+    this.getObject(poi.properties.pk, poi).createPopup(layer)
+  }
+}
+
+export { SMMPOIs }

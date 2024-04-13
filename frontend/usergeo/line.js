@@ -4,16 +4,30 @@ import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
 
-class SMMLine extends SMMRealtime {
-  getUrl () {
-    return `/mission/${this.missionId}/data/userlines/current/`
+class SMMLine {
+  constructor (parent, line) {
+    this.parent = parent
+    this.coords = line.geometry.coordinates
+    this.LineLabel = line.properties.label
+    this.LineID = line.properties.pk
+    this.editCallback = this.editCallback.bind(this)
+    this.deleteCallback = this.deleteCallback.bind(this)
+    this.createSearchCallback = this.createSearchCallback.bind(this)
   }
 
-  createPopup (line, layer) {
-    const LineLabel = line.properties.label
-    const LineID = line.properties.pk
-    const coords = line.geometry.coordinates
+  editCallback () {
+    L.LineAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.coords.map(x => L.latLng(x[1], x[0])), this.LineID, this.LineLabel)
+  }
 
+  deleteCallback () {
+    $.get(`/data/userlines/${this.LineID}/delete/`)
+  }
+
+  createSearchCallback () {
+    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'line', this.LineID)
+  }
+
+  createPopup (layer) {
     const popupContent = document.createElement('div')
     const dl = document.createElement('dl')
     dl.className = 'line row'
@@ -23,31 +37,30 @@ class SMMLine extends SMMRealtime {
     dl.appendChild(dt)
     const dd = document.createElement('dd')
     dd.className = 'line-name col-sm-9'
-    dd.textContent = LineLabel
+    dd.textContent = this.LineLabel
     dl.appendChild(dd)
     popupContent.appendChild(dl)
 
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const self = this
-      popupContent.appendChild(this.createButtonGroup([
+    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
+      popupContent.appendChild(this.parent.createButtonGroup([
         {
           label: 'Edit',
-          onclick: function () { L.LineAdder(self.map, self.missionId, self.csrftoken, coords.map(x => L.latLng(x[1], x[0])), LineID, LineLabel) },
+          onclick: this.editCallback,
           'btn-class': 'btn-light'
         },
         {
           label: 'Delete',
-          onclick: function () { $.get(`/data/userlines/${LineID}/delete/`) },
+          onclick: this.deleteCallback,
           'btn-class': 'btn-danger'
         },
         {
           label: 'Create Search',
-          onclick: function () { L.SearchAdder(self.map, self.csrftoken, 'line', LineID) },
+          onclick: this.createSearchCallback,
           'btn-class': 'btn-light'
         },
         {
           label: 'Details',
-          href: `/data/userlines/${LineID}/details/`,
+          href: `/data/userlines/${this.LineID}/details/`,
           'btn-class': 'btn-light'
         }
       ]))
@@ -57,4 +70,27 @@ class SMMLine extends SMMRealtime {
   }
 }
 
-export { SMMLine }
+class SMMLines extends SMMRealtime {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+    this.lineObjects = {}
+  }
+
+  getUrl () {
+    return `/mission/${this.missionId}/data/userlines/current/`
+  }
+
+  getObject (pk, line) {
+    if (!(pk in this.lineObjects)) {
+      const lineObject = new SMMLine(this, line)
+      this.lineObjects[pk] = lineObject
+    }
+    return this.lineObjects[pk]
+  }
+
+  createPopup (line, layer) {
+    this.getObject(line.properties.pk, line).createPopup(layer)
+  }
+}
+
+export { SMMLines }
