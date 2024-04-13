@@ -14,10 +14,27 @@ class SMMUserPosition {
     this.path = []
     this.updating = false
     this.polyline = L.polyline([], { color: this.color })
+    this.updateNewPosition = this.updateNewPosition.bind(this)
+    this.updateError = this.updateError.bind(this)
   }
 
   overlay () {
     return this.polyline
+  }
+
+  updateNewPosition (route) {
+    for (const f in route.features) {
+      const lon = route.features[f].geometry.coordinates[0]
+      const lat = route.features[f].geometry.coordinates[1]
+      this.path.push(L.latLng(lat, lon))
+      this.lastUpdate = route.features[f].properties.created_at
+    }
+    this.polyline.setLatLngs(this.path)
+    this.updating = false
+  }
+
+  updateError () {
+    this.updating = false
   }
 
   update () {
@@ -29,23 +46,11 @@ class SMMUserPosition {
       userUrl = `${userUrl}&from=${this.lastUpdate}`
     }
 
-    const self = this
     $.ajax({
       type: 'GET',
       url: userUrl,
-      success: function (route) {
-        for (const f in route.features) {
-          const lon = route.features[f].geometry.coordinates[0]
-          const lat = route.features[f].geometry.coordinates[1]
-          self.path.push(L.latLng(lat, lon))
-          self.lastUpdate = route.features[f].properties.created_at
-        }
-        self.polyline.setLatLngs(self.path)
-        self.updating = false
-      },
-      error: function () {
-        self.updating = false
-      }
+      success: this.updateNewPosition,
+      error: this.updateError
     })
   }
 }
@@ -55,6 +60,8 @@ class SMMUserPositions extends SMMRealtime {
     super(map, csrftoken, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
+    this.createPopup = this.createPopup.bind(this)
+    this.userUpdate = this.userUpdate.bind(this)
   }
 
   getUrl () {
@@ -62,14 +69,13 @@ class SMMUserPositions extends SMMRealtime {
   }
 
   realtime () {
-    const self = this
     return L.realtime({
       url: this.getUrl(),
       type: 'json'
     }, {
       interval: this.interval,
-      onEachFeature: function (user, layer) { self.createPopup(user, layer) },
-      updateFeature: function (user, oldLayer) { return self.userUpdate(user, oldLayer) },
+      onEachFeature: this.createPopup,
+      updateFeature: this.userUpdate,
       getFeatureId: function (feature) { return feature.properties.user }
     })
   }
