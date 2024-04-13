@@ -11,14 +11,13 @@ class SMMRealtime {
   }
 
   realtime () {
-    const self = this
     return L.realtime({
       url: this.getUrl(),
       type: 'json'
     }, {
       interval: this.interval,
       color: this.color,
-      onEachFeature: function (feature, layer) { self.createPopup(feature, layer) },
+      onEachFeature: this.createPopup,
       getFeatureId: function (feature) { return feature.properties.pk }
     })
   }

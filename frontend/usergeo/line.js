@@ -74,6 +74,7 @@ class SMMLines extends SMMRealtime {
   constructor (map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
     this.lineObjects = {}
+    this.createPopup = this.createPopup.bind(this)
   }
 
   getUrl () {
