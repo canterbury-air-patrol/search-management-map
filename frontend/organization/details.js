@@ -17,17 +17,19 @@ class OrganizationMemberRow extends React.Component {
     this.delete = this.delete.bind(this)
     this.updateSelectedRole = this.updateSelectedRole.bind(this)
     this.saveChanges = this.saveChanges.bind(this)
+    this.setXHR = this.setXHR.bind(this)
+  }
+
+  setXHR (xhr) {
+    xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
   }
 
   delete () {
     const organizationMember = this.props.organization_member
-    const self = this
     $.ajax({
       url: `/organization/${this.props.organizationId}/user/${organizationMember.user}/`,
       type: 'DELETE',
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader('X-CSRFToken', self.props.csrftoken)
-      }
+      beforeSend: this.setXHR
     })
   }
 
@@ -159,6 +161,8 @@ class OrganizationMemberAdd extends React.Component {
 
     this.updateSelectedUser = this.updateSelectedUser.bind(this)
     this.addOrganizationMember = this.addOrganizationMember.bind(this)
+    this.updateDataResponse = this.updateDataResponse.bind(this)
+    this.addOrgMemberCallback = this.addOrgMemberCallback.bind(this)
   }
 
   componentDidMount () {
@@ -172,19 +176,20 @@ class OrganizationMemberAdd extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.getJSON(`/organization/${this.props.organizationId}/users/notmember/`, function (data) {
-      self.setState(function (oldState) {
-        const newState = {
-          userList: data.users
-        }
-        if (oldState.userId === null && data.users.length > 0) {
-          newState.userId = data.users[0].id
-        }
-        return newState
-      })
+  updateDataResponse (data) {
+    this.setState(function (oldState) {
+      const newState = {
+        userList: data.users
+      }
+      if (oldState.userId === null && data.users.length > 0) {
+        newState.userId = data.users[0].id
+      }
+      return newState
     })
+  }
+
+  async updateData () {
+    await $.getJSON(`/organization/${this.props.organizationId}/users/notmember/`, this.updateDataResponse)
   }
 
   updateSelectedUser (event) {
@@ -194,12 +199,13 @@ class OrganizationMemberAdd extends React.Component {
     this.setState({ userId: value })
   }
 
+  addOrgMemberCallback () {
+    this.setState({ memberId: null })
+  }
+
   addOrganizationMember () {
-    const self = this
     const user = this.state.userList.find(user => user.id === this.state.userId)
-    $.post(`/organization/${this.props.organizationId}/user/${user.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
-      self.setState({ memberId: null })
-    })
+    $.post(`/organization/${this.props.organizationId}/user/${user.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgMemberCallback)
   }
 
   render () {
@@ -277,6 +283,8 @@ class OrganizationAssetAdd extends React.Component {
 
     this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
     this.addOrganizationAsset = this.addOrganizationAsset.bind(this)
+    this.updateDataResponse = this.updateDataResponse.bind(this)
+    this.addOrgAssetCallback = this.addOrgAssetCallback.bind(this)
   }
 
   componentDidMount () {
@@ -290,19 +298,20 @@ class OrganizationAssetAdd extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.getJSON('/assets/mine/json/', function (data) {
-      self.setState(function (oldState) {
-        const newState = {
-          assetList: data.assets
-        }
-        if (oldState.assetId === null && data.assets.length > 0) {
-          newState.assetId = data.assets[0].id
-        }
-        return newState
-      })
+  updateDataResponse (data) {
+    this.setState(function (oldState) {
+      const newState = {
+        assetList: data.assets
+      }
+      if (oldState.assetId === null && data.assets.length > 0) {
+        newState.assetId = data.assets[0].id
+      }
+      return newState
     })
+  }
+
+  async updateData () {
+    await $.getJSON('/assets/mine/json/', this.updateDataResponse)
   }
 
   updateSelectedAsset (event) {
@@ -312,11 +321,12 @@ class OrganizationAssetAdd extends React.Component {
     this.setState({ assetId: value })
   }
 
+  addOrgAssetCallback () {
+    this.setState({ assetId: null })
+  }
+
   addOrganizationAsset () {
-    const self = this
-    $.post(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, function () {
-      self.setState({ assetId: null })
-    })
+    $.post(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgAssetCallback)
   }
 
   render () {
@@ -358,6 +368,8 @@ class OrganizationDetailsPage extends React.Component {
         assets: []
       }
     }
+
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -371,15 +383,16 @@ class OrganizationDetailsPage extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.getJSON(`/organization/${this.props.organizationId}/`, function (data) {
-      self.setState(function () {
-        return {
-          organizationDetails: data
-        }
-      })
+  updateDataResponse (data) {
+    this.setState(function () {
+      return {
+        organizationDetails: data
+      }
     })
+  }
+
+  async updateData () {
+    await $.getJSON(`/organization/${this.props.organizationId}/`, this.updateDataResponse)
   }
 
   render () {

@@ -87,6 +87,7 @@ class OrganizationAdd extends React.Component {
 
     this.updateOrganizationName = this.updateOrganizationName.bind(this)
     this.createOrganization = this.createOrganization.bind(this)
+    this.createOrgCallback = this.createOrgCallback.bind(this)
   }
 
   updateOrganizationName (event) {
@@ -96,11 +97,12 @@ class OrganizationAdd extends React.Component {
     this.setState({ organizationName: value })
   }
 
+  createOrgCallback () {
+    this.setState({ organizationName: '' })
+  }
+
   createOrganization () {
-    const self = this
-    $.post('/organization/create/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, function () {
-      self.setState({ organizationName: '' })
-    })
+    $.post('/organization/create/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
   }
 
   render () {
@@ -133,6 +135,8 @@ class OrganizationListPage extends React.Component {
     this.state = {
       knownOrganizations: []
     }
+
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -146,15 +150,16 @@ class OrganizationListPage extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.get('/organization/list/all/', function (data) {
-      self.setState(function () {
-        return {
-          knownOrganizations: data.organizations
-        }
-      })
+  updateDataResponse (data) {
+    this.setState(function () {
+      return {
+        knownOrganizations: data.organizations
+      }
     })
+  }
+
+  async updateData () {
+    await $.get('/organization/list/all/', this.updateDataResponse)
   }
 
   render () {
