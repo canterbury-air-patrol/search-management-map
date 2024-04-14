@@ -145,6 +145,7 @@ class MissionListPage extends React.Component {
       knownActiveMissions: [],
       knownCompletedMissions: []
     }
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -158,11 +159,12 @@ class MissionListPage extends React.Component {
     this.timer = null
   }
 
+  updateDataResponse (data) {
+    this.updateMissions(data.missions)
+  }
+
   async updateData () {
-    const self = this
-    await $.get('/mission/list/', function (data) {
-      self.updateMissions(data.missions)
-    })
+    await $.get('/mission/list/', this.updateDataResponse)
   }
 
   updateMissions (missions) {
