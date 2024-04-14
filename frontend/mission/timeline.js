@@ -56,6 +56,7 @@ export class MissionTimeLine extends React.Component {
       missionData: null,
       missionClosed: false
     }
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -69,15 +70,16 @@ export class MissionTimeLine extends React.Component {
     this.timer = null
   }
 
+  updateDataResponse (data) {
+    this.updateTimeline(data.timeline)
+    this.updateMission(data.mission)
+    if (!this.state.missionClosed && data.mission.closed !== null) {
+      this.setMissionClosed()
+    }
+  }
+
   async updateData () {
-    const self = this
-    await $.get(`/mission/${this.props.missionId}/timeline/json/`, function (data) {
-      self.updateTimeline(data.timeline)
-      self.updateMission(data.mission)
-      if (!self.state.missionClosed && data.mission.closed !== null) {
-        self.setMissionClosed()
-      }
-    })
+    await $.get(`/mission/${this.props.missionId}/timeline/json/`, this.updateDataResponse)
   }
 
   updateTimeline (timelineEntries) {
