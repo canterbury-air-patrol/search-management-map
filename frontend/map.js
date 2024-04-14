@@ -25,7 +25,7 @@ import './ImageUploader/ImageUploader.js'
 import './SearchAdder/SearchAdder.js'
 import './MarineVectors/MarineVectors.js'
 
-import { SMMSearchComplete, SMMSearchInprogress, SMMSearchNotStarted } from './search/map.js'
+import { SMMSearchesComplete, SMMSearchesInprogress, SMMSearchesNotStarted } from './search/map.js'
 import { SMMPOIs } from './usergeo/poi.js'
 import { SMMPolygons } from './usergeo/polygon.js'
 import { SMMLines } from './usergeo/line.js'
@@ -131,9 +131,9 @@ class SMMMap {
     this.lines = new SMMLines(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('Lines', this.lines.realtime().addTo(this.map))
 
-    this.notStartedSearches = new SMMSearchNotStarted(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
-    this.inprogressSearches = new SMMSearchInprogress(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
-    this.completeSearches = new SMMSearchComplete(this.map, this.csrftoken, this.missionId, searchCompleteUpdateFreq, defaultColor)
+    this.notStartedSearches = new SMMSearchesNotStarted(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
+    this.inprogressSearches = new SMMSearchesInprogress(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
+    this.completeSearches = new SMMSearchesComplete(this.map, this.csrftoken, this.missionId, searchCompleteUpdateFreq, defaultColor)
 
     this.overlayAdd('Pending Searches', this.notStartedSearches.realtime().addTo(this.map))
     this.overlayAdd('Inprogress Searches', this.inprogressSearches.realtime().addTo(this.map))

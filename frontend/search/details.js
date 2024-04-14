@@ -119,6 +119,7 @@ class SearchDetailsPage extends React.Component {
       search: null,
       geometry: null
     }
+    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount () {
@@ -132,16 +133,17 @@ class SearchDetailsPage extends React.Component {
     this.timer = null
   }
 
-  async updateData () {
-    const self = this
-    await $.get(`/search/${this.props.searchId}/json/`, function (data) {
-      const search = createSearch(data.features['0'].properties)
-      self.setState({
-        data: data.features['0'].properties,
-        search,
-        geometry: data.features['0'].geometry
-      })
+  updateDataResponse (data) {
+    const search = createSearch(data.features['0'].properties)
+    this.setState({
+      data: data.features['0'].properties,
+      search,
+      geometry: data.features['0'].geometry
     })
+  }
+
+  async updateData () {
+    await $.get(`/search/${this.props.searchId}/json/`, this.updateDataResponse)
   }
 
   render () {

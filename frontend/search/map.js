@@ -5,7 +5,41 @@ import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
 
-class SMMSearch extends SMMRealtime {
+class SMMSearch {
+  constructor (parent, search) {
+    this.parent = parent
+    this.SearchID = search.properties.pk
+    this.SweepWidth = search.properties.sweep_width
+    this.AssetType = search.properties.created_for
+    this.SearchType = search.properties.search_type
+    this.QueuedAt = search.properties.queued_at
+    this.QueuedForAsset = search.properties.queued_for_asset
+    this.CreatedFor = search.properties.created_for
+    this.InprogressBy = search.properties.inprogress_by
+    this.InprogressAt = search.properties.inprogress_at
+    this.CompletedBy = search.properties.completed_by
+    this.CompletedAt = search.properties.completed_at
+
+    this.deleteCallback = this.deleteCallback.bind(this)
+    this.searchQueueAssetListCallback = this.searchQueueAssetListCallback.bind(this)
+    this.searchQueueSubmit = this.searchQueueSubmit.bind(this)
+    this.searchQueueDestroy = this.searchQueueDestroy.bind(this)
+    this.searchQueueUpdateSelectType = this.searchQueueUpdateSelectType.bind(this)
+    this.searchQueueDialog = this.searchQueueDialog.bind(this)
+  }
+
+  deleteCallback () {
+    $.get(`/search/${this.SearchID}/delete/`)
+  }
+
+  createDetailsButton () {
+    return {
+      label: 'Details',
+      href: `/search/${this.SearchID}/details/`,
+      'btn-class': 'btn-light'
+    }
+  }
+
   searchDataToPopUp (data) {
     const dl = document.createElement('dl')
     dl.className = 'search-data row'
@@ -24,191 +58,178 @@ class SMMSearch extends SMMRealtime {
     return dl
   }
 
-  createDetailsButton (SearchID) {
-    return {
-      label: 'Details',
-      href: `/search/${SearchID}/details/`,
-      'btn-class': 'btn-light'
+  searchQueueAssetListCallback (data) {
+    if ('assets' in data) {
+      for (const at in data.assets) {
+        if (data.assets[at].type_name === this.AssetType) {
+          $(`#queue_${this.SearchID}_select_asset`).append(`<option value='${data.assets[at].id}'>${data.assets[at].name}</option>`)
+        }
+      }
     }
+  }
+
+  searchQueueDestroy () {
+    this.QueueDialog.destroy()
+    this.QueueDialog = null
+  }
+
+  searchQueueSubmit () {
+    const data = [{
+      name: 'csrfmiddlewaretoken',
+      value: this.parent.csrftoken
+    }]
+    if ($(`#queue_${this.SearchID}_select_type`).val() === 'asset') {
+      data.push({
+        name: 'asset',
+        value: $(`#queue_${this.SearchID}_select_asset`).val()
+      })
+    }
+    $.post(`/search/${this.SearchID}/queue/`, data, this.searchQueueDestroy)
+  }
+
+  searchQueueUpdateSelectType () {
+    if ($(`#queue_${this.SearchID}_select_type`).val() === 'type') {
+      $(`#queue_${this.SearchID}_select_asset`).hide()
+    } else {
+      $(`#queue_${this.SearchID}_select_asset`).show()
+    }
+  }
+
+  searchQueueDialog () {
+    const contents = [
+      `<div>Queue for <select id='queue_${this.SearchID}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
+      `<div><select id='queue_${this.SearchID}_select_asset'></select></div>`,
+      `<div><button class='btn btn-light' id='queue_${this.SearchID}_queue'>Queue</button></div>`,
+      `<div><button class='btn btn-danger' id='queue_${this.SearchID}_cancel'>Cancel</button>`
+    ].join('')
+    this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.parent.map).hideClose()
+    $(`#queue_${this.SearchID}_select_asset`).hide()
+    $.get(`/mission/${this.parent.missionId}/assets/json/`, this.searchQueueAssetListCallback)
+    $(`#queue_${this.SearchID}_select_type`).on('change', this.searchQueueUpdateSelectType)
+    $(`#queue_${this.SearchID}_queue`).on('click', this.searchQueueSubmit)
+    $(`#queue_${this.SearchID}_cancel`).on('click', this.searchQueueDestroy)
+  }
+
+  createPopup (layer) {
+    const data = [
+      { css: 'type', label: 'Search Type', value: this.SearchType },
+      { css: 'status', label: 'Status', value: this.parent.searchStatus(this) },
+      { css: 'sweep-width', label: 'Sweep Width', value: this.SweepWidth + 'm' },
+      { css: 'asset-type', label: 'Asset Type', value: this.AssetType }
+    ]
+
+    if (this.CompletedBy) {
+      data.push({
+        css: 'completed',
+        label: 'Completed By',
+        value: this.CompletedBy
+      })
+    } else if (this.InprogressBy) {
+      data.push({
+        css: 'inprogress',
+        label: 'Inprogress By',
+        value: this.InprogressBy
+      })
+    }
+    if (this.InprogressAt) {
+      data.push({
+        css: 'inprogress',
+        label: 'Search Started',
+        value: this.InprogressAt
+      })
+    }
+    if (this.CompletedAt) {
+      data.push({
+        css: 'completed',
+        label: 'Search Completed',
+        value: this.CompletedAt
+      })
+    }
+
+    const popupContent = document.createElement('div')
+    popupContent.appendChild(this.searchDataToPopUp(data))
+
+    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
+      const buttonData = []
+      if (!this.InprogressAt) {
+        buttonData.push({
+          label: 'Delete',
+          onclick: this.deleteCallback,
+          'btn-class': 'btn-danger'
+        })
+      }
+      if (!this.QueuedAt && !this.InprogressAt) {
+        buttonData.push({
+          label: 'Queue',
+          onclick: this.searchQueueDialog,
+          'btn-class': 'btn-light'
+        })
+      }
+      buttonData.push(this.createDetailsButton())
+      popupContent.appendChild(this.parent.createButtonGroup(buttonData))
+    }
+    layer.bindPopup(popupContent, { minWidth: 200 })
   }
 }
 
-class SMMSearchNotStarted extends SMMSearch {
+class SMMSearches extends SMMRealtime {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+
+    this.searchObjects = {}
+    this.createPopup = this.createPopup.bind(this)
+  }
+
+  getObject (pk, search) {
+    if (!(pk in this.searchObjects)) {
+      const searchObject = new SMMSearch(this, search)
+      this.searchObjects[pk] = searchObject
+    }
+    return this.searchObjects[pk]
+  }
+
+  createPopup (search, layer) {
+    this.getObject(search.properties.pk, search).createPopup(layer)
+  }
+}
+
+class SMMSearchesNotStarted extends SMMSearches {
   getUrl () {
     return `/mission/${this.missionId}/search/notstarted/`
   }
 
-  searchStatusIncomplete (search) {
-    const QueuedAt = search.properties.queued_at
-    const QueuedForAsset = search.properties.queued_for_asset
-    const CreatedFor = search.properties.created_for
-
+  searchStatus (search) {
     let status = 'Unassigned'
-    if (QueuedAt) {
-      if (QueuedForAsset) {
-        status = `Queued for ${QueuedForAsset} at ${QueuedAt}`
+    if (search.QueuedAt) {
+      if (search.QueuedForAsset) {
+        status = `Queued for ${search.QueuedForAsset} at ${search.QueuedAt}`
       } else {
-        status = `Queued for ${CreatedFor} at ${QueuedAt}`
+        status = `Queued for ${search.CreatedFor} at ${search.QueuedAt}`
       }
     }
 
     return status
   }
-
-  createPopup (search, layer) {
-    const SearchID = search.properties.pk
-    const SweepWidth = search.properties.sweep_width
-    const AssetType = search.properties.created_for
-    const SearchType = search.properties.search_type
-    const QueuedAt = search.properties.queued_at
-
-    const data = [
-      { css: 'type', label: 'Search Type', value: SearchType },
-      { css: 'status', label: 'Status', value: this.searchStatusIncomplete(search) },
-      { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
-      { css: 'asset-type', label: 'Asset Type', value: AssetType }
-    ]
-
-    const popupContent = document.createElement('div')
-    popupContent.appendChild(this.searchDataToPopUp(data))
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const buttonData = []
-      const self = this
-      buttonData.push({
-        label: 'Delete',
-        onclick: function () { $.get(`/search/${SearchID}/delete/`) },
-        'btn-class': 'btn-danger'
-      })
-      if (!QueuedAt) {
-        buttonData.push({
-          label: 'Queue',
-          onclick: function () { self.searchQueueDialog(SearchID, AssetType) },
-          'btn-class': 'btn-light'
-        })
-      }
-      buttonData.push(this.createDetailsButton(SearchID))
-      popupContent.appendChild(this.createButtonGroup(buttonData))
-    }
-    layer.bindPopup(popupContent, { minWidth: 200 })
-  }
-
-  searchQueueDialog (searchID, assetType) {
-    const self = this
-    const contents = [
-      `<div>Queue for <select id='queue_${searchID}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
-      `<div><select id='queue_${searchID}_select_asset'></select></div>`,
-      `<div><button class='btn btn-light' id='queue_${searchID}_queue'>Queue</button></div>`,
-      `<div><button class='btn btn-danger' id='queue_${searchID}_cancel'>Cancel</button>`
-    ].join('')
-    const QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.map).hideClose()
-    $(`#queue_${searchID}_select_asset`).hide()
-    $.get(`/mission/${this.missionId}/assets/json/`, function (data) {
-      $.each(data, function (index, json) {
-        for (const at in json) {
-          if (json[at].type_name === assetType) {
-            $(`#queue_${searchID}_select_asset`).append(`<option value='${json[at].id}'>${json[at].name}</option>`)
-          }
-        }
-      })
-    })
-    $(`#queue_${searchID}_select_type`).on('change', function () {
-      if ($(`#queue_${searchID}_select_type`).val() === 'type') {
-        $(`#queue_${searchID}_select_asset`).hide()
-      } else {
-        $(`#queue_${searchID}_select_asset`).show()
-      }
-    })
-    $(`#queue_${searchID}_queue`).on('click', function () {
-      const data = [{
-        name: 'csrfmiddlewaretoken',
-        value: self.csrftoken
-      }]
-      if ($(`#queue_${searchID}_select_type`).val() === 'asset') {
-        data.push({
-          name: 'asset',
-          value: $(`#queue_${searchID}_select_asset`).val()
-        })
-      }
-      $.post(`/search/${searchID}/queue/`, data, function (data) {
-        QueueDialog.destroy()
-      })
-    })
-    $(`#queue_${searchID}_cancel`).on('click', function () { QueueDialog.destroy() })
-  }
 }
 
-class SMMSearchInprogress extends SMMSearch {
+class SMMSearchesInprogress extends SMMSearches {
   getUrl () {
     return `/mission/${this.missionId}/search/inprogress/`
   }
 
-  searchStatusInprogress (search) {
-    const InprogressBy = search.properties.inprogress_by
-
-    return `In Progress: ${InprogressBy}`
-  }
-
-  createPopup (search, layer) {
-    const SearchID = search.properties.pk
-    const SweepWidth = search.properties.sweep_width
-    const AssetType = search.properties.created_for
-    const InprogressBy = search.properties.inprogress_by
-    const InprogressAt = search.properties.inprogress_at
-    const SearchType = search.properties.search_type
-
-    const data = [
-      { css: 'type', label: 'Search Type', value: SearchType },
-      { css: 'status', label: 'Status', value: this.searchStatusInprogress(search) },
-      { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
-      { css: 'asset-type', label: 'Asset Type', value: AssetType },
-      { css: 'inprogress', label: 'Inprogress By', value: InprogressBy },
-      { css: 'inprogress', label: 'Search Started', value: InprogressAt }
-    ]
-
-    const popupContent = document.createElement('div')
-    popupContent.appendChild(this.searchDataToPopUp(data))
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const buttonData = []
-      buttonData.push(this.createDetailsButton(SearchID))
-      popupContent.appendChild(this.createButtonGroup(buttonData))
-    }
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
+  searchStatus (search) {
+    return `In Progress: ${search.InprogressBy}`
   }
 }
 
-class SMMSearchComplete extends SMMSearch {
+class SMMSearchesComplete extends SMMSearches {
   getUrl () {
     return `/mission/${this.missionId}/search/completed/`
   }
 
-  createPopup (search, layer) {
-    const SearchID = search.properties.pk
-    const SweepWidth = search.properties.sweep_width
-    const AssetType = search.properties.created_for
-    const InprogressBy = search.properties.inprogress_by
-    const SearchType = search.properties.search_type
-
-    const data = [
-      { css: 'type', label: 'Search Type', value: SearchType },
-      { css: 'status', label: 'Status', value: 'Completed' },
-      { css: 'sweep-width', label: 'Sweep Width', value: SweepWidth + 'm' },
-      { css: 'asset-type', label: 'Asset Type', value: AssetType },
-      { css: 'completedby', label: 'Completed By', value: InprogressBy }
-    ]
-
-    const popupContent = this.searchDataToPopUp(data)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      const buttonData = []
-      buttonData.push(this.createDetailsButton(SearchID))
-      popupContent.appendChild(this.createButtonGroup(buttonData))
-    }
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
+  searchStatus (search) {
+    return 'Completed'
   }
 }
 
-export { SMMSearchNotStarted, SMMSearchInprogress, SMMSearchComplete }
+export { SMMSearchesNotStarted, SMMSearchesInprogress, SMMSearchesComplete }

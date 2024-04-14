@@ -118,6 +118,8 @@ class Search(GeoTime):
         'replaced_by',
         'inprogress_at',
         'inprogress_by',
+        'completed_at',
+        'completed_by',
         'sweep_width',
         'queued_at',
         'queued_for_asset',
