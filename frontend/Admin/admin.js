@@ -73,6 +73,24 @@ L.Control.SMMAdmin = L.Control.extend({
     L.Control.prototype.initialize.call(this, options)
   },
 
+  onCommand: function () {
+    L.SMMAdmin.AssetCommand(this.map, this.options.missionId, this.options.csrftoken)
+  },
+
+  onCancel: function () {
+    this.AdminDialog.destroy()
+  },
+
+  onClick: function () {
+    const contents = [
+      '<div><button class="btn btn-light" id="asset_command">Set Asset Command</button></div>',
+      '<div><button class="btn btn-danger" id="admin_close">Close</button>'
+    ].join('')
+    this.AdminDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.map).hideClose()
+    $('#asset_command').on('click', this.onCommand.bind(this))
+    $('#admin_close').on('click', this.onCancel.bind(this))
+  },
+
   onAdd: function (map) {
     const container = this._container = L.DomUtil.create('div', 'SMMAdmin-container leaflet-bar')
     const link = L.DomUtil.create('a', '', container)
@@ -86,18 +104,10 @@ L.Control.SMMAdmin = L.Control.extend({
 
     L.DomEvent.disableClickPropagation(link)
 
-    const self = this
+    this.map = map
 
     L.DomEvent.on(link, 'click', L.DomEvent.stop)
-    L.DomEvent.on(link, 'click', function () {
-      const contents = [
-        '<div><button class="btn btn-light" id="asset_command">Set Asset Command</button></div>',
-        '<div><button class="btn btn-danger" id="admin_close">Close</button>'
-      ].join('')
-      const AdminDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-      $('#asset_command').on('click', function () { L.SMMAdmin.AssetCommand(map, self.options.missionId, self.options.csrftoken) })
-      $('#admin_close').on('click', function () { AdminDialog.destroy() })
-    })
+    L.DomEvent.on(link, 'click', this.onClick.bind(this))
 
     return container
   },
