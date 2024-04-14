@@ -57,6 +57,10 @@ L.Control.POIAdder = L.Control.extend({
     L.Control.prototype.initialize.call(this, options)
   },
 
+  onClick: function () {
+    L.POIAdder(this.map, this.options.missionId, this.options.csrftoken, this.map.getCenter(), -1, '')
+  },
+
   onAdd: function (map) {
     const container = this._container = L.DomUtil.create('div', 'POIAdder-container leaflet-bar')
     const link = L.DomUtil.create('a', '', container)
@@ -70,12 +74,10 @@ L.Control.POIAdder = L.Control.extend({
 
     L.DomEvent.disableClickPropagation(link)
 
-    const self = this
+    this.map = map
 
     L.DomEvent.on(link, 'click', L.DomEvent.stop)
-    L.DomEvent.on(link, 'click', function () {
-      L.POIAdder(map, self.options.missionId, self.options.csrftoken, map.getCenter(), -1, '')
-    })
+    L.DomEvent.on(link, 'click', this.onClick.bind(this))
 
     return container
   },
