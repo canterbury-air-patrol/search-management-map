@@ -380,10 +380,11 @@ def usergeo_details(request, usergeo, mission_user):
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
 @mission_is_member
-def usergeo_json(request, usergeo):
+def usergeo_json(request, usergeo, mission_user):
     """
     Get a (geo_type) object and return it as geojson
     """
+    del mission_user
     return to_geojson(GeoTimeLabel, [usergeo])
 
 
