@@ -19,7 +19,7 @@ from django.shortcuts import get_object_or_404, render
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
-from mission.decorators import mission_is_member, mission_asset_get
+from mission.decorators import mission_is_member, mission_asset_get, mission_is_member_no_variable
 from mission.models import Mission
 from .decorators import geotimelabel_from_type_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel, UserPointTime
@@ -379,7 +379,7 @@ def usergeo_details(request, usergeo, mission_user):
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
-@mission_is_member
+@mission_is_member_no_variable
 def usergeo_json(request, usergeo):
     """
     Get a (geo_type) object and return it as geojson
