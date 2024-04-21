@@ -18,7 +18,23 @@ L.Control.ImageUploader = L.Control.extend({
   },
 
   onSubmit: function () {
-    $('#image_upload_form').submit()
+    const marker = this.mappedMarker.getMarker()
+    const latLng = marker.getLatLng()
+
+    const formData = new FormData()
+    formData.append('csrfmiddlewaretoken', this.options.csrftoken)
+    const desc = $('#image_upload_description')
+    formData.append('description', desc[0].val())
+    formData.append('latitude', latLng.lat)
+    formData.append('longitude', latLng.lng)
+    const file = $('#image_upload_file')
+    formData.append('file', file[0].files[0])
+
+    fetch(`/mission/${this.options.missionId}/image/upload/`, {
+      method: 'POST',
+      body: formData
+    })
+
     this.map.removeLayer(this.mappedMarker.getMarker())
     this.imageUploadDialog.destroy()
   },
@@ -26,15 +42,14 @@ L.Control.ImageUploader = L.Control.extend({
   onClick: function () {
     const contents = [
       `<form method="post" enctype="multipart/form-data" id="image_upload_form" action="/mission/${this.options.missionId}/image/upload/">`,
-      `<input name="csrfmiddlewaretoken" type="hidden" value="${this.options.csrftoken}" />`,
       '<table>',
       '<tr>',
       '<td>File:</td>',
-      '<td><input name="file" type="file" accept="image/*" /></td>',
+      '<td><input name="file" type="file" id="image_upload_file" accept="image/*" /></td>',
       '<tr>',
       '<tr>',
       '<td>Description:</td>',
-      '<td><input name="description" type="text" /></td>',
+      '<td><input name="description" id="image_upload_description" type="text" /></td>',
       '<tr>',
       '<td>Latitude</td>',
       '<td>Longitude</td>',
