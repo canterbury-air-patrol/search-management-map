@@ -84,7 +84,8 @@ class SMMAsset {
       btn.textContent = 'Done'
       dialogContent.appendChild(btn)
 
-      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(dialogContent).addTo(this.map).hideClose()
+      this.colorDialog = L.control.dialog({ initOpen: true })
+      this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
       const div = ReactDOM.createRoot(colorPickerDiv)
       div.render(
         <AssetColorPicker
