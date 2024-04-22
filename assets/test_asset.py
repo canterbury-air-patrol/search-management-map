@@ -50,15 +50,15 @@ class AssetTestCase(TestCase):
 
     def test_asset_natural_key(self):
         """
-        Check the natural key is the name
+        Check the natural key is the pk
         """
         pccr = Asset.objects.get(name='PCCR')
         fx_79_1 = Asset.objects.get(name='FX-79-1')
         fx_79_2 = Asset.objects.get(name='FX-79-2')
-        self.assertEqual(pccr.natural_key(), 'PCCR')
-        self.assertEqual(fx_79_1.natural_key(), 'FX-79-1')
-        self.assertEqual(fx_79_2.natural_key(), 'FX-79-2')
-        # Check it works correctly as the primry key
+        self.assertEqual(pccr.natural_key(), pccr.pk)
+        self.assertEqual(fx_79_1.natural_key(), fx_79_1.pk)
+        self.assertEqual(fx_79_2.natural_key(), fx_79_2.pk)
+        # Check it works correctly as the primary key
         serialised = serializers.serialize('json', [pccr], use_natural_primary_keys=True)
         data = json.loads(serialised)
         self.assertFalse('pk' in data[0])

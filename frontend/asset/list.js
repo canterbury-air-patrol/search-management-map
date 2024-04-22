@@ -21,7 +21,7 @@ class AssetListRow extends React.Component {
 
     if (this.props.showButtons) {
       const buttons = [
-        (<Button key='interface' href={`/assets/${asset.name}/ui/`}>Interface</Button>)
+        (<Button key='interface' href={`/assets/${asset.id}/ui/`}>Interface</Button>)
       ]
       dataFields.push((
         <td key='buttons'>

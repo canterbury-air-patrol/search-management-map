@@ -445,16 +445,16 @@ class AssetUI extends React.Component {
   }
 }
 AssetUI.propTypes = {
-  asset: PropTypes.string.isRequired,
+  asset: PropTypes.number.isRequired,
   csrftoken: PropTypes.string.isRequired
 }
 
-function createAssetUI (elementId, assetName) {
+function createAssetUI (elementId, assetId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<><SMMTopBar /><AssetUI asset={assetName} csrftoken={csrftoken} /></>)
+  div.render(<><SMMTopBar /><AssetUI asset={assetId} csrftoken={csrftoken} /></>)
 }
 
 globalThis.createAssetUI = createAssetUI

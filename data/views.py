@@ -131,7 +131,7 @@ def asset_record_position(request, asset):
     return HttpResponse("Continue")
 
 
-def asset_position_history(request, asset_name, mission=None, user=None, current_only=False):
+def asset_position_history(request, asset_id, mission=None, user=None, current_only=False):
     """
     Get the full track from an asset.
 
@@ -143,7 +143,7 @@ def asset_position_history(request, asset_name, mission=None, user=None, current
         if request.GET.get('oldest'):
             oldest = request.GET.get('oldest')
 
-    asset = get_object_or_404(Asset, name=asset_name)
+    asset = get_object_or_404(Asset, pk=asset_id)
 
     positions = AssetPointTime.objects
     if mission is not None:
@@ -165,23 +165,23 @@ def asset_position_history(request, asset_name, mission=None, user=None, current
 
 @login_required
 @mission_is_member
-def asset_position_history_mission(request, mission_user, asset_name):
+def asset_position_history_mission(request, mission_user, asset_id):
     """
     Get the full track from an asset.
 
     When from is provided, only points after the timestamp from are considered.
     """
-    return asset_position_history(request, asset_name, mission=mission_user.mission)
+    return asset_position_history(request, asset_id, mission=mission_user.mission)
 
 
 @login_required
-def asset_position_history_user(request, asset_name, current_only):
+def asset_position_history_user(request, asset_id, current_only):
     """
     Get the full track from an asset.
 
     When from is provided, only points after the timestamp from are considered.
     """
-    return asset_position_history(request, asset_name, user=request.user, current_only=current_only)
+    return asset_position_history(request, asset_id, user=request.user, current_only=current_only)
 
 
 @login_required

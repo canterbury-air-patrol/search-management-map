@@ -171,7 +171,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_type = self.create_asset_type()
         asset_name = 'test_asset'
         asset = self.create_asset(name=asset_name, asset_type=asset_type)
-        asset_details_url = f'/assets/{asset_name}/details/'
+        asset_details_url = f'/assets/{asset.pk}/details/'
         response = self.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
@@ -199,7 +199,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_type = self.create_asset_type()
         asset_name = 'test_asset'
         asset = self.create_asset(name=asset_name, asset_type=asset_type)
-        asset_details_url = f'/assets/{asset_name}/details/'
+        asset_details_url = f'/assets/{asset.pk}/details/'
         mission_asset = self.add_asset_to_mission(asset=asset)
         response = self.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
@@ -241,7 +241,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         Check that only the owner can access the assets UI page
         """
         asset = self.create_asset()
-        asset_ui_url = f'/assets/{asset.name}/ui/'
+        asset_ui_url = f'/assets/{asset.pk}/ui/'
 
         # Check the owner has access
         response = self.client1.get(asset_ui_url)
@@ -261,8 +261,8 @@ class AssetTestCase(AssetTestFunctionsBase):
         in response to reporting their position
         """
         asset = self.create_asset()
-        asset_details_url = f'/assets/{asset.name}/details/'
-        asset_report_position_url = f'/data/assets/{asset.name}/position/add/'
+        asset_details_url = f'/assets/{asset.pk}/details/'
+        asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
 
         # Check the initial case (no command)

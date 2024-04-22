@@ -74,7 +74,7 @@ class OrganizationRadioOperatorPage extends React.Component {
     const assets = []
     for (const assetId in this.state.organizationAssets) {
       const asset = this.state.organizationAssets[assetId]
-      assets.push((<RadioOperatorAsset key={asset.id} asset={asset.asset.name} />))
+      assets.push((<RadioOperatorAsset key={asset.id} asset={asset.asset.id} />))
     }
     return (
       <Table responsive>

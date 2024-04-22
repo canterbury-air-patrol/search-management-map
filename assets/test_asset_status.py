@@ -147,7 +147,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
             client = self.client1
         if asset is None:
             asset = self.asset1
-        return client.get(f'/assets/{asset.name}/details/').json()
+        return client.get(f'/assets/{asset.pk}/details/').json()
 
     def get_asset_status(self, client=None, asset=None):
         """
@@ -157,7 +157,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
             client = self.client1
         if asset is None:
             asset = self.asset1
-        return client.get(f'/assets/{asset.name}/status/').json()
+        return client.get(f'/assets/{asset.pk}/status/').json()
 
     def set_asset_status(self, client=None, asset=None, value=None, notes=None):
         """
@@ -174,7 +174,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         }
         if notes is not None:
             data['notes'] = notes
-        return client.post(f'/assets/{asset.name}/status/', data=data)
+        return client.post(f'/assets/{asset.pk}/status/', data=data)
 
     def test_0001_get_asset_status(self):
         """

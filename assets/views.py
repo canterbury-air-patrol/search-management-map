@@ -60,15 +60,15 @@ def assets_ui(request, asset):
     """
     Present UI for an Asset
     """
-    return render(request, 'assets/ui.html', {'assetName': asset.name})
+    return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
 
 
 @login_required
-def asset_details(request, asset_name):
+def asset_details(request, asset_id):
     """
     Provide the details of an asset
     """
-    asset = get_object_or_404(Asset, name=asset_name)
+    asset = get_object_or_404(Asset, pk=asset_id)
 
     data = {
         'asset_id': asset.pk,
@@ -127,11 +127,11 @@ def asset_command_set(request, mission_user):
 
 
 @login_required
-def asset_status(request, asset_name):
+def asset_status(request, asset_id):
     """
     Get or set the asset status for a given asset
     """
-    asset = get_object_or_404(Asset, name=asset_name)
+    asset = get_object_or_404(Asset, pk=asset_id)
 
     if request.method == 'GET':
         status = AssetStatus.current_for_asset(asset)

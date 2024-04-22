@@ -71,9 +71,9 @@ class Asset(models.Model):
 
     def natural_key(self):
         """
-        Use the asset name when referring to the asset during serialization (i.e. to geojson).
+        Use the asset id when referring to the asset during serialization (i.e. to geojson).
         """
-        return self.name
+        return self.pk
 
     def __str__(self):
         return self.name
