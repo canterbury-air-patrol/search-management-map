@@ -16,12 +16,12 @@ def asset_is_recorder(view_func):
     """
     def recorder_check(*args, **kwargs):
         allowed = False
-        asset = get_object_or_404(Asset, name=kwargs['asset_name'])
+        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
         if asset.owner == args[0].user or organization_user_is_asset_recorder(args[0].user, asset):
             allowed = True
         if not allowed:
             return HttpResponseForbidden("Not Authorized to record the position of this asset")
-        kwargs.pop('asset_name')
+        kwargs.pop('asset_id')
         return view_func(*args, asset=asset, **kwargs)
     return recorder_check
 

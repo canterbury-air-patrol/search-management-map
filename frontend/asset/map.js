@@ -37,8 +37,9 @@ AssetColorPicker.propTypes = {
 }
 
 class SMMAsset {
-  constructor (map, missionId, assetName, color) {
+  constructor (map, missionId, assetId, assetName, color) {
     this.missionId = missionId
+    this.assetId = assetId
     this.assetName = assetName
     this.color = color
     this.colorDialog = null
@@ -115,7 +116,7 @@ class SMMAsset {
     if (this.updating) { return }
     this.updating = true
 
-    let assetUrl = `/mission/${this.missionId}/data/assets/${this.assetName}/position/history/?oldest=last`
+    let assetUrl = `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/?oldest=last`
     if (this.lastUpdate != null) {
       assetUrl = `${assetUrl}&from=${this.lastUpdate}`
     }
@@ -136,10 +137,25 @@ class SMMAssets extends SMMRealtime {
     this.assetObjects = {}
     this.createPopup = this.createPopup.bind(this)
     this.assetUpdate = this.assetUpdate.bind(this)
+    this.updateAssetNameMap = this.updateAssetNameMap.bind(this)
+    this.assetListCB = this.assetListCB.bind(this)
+    this.assetNameMap = {}
+    window.setInterval(this.updateAssetNameMap, interval)
   }
 
   getUrl () {
     return `/mission/${this.missionId}/data/assets/positions/latest/`
+  }
+
+  assetListCB (data) {
+    for (const assetIdx in data.assets) {
+      const asset = data.assets[assetIdx]
+      this.assetNameMap[asset.id] = asset.name
+    }
+  }
+
+  updateAssetNameMap () {
+    $.getJSON(`/mission/${this.missionId}/assets/json/`, this.assetListCB)
   }
 
   realtime () {
@@ -154,37 +170,39 @@ class SMMAssets extends SMMRealtime {
     })
   }
 
-  createAsset (assetName) {
-    if (!(assetName in this.assetObjects)) {
-      /* Create an overlay for this object */
-      const assetObject = new SMMAsset(this.map, this.missionId, assetName, this.color)
-      this.assetObjects[assetName] = assetObject
-      assetObject.num = Math.round(Math.random() * 10000)
-      this.overlayAdd(`${assetName} <div id='assetNamePicker${assetObject.num}' />`, assetObject.overlay())
+  createAsset (assetId) {
+    if (!(assetId in this.assetNameMap)) {
+      return null
     }
-    const assetObject = this.assetObjects[assetName]
-    $(`#assetNamePicker${assetObject.num}`).on('click', assetObject.colorPicker)
-    $(`#assetNamePicker${assetObject.num}`).css('width', '15px')
-    $(`#assetNamePicker${assetObject.num}`).css('height', '15px')
-    $(`#assetNamePicker${assetObject.num}`).css('display', 'inline-block')
-    $(`#assetNamePicker${assetObject.num}`).css('background-color', assetObject.color)
+    if (!(assetId in this.assetObjects)) {
+      /* Create an overlay for this object */
+      const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], this.color)
+      this.assetObjects[assetId] = assetObject
+      this.overlayAdd(`${this.assetNameMap[assetId]} <div id='assetNamePicker${assetId}' />`, assetObject.overlay())
+    }
+    const assetObject = this.assetObjects[assetId]
+    $(`#assetNamePicker${assetId}`).on('click', assetObject.colorPicker)
+    $(`#assetNamePicker${assetId}`).css('width', '15px')
+    $(`#assetNamePicker${assetId}`).css('height', '15px')
+    $(`#assetNamePicker${assetId}`).css('display', 'inline-block')
+    $(`#assetNamePicker${assetId}`).css('background-color', assetObject.color)
     return assetObject
   }
 
   createPopup (asset, layer) {
-    const assetName = asset.properties.asset
+    const assetId = asset.properties.asset
 
-    this.createAsset(assetName)
+    this.createAsset(assetId)
 
     const popupContent = document.createElement('div')
 
-    popupContent.appendChild(document.createTextNode(assetName))
+    popupContent.appendChild(document.createTextNode(assetId))
 
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
-  assetPathUpdate (assetName) {
-    this.createAsset(assetName).update()
+  assetPathUpdate (assetId) {
+    this.createAsset(assetId)?.update()
   }
 
   assetDataToPopUp (data) {
@@ -206,15 +224,15 @@ class SMMAssets extends SMMRealtime {
   }
 
   assetUpdate (asset, oldLayer) {
-    const assetName = asset.properties.asset
-    this.assetPathUpdate(assetName)
+    const assetId = asset.properties.asset
+    this.assetPathUpdate(assetId)
 
     if (!oldLayer) { return }
 
     const coords = asset.geometry.coordinates
 
     const data = [
-      ['Asset', assetName],
+      ['Asset', this.assetNameMap[assetId]],
       ['Lat', degreesToDM(coords[1], true)],
       ['Long', degreesToDM(coords[0])]
     ]
