@@ -55,13 +55,19 @@ class Asset(models.Model):
         """
         Convert this asset to an object that is suitable for returning via JsonResponse
         """
-        return {
+        data = {
             'id': self.pk,
             'name': self.name,
             'type_id': self.asset_type.id,
             'type_name': self.asset_type.name,
             'owner': str(self.owner)
         }
+        status = AssetStatus.current_for_asset(self)
+        if status:
+            data['status'] = str(status.status)
+            data['status_inop'] = status.status.inop
+            data['status_since'] = status.since
+        return data
 
     def natural_key(self):
         """
@@ -165,3 +171,48 @@ class AssetStatusValue(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class AssetStatus(models.Model):
+    """
+    The status of an asset at a specific time
+
+    These keep track of the asset status over time
+    """
+    asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
+    status = models.ForeignKey(AssetStatusValue, on_delete=models.PROTECT)
+    since = models.DateTimeField(default=timezone.now)
+    notes = models.TextField(null=True, blank=True)
+
+    def as_object(self):
+        """
+        Convert this asset status to an object that is suitable for returning via JsonResponse
+        """
+        return {
+            'id': self.pk,
+            'asset': self.asset.name,
+            'asset_id': self.asset.pk,
+            'status': self.status.name,
+            'inop': self.status.inop,
+            'since': self.since,
+            'notes': self.notes
+        }
+
+    def __str__(self):
+        return f'{self.asset.name} is {self.status.name}'
+
+    @classmethod
+    def current_for_asset(cls, asset):
+        """
+        Get the most recent status for an asset
+        """
+        try:
+            return cls.objects.filter(asset=asset).latest('since')
+        except cls.DoesNotExist:
+            return None
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['asset']),
+            models.Index(fields=['since']),
+        ]
