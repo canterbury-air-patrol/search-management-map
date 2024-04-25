@@ -12,7 +12,7 @@ from search.models import Search
 from search.view_helpers import check_searches_in_progress
 
 from .decorators import asset_is_recorder
-from .models import AssetType, Asset, AssetCommand
+from .models import AssetType, Asset, AssetCommand, AssetStatusValue
 from .forms import AssetCommandForm
 
 
@@ -42,6 +42,14 @@ def assets_list(request):
     Main view for managing assets
     """
     return render(request, 'assets/list.html', {})
+
+
+@login_required
+def assets_status_value_list(request):
+    """
+    List all of the asset status values
+    """
+    return JsonResponse({'values': [v.as_object() for v in AssetStatusValue.objects.all()]})
 
 
 @login_required
