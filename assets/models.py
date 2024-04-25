@@ -135,3 +135,33 @@ class AssetCommand(models.Model):
                 last_command['latitude'] = asset_command.position.y
                 last_command['longitude'] = asset_command.position.x
         return last_command
+
+
+class AssetStatusValue(models.Model):
+    """
+    A possible status for an asset
+
+    This provides a common set of statuses for asset owners to use to
+    report the status of assets to other users.
+
+    Assets with a current status value that is marked as in-op won't
+    be able to be added to missions.
+    i.e. for assets that are undergoing maintenance, have been retired, etc
+    """
+    name = models.CharField(max_length=30, unique=True)
+    inop = models.BooleanField(default=False)
+    description = models.TextField(null=True, blank=True)
+
+    def as_object(self):
+        """
+        Convert this asset status value to an object that is suitable for returning via JsonResponse
+        """
+        return {
+            'id': self.pk,
+            'name': self.name,
+            'inop': self.inop,
+            'description': self.description
+        }
+
+    def __str__(self):
+        return self.name

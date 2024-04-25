@@ -13,5 +13,6 @@ urlpatterns = [
     re_path(r'^assets/$', views.assets_list, name='assets_list'),
     re_path(r'^assets/(?P<asset_name>.*)/ui/$', views.assets_ui, name='assets_ui'),
     re_path(r'^assets/(?P<asset_name>.*)/details/$', views.asset_details, name='assets_details'),
+    re_path(r'^assets/status/values/$', views.assets_status_value_list, name='asset_status_values_list'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/command/set/$', views.asset_command_set, name='asset_command_set'),
 ]
