@@ -34,3 +34,9 @@ You can add a new `asset` by clicking on the "Add" next to `Assets` on the admin
 This will give you a form where you can specify the Name, Owner and Asset Type of the new Asset. The `Name` needs to be unique and is how this Asset will be presented everywhere in Search Management Map.
 The Owner is the user who can act as the asset. This user will be able to record the position, add the asset to organizations, etc.
 Normally it is best to have a separate account for each asset, this helps to avoid accidentally mixing up assets.
+
+## Adding Asset Status Values
+You can add an `asset status value` by clicking on the "Add" next to 'Asset status values' on the add page
+
+This will give you a form where you can specific the Name, InOp and Description of the new Asset Status Value. The 'Name' is how this Asset Status Value will be presented everywhere (i.e. in drop-down boxes or next to assets) in Search Management Map.
+If the `Inop` field is set (with a check in the box), Assets with this status value will not be able to be added to missions.
