@@ -12,7 +12,7 @@ from search.models import Search
 from search.view_helpers import check_searches_in_progress
 
 from .decorators import asset_is_recorder
-from .models import AssetType, Asset, AssetCommand, AssetStatusValue
+from .models import AssetType, Asset, AssetCommand, AssetStatusValue, AssetStatus
 from .forms import AssetCommandForm
 
 
@@ -88,6 +88,10 @@ def asset_details(request, asset_name):
         queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
         if queued_search is not None:
             data['queued_search_id'] = queued_search.pk
+
+    status = AssetStatus.current_for_asset(asset)
+    if status is not None:
+        data['status'] = status.as_object()
 
     return JsonResponse(data)
 
