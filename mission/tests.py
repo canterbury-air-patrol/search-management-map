@@ -4,30 +4,16 @@ Tests for missions
 
 import json
 
-from django.test import Client, TestCase
-from django.contrib.auth import get_user_model
+from django.test import Client
 
-from assets.models import AssetType, Asset
+from assets.tests import AssetTestFunctionsBase
 from .models import Mission, MissionUser, MissionAsset
 
 
-class MissionBaseTestCase(TestCase):
+class MissionBaseTestCase(AssetTestFunctionsBase):
     """
     Base functions for testing missions
     """
-    def setUp(self):
-        """
-        Create the required users
-        """
-        self.user1_password = 'password'
-        self.user2_password = 'password'
-        self.user1 = get_user_model().objects.create_user('test1', password=self.user1_password)
-        self.user2 = get_user_model().objects.create_user('test2', password=self.user2_password)
-        self.client1 = Client()
-        self.client1.login(username=self.user1.username, password=self.user1_password)
-        self.client2 = Client()
-        self.client2.login(username=self.user2.username, password=self.user2_password)
-
     def create_mission_by_url(self, mission_name, mission_description='description'):
         """
         Create a Mission via the url and return the mission
@@ -337,7 +323,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(len(mission_data['missions']), 0)
 
 
-class MissionAssetsTestCase(TestCase):
+class MissionAssetsTestCase(MissionBaseTestCase):
     """
     Mission/Asset API
     """
@@ -345,14 +331,9 @@ class MissionAssetsTestCase(TestCase):
         """
         Create the required user/asset
         """
-        self.user1_password = 'password'
-        self.user1 = get_user_model().objects.create_user('test1', password=self.user1_password)
-        self.asset_type = AssetType(name='test_type')
-        self.asset_type.save()
-        self.asset = Asset(name='test-asset', owner=self.user1, asset_type=self.asset_type)
-        self.asset.save()
-        self.client1 = Client()
-        self.client1.login(username=self.user1.username, password=self.user1_password)
+        super().setUp()
+        self.asset_type = self.create_asset_type(at_name='test_type')
+        self.asset = self.create_asset(name='test-asset', asset_type=self.asset_type)
 
     def create_mission_by_url(self, mission_name, mission_description='description'):
         """
@@ -430,18 +411,6 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
     """
     Test Mission and Organization integration for Assets
     """
-    def create_asset(self, name='test-asset', owner=None):
-        """
-        Add an asset to the system
-        """
-        if owner is None:
-            owner = self.user1
-        asset_type = AssetType(name='test_type')
-        asset_type.save()
-        asset = Asset(name=name, owner=owner, asset_type=asset_type)
-        asset.save()
-        return asset
-
     def add_asset_to_organization(self, asset=None, organization=None, client=None, expected_status=200):
         """
         Add an asset to an organization
