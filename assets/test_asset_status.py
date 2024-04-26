@@ -149,6 +149,33 @@ class AssetStatusUrlTestCase(AssetStatusBase):
             asset = self.asset1
         return client.get(f'/assets/{asset.name}/details/').json()
 
+    def get_asset_status(self, client=None, asset=None):
+        """
+        Return the current status for an asset
+        """
+        if client is None:
+            client = self.client1
+        if asset is None:
+            asset = self.asset1
+        return client.get(f'/assets/{asset.name}/status/').json()
+
+    def set_asset_status(self, client=None, asset=None, value=None, notes=None):
+        """
+        Return the current status for an asset
+        """
+        if client is None:
+            client = self.client1
+        if asset is None:
+            asset = self.asset1
+        if value is None:
+            value = self.status_value1
+        data = {
+            'value_id': value.pk
+        }
+        if notes is not None:
+            data['notes'] = notes
+        return client.post(f'/assets/{asset.name}/status/', data=data)
+
     def test_0001_get_asset_status(self):
         """
         Check the status of an asset appears when requesting the details of that asset
@@ -183,3 +210,77 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         self.assertEqual(json_data['status']['status'], self.status_value1.name)
         self.assertEqual(json_data['status']['inop'], self.status_value1.inop)
         self.assertEqual(json_data['status']['notes'], 'Test Notes')
+
+    def test_0010_get_asset_status(self):
+        """
+        Check only the status of an asset appears when asking for the status
+        """
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data, {})
+        self.create_asset_status(asset=self.asset1, status=self.status_value1)
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_value1.name)
+        self.assertEqual(json_data['inop'], self.status_value1.inop)
+        self.assertEqual(json_data['notes'], None)
+
+    def test_0011_get_asset_status(self):
+        """
+        Check the status of the correct asset appears when asking for the status
+        """
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data, {})
+        json_data = self.get_asset_status(asset=self.asset2)
+        self.assertEqual(json_data, {})
+        self.create_asset_status(asset=self.asset1, status=self.status_value1)
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_value1.name)
+        self.assertEqual(json_data['inop'], self.status_value1.inop)
+        self.assertEqual(json_data['notes'], None)
+        json_data = self.get_asset_status(asset=self.asset2)
+        self.assertEqual(json_data, {})
+
+    def test_0020_set_asset_status(self):
+        """
+        Check that it is possible to POST the asset status
+        """
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data, {})
+        self.set_asset_status(asset=self.asset1, value=self.status_value1)
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_value1.name)
+        self.assertEqual(json_data['notes'], None)
+
+    def test_0020_set_asset_status_with_notes(self):
+        """
+        Check that it is possible to POST the asset status with notes
+        """
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data, {})
+        self.set_asset_status(asset=self.asset1, value=self.status_value1, notes='Posted notes')
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_value1.name)
+        self.assertEqual(json_data['notes'], 'Posted notes')
+
+    def test_0022_set_asset_status_twice(self):
+        """
+        Check that it is possible to POST the asset status
+        Check that posting again updates the status
+        """
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data, {})
+        self.set_asset_status(asset=self.asset1, value=self.status_value1)
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_value1.name)
+        self.set_asset_status(asset=self.asset1, value=self.status_inop)
+        json_data = self.get_asset_status(asset=self.asset1)
+        self.assertEqual(json_data['status'], self.status_inop.name)
+
+    def test_0030_set_asset_status_wrong_user(self):
+        """
+        Check that it isn't possible to POST the asset status to an asset with a different owner
+        """
+        json_data = self.get_asset_status(asset=self.asset2)
+        self.assertEqual(json_data, {})
+        self.assertEqual(self.set_asset_status(asset=self.asset2, value=self.status_value1).status_code, 403)
+        json_data = self.get_asset_status(asset=self.asset2)
+        self.assertEqual(json_data, {})

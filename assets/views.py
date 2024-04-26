@@ -1,12 +1,14 @@
 """
 Views for assets
 """
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest
+from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
 
 from mission.decorators import mission_is_member, mission_asset_get
+
+from organization.helpers import organization_user_is_asset_recorder
 
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
@@ -122,3 +124,27 @@ def asset_command_set(request, mission_user):
         form = AssetCommandForm(mission=mission_user.mission)
 
     return render(request, 'asset-command-form.html', {'form': form})
+
+
+@login_required
+def asset_status(request, asset_name):
+    """
+    Get or set the asset status for a given asset
+    """
+    asset = get_object_or_404(Asset, name=asset_name)
+
+    if request.method == 'GET':
+        status = AssetStatus.current_for_asset(asset)
+        if status:
+            return JsonResponse(status.as_object())
+        return JsonResponse({})
+    if request.method == 'POST':
+        if not (asset.owner == request.user or organization_user_is_asset_recorder(request.user, asset)):
+            return HttpResponseForbidden()
+        value_id = request.POST.get('value_id')
+        status_value = get_object_or_404(AssetStatusValue, pk=value_id)
+        notes = request.POST.get('notes')
+        status = AssetStatus.objects.create(status=status_value, asset=asset, notes=notes)
+        return JsonResponse(status.as_object())
+
+    return HttpResponseBadRequest()
