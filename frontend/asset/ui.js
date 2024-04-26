@@ -228,6 +228,26 @@ class AssetDetails extends React.Component {
         <td>{details.owner}</td>
       </tr>)
     ]
+    if (details.status) {
+      rows.push((
+        <tr key='status_name'>
+          <td>Status:</td>
+          <td>{details.status.status}</td>
+        </tr>))
+      rows.push((
+        <tr key='status_since'>
+          <td>Since:</td>
+          <td>{details.status.since === undefined ? '' : (new Date(details.status.since)).toLocaleString()}</td>
+        </tr>
+      ))
+      rows.push((
+        <tr key='status_notes'>
+          <td>Status Notes:</td>
+          <td>{details.status.notes}</td>
+        </tr>
+      ))
+    }
+
     if (Number.isInteger(details.mission_id)) {
       rows.push((
           <tr key='current_mission'>
@@ -257,6 +277,111 @@ class AssetDetails extends React.Component {
 }
 AssetDetails.propTypes = {
   details: PropTypes.object.isRequired
+}
+
+class AssetStatusSet extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      statusValues: [],
+      selectedValueId: null,
+      notes: ''
+    }
+
+    this.updateStatusValuesResponse = this.updateStatusValuesResponse.bind(this)
+    this.updateSelectedStateValue = this.updateSelectedStateValue.bind(this)
+    this.updateNotes = this.updateNotes.bind(this)
+    this.resetForm = this.resetForm.bind(this)
+    this.setStatus = this.setStatus.bind(this)
+  }
+
+  componentDidMount () {
+    $.ajaxSetup({ timeout: 2500 })
+    this.updateStatusValues()
+    this.timer = setInterval(() => this.updateStatusValues(), 10000)
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.timer)
+    this.timer = null
+  }
+
+  updateStatusValuesResponse (data) {
+    this.setState(function (oldState) {
+      const newState = {
+        statusValues: data.values
+      }
+      if (oldState.selectedValueId === null && data.values.length > 0) {
+        newState.selectedValueId = data.values[0].id
+      }
+      return newState
+    })
+  }
+
+  async updateStatusValues () {
+    await $.get('/assets/status/values/', this.updateStatusValuesResponse)
+  }
+
+  updateSelectedStateValue (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ selectedValueId: value })
+  }
+
+  updateNotes (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ notesText: value })
+  }
+
+  resetForm () {
+    this.setState({
+      selectedValueId: null,
+      notesText: ''
+    })
+  }
+
+  setStatus () {
+    $.post(`/assets/${this.props.asset}/status/`, {
+      value_id: this.state.selectedValueId,
+      notes: this.state.notesText,
+      csrfmiddlewaretoken: this.props.csrftoken
+    }, this.resetForm)
+  }
+
+  render () {
+    const statusValues = this.state.statusValues.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))
+    return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Status:</td>
+          <td>Notes:</td>
+        </tr>
+        <tr>
+          <td>
+            <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
+              {statusValues}
+            </select>
+          </td>
+          <td colSpan={2}>
+            <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td colSpan={3}><Button onClick={this.setStatus}>Set Status</Button></td>
+        </tr>
+      </thead>
+    </Table>
+    )
+  }
+}
+AssetStatusSet.propTypes = {
+  asset: PropTypes.string.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 class AssetUI extends React.Component {
@@ -313,17 +438,23 @@ class AssetUI extends React.Component {
           lastCommand={this.state.lastCommand} />
         <AssetTrackAs
           asset={this.props.asset} />
+        <AssetStatusSet
+          asset={this.props.asset} csrftoken={this.props.csrftoken} />
       </div>
     )
   }
 }
 AssetUI.propTypes = {
-  asset: PropTypes.string.isRequired
+  asset: PropTypes.string.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 function createAssetUI (elementId, assetName) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<><SMMTopBar /><AssetUI asset={assetName} /></>)
+
+  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
+
+  div.render(<><SMMTopBar /><AssetUI asset={assetName} csrftoken={csrftoken} /></>)
 }
 
 globalThis.createAssetUI = createAssetUI
