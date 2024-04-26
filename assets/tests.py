@@ -10,9 +10,9 @@ from mission.models import Mission, MissionUser, MissionAsset
 from .models import AssetType, Asset
 
 
-class AssetTestCase(TestCase):
+class AssetTestFunctionsBase(TestCase):
     """
-    Tests for Assets
+    Useful helper functions for tests that use assets
     """
     def setUp(self):
         """
@@ -22,8 +22,6 @@ class AssetTestCase(TestCase):
         self.user1 = get_user_model().objects.create_user('test', password=self.user1_password)
         self.user2_password = 'password'
         self.user2 = get_user_model().objects.create_user('test2', password=self.user2_password)
-        self.mission = Mission.objects.create(creator=self.user1, mission_name='mission1')
-        MissionUser(mission=self.mission, user=self.user1, role='A', creator=self.user1).save()
         self.client1 = Client()
         self.client1.login(username=self.user1.username, password=self.user1_password)
         self.client2 = Client()
@@ -33,8 +31,7 @@ class AssetTestCase(TestCase):
         """
         Create an asset type object
         """
-        AssetType(name=at_name, description=at_description).save()
-        return AssetType.objects.get(name=at_name)
+        return AssetType.objects.create(name=at_name, description=at_description)
 
     def create_asset(self, name='test_asset', asset_type=None, owner=None):
         """
@@ -44,8 +41,20 @@ class AssetTestCase(TestCase):
             asset_type = self.create_asset_type()
         if owner is None:
             owner = self.user1
-        Asset(name=name, asset_type=asset_type, owner=owner).save()
-        return Asset.objects.get(name=name)
+        return Asset.objects.create(name=name, asset_type=asset_type, owner=owner)
+
+
+class AssetTestCase(AssetTestFunctionsBase):
+    """
+    Tests for Assets
+    """
+    def setUp(self):
+        """
+        Create additional required objects
+        """
+        super().setUp()
+        self.mission = Mission.objects.create(creator=self.user1, mission_name='mission1')
+        MissionUser(mission=self.mission, user=self.user1, role='A', creator=self.user1).save()
 
     def add_asset_to_mission(self, asset=None, mission=None):
         """
