@@ -24,3 +24,8 @@ The asset interface can be used to record the position information for the asset
 This can be enabled by clicking the 'Enable' button. If this is working the current position of the device will be displayed and this will be sent to the server as the assets position.
 
 This mechanism is intended to be used as a backup for assets that don't have another mechanism for sending their position to Search Management Map.
+
+## Status
+The asset interface can be used to update the status of the asset.
+
+All of the possible status values are selectable in the drop-down and notes about the reason for the status change can be supplied in the notes box.
