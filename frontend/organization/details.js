@@ -90,6 +90,7 @@ class OrganizationAssetRow extends React.Component {
     const organizationAsset = this.props.organization_asset
     const dataFields = []
     dataFields.push((<td key='name'>{organizationAsset.asset.name}</td>))
+    dataFields.push((<td key='status'>{organizationAsset.asset.status}</td>))
     dataFields.push((<td key='created'>{(new Date(organizationAsset.added)).toLocaleString()}</td>))
     dataFields.push((<td key='creator'>{organizationAsset.added_by}</td>))
 
@@ -253,10 +254,11 @@ class OrganizationAssetList extends React.Component {
       <Table responsive>
         <thead>
           <tr key='heading'>
-            <th colSpan={4} align='center'>Assets</th>
+            <th colSpan={5} align='center'>Assets</th>
           </tr>
           <tr key='labels'>
             <th>Asset Name</th>
+            <th>Status</th>
             <th>Added</th>
             <th>By</th>
             <th></th>

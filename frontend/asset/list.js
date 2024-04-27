@@ -17,6 +17,7 @@ class AssetListRow extends React.Component {
     dataFields.push((<td key='name'>{asset.name}</td>))
     dataFields.push((<td key='type'>{asset.type_name}</td>))
     dataFields.push((<td key='owner'>{asset.owner}</td>))
+    dataFields.push((<td key='status'>{asset.status}</td>))
 
     if (this.props.showButtons) {
       const buttons = [
@@ -57,12 +58,13 @@ class AssetList extends React.Component {
       <Table responsive>
         <thead>
           <tr key='heading'>
-            <th colSpan={4} align='center'>My Assets</th>
+            <th colSpan={5} align='center'>My Assets</th>
           </tr>
           <tr key='labels'>
             <th>Asset Name</th>
             <th>Asset Type</th>
             <th>Owner</th>
+            <th>Status</th>
             <th>Actions</th>
           </tr>
         </thead>
