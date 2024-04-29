@@ -2,8 +2,6 @@
 Tests for missions
 """
 
-import json
-
 from django.test import Client
 
 from assets.tests import AssetTestFunctionsBase
@@ -150,12 +148,12 @@ class MissionTestCase(MissionBaseTestCase):
         mission_list_url = '/mission/list/'
         # Check there are no missions in the list
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Create a mission and check it appears in the list
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
         # Check the details of the mission appear
         self.assertEqual(mission_data['missions'][0]['id'], mission.pk)
@@ -167,18 +165,18 @@ class MissionTestCase(MissionBaseTestCase):
         self.assertIsNone(mission_data['missions'][0]['closed_by'])
         # Check the mission doesn't appear in other users lists
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Add a user and check they now see the mission
         self.mission_add_user2(mission)
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
         # Close the mission and check it appears as closed
         mission_close_url = f'/mission/{mission.pk}/close/'
         self.client1.get(mission_close_url)
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
         # Check the details of the mission appear
         self.assertEqual(mission_data['missions'][0]['id'], mission.pk)
@@ -250,12 +248,12 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list_url = '/mission/list/'
         # Check there are no missions in the list
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
@@ -263,7 +261,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         self.add_organization_to_mission(mission, org1)
         # Check the mission list still only has 1 entry
         response = self.client1.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
 
     def test_mission_organization_list_for_other(self):
@@ -273,13 +271,13 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list_url = '/mission/list/'
         # Check there are no missions in the list
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
         # Check the other user cant see this mission yet
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
@@ -289,7 +287,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
         # Check the other user can now see this mission
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
 
     def test_mission_organization_deleted_user(self):
@@ -302,24 +300,24 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
         # Check there are no missions in the list
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_org_removed', mission_description='test description')
         # Check the other user cant see this mission yet
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
         # Add this organization to the mission
         self.add_organization_to_mission(mission, org1)
         # Check the other user can now see this mission
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 1)
         # Remove the user from the organization, check it disappears for them
         self.del_user_from_org(organization=org1, user=self.user2, client=self.client1)
         response = self.client2.get(mission_list_url)
-        mission_data = json.loads(response.content)
+        mission_data = response.json()
         self.assertEqual(len(mission_data['missions']), 0)
 
 
@@ -387,14 +385,14 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         mission_assets_json = f'/mission/{mission.pk}/assets/json/'
         response = self.client1.get(mission_assets_json)
         self.assertEqual(response.status_code, 200)
-        assets_data = json.loads(response.content)
+        assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
         # Add the asset
         response = self.client1.post(mission_add_asset_url, {'asset': self.asset.pk}, follow=True)
         self.assertEqual(response.redirect_chain[0][1], 302)
         response = self.client1.get(mission_assets_json)
         self.assertEqual(response.status_code, 200)
-        assets_data = json.loads(response.content)
+        assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 1)
         self.assertEqual(assets_data['assets'][0]['name'], self.asset.name)
         self.assertEqual(assets_data['assets'][0]['type_name'], self.asset_type.name)
@@ -403,7 +401,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         response = self.client1.get(mission_assets_json)
         self.assertEqual(response.status_code, 200)
-        assets_data = json.loads(response.content)
+        assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
 
 
@@ -449,7 +447,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         response = self.client2.get(mission_assets_json)
         self.assertEqual(response.status_code, 200)
-        assets_data = json.loads(response.content)
+        assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
 
     def test_mission_organization_removed_users_add_del_asset(self):
@@ -478,7 +476,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         response = self.client2.get(mission_assets_json)
         self.assertEqual(response.status_code, 200)
-        assets_data = json.loads(response.content)
+        assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
         # Remove the user from organization and try again
         self.del_user_from_org(organization=org1, user=self.user2, client=self.client1)

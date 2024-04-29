@@ -2,8 +2,6 @@
 Tests for the POIs (user created point/time/label)
 """
 
-import json
-
 from django.test import Client
 from django.contrib.gis.geos import Point
 
@@ -355,14 +353,14 @@ class POIsTestCase(UserDataTestCase):
         # Response should be empty because no POIs have been created yet
         response = client.get(poi_list_url)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('features' in data)
         self.assertEqual(len(data['features']), 0)
         # Create a POI and see it appear
         poi_1 = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='List API POI 1', mission=self.mission, created_by=self.user, geo_type='poi')
         response = client.get(poi_list_url)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('features' in data)
         self.assertEqual(len(data['features']), 1)
         self.assertEqual(data['features'][0]['properties']['pk'], str(poi_1.pk))
@@ -372,7 +370,7 @@ class POIsTestCase(UserDataTestCase):
         self.assertEqual(response.status_code, 200)
         response = client.get(poi_list_url)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('features' in data)
         self.assertEqual(len(data['features']), 1)
         self.assertNotEqual(data['features'][0]['properties']['pk'], str(poi_1.pk))
@@ -382,13 +380,13 @@ class POIsTestCase(UserDataTestCase):
         self.assertEqual(response.status_code, 200)
         response = client.get(poi_list_url)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('features' in data)
         self.assertEqual(len(data['features']), 0)
         # Add an object of the wrong type and check it doesn't appear
         GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), label='List API POI 10', mission=self.mission, created_by=self.user, geo_type='other')
         response = client.get(poi_list_url)
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('features' in data)
         self.assertEqual(len(data['features']), 0)

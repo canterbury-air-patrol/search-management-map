@@ -63,7 +63,7 @@ class AssetTypeTestCase(TestCase):
         client.login(username='test', password='password')
         response = client.get('/assets/assettypes/json/')
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('asset_types' in data)
         for asset_type in data['asset_types']:
             self.assertTrue('id' in asset_type)
