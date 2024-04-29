@@ -72,7 +72,7 @@ class AssetTestCase(TestCase):
         client.login(username='test', password='password')
         response = client.get('/assets/mine/json/')
         self.assertEqual(response.status_code, 200)
-        data = json.loads(response.content)
+        data = response.json()
         self.assertTrue('assets' in data)
         self.assertTrue('name' in data['assets'][0])
         self.assertEqual('FX-79-1', data['assets'][0]['name'])
