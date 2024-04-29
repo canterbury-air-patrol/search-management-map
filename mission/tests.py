@@ -31,6 +31,14 @@ class MissionBaseTestCase(AssetTestFunctionsBase):
         """
         MissionUser(mission=mission, user=self.user2, creator=self.user1).save()
 
+    def get_mission_list(self, client=None):
+        """
+        Get the current mission list
+        """
+        if client is None:
+            client = self.client1
+        return client.get('/mission/list/').json()['missions']
+
 
 class MissionTestCase(MissionBaseTestCase):
     """
@@ -145,47 +153,41 @@ class MissionTestCase(MissionBaseTestCase):
         """
         Check the mission list contains missions and their correct details
         """
-        mission_list_url = '/mission/list/'
         # Check there are no missions in the list
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears in the list
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 1)
         # Check the details of the mission appear
-        self.assertEqual(mission_data['missions'][0]['id'], mission.pk)
-        self.assertEqual(mission_data['missions'][0]['name'], 'test_mission_list')
-        self.assertEqual(mission_data['missions'][0]['description'], 'test description')
-        self.assertIsNotNone(mission_data['missions'][0]['started'])
-        self.assertEqual(mission_data['missions'][0]['creator'], self.user1.username)
-        self.assertIsNone(mission_data['missions'][0]['closed'])
-        self.assertIsNone(mission_data['missions'][0]['closed_by'])
+        self.assertEqual(mission_list[0]['id'], mission.pk)
+        self.assertEqual(mission_list[0]['name'], 'test_mission_list')
+        self.assertEqual(mission_list[0]['description'], 'test description')
+        self.assertIsNotNone(mission_list[0]['started'])
+        self.assertEqual(mission_list[0]['creator'], self.user1.username)
+        self.assertIsNone(mission_list[0]['closed'])
+        self.assertIsNone(mission_list[0]['closed_by'])
         # Check the mission doesn't appear in other users lists
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
         # Add a user and check they now see the mission
         self.mission_add_user2(mission)
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 1)
         # Close the mission and check it appears as closed
         mission_close_url = f'/mission/{mission.pk}/close/'
         self.client1.get(mission_close_url)
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 1)
         # Check the details of the mission appear
-        self.assertEqual(mission_data['missions'][0]['id'], mission.pk)
-        self.assertEqual(mission_data['missions'][0]['name'], 'test_mission_list')
-        self.assertEqual(mission_data['missions'][0]['description'], 'test description')
-        self.assertIsNotNone(mission_data['missions'][0]['started'])
-        self.assertEqual(mission_data['missions'][0]['creator'], self.user1.username)
-        self.assertIsNotNone(mission_data['missions'][0]['closed'])
-        self.assertEqual(mission_data['missions'][0]['closed_by'], self.user1.username)
+        self.assertEqual(mission_list[0]['id'], mission.pk)
+        self.assertEqual(mission_list[0]['name'], 'test_mission_list')
+        self.assertEqual(mission_list[0]['description'], 'test description')
+        self.assertIsNotNone(mission_list[0]['started'])
+        self.assertEqual(mission_list[0]['creator'], self.user1.username)
+        self.assertIsNotNone(mission_list[0]['closed'])
+        self.assertEqual(mission_list[0]['closed_by'], self.user1.username)
 
 
 class MissionOrganizationBaseTestCase(MissionBaseTestCase):
@@ -245,40 +247,33 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         """
         Check that users in organizations can see one copy of the mission in the list
         """
-        mission_list_url = '/mission/list/'
         # Check there are no missions in the list
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 1)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
         # Add this organization to the mission
         self.add_organization_to_mission(mission, org1)
         # Check the mission list still only has 1 entry
-        response = self.client1.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list()
+        self.assertEqual(len(mission_list), 1)
 
     def test_mission_organization_list_for_other(self):
         """
         Check that users can see missions because they are a member of an organization added to the mission
         """
-        mission_list_url = '/mission/list/'
         # Check there are no missions in the list
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
         # Check the other user cant see this mission yet
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
         # Add this organization to the mission
@@ -286,39 +281,33 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         # Add the other user to the organization
         self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
         # Check the other user can now see this mission
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 1)
 
     def test_mission_organization_deleted_user(self):
         """
         Check that a user removed from an organization no longer sees missions that organization is a member of
         """
-        mission_list_url = '/mission/list/'
         # Create an organization, make both users a member
         org1 = self.create_organization()
         self.add_user_to_org(organization=org1, user=self.user2, client=self.client1)
         # Check there are no missions in the list
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
         mission = self.create_mission_by_url('test_mission_org_removed', mission_description='test description')
         # Check the other user cant see this mission yet
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
         # Add this organization to the mission
         self.add_organization_to_mission(mission, org1)
         # Check the other user can now see this mission
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 1)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 1)
         # Remove the user from the organization, check it disappears for them
         self.del_user_from_org(organization=org1, user=self.user2, client=self.client1)
-        response = self.client2.get(mission_list_url)
-        mission_data = response.json()
-        self.assertEqual(len(mission_data['missions']), 0)
+        mission_list = self.get_mission_list(client=self.client2)
+        self.assertEqual(len(mission_list), 0)
 
 
 class MissionAssetsTestCase(MissionBaseTestCase):
