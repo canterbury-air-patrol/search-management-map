@@ -37,24 +37,21 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         Check that users in organizations can add organization assets to the mission
         """
         # Create a mission
-        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        mission = self.missions.create_mission('test_mission_list', mission_description='test description')
         # Create an organization and add it to this mission
         org1 = self.create_organization(client=self.smm.client2)
         # Add this organization to the mission
-        self.add_organization_to_mission(mission, org1)
+        mission.add_organization(org1)
         # Add an asset to the organization
         asset = self.assets.create_asset(owner=self.smm.user2)
         self.add_asset_to_organization(asset=asset, organization=org1, client=self.smm.client2)
         # Check a user in the organization can add an organization asset
-        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
-        mission_assets_json = f'/mission/{mission.pk}/assets/json/'
-        response = self.smm.client2.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        response = mission.add_asset(asset, client=self.smm.client2)
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check a user in the organization can remove the asset
-        mission_del_asset_url = f'/mission/{mission.pk}/assets/{asset.pk}/remove/'
-        response = self.smm.client2.post(mission_del_asset_url, follow=True)
+        response = mission.remove_asset(asset, client=self.smm.client2)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        response = self.smm.client2.get(mission_assets_json)
+        response = mission.get_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
@@ -64,7 +61,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         Check that users removed from an organization cannot add/remove organization assets from a mission
         """
         # Create a mission
-        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        mission = self.missions.create_mission('test_mission_list', mission_description='test description')
         # Create an organization and add it to this mission
         org1 = self.create_organization(client=self.smm.client1)
         # Add second user to organization
@@ -73,34 +70,30 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         asset = self.assets.create_asset(owner=self.smm.user1)
         self.add_asset_to_organization(asset=asset, organization=org1, client=self.smm.client1)
         # Add this organization to the mission
-        self.add_organization_to_mission(mission, org1)
+        mission.add_organization(org1)
         # Check a user in the organization can add an organization asset
-        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
-        mission_assets_json = f'/mission/{mission.pk}/assets/json/'
-        response = self.smm.client2.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        response = mission.add_asset(asset, client=self.smm.client2)
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check a user in the organization can remove the asset
-        mission_del_asset_url = f'/mission/{mission.pk}/assets/{asset.pk}/remove/'
-        response = self.smm.client2.post(mission_del_asset_url, follow=True)
+        response = mission.remove_asset(asset, client=self.smm.client2)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        response = self.smm.client2.get(mission_assets_json)
+        response = mission.get_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
         # Remove the user from organization and try again
         self.del_user_from_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
-        response = self.smm.client2.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        response = mission.add_asset(asset, client=self.smm.client2)
         self.assertEqual(response.status_code, 404)
         # Add the user to mission directly
-        mission_add_user_url = f'/mission/{mission.pk}/users/add/'
-        response = self.smm.client1.post(mission_add_user_url, {'user': self.smm.user2.pk})
+        response = mission.add_user(client=self.smm.client1, user=self.smm.user2)
         self.assertEqual(response.status_code, 302)
         # Try adding the asset
-        response = self.smm.client2.post(mission_add_asset_url, {'asset': asset.pk})
+        response = mission.add_asset(asset, client=self.smm.client2)
         self.assertEqual(response.status_code, 200)  # this is a failure, the form is being shown
         # Add with a user that is actually allowed to
-        response = self.smm.client1.post(mission_add_asset_url, {'asset': asset.pk}, follow=True)
+        response = mission.add_asset(asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Try removing the asset
-        response = self.smm.client2.post(mission_del_asset_url)
+        response = mission.remove_asset(asset, client=self.smm.client2)
         self.assertEqual(response.status_code, 403)
