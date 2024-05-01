@@ -2,8 +2,6 @@
 Tests for asset status
 """
 
-from django.test import Client
-
 from .models import AssetStatus, AssetStatusValue, Asset
 from .tests import AssetTestFunctionsBase
 
@@ -22,8 +20,8 @@ class AssetStatusBase(AssetTestFunctionsBase):
         self.status_inop.inop = True
         self.status_inop.save()
         self.asset_type = self.create_asset_type()
-        self.asset1 = self.create_asset(name='asset1', asset_type=self.asset_type, owner=self.user1)
-        self.asset2 = self.create_asset(name='asset2', asset_type=self.asset_type, owner=self.user2)
+        self.asset1 = self.create_asset(name='asset1', asset_type=self.asset_type, owner=self.smm.user1)
+        self.asset2 = self.create_asset(name='asset2', asset_type=self.asset_type, owner=self.smm.user2)
 
     def create_asset(self, name='test_asset', asset_type=None, owner=None):
         """
@@ -32,7 +30,7 @@ class AssetStatusBase(AssetTestFunctionsBase):
         if asset_type is None:
             asset_type = self.create_asset_type()
         if owner is None:
-            owner = self.user1
+            owner = self.smm.user1
         Asset(name=name, asset_type=asset_type, owner=owner).save()
         return Asset.objects.get(name=name)
 
@@ -129,22 +127,12 @@ class AssetStatusUrlTestCase(AssetStatusBase):
     """
     Check the urls associated with asset status information
     """
-    def setUp(self):
-        """
-        Extra setup for web-based asset status
-        """
-        super().setUp()
-        self.client1 = Client()
-        self.client1.login(username=self.user1.username, password='password')
-        self.client2 = Client()
-        self.client2.login(username=self.user2.username, password='password')
-
     def get_asset_details(self, client=None, asset=None):
         """
         Return the current details for an asset
         """
         if client is None:
-            client = self.client1
+            client = self.smm.client1
         if asset is None:
             asset = self.asset1
         return client.get(f'/assets/{asset.pk}/details/').json()
@@ -154,7 +142,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         Return the current status for an asset
         """
         if client is None:
-            client = self.client1
+            client = self.smm.client1
         if asset is None:
             asset = self.asset1
         return client.get(f'/assets/{asset.pk}/status/').json()
@@ -164,7 +152,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         Return the current status for an asset
         """
         if client is None:
-            client = self.client1
+            client = self.smm.client1
         if asset is None:
             asset = self.asset1
         if value is None:
