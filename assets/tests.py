@@ -2,8 +2,9 @@
 Tests for the assets API
 """
 
-from django.test import Client, TestCase
-from django.contrib.auth import get_user_model
+from django.test import TestCase
+
+from smm.tests import SMMTestUsers
 
 from mission.models import Mission, MissionUser, MissionAsset
 
@@ -18,14 +19,7 @@ class AssetTestFunctionsBase(TestCase):
         """
         Create the required objects
         """
-        self.user1_password = 'password'
-        self.user1 = get_user_model().objects.create_user('test', password=self.user1_password)
-        self.user2_password = 'password'
-        self.user2 = get_user_model().objects.create_user('test2', password=self.user2_password)
-        self.client1 = Client()
-        self.client1.login(username=self.user1.username, password=self.user1_password)
-        self.client2 = Client()
-        self.client2.login(username=self.user2.username, password=self.user2_password)
+        self.smm = SMMTestUsers()
 
     def create_asset_type(self, at_name='test_at', at_description='test asset type'):
         """
@@ -40,7 +34,7 @@ class AssetTestFunctionsBase(TestCase):
         if asset_type is None:
             asset_type = self.create_asset_type()
         if owner is None:
-            owner = self.user1
+            owner = self.smm.user1
         return Asset.objects.create(name=name, asset_type=asset_type, owner=owner)
 
 
@@ -53,8 +47,8 @@ class AssetTestCase(AssetTestFunctionsBase):
         Create additional required objects
         """
         super().setUp()
-        self.mission = Mission.objects.create(creator=self.user1, mission_name='mission1')
-        MissionUser(mission=self.mission, user=self.user1, role='A', creator=self.user1).save()
+        self.mission = Mission.objects.create(creator=self.smm.user1, mission_name='mission1')
+        MissionUser(mission=self.mission, user=self.smm.user1, role='A', creator=self.smm.user1).save()
 
     def add_asset_to_mission(self, asset=None, mission=None):
         """
@@ -64,7 +58,7 @@ class AssetTestCase(AssetTestFunctionsBase):
             asset = self.create_asset()
         if mission is None:
             mission = self.mission
-        MissionAsset(mission=mission, asset=asset, creator=self.user1).save()
+        MissionAsset(mission=mission, asset=asset, creator=self.smm.user1).save()
         return MissionAsset.objects.get(mission=mission, asset=asset)
 
     def create_search(self, asset=None, client=None):
@@ -89,7 +83,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         Queue a search for a specific asset
         """
         if client is None:
-            client = self.client1
+            client = self.smm.client1
         if asset is None:
             asset = self.create_asset()
         if search_id is None:
@@ -102,7 +96,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         Begin a search for a specific asset
         """
         if client is None:
-            client = self.client1
+            client = self.smm.client1
         if asset is None:
             asset = self.create_asset()
         if search_id is None:
@@ -115,8 +109,8 @@ class AssetTestCase(AssetTestFunctionsBase):
         Check the result of getting the asset type API contains the expected asset type
         """
         if client is None:
-            client = self.client1
-        response = self.client1.get('/assets/assettypes/json/')
+            client = self.smm.client1
+        response = self.smm.client1.get('/assets/assettypes/json/')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_types'][0]['name'], at_name)
@@ -131,11 +125,11 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_type = self.create_asset_type(at_name, at_description)
 
         # Check both clients can access this
-        self.check_asset_type_api(client=self.client1, at_name=at_name, at_id=asset_type.id)
-        self.check_asset_type_api(client=self.client2, at_name=at_name, at_id=asset_type.id)
+        self.check_asset_type_api(client=self.smm.client1, at_name=at_name, at_id=asset_type.id)
+        self.check_asset_type_api(client=self.smm.client2, at_name=at_name, at_id=asset_type.id)
 
         # Test that login is required
-        response = Client().get('/assets/assettypes/json/')
+        response = self.smm.unauth_client.get('/assets/assettypes/json/')
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_mine(self):
@@ -145,8 +139,8 @@ class AssetTestCase(AssetTestFunctionsBase):
         assets_mine_url = '/assets/mine/json/'
         asset_type = self.create_asset_type()
         asset_name = 'test_asset'
-        asset = self.create_asset(name=asset_name, asset_type=asset_type, owner=self.user1)
-        response = self.client1.get(assets_mine_url)
+        asset = self.create_asset(name=asset_name, asset_type=asset_type, owner=self.smm.user1)
+        response = self.smm.client1.get(assets_mine_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['assets'][0]['name'], asset_name)
@@ -155,13 +149,13 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.assertEqual(json_data['assets'][0]['type_name'], asset_type.name)
 
         # Check a different user doesn't get this asset
-        response = self.client2.get(assets_mine_url)
+        response = self.smm.client2.get(assets_mine_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['assets']), 0)
 
         # Check authentication is required
-        response = Client().get(assets_mine_url)
+        response = self.smm.unauth_client.get(assets_mine_url)
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_details(self):
@@ -172,7 +166,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_name = 'test_asset'
         asset = self.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/details/'
-        response = self.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -185,11 +179,11 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.assertTrue('queued_search_id' not in json_data)
 
         # Check another user cannot access these details
-        response = self.client2.get(asset_details_url)
+        response = self.smm.client2.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
 
         # Check authenication is required
-        response = Client().get(asset_details_url)
+        response = self.smm.unauth_client.get(asset_details_url)
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_details_in_mission(self):
@@ -201,7 +195,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset = self.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/details/'
         mission_asset = self.add_asset_to_mission(asset=asset)
-        response = self.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -212,24 +206,24 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.assertEqual(json_data['mission_name'], mission_asset.mission.mission_name)
 
         # Create a search and check this doesn't automatically queue it
-        search_id = self.create_search(asset=asset, client=self.client1)
-        response = self.client1.get(asset_details_url)
+        search_id = self.create_search(asset=asset, client=self.smm.client1)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
         self.assertTrue('current_search_id' not in json_data)
         self.assertTrue('queued_search_id' not in json_data)
         # Now check the search for the asset and check it is listed as queued
-        self.queue_search_for_asset(asset=asset, search_id=search_id, client=self.client1)
-        response = self.client1.get(asset_details_url)
+        self.queue_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
         self.assertTrue('current_search_id' not in json_data)
         self.assertEqual(json_data['queued_search_id'], search_id)
         # Start the search and check it moves from queued to current
-        self.begin_search_for_asset(asset=asset, search_id=search_id, client=self.client1)
-        response = self.client1.get(asset_details_url)
+        self.begin_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -244,13 +238,13 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_ui_url = f'/assets/{asset.pk}/ui/'
 
         # Check the owner has access
-        response = self.client1.get(asset_ui_url)
+        response = self.smm.client1.get(asset_ui_url)
         self.assertEqual(response.status_code, 200)
         # Check another user doesn't
-        response = self.client2.get(asset_ui_url)
+        response = self.smm.client2.get(asset_ui_url)
         self.assertNotEqual(response.status_code, 200)
         # Check authentication is required
-        response = Client().get(asset_ui_url)
+        response = self.smm.unauth_client.get(asset_ui_url)
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_commands(self):
@@ -266,11 +260,11 @@ class AssetTestCase(AssetTestFunctionsBase):
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
 
         # Check the initial case (no command)
-        response = self.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['last_command']), 0)
-        response = self.client1.post(asset_report_position_url, {
+        response = self.smm.client1.post(asset_report_position_url, {
             'lat': -43.5,
             'lng': 172.5,
             'fix': 3,
@@ -284,22 +278,22 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.add_asset_to_mission(asset=asset)
 
         # Check the form is accessible
-        response = self.client1.get(asset_set_command_url)
+        response = self.smm.client1.get(asset_set_command_url)
         self.assertEqual(response.status_code, 200)
         # Set the resume/continue command and check it appears
-        response = self.client1.post(asset_set_command_url, {
+        response = self.smm.client1.post(asset_set_command_url, {
             'asset': asset.pk,
             'command': 'RON',
             'reason': 'testing',
         })
         self.assertEqual(response.status_code, 200)
         # Check this command is now showing
-        response = self.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'RON')
         self.assertEqual(json_data['last_command']['reason'], 'testing')
-        response = self.client1.post(asset_report_position_url, {
+        response = self.smm.client1.post(asset_report_position_url, {
             'lat': -43.5,
             'lon': 172.5,
             'fix': 3,
@@ -312,7 +306,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.assertEqual(json_data['reason'], 'testing')
 
         # Check the lat/lon handling
-        response = self.client1.post(asset_set_command_url, {
+        response = self.smm.client1.post(asset_set_command_url, {
             'asset': asset.pk,
             'command': 'GOTO',
             'reason': 'test GOTO',
@@ -321,7 +315,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         })
         self.assertEqual(response.status_code, 200)
         # Check the GOTO is now showing
-        response = self.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'GOTO')
@@ -330,7 +324,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         self.assertEqual(json_data['last_command']['longitude'], 172.5)
 
         # Trigger the invalid lat/lon case
-        response = self.client1.post(asset_set_command_url, {
+        response = self.smm.client1.post(asset_set_command_url, {
             'asset': asset.pk,
             'command': 'GOTO',
             'reason': 'test GOTO',

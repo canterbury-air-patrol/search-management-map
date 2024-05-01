@@ -2,9 +2,10 @@
 Tests for asset status values
 """
 
-from django.contrib.auth import get_user_model
 from django.db import IntegrityError
-from django.test import Client, TestCase
+from django.test import TestCase
+
+from smm.tests import SMMTestUsers
 
 from .models import AssetStatusValue
 
@@ -97,16 +98,13 @@ class AssetStatusValueUrlTestCase(AssetStatusValueBase):
         """
         Create objects for the test cases
         """
-        self.user_password = 'password'
-        self.user = get_user_model().objects.create_user('testuser', password=self.user_password)
-        self.client = Client()
-        self.client.login(username=self.user.username, password=self.user_password)
+        self.smm = SMMTestUsers()
 
     def get_asset_status_values(self):
         """
         Get the list of asset status values
         """
-        response = self.client.get('/assets/status/values/')
+        response = self.smm.client1.get('/assets/status/values/')
         return response.json()['values']
 
     def test_0010_status_value_list_1(self):
