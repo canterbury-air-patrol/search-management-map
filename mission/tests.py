@@ -11,6 +11,121 @@ from assets.tests import AssetsHelpers
 from .models import Mission, MissionUser, MissionAsset
 
 
+class MissionTestWrapper:
+    """
+    Helper functions for dealing with a mission
+    """
+    def __init__(self, smm, mission_pk):
+        self.smm = smm
+        self.mission_pk = mission_pk
+
+    def get_object(self):
+        """
+        Get the Model object associated with this mission
+        """
+        return Mission.objects.get(pk=self.mission_pk)
+
+    def get_details(self, client=None):
+        """
+        Get the mission details
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/mission/{self.mission_pk}/details/')
+
+    def add_user(self, client=None, user=None):
+        """
+        Add a user to the mission
+        """
+        if client is None:
+            client = self.smm.client1
+        if user is None:
+            user = self.smm.user2
+        return client.post(f'/mission/{self.mission_pk}/users/add/', data={
+            'user': user.pk,
+        })
+
+    def make_admin(self, client=None, user=None):
+        """
+        Make a mission user an admin
+        """
+        if client is None:
+            client = self.smm.client1
+        if user is None:
+            user = self.smm.user2
+        return client.get(f'/mission/{self.mission_pk}/users/{user.pk}/make/admin/')
+
+    def close(self, client=None):
+        """
+        Close the mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/mission/{self.mission_pk}/close/', follow=True)
+
+    def add_asset(self, asset, client=None):
+        """
+        Add an asset to the mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.post(f'/mission/{self.mission_pk}/assets/add/', {'asset': asset.pk}, follow=True)
+
+    def remove_asset(self, asset, client=None):
+        """
+        Remove an asset from the mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/mission/{self.mission_pk}/assets/{asset.pk}/remove/', follow=True)
+
+    def get_asset_list(self, client=None):
+        """
+        Get the list of assets in this mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/mission/{self.mission_pk}/assets/json/')
+
+    def add_organization(self, organization, client=None):
+        """
+        Add an organization to a mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.post(f'/mission/{self.mission_pk}/organizations/add/', data={'organization': organization['id']}, follow=True)
+
+
+class MissionFunctions:
+    """
+    Helper functions for testing missions
+    """
+    def __init__(self, smm):
+        self.smm = smm
+
+    def create_mission(self, mission_name, mission_description='description', client=None):
+        """
+        Create a mission
+        """
+        if client is None:
+            client = self.smm.client1
+        response = client.post('/mission/new/', data={
+            'mission_name': mission_name,
+            'mission_description': mission_description,
+        }, follow=True)
+        mission_url = response.redirect_chain[0][0]
+        mission_pk = mission_url.split('/')[2]
+        return MissionTestWrapper(self.smm, mission_pk)
+
+    def get_mission_list(self, client=None):
+        """
+        Get the current mission list
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get('/mission/list/').json()['missions']
+
+
 class MissionBaseTestCase(TestCase):
     """
     Base functions for testing missions
@@ -20,33 +135,7 @@ class MissionBaseTestCase(TestCase):
         Create required objects
         """
         self.smm = SMMTestUsers()
-
-    def create_mission_by_url(self, mission_name, mission_description='description'):
-        """
-        Create a Mission via the url and return the mission
-        """
-        mission_create_url = '/mission/new/'
-        response = self.smm.client1.post(mission_create_url, data={'mission_name': mission_name, 'mission_description': mission_description}, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][1], 302)
-        mission_url = response.redirect_chain[0][0]
-        mission_pk = mission_url.split('/')[2]
-        mission = Mission.objects.get(pk=int(mission_pk))
-        return mission
-
-    def mission_add_user2(self, mission):
-        """
-        Add user2 to the mission
-        """
-        MissionUser(mission=mission, user=self.smm.user2, creator=self.smm.user1).save()
-
-    def get_mission_list(self, client=None):
-        """
-        Get the current mission list
-        """
-        if client is None:
-            client = self.smm.client1
-        return client.get('/mission/list/').json()['missions']
+        self.missions = MissionFunctions(self.smm)
 
 
 class MissionTestCase(MissionBaseTestCase):
@@ -59,7 +148,7 @@ class MissionTestCase(MissionBaseTestCase):
         """
         mission_name = 'test1'
         mission_description = 'many lines\nof text'
-        mission = self.create_mission_by_url(mission_name, mission_description)
+        mission = self.missions.create_mission(mission_name, mission_description).get_object()
         self.assertEqual(mission.mission_name, mission_name)
         self.assertEqual(mission.mission_description, mission_description)
         self.assertEqual(mission.creator.username, self.smm.user1.username)
@@ -68,7 +157,7 @@ class MissionTestCase(MissionBaseTestCase):
         """
         Create a mission using the url and verify the user was setup as admin
         """
-        mission = self.create_mission_by_url('mission')
+        mission = self.missions.create_mission('mission').get_object()
         mission_user = MissionUser.objects.get(mission=mission, user=self.smm.user1)
         self.assertEqual(mission_user.creator.username, self.smm.user1.username)
         self.assertTrue(mission_user.is_admin())
@@ -77,84 +166,81 @@ class MissionTestCase(MissionBaseTestCase):
         """
         Add a user to a mission using the url
         """
-        mission = self.create_mission_by_url('test_mission_user_add_url')
-        mission_add_user_url = f'/mission/{mission.pk}/users/add/'
-        response = self.smm.client1.post(mission_add_user_url, {'user': self.smm.user2.pk})
+        mission = self.missions.create_mission('test_mission_user_add_url')
+        response = mission.add_user(client=self.smm.client1, user=self.smm.user2)
         self.assertEqual(response.status_code, 302)
         # Add a user who is already in the mission
-        response = self.smm.client1.post(mission_add_user_url, {'user': self.smm.user2.pk})
+        response = mission.add_user(client=self.smm.client1, user=self.smm.user2)
         self.assertEqual(response.status_code, 403)
 
     def test_mission_user_access(self):
         """
         Create a mission and check that users can only access missions once added
         """
-        mission = self.create_mission_by_url('test_misssion_user_access')
-        mission_url = f'/mission/{mission.pk}/details/'
+        mission = self.missions.create_mission('test_misssion_user_access')
         # Check the user who created the mission can access it
-        response = self.smm.client1.get(mission_url)
+        response = mission.get_details(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
         # Use a user who isn't part of the mission, check they get told it doesn't exist
-        response = self.smm.client2.get(mission_url)
+        response = mission.get_details(client=self.smm.client2)
         self.assertEqual(response.status_code, 404)
         # Add the user to the mission and check they can now access it
-        self.mission_add_user2(mission)
-        response = self.smm.client2.get(mission_url)
+        mission.add_user(client=self.smm.client1, user=self.smm.user2)
+        response = mission.get_details(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         # Check a not logged in user gets redirected
-        response = self.smm.unauth_client.get(mission_url)
+        response = mission.get_details(client=self.smm.unauth_client)
         self.assertEqual(response.status_code, 302)
 
     def test_mission_close(self):
         """
         Check that a mission can be closed
         """
-        mission = self.create_mission_by_url('test_mission_close')
-        mission_close_url = f'/mission/{mission.pk}/close/'
-        self.assertIsNone(mission.closed)
-        self.assertIsNone(mission.closed_by)
+        mission = self.missions.create_mission('test_mission_close')
+        mission_obj = mission.get_object()
+        self.assertIsNone(mission_obj.closed)
+        self.assertIsNone(mission_obj.closed_by)
         # Check the mission can be closed
-        response = self.smm.client1.get(mission_close_url, follow=True)
+        response = mission.close(client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
         self.assertEqual(response.redirect_chain[0][0], '/')
-        mission = Mission.objects.get(pk=mission.pk)
-        self.assertIsNotNone(mission.closed)
-        self.assertEqual(mission.closed_by.username, self.smm.user1.username)
+        mission_obj = mission.get_object()
+        self.assertIsNotNone(mission_obj.closed)
+        self.assertEqual(mission_obj.closed_by.username, self.smm.user1.username)
         # Attempt to close a mission that is already closed, should get redirected, with no change to the mission
-        response = self.smm.client1.get(mission_close_url)
-        self.assertEqual(response.status_code, 302)
-        mission2 = Mission.objects.get(pk=mission.pk)
-        self.assertEqual(mission.closed, mission2.closed)
+        response = mission.close(client=self.smm.client1)
+        self.assertEqual(response.redirect_chain[0][1], 302)
+        mission2_obj = mission.get_object()
+        self.assertEqual(mission_obj.closed, mission2_obj.closed)
 
     def test_mission_close_only_admin(self):
         """
         Check that missions can only be closed by an admin
         """
-        mission = self.create_mission_by_url('test_mission_close_only_admin')
-        mission_close_url = f'/mission/{mission.pk}/close/'
-        self.mission_add_user2(mission)
-        response = self.smm.client2.get(mission_close_url)
+        mission = self.missions.create_mission('test_mission_close_only_admin')
+        mission.add_user()
+        response = mission.close(client=self.smm.client2)
         self.assertEqual(response.status_code, 403)
-        mission = Mission.objects.get(pk=mission.pk)
-        self.assertIsNone(mission.closed)
-        self.assertIsNone(mission.closed_by)
+        mission_obj = mission.get_object()
+        self.assertIsNone(mission_obj.closed)
+        self.assertIsNone(mission_obj.closed_by)
 
     def test_mission_upgrade_to_admin(self):
         """
         Check adding a user and then upgrading them to an admin
         """
-        mission = self.create_mission_by_url('test_mission_upgrade_to_admin')
-        mission_user2_make_admin_url = f'/mission/{mission.pk}/users/{self.smm.user2.pk}/make/admin/'
+        mission = self.missions.create_mission('test_mission_upgrade_to_admin')
+        mission_obj = mission.get_object()
         # Try upgrading a user that isn't in the mission
-        response = self.smm.client1.get(mission_user2_make_admin_url)
+        response = mission.make_admin(client=self.smm.client1, user=self.smm.user2)
         self.assertEqual(response.status_code, 404)
         # Add the user to the mission and try again
-        self.mission_add_user2(mission)
-        mission_user = MissionUser.objects.get(mission=mission, user=self.smm.user2)
+        mission.add_user(user=self.smm.user2)
+        mission_user = MissionUser.objects.get(mission=mission_obj, user=self.smm.user2)
         self.assertFalse(mission_user.is_admin())
-        response = self.smm.client1.get(mission_user2_make_admin_url)
+        response = mission.make_admin(client=self.smm.client1, user=self.smm.user2)
         self.assertEqual(response.status_code, 302)
-        mission_user = MissionUser.objects.get(mission=mission, user=self.smm.user2)
+        mission_user = MissionUser.objects.get(mission=mission_obj, user=self.smm.user2)
         self.assertTrue(mission_user.is_admin())
 
     def test_mission_list(self):
@@ -162,14 +248,15 @@ class MissionTestCase(MissionBaseTestCase):
         Check the mission list contains missions and their correct details
         """
         # Check there are no missions in the list
-        mission_list = self.get_mission_list()
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears in the list
-        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
-        mission_list = self.get_mission_list()
+        mission = self.missions.create_mission('test_mission_list', mission_description='test description')
+        mission_obj = mission.get_object()
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
         # Check the details of the mission appear
-        self.assertEqual(mission_list[0]['id'], mission.pk)
+        self.assertEqual(mission_list[0]['id'], mission_obj.pk)
         self.assertEqual(mission_list[0]['name'], 'test_mission_list')
         self.assertEqual(mission_list[0]['description'], 'test description')
         self.assertIsNotNone(mission_list[0]['started'])
@@ -177,19 +264,18 @@ class MissionTestCase(MissionBaseTestCase):
         self.assertIsNone(mission_list[0]['closed'])
         self.assertIsNone(mission_list[0]['closed_by'])
         # Check the mission doesn't appear in other users lists
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Add a user and check they now see the mission
-        self.mission_add_user2(mission)
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission.add_user(client=self.smm.client1, user=self.smm.user2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
         # Close the mission and check it appears as closed
-        mission_close_url = f'/mission/{mission.pk}/close/'
-        self.smm.client1.get(mission_close_url)
-        mission_list = self.get_mission_list()
+        mission.close(client=self.smm.client1)
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
         # Check the details of the mission appear
-        self.assertEqual(mission_list[0]['id'], mission.pk)
+        self.assertEqual(mission_list[0]['id'], mission_obj.pk)
         self.assertEqual(mission_list[0]['name'], 'test_mission_list')
         self.assertEqual(mission_list[0]['description'], 'test description')
         self.assertIsNotNone(mission_list[0]['started'])
@@ -211,73 +297,54 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.asset_type = self.assets.create_asset_type(at_name='test_type')
         self.asset = self.assets.create_asset(name='test-asset', asset_type=self.asset_type)
 
-    def create_mission_by_url(self, mission_name, mission_description='description'):
-        """
-        Create a Mission via the url and return the mission
-        """
-        mission_create_url = '/mission/new/'
-        response = self.smm.client1.post(mission_create_url, data={'mission_name': mission_name, 'mission_description': mission_description}, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][1], 302)
-        mission_url = response.redirect_chain[0][0]
-        mission_pk = mission_url.split('/')[2]
-        mission = Mission.objects.get(pk=int(mission_pk))
-        return mission
-
     def test_mission_asset_add(self):
         """
         Add an asset to a mission
         """
-        mission = self.create_mission_by_url('test_mission_asset_add')
-        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
-        response = self.smm.client1.post(mission_add_asset_url, {'asset': self.asset.pk}, follow=True)
+        mission = self.missions.create_mission('test_mission_asset_add')
+        response = mission.add_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check adding it again gets a fail
-        response = self.smm.client1.post(mission_add_asset_url, {'asset': self.asset.pk})
+        response = mission.add_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.status_code, 403)
 
     def test_mission_asset_delete(self):
         """
         Delete an asset from a mission
         """
-        mission = self.create_mission_by_url('test_mission_asset_delete')
-        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
-        mission_del_asset_url = f'/mission/{mission.pk}/assets/{self.asset.pk}/remove/'
+        mission = self.missions.create_mission('test_mission_asset_delete')
         # Add the asset
-        response = self.smm.client1.post(mission_add_asset_url, {'asset': self.asset.pk}, follow=True)
+        response = mission.add_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Remove the asset
-        response = self.smm.client1.get(mission_del_asset_url, follow=True)
+        response = mission.remove_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        mission_asset = MissionAsset.objects.get(mission=mission, asset=self.asset)
+        mission_asset = MissionAsset.objects.get(mission=mission.get_object(), asset=self.asset)
         self.assertIsNotNone(mission_asset.removed)
         self.assertEqual(mission_asset.remover.username, self.smm.user1.username)
 
     def test_mission_asset_json(self):
         """
-        Check current assests appear in the asset json
+        Check current assets appear in the asset json
         """
-        mission = self.create_mission_by_url('test_mission_asset_list')
-        mission_add_asset_url = f'/mission/{mission.pk}/assets/add/'
-        mission_del_asset_url = f'/mission/{mission.pk}/assets/{self.asset.pk}/remove/'
-        mission_assets_json = f'/mission/{mission.pk}/assets/json/'
-        response = self.smm.client1.get(mission_assets_json)
+        mission = self.missions.create_mission('test_mission_asset_list')
+        response = mission.get_asset_list(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
         # Add the asset
-        response = self.smm.client1.post(mission_add_asset_url, {'asset': self.asset.pk}, follow=True)
+        response = mission.add_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        response = self.smm.client1.get(mission_assets_json)
+        response = mission.get_asset_list(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 1)
         self.assertEqual(assets_data['assets'][0]['name'], self.asset.name)
         self.assertEqual(assets_data['assets'][0]['type_name'], self.asset_type.name)
         # Remove the asset
-        response = self.smm.client1.post(mission_del_asset_url, follow=True)
+        response = mission.remove_asset(self.asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        response = self.smm.client1.get(mission_assets_json)
+        response = mission.get_asset_list(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)

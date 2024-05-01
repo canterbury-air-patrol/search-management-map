@@ -43,15 +43,6 @@ class MissionOrganizationBaseTestCase(MissionBaseTestCase):
         response = client.delete(organization_user_del_url)
         self.assertEqual(response.status_code, 200)
 
-    def add_organization_to_mission(self, mission, organization):
-        """
-        Add an organization to a mission
-        """
-        add_org_url = f'/mission/{mission.pk}/organizations/add/'
-        response = self.smm.client1.post(add_org_url, data={'organization': organization['id']}, follow=True)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.redirect_chain[0][1], 302)
-
 
 class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
     """
@@ -62,18 +53,18 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         Check that users in organizations can see one copy of the mission in the list
         """
         # Check there are no missions in the list
-        mission_list = self.get_mission_list()
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
-        mission = self.create_mission_by_url('test_mission_org_list', mission_description='mission org list')
-        mission_list = self.get_mission_list()
+        mission = self.missions.create_mission('test_mission_org_list', mission_description='mission org list')
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
         # Add this organization to the mission
-        self.add_organization_to_mission(mission, org1)
+        mission.add_organization(org1)
         # Check the mission list still only has 1 entry
-        mission_list = self.get_mission_list()
+        mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
 
     def test_mission_organization_list_for_other(self):
@@ -81,21 +72,21 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         Check that users can see missions because they are a member of an organization added to the mission
         """
         # Check there are no missions in the list
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
-        mission = self.create_mission_by_url('test_mission_list', mission_description='test description')
+        mission = self.missions.create_mission('test_mission_list', mission_description='test description')
         # Check the other user cant see this mission yet
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Create an organization and add it to this mission
         org1 = self.create_organization()
         # Add this organization to the mission
-        self.add_organization_to_mission(mission, org1)
+        mission.add_organization(org1)
         # Add the other user to the organization
         self.add_user_to_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
         # Check the other user can now see this mission
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
 
     def test_mission_organization_deleted_user(self):
@@ -106,19 +97,19 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         org1 = self.create_organization()
         self.add_user_to_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
         # Check there are no missions in the list
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Create a mission and check it appears
-        mission = self.create_mission_by_url('test_mission_org_removed', mission_description='test description')
+        mission = self.missions.create_mission('test_mission_org_removed', mission_description='test description')
         # Check the other user cant see this mission yet
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Add this organization to the mission
-        self.add_organization_to_mission(mission, org1)
+        mission.add_organization(org1)
         # Check the other user can now see this mission
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
         # Remove the user from the organization, check it disappears for them
         self.del_user_from_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
-        mission_list = self.get_mission_list(client=self.smm.client2)
+        mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
