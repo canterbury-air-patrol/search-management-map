@@ -2,14 +2,25 @@
 Tests for missions
 """
 
-from assets.tests import AssetTestFunctionsBase
+from django.test import TestCase
+
+from smm.tests import SMMTestUsers
+
+from assets.tests import AssetsHelpers
+
 from .models import Mission, MissionUser, MissionAsset
 
 
-class MissionBaseTestCase(AssetTestFunctionsBase):
+class MissionBaseTestCase(TestCase):
     """
     Base functions for testing missions
     """
+    def setUp(self):
+        """
+        Create required objects
+        """
+        self.smm = SMMTestUsers()
+
     def create_mission_by_url(self, mission_name, mission_description='description'):
         """
         Create a Mission via the url and return the mission
@@ -196,8 +207,9 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         Create the required user/asset
         """
         super().setUp()
-        self.asset_type = self.create_asset_type(at_name='test_type')
-        self.asset = self.create_asset(name='test-asset', asset_type=self.asset_type)
+        self.assets = AssetsHelpers(self.smm)
+        self.asset_type = self.assets.create_asset_type(at_name='test_type')
+        self.asset = self.assets.create_asset(name='test-asset', asset_type=self.asset_type)
 
     def create_mission_by_url(self, mission_name, mission_description='description'):
         """

@@ -2,11 +2,15 @@
 Tests for asset status
 """
 
-from .models import AssetStatus, AssetStatusValue, Asset
-from .tests import AssetTestFunctionsBase
+from django.test import TestCase
+
+from smm.tests import SMMTestUsers
+
+from .models import AssetStatus, AssetStatusValue
+from .tests import AssetsHelpers
 
 
-class AssetStatusBase(AssetTestFunctionsBase):
+class AssetStatusBase(TestCase):
     """
     Base class for Asset Status tests
     """
@@ -14,25 +18,15 @@ class AssetStatusBase(AssetTestFunctionsBase):
         """
         Prepare the test env
         """
-        super().setUp()
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
         self.status_value1 = self.create_asset_status_value(name='value1')
         self.status_inop = self.create_asset_status_value(name='inop-asset')
         self.status_inop.inop = True
         self.status_inop.save()
-        self.asset_type = self.create_asset_type()
-        self.asset1 = self.create_asset(name='asset1', asset_type=self.asset_type, owner=self.smm.user1)
-        self.asset2 = self.create_asset(name='asset2', asset_type=self.asset_type, owner=self.smm.user2)
-
-    def create_asset(self, name='test_asset', asset_type=None, owner=None):
-        """
-        Create an asset
-        """
-        if asset_type is None:
-            asset_type = self.create_asset_type()
-        if owner is None:
-            owner = self.smm.user1
-        Asset(name=name, asset_type=asset_type, owner=owner).save()
-        return Asset.objects.get(name=name)
+        self.asset_type = self.assets.create_asset_type()
+        self.asset1 = self.assets.create_asset(name='asset1', asset_type=self.asset_type, owner=self.smm.user1)
+        self.asset2 = self.assets.create_asset(name='asset2', asset_type=self.asset_type, owner=self.smm.user2)
 
     def create_asset_status_value(self, name='test'):
         """
