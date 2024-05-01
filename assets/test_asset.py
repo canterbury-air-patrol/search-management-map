@@ -4,11 +4,13 @@ Tests for the asset class
 
 import json
 
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.core import serializers
-from django.contrib.auth import get_user_model
 
-from .models import Asset, AssetType
+from smm.tests import SMMTestUsers
+
+from .models import Asset
+from .tests import AssetsHelpers
 
 
 class AssetTestCase(TestCase):
@@ -19,12 +21,14 @@ class AssetTestCase(TestCase):
         """
         Create objects for the test
         """
-        boat = AssetType.objects.create(name='boat')
-        wing = AssetType.objects.create(name='wing')
-        user = get_user_model().objects.create_user('test', password='password')
-        Asset.objects.create(name='PCCR', asset_type=boat)
-        Asset.objects.create(name='FX-79-1', asset_type=wing, owner=user)
-        Asset.objects.create(name='FX-79-2', asset_type=wing)
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
+
+        boat = self.assets.create_asset_type(at_name='boat')
+        wing = self.assets.create_asset_type(at_name='wing')
+        self.assets.create_asset(name='PCCR', asset_type=boat, owner=self.smm.user1)
+        self.assets.create_asset(name='FX-79-1', asset_type=wing, owner=self.smm.user2)
+        self.assets.create_asset(name='FX-79-2', asset_type=wing, owner=self.smm.user1)
 
     def test_asset_name(self):
         """
@@ -68,13 +72,11 @@ class AssetTestCase(TestCase):
         """
         Check the my assets list correctly reflects only assets the current user owns
         """
-        client = Client()
-        client.login(username='test', password='password')
-        response = client.get('/assets/mine/json/')
+        response = self.assets.get_my_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue('assets' in data)
         self.assertTrue('name' in data['assets'][0])
         self.assertEqual('FX-79-1', data['assets'][0]['name'])
         self.assertEqual('wing', data['assets'][0]['type_name'])
-        self.assertEqual('test', data['assets'][0]['owner'])
+        self.assertEqual(self.smm.user2.username, data['assets'][0]['owner'])

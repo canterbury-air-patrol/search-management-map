@@ -34,6 +34,14 @@ class AssetsHelpers:
             owner = self.smm.user1
         return Asset.objects.create(name=name, asset_type=asset_type, owner=owner)
 
+    def get_my_asset_list(self, client=None):
+        """
+        Get the asset list this user owns
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get('/assets/mine/json/')
+
 
 class AssetTestCase(TestCase):
     """
@@ -134,11 +142,10 @@ class AssetTestCase(TestCase):
         """
         Check single asset_mine behaviour/API
         """
-        assets_mine_url = '/assets/mine/json/'
         asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type, owner=self.smm.user1)
-        response = self.smm.client1.get(assets_mine_url)
+        response = self.assets.get_my_asset_list()
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['assets'][0]['name'], asset_name)
@@ -147,13 +154,13 @@ class AssetTestCase(TestCase):
         self.assertEqual(json_data['assets'][0]['type_name'], asset_type.name)
 
         # Check a different user doesn't get this asset
-        response = self.smm.client2.get(assets_mine_url)
+        response = self.assets.get_my_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['assets']), 0)
 
         # Check authentication is required
-        response = self.smm.unauth_client.get(assets_mine_url)
+        response = self.assets.get_my_asset_list(client=self.smm.unauth_client)
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_details(self):
