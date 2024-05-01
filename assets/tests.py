@@ -11,15 +11,12 @@ from mission.models import Mission, MissionUser, MissionAsset
 from .models import AssetType, Asset
 
 
-class AssetTestFunctionsBase(TestCase):
+class AssetsHelpers:
     """
     Useful helper functions for tests that use assets
     """
-    def setUp(self):
-        """
-        Create the required objects
-        """
-        self.smm = SMMTestUsers()
+    def __init__(self, smm):
+        self.smm = smm
 
     def create_asset_type(self, at_name='test_at', at_description='test asset type'):
         """
@@ -38,7 +35,7 @@ class AssetTestFunctionsBase(TestCase):
         return Asset.objects.create(name=name, asset_type=asset_type, owner=owner)
 
 
-class AssetTestCase(AssetTestFunctionsBase):
+class AssetTestCase(TestCase):
     """
     Tests for Assets
     """
@@ -46,7 +43,8 @@ class AssetTestCase(AssetTestFunctionsBase):
         """
         Create additional required objects
         """
-        super().setUp()
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
         self.mission = Mission.objects.create(creator=self.smm.user1, mission_name='mission1')
         MissionUser(mission=self.mission, user=self.smm.user1, role='A', creator=self.smm.user1).save()
 
@@ -55,7 +53,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         Add an asset to a mission
         """
         if asset is None:
-            asset = self.create_asset()
+            asset = self.assets.create_asset()
         if mission is None:
             mission = self.mission
         MissionAsset(mission=mission, asset=asset, creator=self.smm.user1).save()
@@ -85,7 +83,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         if client is None:
             client = self.smm.client1
         if asset is None:
-            asset = self.create_asset()
+            asset = self.assets.create_asset()
         if search_id is None:
             search_id = self.create_search(asset=asset, client=client)
         response = client.post(f'/search/{search_id}/queue/', {'asset': asset.pk})
@@ -98,7 +96,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         if client is None:
             client = self.smm.client1
         if asset is None:
-            asset = self.create_asset()
+            asset = self.assets.create_asset()
         if search_id is None:
             search_id = self.create_search(asset=asset, client=client)
         response = client.post(f'/search/{search_id}/begin/', {'asset_id': asset.pk})
@@ -122,7 +120,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         """
         at_name = 'test_at'
         at_description = 'test asset type'
-        asset_type = self.create_asset_type(at_name, at_description)
+        asset_type = self.assets.create_asset_type(at_name, at_description)
 
         # Check both clients can access this
         self.check_asset_type_api(client=self.smm.client1, at_name=at_name, at_id=asset_type.id)
@@ -137,9 +135,9 @@ class AssetTestCase(AssetTestFunctionsBase):
         Check single asset_mine behaviour/API
         """
         assets_mine_url = '/assets/mine/json/'
-        asset_type = self.create_asset_type()
+        asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
-        asset = self.create_asset(name=asset_name, asset_type=asset_type, owner=self.smm.user1)
+        asset = self.assets.create_asset(name=asset_name, asset_type=asset_type, owner=self.smm.user1)
         response = self.smm.client1.get(assets_mine_url)
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
@@ -162,9 +160,9 @@ class AssetTestCase(AssetTestFunctionsBase):
         """
         Check asset details API
         """
-        asset_type = self.create_asset_type()
+        asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
-        asset = self.create_asset(name=asset_name, asset_type=asset_type)
+        asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/details/'
         response = self.smm.client1.get(asset_details_url)
         self.assertEqual(response.status_code, 200)
@@ -190,9 +188,9 @@ class AssetTestCase(AssetTestFunctionsBase):
         """
         Check asset details API when asset is in a mission
         """
-        asset_type = self.create_asset_type()
+        asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
-        asset = self.create_asset(name=asset_name, asset_type=asset_type)
+        asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/details/'
         mission_asset = self.add_asset_to_mission(asset=asset)
         response = self.smm.client1.get(asset_details_url)
@@ -234,7 +232,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         """
         Check that only the owner can access the assets UI page
         """
-        asset = self.create_asset()
+        asset = self.assets.create_asset()
         asset_ui_url = f'/assets/{asset.pk}/ui/'
 
         # Check the owner has access
@@ -254,7 +252,7 @@ class AssetTestCase(AssetTestFunctionsBase):
         Assets can get their commands via the asset details API and also
         in response to reporting their position
         """
-        asset = self.create_asset()
+        asset = self.assets.create_asset()
         asset_details_url = f'/assets/{asset.pk}/details/'
         asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
