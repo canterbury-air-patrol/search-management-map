@@ -5,7 +5,7 @@ Function decorators for assets
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 
-from organization.helpers import organization_user_is_asset_recorder
+from organization.helpers import organization_user_is_asset_recorder, organization_user_is_asset_radio_operator
 
 from .models import Asset
 
@@ -52,7 +52,9 @@ def asset_id_in_get_post(view_func):
         else:
             return HttpResponseNotAllowed("Only GET and POST are supported")
         asset = get_object_or_404(Asset, pk=asset_id)
-        if asset.owner != request.user:
+        if asset.owner == request.user or organization_user_is_asset_radio_operator(args[0].user, asset):
+            allowed = True
+        if not allowed:
             return HttpResponseForbidden("Wrong User for Asset")
 
         return view_func(*args, asset=asset, **kwargs)
