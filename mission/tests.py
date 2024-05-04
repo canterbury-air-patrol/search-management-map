@@ -93,7 +93,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/mission/{self.mission_pk}/organizations/add/', data={'organization': organization['id']}, follow=True)
+        return client.post(f'/mission/{self.mission_pk}/organizations/add/', data={'organization': organization.org_id}, follow=True)
 
 
 class MissionFunctions:
