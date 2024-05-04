@@ -72,6 +72,14 @@ class OrganizationWrapper:
             client = self.smm.client1
         return client.post(f'/organization/{self.org_id}/assets/{asset.pk}/', {})
 
+    def get_radio_operator_ui(self, client=None):
+        """
+        Get the radio operator ui
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/organization/{self.org_id}/radio/operator/')
+
 
 class OrganizationFunctions:
     """
