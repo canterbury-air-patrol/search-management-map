@@ -6,7 +6,7 @@ from django.test import TestCase
 
 from smm.tests import SMMTestUsers
 
-from assets.models import Asset, AssetType
+from assets.tests import AssetsHelpers
 
 
 class OrganizationWrapper:
@@ -125,25 +125,8 @@ class OrganizationTestCase(TestCase):
         Create the required users
         """
         self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
         self.orgs = OrganizationFunctions(self.smm)
-
-    def create_asset_type(self, at_name='test_at', at_description='test asset type'):
-        """
-        Create an asset type object
-        """
-        AssetType(name=at_name, description=at_description).save()
-        return AssetType.objects.get(name=at_name)
-
-    def create_asset(self, name='test_asset', asset_type=None, owner=None):
-        """
-        Create an asset
-        """
-        if asset_type is None:
-            asset_type = self.create_asset_type()
-        if owner is None:
-            owner = self.smm.user1
-        Asset(name=name, asset_type=asset_type, owner=owner).save()
-        return Asset.objects.get(name=name)
 
     def test_organization_create(self):
         """
@@ -276,8 +259,8 @@ class OrganizationTestCase(TestCase):
         org = self.orgs.create_organization(organization_name='org', client=self.smm.client1)
         asset_list = org.get_org_asset_list(client=self.smm.client1)
         self.assertEqual(len(asset_list), 0)
-        asset_type = self.create_asset_type()
-        asset = self.create_asset(name='asset1', asset_type=asset_type, owner=self.smm.user1)
+        asset_type = self.assets.create_asset_type()
+        asset = self.assets.create_asset(name='asset1', asset_type=asset_type, owner=self.smm.user1)
         org.add_asset(asset=asset)
         asset_list = org.get_org_asset_list(client=self.smm.client1)
         self.assertEqual(len(asset_list), 1)
@@ -286,7 +269,7 @@ class OrganizationTestCase(TestCase):
         asset_list = org2.get_org_asset_list(client=self.smm.client1)
         self.assertEqual(len(asset_list), 0)
         # Check non-members can't add assets
-        asset2 = self.create_asset(name='asset2', asset_type=asset_type, owner=self.smm.user2)
+        asset2 = self.assets.create_asset(name='asset2', asset_type=asset_type, owner=self.smm.user2)
         response = org2.add_asset(asset2, client=self.smm.client2)
         self.assertEqual(response.status_code, 404)
         # Check only the asset owners can add assets
@@ -313,8 +296,8 @@ class OrganizationTestCase(TestCase):
         self.assertEqual(len(json_data['members']), 1)
         self.assertEqual(json_data['members'][0]['user'], self.smm.user1.username)
         # Add an asset and check the asset is included too
-        asset_type = self.create_asset_type()
-        asset = self.create_asset(name='asset1', asset_type=asset_type, owner=self.smm.user1)
+        asset_type = self.assets.create_asset_type()
+        asset = self.assets.create_asset(name='asset1', asset_type=asset_type, owner=self.smm.user1)
         org.add_asset(asset)
         json_data = org.get_details().json()
         self.assertEqual(json_data['id'], org.org_id)
