@@ -1,6 +1,8 @@
 """
 Tests for Mission interactions with Organizations
 """
+from organization.tests import OrganizationFunctions
+
 from .tests import MissionBaseTestCase
 
 
@@ -8,40 +10,9 @@ class MissionOrganizationBaseTestCase(MissionBaseTestCase):
     """
     Base setup/functions for testing Mission/Organization integration
     """
-    def create_organization(self, organization_name='org', client=None):
-        """
-        Create an organization
-        """
-        organization_create_url = '/organization/create/'
-        if client is None:
-            client = self.smm.client1
-        response = client.post(organization_create_url, {'name': organization_name})
-        self.assertEqual(response.status_code, 200)
-        return response.json()
-
-    def add_user_to_org(self, organization=None, user=None, client=None, role='M'):
-        """
-        Add a user to an organization
-        """
-        if client is None:
-            client = self.smm.client1
-        if organization is None:
-            organization = self.create_organization(client=client)
-        organization_user_add_url = f"/organization/{organization['id']}/user/{user}/"
-        response = client.post(organization_user_add_url, {'role': role})
-        self.assertEqual(response.status_code, 200)
-
-    def del_user_from_org(self, organization=None, user=None, client=None):
-        """
-        Remove a user from the organization
-        """
-        if client is None:
-            client = self.smm.client1
-        if organization is None:
-            organization = self.create_organization(client=client)
-        organization_user_del_url = f"/organization/{organization['id']}/user/{user}/"
-        response = client.delete(organization_user_del_url)
-        self.assertEqual(response.status_code, 200)
+    def setUp(self):
+        super().setUp()
+        self.orgs = OrganizationFunctions(self.smm)
 
 
 class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
@@ -60,7 +31,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
         # Create an organization and add it to this mission
-        org1 = self.create_organization()
+        org1 = self.orgs.create_organization()
         # Add this organization to the mission
         mission.add_organization(org1)
         # Check the mission list still only has 1 entry
@@ -80,11 +51,11 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
         # Create an organization and add it to this mission
-        org1 = self.create_organization()
+        org1 = self.orgs.create_organization()
         # Add this organization to the mission
         mission.add_organization(org1)
         # Add the other user to the organization
-        self.add_user_to_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
+        org1.add_user(self.smm.user2, client=self.smm.client1)
         # Check the other user can now see this mission
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
@@ -94,8 +65,8 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         Check that a user removed from an organization no longer sees missions that organization is a member of
         """
         # Create an organization, make both users a member
-        org1 = self.create_organization()
-        self.add_user_to_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
+        org1 = self.orgs.create_organization()
+        org1.add_user(self.smm.user2, client=self.smm.client1)
         # Check there are no missions in the list
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
@@ -110,6 +81,6 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
         # Remove the user from the organization, check it disappears for them
-        self.del_user_from_org(organization=org1, user=self.smm.user2, client=self.smm.client1)
+        org1.remove_user(self.smm.user2, client=self.smm.client1)
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
