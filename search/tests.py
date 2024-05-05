@@ -102,20 +102,22 @@ class SearchHelpers:
         })
         return SearchWrapper(self.smm, response.json())
 
-    def create_expanding_box_search(self, poi, sweep_width, iterations, first_bearing, asset_type, client=None):
+    def create_expanding_box_search(self, poi, sweep_width, iterations, asset_type, first_bearing=None, client=None):
         # pylint: disable=R0913
         """
         Create an expanding box search
         """
         if client is None:
             client = self.smm.client1
-        response = client.post('/search/expandingbox/create/', data={
+        data = {
             'poi_id': poi.pk,
             'asset_type_id': asset_type.pk,
             'sweep_width': sweep_width,
             'iterations': iterations,
-            'first_bearing': first_bearing,
-        })
+        }
+        if first_bearing is not None:
+            data['first_bearing'] = first_bearing
+        response = client.post('/search/expandingbox/create/', data=data)
         return SearchWrapper(self.smm, response.json())
 
     def create_trackline_search(self, line, sweep_width, asset_type, client=None):
@@ -255,7 +257,7 @@ class SearchTestCase(TestCase):
         Test creating an expanding box search
         """
         poi = self.create_poi(-43.5, 172.5)
-        search = self.searches.create_expanding_box_search(poi, 200, 2, 90, self.asset_type1).as_object()
+        search = self.searches.create_expanding_box_search(poi, 200, 2, self.asset_type1, first_bearing=90).as_object()
         self.assertEqual(search.created_for, self.asset_type1)
         self.assertEqual(search.sweep_width, 200)
         self.assertEqual(search.inprogress_by, None)
@@ -268,6 +270,26 @@ class SearchTestCase(TestCase):
         self.assertEqual(search.search_type, 'Expanding Box')
         self.assertEqual(search.iterations, 2)
         self.assertEqual(search.first_bearing, 90)
+        self.assertEqual(search.width, None)
+
+    def test_0201_create_expanding_box_no_first_bearing(self):
+        """
+        Test creating an expanding box search
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_expanding_box_search(poi, 200, 2, self.asset_type1).as_object()
+        self.assertEqual(search.created_for, self.asset_type1)
+        self.assertEqual(search.sweep_width, 200)
+        self.assertEqual(search.inprogress_by, None)
+        self.assertEqual(search.inprogress_at, None)
+        self.assertEqual(search.completed_by, None)
+        self.assertEqual(search.completed_at, None)
+        self.assertEqual(search.queued_at, None)
+        self.assertEqual(search.queued_for_asset, None)
+        self.assertEqual(search.datum.pk, poi.pk)
+        self.assertEqual(search.search_type, 'Expanding Box')
+        self.assertEqual(search.iterations, 2)
+        self.assertEqual(search.first_bearing, 0)
         self.assertEqual(search.width, None)
 
     def test_0300_create_trackline_basic(self):
