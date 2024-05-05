@@ -354,7 +354,7 @@ def expanding_box_search_create(request):
     sweep_width = float(sweep_width)
     try:
         first_bearing = int(first_bearing)
-    except ValueError:
+    except TypeError:
         first_bearing = 0
 
     search = Search.create_expanding_box_search(ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, iterations, first_bearing), save=save)
