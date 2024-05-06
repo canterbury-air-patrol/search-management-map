@@ -204,7 +204,7 @@ def search_queue(request, search, mission_user):
 
     asset = None
     if request.method == "POST":
-        if request.POST['asset']:
+        if 'asset' in request.POST:
             asset = get_object_or_404(Asset, pk=request.POST['asset'])
             # Make sure this asset is a member of this mission
             get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
