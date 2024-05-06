@@ -351,3 +351,27 @@ class SearchTestCase(TestCase):
         self.assertEqual(search.iterations, None)
         self.assertEqual(search.first_bearing, None)
         self.assertEqual(search.width, None)
+
+    def test_1000_check_find_next_creation_time(self):
+        """
+        Test finding the next search when the only difference is creation time
+        This should always pick the closest search to the location
+        so if we pass in the exact location of the poi, we should get that search
+        """
+        poi1 = self.create_poi(-43.5, 172.5)
+        search1 = self.searches.create_expanding_box_search(poi1, 200, 2, self.asset_type1, first_bearing=90).as_object()
+        poi2 = self.create_poi(-44.5, 173.5)
+        search2 = self.searches.create_expanding_box_search(poi2, 200, 2, self.asset_type1, first_bearing=180).as_object()
+        response = self.searches.find_closest(-43.5, 172.5, self.asset1)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        # Check we get the search we expected based on this location
+        self.assertEqual(data['object_url'], f'/search/{search1.pk}/json/')
+        self.assertEqual(data['distance'], 0)
+        # Try the other location
+        response = self.searches.find_closest(-44.5, 173.5, self.asset1)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        # Check we get the search we expected based on this location
+        self.assertEqual(data['object_url'], f'/search/{search2.pk}/json/')
+        self.assertEqual(data['distance'], 0)
