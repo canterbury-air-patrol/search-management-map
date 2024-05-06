@@ -79,7 +79,7 @@ class FirstPointDistance(Func):
 
     def as_sql(self, compiler, connection, function=None, template=None, arg_joiner=None, **extra_context):
         # pylint: disable=R0913
-        point_sql = f"'SRID=4326;POINT({self.extra['point'].y} {self.extra['point'].x})'::geography"
+        point_sql = f"ST_Point({self.extra['point'].x},{self.extra['point'].y},4326)::geography"
         return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(geo::geometry,1)::geography, " + point_sql + ")",
                               arg_joiner=arg_joiner, extra_context=extra_context)
 
