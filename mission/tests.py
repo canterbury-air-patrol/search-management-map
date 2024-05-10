@@ -117,13 +117,16 @@ class MissionFunctions:
         mission_pk = mission_url.split('/')[2]
         return MissionTestWrapper(self.smm, mission_pk)
 
-    def get_mission_list(self, client=None):
+    def get_mission_list(self, client=None, only=None):
         """
         Get the current mission list
         """
         if client is None:
             client = self.smm.client1
-        return client.get('/mission/list/').json()['missions']
+        only_query = ''
+        if only is not None:
+            only_query = f'?only={only}'
+        return client.get(f'/mission/list/{only_query}').json()['missions']
 
 
 class MissionBaseTestCase(TestCase):
@@ -282,6 +285,41 @@ class MissionTestCase(MissionBaseTestCase):
         self.assertEqual(mission_list[0]['creator'], self.smm.user1.username)
         self.assertIsNotNone(mission_list[0]['closed'])
         self.assertEqual(mission_list[0]['closed_by'], self.smm.user1.username)
+
+    def test_mission_list_only(self):
+        """
+        Check the mission list contains missions and only the ones required
+        """
+        # Create 2 missions and check they appear in the list
+        mission1 = self.missions.create_mission('test_mission_list', mission_description='test description')
+        mission1_obj = mission1.get_object()
+        mission2 = self.missions.create_mission('test_mission_list', mission_description='test description')
+        mission2_obj = mission2.get_object()
+        mission_list = self.missions.get_mission_list()
+        self.assertEqual(len(mission_list), 2)
+        # Check both appear in only active list
+        mission_list = self.missions.get_mission_list(only='active')
+        self.assertEqual(len(mission_list), 2)
+        # and neither in the closed list
+        mission_list = self.missions.get_mission_list(only='closed')
+        self.assertEqual(len(mission_list), 0)
+        # Now close one and check the right ones appear in the filtered lists
+        mission1.close()
+        # Check the only active list
+        mission_list = self.missions.get_mission_list(only='active')
+        self.assertEqual(len(mission_list), 1)
+        self.assertEqual(mission_list[0]['id'], mission2_obj.pk)
+        # and neither in the closed list
+        mission_list = self.missions.get_mission_list(only='closed')
+        self.assertEqual(len(mission_list), 1)
+        self.assertEqual(mission_list[0]['id'], mission1_obj.pk)
+        # Close the other mission and check again
+        mission2.close()
+        mission_list = self.missions.get_mission_list(only='active')
+        self.assertEqual(len(mission_list), 0)
+        # and neither in the closed list
+        mission_list = self.missions.get_mission_list(only='closed')
+        self.assertEqual(len(mission_list), 2)
 
 
 class MissionAssetsTestCase(MissionBaseTestCase):
