@@ -99,10 +99,25 @@ def mission_list_data(request):
     """
     Provide data for all the missions this user is a member of
     """
+    exclude_closed = False
+    exclude_open = False
+    if request.method == 'GET':
+        only = request.GET.get('only', '')
+        if only == 'active':
+            exclude_closed = True
+        if only == 'closed':
+            exclude_open = True
+
     user_missions = MissionUser.objects.filter(user=request.user)
     organization_missions = MissionOrganization.objects.filter(organization__in=[organization_member.organization for organization_member in OrganizationMember.user_current(user=request.user)])
     organization_missions = organization_missions.exclude(mission__in=[user_mission.mission for user_mission in user_missions])
     organization_missions = organization_missions.distinct('mission')
+    if exclude_closed:
+        organization_missions = organization_missions.exclude(mission__closed__isnull=False)
+        user_missions = user_missions.exclude(mission__closed__isnull=False)
+    if exclude_open:
+        organization_missions = organization_missions.exclude(mission__closed__isnull=True)
+        user_missions = user_missions.exclude(mission__closed__isnull=True)
 
     missions = []
     for user_mission in user_missions:
