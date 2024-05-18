@@ -7,8 +7,11 @@ pip install -r requirements.txt
 # Setup the image storage directory
 mkdir -p images/full images/thumbnail
 
-npm ci
-npm run build
+if [ "x${NODE_DONE}" != "xyes" ]
+then
+    npm ci
+    npm run build
+fi
 
 echo ""
 
