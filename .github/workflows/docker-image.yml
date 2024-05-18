@@ -20,6 +20,9 @@ jobs:
       run: |
           docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
+    - name: Build the frontend
+      run: ./build-frontend.sh
+
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ secrets.DOCKER_REPO }}:${{ github.sha }} --tag ${{ secrets.DOCKER_REPO }}:latest
 
