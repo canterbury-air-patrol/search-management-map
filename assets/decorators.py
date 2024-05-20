@@ -52,6 +52,7 @@ def asset_id_in_get_post(view_func):
         else:
             return HttpResponseNotAllowed("Only GET and POST are supported")
         asset = get_object_or_404(Asset, pk=asset_id)
+        allowed = False
         if asset.owner == request.user or organization_user_is_asset_radio_operator(args[0].user, asset):
             allowed = True
         if not allowed:

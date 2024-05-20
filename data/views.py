@@ -138,6 +138,7 @@ def asset_position_history(request, asset_id, mission=None, user=None, current_o
     When from is provided, only points after the timestamp from are considered.
     """
     oldest = 'first'
+    since = None
     if request.method == 'GET':
         since = request.GET.get('from')
         if request.GET.get('oldest'):
@@ -284,6 +285,7 @@ def user_position_history(request, user, mission=None, requesting_user=None, cur
     When from is provided, only points after the timestamp from are considered.
     """
     oldest = 'first'
+    since = None
     if request.method == 'GET':
         since = request.GET.get('from')
         if request.GET.get('oldest'):
