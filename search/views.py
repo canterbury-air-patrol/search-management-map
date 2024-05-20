@@ -57,7 +57,7 @@ def find_next_search(request, asset, mission):
         lat = request.GET.get('latitude')
         long = request.GET.get('longitude')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     try:
         lat = float(lat)
@@ -78,19 +78,17 @@ def find_next_search(request, asset, mission):
 
     # If this asset already has a search in progress, only offer that
     search = check_searches_in_progress(mission, asset)
-    if search:
-        return search_data(search)
 
-    search = Search.oldest_queued_for_asset(mission, asset)
-    if search:
-        return search_data(search)
+    if search is None:
+        search = Search.oldest_queued_for_asset(mission, asset)
 
-    # Check for the oldest queue entry for this asset
-    search = Search.oldest_queued_for_asset_type(mission, asset.asset_type)
-    if search:
-        return search_data(search)
+    if search is None:
+        # Check for the oldest queue entry for this asset
+        search = Search.oldest_queued_for_asset_type(mission, asset.asset_type)
 
-    search = Search.find_closest(mission, asset.asset_type, point)
+    if search is None:
+        search = Search.find_closest(mission, asset.asset_type, point)
+
     if search:
         return search_data(search)
 
@@ -316,7 +314,7 @@ def sector_search_create(request):
         asset_type_id = request.GET.get('asset_type_id')
         sweep_width = request.GET.get('sweep_width')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
@@ -346,7 +344,7 @@ def expanding_box_search_create(request):
         iterations = request.GET.get('iterations')
         first_bearing = request.GET.get('first_bearing')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
@@ -378,7 +376,7 @@ def track_line_search_create(request):
         asset_type_id = request.GET.get('asset_type_id')
         sweep_width = request.GET.get('sweep_width')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
@@ -406,7 +404,7 @@ def track_creeping_line_search_create(request):
         sweep_width = request.GET.get('sweep_width')
         width = request.GET.get('width')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
@@ -432,7 +430,7 @@ def polygon_creeping_line_search_create(request):
         asset_type_id = request.GET.get('asset_type_id')
         sweep_width = request.GET.get('sweep_width')
     else:
-        HttpResponseNotFound('Unknown Method')
+        return HttpResponseNotFound('Unknown Method')
 
     poly = get_object_or_404(GeoTimeLabel, pk=poly_id, geo_type='polygon')
     asset_type = get_object_or_404(AssetType, pk=asset_type_id)
