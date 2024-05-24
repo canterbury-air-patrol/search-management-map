@@ -292,7 +292,11 @@ def mission_asset_json(request, mission_user):
     """
     List Assets in a Mission
     """
-    assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
+    include_removed = request.GET.get('include_removed', False)
+    if include_removed:
+        assets = MissionAsset.objects.filter(mission=mission_user.mission)
+    else:
+        assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
     assets_json = []
     for mission_asset in assets:
         assets_json.append({

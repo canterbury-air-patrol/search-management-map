@@ -79,13 +79,16 @@ class MissionTestWrapper:
             client = self.smm.client1
         return client.get(f'/mission/{self.mission_pk}/assets/{asset.pk}/remove/', follow=True)
 
-    def get_asset_list(self, client=None):
+    def get_asset_list(self, client=None, include_removed=False):
         """
         Get the list of assets in this mission
         """
         if client is None:
             client = self.smm.client1
-        return client.get(f'/mission/{self.mission_pk}/assets/json/')
+        extra = ''
+        if include_removed:
+            extra = '?include_removed=true'
+        return client.get(f'/mission/{self.mission_pk}/assets/json/{extra}')
 
     def add_organization(self, organization, client=None):
         """
@@ -386,3 +389,8 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 0)
+        # Check getting all results
+        response = mission.get_asset_list(client=self.smm.client1, include_removed=True)
+        self.assertEqual(response.status_code, 200)
+        assets_data = response.json()
+        self.assertEqual(len(assets_data['assets']), 1)
