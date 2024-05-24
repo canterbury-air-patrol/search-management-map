@@ -6,6 +6,7 @@
         "frontend/pretty.js",
         "frontend/asset/ui.js",
         "frontend/asset/list.js",
+        "frontend/icons/list.js",
         "frontend/mission/list.js",
         "frontend/mission/timeline.js",
         "frontend/search/details.js",

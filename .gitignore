@@ -9,6 +9,7 @@ dl/
 tmp/
 todo.org
 /static/
+icons/images/
 images/full/
 images/thumbnail/
 node_modules/

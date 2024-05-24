@@ -27,4 +27,5 @@ urlpatterns = [
     re_path(r'', include('marinesar.urls')),
     re_path(r'', include('map.urls')),
     re_path(r'', include('organization.urls')),
+    path('icons/', include('icons.urls')),
 ]
