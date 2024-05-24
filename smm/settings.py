@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'images',
     'marinesar',
     'organization',
+    'icons',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
