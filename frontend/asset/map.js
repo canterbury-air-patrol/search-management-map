@@ -257,6 +257,9 @@ class SMMAssets extends SMMRealtime {
     if (asset.geometry.type === 'Point') {
       const c = asset.geometry.coordinates
       oldLayer.setLatLng([c[1], c[0]])
+      if (oldLayer._icon.title !== this.assetNameMap[assetId]) {
+        oldLayer._icon.title = this.assetNameMap[assetId]
+      }
       return oldLayer
     }
   }

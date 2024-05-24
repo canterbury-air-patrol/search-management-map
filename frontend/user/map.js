@@ -62,6 +62,7 @@ class SMMUserPositions extends SMMRealtime {
     this.userObjects = {}
     this.createPopup = this.createPopup.bind(this)
     this.userUpdate = this.userUpdate.bind(this)
+    this.userLayer = this.userLayer.bind(this)
   }
 
   getUrl () {
@@ -76,7 +77,8 @@ class SMMUserPositions extends SMMRealtime {
       interval: this.interval,
       onEachFeature: this.createPopup,
       updateFeature: this.userUpdate,
-      getFeatureId: function (feature) { return feature.properties.user }
+      getFeatureId: function (feature) { return feature.properties.user },
+      pointToLayer: this.userLayer
     })
   }
 
@@ -100,6 +102,12 @@ class SMMUserPositions extends SMMRealtime {
     popupContent.appendChild(document.createTextNode(userName))
 
     layer.bindPopup(popupContent, { minWidth: 200 })
+  }
+
+  userLayer (user, latlng) {
+    return L.marker(latlng, {
+      title: user.properties.user
+    })
   }
 
   userPathUpdate (userName) {
