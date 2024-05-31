@@ -26,6 +26,22 @@ def asset_is_recorder(view_func):
     return recorder_check
 
 
+def asset_is_operator(view_func):
+    """
+    Make sure the current user is allowed to act on behalf of this asset.
+    """
+    def recorder_check(*args, **kwargs):
+        allowed = False
+        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
+        if asset.owner == args[0].user or organization_user_is_asset_radio_operator(args[0].user, asset):
+            allowed = True
+        if not allowed:
+            return HttpResponseForbidden("Not Authorized to record the position of this asset")
+        kwargs.pop('asset_id')
+        return view_func(*args, asset=asset, **kwargs)
+    return recorder_check
+
+
 def asset_is_owner(view_func):
     """
     Make sure the current user is the owner of this asset.

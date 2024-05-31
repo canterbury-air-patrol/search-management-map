@@ -33,6 +33,7 @@ class TimeLineEntry(models.Model):
         ('arm', "Asset removed from mission"),
         ('ipc', "Image priority changed"),
         ('que', 'Search was Queued or Dequeued'),
+        ('mas', 'Mission Asset Status'),
     )
     event_type = models.CharField(max_length=3, choices=EVENT_TYPE)
 
