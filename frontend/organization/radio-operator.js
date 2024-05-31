@@ -9,10 +9,15 @@ import * as ReactDOM from 'react-dom/client'
 import $ from 'jquery'
 
 import { AssetCommandView, AssetDetails, AssetUI } from '../asset/ui'
+import { MissionAssetStatus } from '../mission/asset/status'
 import { SMMOrganizationTopBar } from '../menu/topbar'
 
 class RadioOperatorAsset extends AssetUI {
   render () {
+    let missionStatus
+    if (Number.isInteger(this.state.details.mission_id)) {
+      missionStatus = (<MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />)
+    }
     return (
       <>
       <thead>
@@ -29,6 +34,7 @@ class RadioOperatorAsset extends AssetUI {
         <td>
         <AssetCommandView
           lastCommand={this.state.lastCommand} />
+        {missionStatus}
         </td>
       </tr>
       </tbody>

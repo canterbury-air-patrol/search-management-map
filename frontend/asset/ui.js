@@ -9,6 +9,7 @@ import * as ReactDOM from 'react-dom/client'
 import $ from 'jquery'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
+import { MissionAssetStatus } from '../mission/asset/status'
 
 class AssetTrackAs extends React.Component {
   constructor (props) {
@@ -429,6 +430,10 @@ class AssetUI extends React.Component {
   }
 
   render () {
+    let missionStatus
+    if (Number.isInteger(this.state.details.mission_id)) {
+      missionStatus = (<MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />)
+    }
     return (
       <div>
         <div style={ { fontWeight: 'bold', textAlign: 'center' } } className='bg-info'>{this.state.details.name}</div>
@@ -436,6 +441,7 @@ class AssetUI extends React.Component {
           details={this.state.details} />
         <AssetCommandView
           lastCommand={this.state.lastCommand} />
+        { missionStatus }
         <AssetTrackAs
           asset={this.props.asset} />
         <AssetStatusSet
