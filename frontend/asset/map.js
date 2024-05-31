@@ -142,6 +142,7 @@ class SMMAssets extends SMMRealtime {
     this.assetListCB = this.assetListCB.bind(this)
     this.assetNameMap = {}
     this.assetIconMap = {}
+    this.assetStatusMap = {}
     window.setInterval(this.updateAssetNameMap, interval)
   }
 
@@ -153,6 +154,9 @@ class SMMAssets extends SMMRealtime {
     for (const assetIdx in data.assets) {
       const asset = data.assets[assetIdx]
       this.assetNameMap[asset.id] = asset.name
+      if (asset.status !== undefined) {
+        this.assetStatusMap[asset.id] = asset.status
+      }
       if (asset.icon_url !== undefined) {
         this.assetIconMap[asset.id] = asset.icon_url
       }
@@ -279,6 +283,13 @@ class SMMAssets extends SMMRealtime {
     }
     if (fix) {
       data.push(['Fix', fix])
+    }
+
+    if ((assetId in this.assetStatusMap)) {
+      data.push(['Status', this.assetStatusMap[assetId].status])
+      if (this.assetStatusMap[assetId].notes !== '') {
+        data.push(['Status Notes', this.assetStatusMap[assetId].notes])
+      }
     }
 
     const popupContent = this.assetDataToPopUp(data)

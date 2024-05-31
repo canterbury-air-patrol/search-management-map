@@ -303,13 +303,18 @@ def mission_asset_json(request, mission_user):
         assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
     assets_json = []
     for mission_asset in assets:
-        assets_json.append({
+        asset_data = {
             'id': mission_asset.asset.pk,
             'name': mission_asset.asset.name,
             'type_id': mission_asset.asset.asset_type.id,
             'type_name': mission_asset.asset.asset_type.name,
             'icon_url': mission_asset.asset.icon_url(),
-        })
+        }
+        asset_status = MissionAssetStatus.current_for_asset(mission_asset)
+        if asset_status:
+            asset_data['status'] = asset_status.as_object()
+        assets_json.append(asset_data)
+
     data = {
         'assets': assets_json,
     }
