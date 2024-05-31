@@ -102,6 +102,7 @@ Add User to Mission:
                  <tr>
                      <td>Asset</td>
                      <td>Asset Type</td>
+                     <td>Status</td>
                      <td>Added</td>
                      <td>Removed</td>
                      <td>Options</td>
@@ -112,6 +113,7 @@ Add User to Mission:
                   <tr>
                       <td>{{ asset.asset.name }}</td>
                       <td>{{ asset.asset.asset_type.name }}</td>
+                      <td>{{ asset.status }} <br /><small>@ {{ asset.status_since }}</small></td>
                       <td>{{ asset.added }}</td>
                       <td>{{ asset.removed }}</td>
                       <td>
