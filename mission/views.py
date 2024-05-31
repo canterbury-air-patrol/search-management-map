@@ -7,17 +7,21 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
+from assets.decorators import asset_is_operator
 from organization.models import OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove
+from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, \
+    timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
-from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization
+from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
 from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionTimeLineEntryForm, MissionOrganizationForm
 from .decorators import mission_is_member, mission_is_admin
 
@@ -353,3 +357,68 @@ def mission_asset_remove(request, mission_user, asset_id):
     command.save()
 
     return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+@method_decorator(asset_is_operator, name="post")
+class MissionAssetStatusView(View):
+    """
+    View the asset status in this mission
+    """
+    def as_json(self, request, mission_asset):
+        """
+        Return the current status as json
+        """
+        asset_status = MissionAssetStatus.current_for_asset(mission_asset)
+        if asset_status is None:
+            return HttpResponseNotFound()
+        data = {
+            'status': asset_status.as_object(),
+        }
+        return JsonResponse(data)
+
+    def get(self, request, mission_user, asset_id):
+        """
+        Get the current asset status
+        """
+        asset = get_object_or_404(Asset, pk=asset_id)
+        mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, mission_asset)
+        return render(request, "mission_asset_status.html", {'mission_asset': mission_asset})
+
+    def post(self, request, mission_user, asset):
+        """
+        Allow setting/updating the asset status
+        """
+        mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+        value_id = request.POST.get('value_id')
+        notes = request.POST.get('notes')
+        status_value = get_object_or_404(MissionAssetStatusValue, pk=value_id)
+        asset_status = MissionAssetStatus.objects.create(mission_asset=mission_asset, status=status_value, notes=notes)
+        timeline_record_mission_asset_status(mission_user.mission, user=request.user, asset=asset, status=status_value)
+        return JsonResponse({'status': asset_status.as_object()})
+
+
+@method_decorator(login_required, name="dispatch")
+class MissionAssetStatusValuesView(View):
+    """
+    View of possible mission asset status values
+    """
+    def as_json(self, request):
+        """
+        Return all possible asset status values as json
+        """
+        data = {
+            'values': [v.as_object() for v in MissionAssetStatusValue.objects.all()],
+        }
+        return JsonResponse(data)
+
+    def get(self, request):
+        """
+        Get the asset status values
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request)
+        return render(request, "mission_asset_status_value.html")

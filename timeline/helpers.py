@@ -126,3 +126,12 @@ def timeline_record_search_queue(mission, user, search, assettype, asset):
     url = ""
     entry = TimeLineEntry(mission=mission, user=user, event_type='que', message=message, url=url)
     entry.save()
+
+
+def timeline_record_mission_asset_status(mission, user, asset, status):
+    """
+    Create a timeline entry for a mission asset status being set
+    """
+    message = f"{user} set the status for {asset} in mission {mission.pk} to {status}"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='mas', message=message, url="")
+    entry.save()

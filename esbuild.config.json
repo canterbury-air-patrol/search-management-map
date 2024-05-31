@@ -9,6 +9,7 @@
         "frontend/icons/list.js",
         "frontend/mission/list.js",
         "frontend/mission/timeline.js",
+        "frontend/mission/asset/status.js",
         "frontend/search/details.js",
         "frontend/usergeo/details.js",
         "frontend/organization/list.js",

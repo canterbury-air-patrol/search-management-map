@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>Mission Asset Status</title>
+        <base href="/static/" />
+        <link rel="stylesheet" href="mission/asset/status.css">
+        <script src="mission/asset/status.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body style="height: 100%">
+        {% csrf_token %}
+        <div id="root"></div>
+    </body>
+    <script>
+        createMissionAssetStatus('root', {{ mission_asset.asset.pk }}, {{ mission_asset.mission.pk }})
+    </script>
+</html>
+
