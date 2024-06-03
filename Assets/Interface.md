@@ -10,13 +10,19 @@ You can access this interface by going to the `Assets` page and clicking on the 
 The first part of the page shows details about the asset.
 
 ## Mission Information
-The next page of the page shows details related to the Current Mission (if this asset is assigned to a mission).
+The next part of the page shows details related to the Current Mission (if this asset is assigned to a mission).
 
 Additionally the current search, and the next queued search for this asset are shown.
 
 ## Current Command
 The last command that was set for asset will be shown.
 This will include the time the command was sent, what the command is, and a reason/note. Also, if the command is a goto instruction, it will include a position.
+
+## Mission Status
+The last status this asset reported in the current mission will be shown
+Also, there is a form to update the status with a new one
+
+This status is specific to the current mission, normally they are used to report progress
 
 ## Self Tracking
 The asset interface can be used to record the position information for the asset.
@@ -29,3 +35,5 @@ This mechanism is intended to be used as a backup for assets that don't have ano
 The asset interface can be used to update the status of the asset.
 
 All of the possible status values are selectable in the drop-down and notes about the reason for the status change can be supplied in the notes box.
+
+This status is general about the asset and applies to the asset overall, some statuses will make it impossible to add the asset to a new mission.
