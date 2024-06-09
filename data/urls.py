@@ -37,6 +37,9 @@ urlpatterns = [
     re_path(r'^data/userlines/(?P<geo_id>\d+)/delete/$', views.user_line_delete, {'geo_type': 'line'}, name='user_line_delete'),
     re_path(r'^data/userlines/(?P<geo_id>\d+)/details/$', views.usergeo_details, {'geo_type': 'line'}, name='user_line_details'),
     re_path(r'^data/userlines/(?P<geo_id>\d+)/json/$', views.usergeo_json, {'geo_type': 'line'}, name='user_line_json'),
+
+    re_path(r'^data/usergeo/(?P<geo_id>\d+)/$', views.GeoDataView.as_view()),
+
     re_path(r'^mission/(?P<mission_id>\d+)/data/assets/typhoon/upload/$', views.upload_typhoonh_data, name='upload_typhoonh_data'),
 
     re_path(r'^mission/all/data/assets/positions/latest/$', views.assets_position_latest_user, {'current_only': False}),

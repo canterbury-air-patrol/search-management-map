@@ -10,18 +10,20 @@ import csv
 from datetime import datetime
 import pytz
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest, JsonResponse, HttpResponseNotFound
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
+from django.utils.decorators import method_decorator
+from django.views import View
 
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
 from mission.decorators import mission_is_member, mission_asset_get, mission_is_member_no_variable
 from mission.models import Mission
-from .decorators import geotimelabel_from_type_id, data_get_mission_id
+from .decorators import geotimelabel_from_type_id, geotimelabel_from_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel, UserPointTime
 from .forms import UploadTyphoonData
 from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace, geotimelabel_delete
@@ -504,6 +506,40 @@ def user_line_delete(request, mission_user, usergeo):
     Delete a user line
     """
     return geotimelabel_delete(request, 'Line', usergeo, mission_user)
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(geotimelabel_from_id, name="dispatch")
+@method_decorator(data_get_mission_id(arg_name='usergeo'), name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class GeoDataView(View):
+    """
+    View of mission data
+    """
+    def as_json(self, request, usergeo):
+        """
+        Return the geo data as an object
+        """
+        return to_geojson(GeoTimeLabel, [usergeo])
+
+    def get(self, request, usergeo, mission_user):
+        """
+        Get the geo data
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, usergeo)
+        return render(request, "data/usergeo_details.html", {'userGeoId': usergeo.pk, 'missionId': mission_user.mission.pk})
+
+    def delete(self, request, usergeo, mission_user):
+        """
+        Delete this geo data from the mission
+        """
+        if not usergeo.delete(mission_user.user):
+            if usergeo.deleted_at:
+                return HttpResponseNotFound(f"This {usergeo.human_type()} has already been deleted")
+            if usergeo.replaced_by is not None:
+                return HttpResponseNotFound(f"This {usergeo.human_type()} has been replaced")
+        return HttpResponse("Deleted")
 
 
 def convert_typhoon_time(timestamp):
