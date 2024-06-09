@@ -112,6 +112,7 @@ class Search(GeoTime):
         'created_at',
         'created_by',
         'created_for',
+        'datum',
         'deleted_at',
         'deleted_by',
         'replaced_at',
