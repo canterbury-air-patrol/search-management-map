@@ -229,6 +229,15 @@ class GeoTimeLabel(GeoTime):
         'label',
     )
 
+    def human_type(self):
+        '''
+        Return the human-readable version of the name
+        '''
+        for geo_type in self.GEO_TYPE:
+            if geo_type[0] == self.geo_type:
+                return geo_type[1]
+        return None
+
     @classmethod
     def all_current_of_geo(cls, mission, geo_type, current_at=None):
         '''

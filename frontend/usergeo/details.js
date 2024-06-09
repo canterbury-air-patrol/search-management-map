@@ -53,7 +53,7 @@ class UserGeoDetailsPage extends React.Component {
   }
 
   async updateData () {
-    await $.get(`/data/${this.props.userGeoType}/${this.props.userGeoId}/json/`, this.updateDataResponse)
+    await $.getJSON(`/data/usergeo/${this.props.userGeoId}/`, this.updateDataResponse)
   }
 
   render () {
@@ -83,17 +83,15 @@ class UserGeoDetailsPage extends React.Component {
   }
 }
 UserGeoDetailsPage.propTypes = {
-  userGeoType: PropTypes.string.isRequired,
   userGeoId: PropTypes.number.isRequired,
   missionId: PropTypes.number.isRequired
 }
 
-function createUserGeoDetailsPage (elementId, missionId, userGeoId, userGeoType) {
+function createUserGeoDetailsPage (elementId, missionId, userGeoId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
   div.render(<UserGeoDetailsPage
     missionId={missionId}
     userGeoId={userGeoId}
-    userGeoType={userGeoType}
     />)
 }
 export { UserGeoDetailsPage, createUserGeoDetailsPage }
