@@ -21,12 +21,12 @@ from django.views import View
 from smm.settings import TIME_ZONE
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_recorder
-from mission.decorators import mission_is_member, mission_asset_get, mission_is_member_no_variable
+from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import Mission
 from .decorators import geotimelabel_from_type_id, geotimelabel_from_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel, UserPointTime
 from .forms import UploadTyphoonData
-from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace, geotimelabel_delete
+from .view_helpers import to_geojson, to_kml, point_label_make, user_polygon_make, user_line_make, geotimelabel_replace
 
 
 def mission_get(mission_id):
@@ -361,36 +361,6 @@ def data_all_current_missions_type(request, geo_type):
     return to_geojson(GeoTimeLabel, GeoTimeLabel.all_current_of_geo_user(request.user, geo_type, current_only=True))
 
 
-@login_required
-@geotimelabel_from_type_id
-@data_get_mission_id(arg_name='usergeo')
-@mission_is_member
-def usergeo_details(request, usergeo, mission_user):
-    """
-    Show details of a single (geo_type)
-    """
-    usergeo_url = ''
-    if usergeo.geo_type == 'poi':
-        usergeo_url = 'pois'
-    elif usergeo.geo_type == 'line':
-        usergeo_url = 'userlines'
-    elif usergeo.geo_type == 'polygon':
-        usergeo_url = 'userpolygons'
-
-    return render(request, 'data/usergeo_details.html', {'userGeoId': usergeo.pk, 'missionId': mission_user.mission.pk, 'userGeoType': usergeo_url})
-
-
-@login_required
-@geotimelabel_from_type_id
-@data_get_mission_id(arg_name='usergeo')
-@mission_is_member_no_variable
-def usergeo_json(request, usergeo):
-    """
-    Get a (geo_type) object and return it as geojson
-    """
-    return to_geojson(GeoTimeLabel, [usergeo])
-
-
 def point_labels_all_kml(request, mission_id):
     """
     Get all the current POIs as kml
@@ -417,17 +387,6 @@ def point_label_replace(request, mission_user, usergeo):
     Move/relabel a POI
     """
     return geotimelabel_replace(request, 'POI', usergeo, mission_user.mission, point_label_make)
-
-
-@login_required
-@geotimelabel_from_type_id
-@data_get_mission_id(arg_name='usergeo')
-@mission_is_member
-def point_label_delete(request, mission_user, usergeo):
-    """
-    Delete a POI
-    """
-    return geotimelabel_delete(request, 'POI', usergeo, mission_user)
 
 
 def user_polygons_all_kml(request, mission_id):
@@ -458,17 +417,6 @@ def user_polygon_replace(request, mission_user, usergeo):
     return geotimelabel_replace(request, 'Polygon', usergeo, mission_user.mission, user_polygon_make)
 
 
-@login_required
-@geotimelabel_from_type_id
-@data_get_mission_id(arg_name='usergeo')
-@mission_is_member
-def user_polygon_delete(request, mission_user, usergeo):
-    """
-    Delete a user polygon
-    """
-    return geotimelabel_delete(request, 'Polygon', usergeo, mission_user)
-
-
 def user_lines_all_kml(request, mission_id):
     """
     Get all the current user lines as kml
@@ -495,17 +443,6 @@ def user_line_replace(request, mission_user, usergeo):
     Update the line/label of a user line
     """
     return geotimelabel_replace(request, 'Line', usergeo, mission_user.mission, user_line_make)
-
-
-@login_required
-@geotimelabel_from_type_id
-@data_get_mission_id(arg_name='usergeo')
-@mission_is_member
-def user_line_delete(request, mission_user, usergeo):
-    """
-    Delete a user line
-    """
-    return geotimelabel_delete(request, 'Line', usergeo, mission_user)
 
 
 @method_decorator(login_required, name="dispatch")

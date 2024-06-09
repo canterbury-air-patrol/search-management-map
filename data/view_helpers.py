@@ -53,20 +53,6 @@ def geotimelabel_replace(request, name, replaces, mission, func):
     return func(request, mission=mission, replaces=replaces)
 
 
-def geotimelabel_delete(request, name, obj, mission_user):
-    """
-    Mark a user object as deleted
-
-    Checks to make sure the object hasn't already been deleted or replaced.
-    """
-    if not obj.delete(mission_user.user):
-        if obj.deleted_at:
-            return HttpResponseNotFound(f"This {name} has already been deleted")
-        if obj.replaced_by is not None:
-            return HttpResponseNotFound(f"This {name} has been replaced")
-    return HttpResponse("Deleted")
-
-
 def point_label_make(request, mission=None, replaces=None):
     """
     Create or replace a POI based on user supplied data.
