@@ -5,6 +5,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 import Collapsible from 'react-collapsible'
+import { Button } from 'react-bootstrap'
 
 import $ from 'jquery'
 
@@ -27,6 +28,13 @@ class SearchDetails extends SMMObjectDetails {
       <tr key='created_for'>
         <td>Asset Type:</td>
         <td>{data.created_for}</td>
+      </tr>
+    ))
+
+    tableRows.push((
+      <tr key='datum'>
+        <td>Created From:</td>
+        <td><Button href={ `/data/usergeo/${data.datum}/` }>{data.datum}</Button></td>
       </tr>
     ))
 
