@@ -20,7 +20,10 @@ class SMMPolygon {
   }
 
   deleteCallback () {
-    $.get(`/data/userpolygons/${this.PolyID}/delete/`)
+    $.ajax({
+      url: `/data/usergeo/${this.PolyID}/`,
+      method: 'DELETE'
+    })
   }
 
   createSearchCallback () {
@@ -60,7 +63,7 @@ class SMMPolygon {
         },
         {
           label: 'Details',
-          href: `/data/userpolygons/${this.PolyID}/details/`,
+          href: `/data/usergeo/${this.PolyID}/`,
           'btn-class': 'btn-light'
         }
       ]))

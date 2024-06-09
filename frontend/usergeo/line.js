@@ -20,7 +20,10 @@ class SMMLine {
   }
 
   deleteCallback () {
-    $.get(`/data/userlines/${this.LineID}/delete/`)
+    $.ajax({
+      url: `/data/userlines/${this.LineID}/`,
+      method: 'DELETE'
+    })
   }
 
   createSearchCallback () {
@@ -60,7 +63,7 @@ class SMMLine {
         },
         {
           label: 'Details',
-          href: `/data/userlines/${this.LineID}/details/`,
+          href: `/data/usergeo/${this.LineID}/`,
           'btn-class': 'btn-light'
         }
       ]))

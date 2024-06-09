@@ -24,7 +24,10 @@ class SMMPOI {
   }
 
   deleteCallback () {
-    $.get(`/data/pois/${this.poiID}/delete/`)
+    $.ajax({
+      url: `/data/pois/${this.poiID}/`,
+      method: 'DELETE'
+    })
   }
 
   createSearchCallback () {
@@ -84,7 +87,7 @@ class SMMPOI {
         },
         {
           label: 'Details',
-          href: `/data/pois/${this.poiID}/details/`,
+          href: `/data/usergeo/${this.poiID}/`,
           'btn-class': 'btn-light'
         }
       ]))
