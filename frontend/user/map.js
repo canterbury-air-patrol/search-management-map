@@ -4,22 +4,71 @@ import $ from 'jquery'
 
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
+import { AssetColorPicker } from '../asset/map'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
+import Cookies from 'universal-cookie'
 
 class SMMUserPosition {
-  constructor (missionId, userName, color) {
+  constructor (map, missionId, userName, color) {
     this.missionId = missionId
     this.userName = userName
     this.color = color
+    this.colorDialog = null
+    this.map = map
     this.lastUpdate = null
     this.path = []
     this.updating = false
     this.polyline = L.polyline([], { color: this.color })
+    this.updateColor = this.updateColor.bind(this)
+    this.colorPicker = this.colorPicker.bind(this)
+    this.closeColorPicker = this.closeColorPicker.bind(this)
     this.updateNewPosition = this.updateNewPosition.bind(this)
     this.updateError = this.updateError.bind(this)
   }
 
   overlay () {
     return this.polyline
+  }
+
+  updateColor (color) {
+    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
+    cookieJar.set(`user_${this.userName}_track_color`, color)
+    this.color = color
+    this.polyline.setStyle({
+      color: this.color
+    })
+  }
+
+  closeColorPicker () {
+    this.colorDialog.destroy()
+    this.colorDialog = null
+  }
+
+  colorPicker () {
+    if (this.colorDialog === null) {
+      const dialogContent = document.createElement('div')
+      const label = document.createElement('div')
+      label.textContent = `Color Picker for ${this.userName}`
+      dialogContent.appendChild(label)
+      const colorPickerDiv = document.createElement('div')
+      dialogContent.appendChild(colorPickerDiv)
+      const btn = document.createElement('button')
+      btn.className = 'btn btn-primary'
+      btn.onclick = this.closeColorPicker
+      btn.textContent = 'Done'
+      dialogContent.appendChild(btn)
+
+      this.colorDialog = L.control.dialog({ initOpen: true })
+      this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
+      const div = ReactDOM.createRoot(colorPickerDiv)
+      div.render(
+        <AssetColorPicker
+          color={this.color}
+          updateColor={this.updateColor} />)
+    } else {
+      this.colorDialog.show()
+    }
   }
 
   updateNewPosition (route) {
@@ -85,11 +134,19 @@ class SMMUserPositions extends SMMRealtime {
   createUser (userName) {
     if (!(userName in this.userObjects)) {
       /* Create an overlay for this object */
-      const userObject = new SMMUserPosition(this.missionId, userName, this.color)
+      const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
+      const color = cookieJar.get(`user_${userName}_track_color`)
+      const userObject = new SMMUserPosition(this.map, this.missionId, userName, color !== undefined ? color : this.color)
       this.userObjects[userName] = userObject
-      this.overlayAdd(userName, userObject.overlay())
+      this.overlayAdd(`${userName} <div id='userNamePicker${userName}' />`, userObject.overlay())
     }
-    return this.userObjects[userName]
+    const userObject = this.userObjects[userName]
+    $(`#userNamePicker${userName}`).on('click', userObject.colorPicker)
+    $(`#userNamePicker${userName}`).css('width', '15px')
+    $(`#userNamePicker${userName}`).css('height', '15px')
+    $(`#userNamePicker${userName}`).css('display', 'inline-block')
+    $(`#userNamePicker${userName}`).css('background-color', userObject.color)
+    return userObject
   }
 
   createPopup (user, layer) {
