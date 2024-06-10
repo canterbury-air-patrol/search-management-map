@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import L, { LatLng } from 'leaflet'
+import L, { LatLng, Util } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -16,6 +16,7 @@ import 'leaflet-realtime'
 import '@canterbury-air-patrol/leaflet-dialog'
 import '@canterbury-air-patrol/leaflet-dialog/Leaflet.Dialog.css'
 import 'leaflet.locatecontrol'
+import Cookies from 'universal-cookie'
 
 import './Admin/admin.js'
 import './POIAdder/POIAdder.js'
@@ -48,7 +49,14 @@ class SMMMap {
     this.overlayAddAsset = this.overlayAddAsset.bind(this)
     this.overlayAddUser = this.overlayAddUser.bind(this)
     this.mapLayersCallback = this.mapLayersCallback.bind(this)
+    this.layerStateChanged = this.layerStateChanged.bind(this)
     this.setupMap()
+  }
+
+  layerStateChanged (e) {
+    const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
+    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
+    cookieJar.set(`layer_${layer.name}_on_map`, e.type === 'add')
   }
 
   mapLayersCallback (data) {
@@ -72,6 +80,12 @@ class SMMMap {
         }
       } else {
         this.layerControlMaps.addOverlay(tileLayer, layer.name)
+        const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
+        const layerEnabled = cookieJar.get(`layer_${layer.name}_on_map`)
+        if (layerEnabled === true) {
+          tileLayer.addTo(this.map)
+        }
+        tileLayer.on('add remove', this.layerStateChanged)
       }
     }
   }
