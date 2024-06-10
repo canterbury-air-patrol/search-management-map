@@ -9,6 +9,7 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 import { CompactPicker } from 'react-color'
+import Cookies from 'universal-cookie'
 
 class AssetColorPicker extends React.Component {
   constructor (props) {
@@ -60,6 +61,8 @@ class SMMAsset {
   }
 
   updateColor (color) {
+    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
+    cookieJar.set(`asset_${this.assetId}_track_color`, color)
     this.color = color
     this.polyline.setStyle({
       color: this.color
@@ -182,7 +185,9 @@ class SMMAssets extends SMMRealtime {
     }
     if (!(assetId in this.assetObjects)) {
       /* Create an overlay for this object */
-      const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], this.color)
+      const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
+      const color = cookieJar.get(`asset_${assetId}_track_color`)
+      const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], color !== undefined ? color : this.color)
       this.assetObjects[assetId] = assetObject
       this.overlayAdd(`${this.assetNameMap[assetId]} <div id='assetNamePicker${assetId}' />`, assetObject.overlay())
     }
