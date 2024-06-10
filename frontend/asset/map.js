@@ -325,4 +325,4 @@ class SMMAssets extends SMMRealtime {
   }
 }
 
-export { SMMAssets }
+export { SMMAssets, AssetColorPicker }
