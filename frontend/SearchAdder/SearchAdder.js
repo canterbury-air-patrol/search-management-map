@@ -12,6 +12,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
       break
     case 'line':
       searchSelection += '<option value="track-line">Track Line</option>'
+      searchSelection += '<option value="shore-line">Shore Line</option>'
       searchSelection += '<option value="creeping-line">Creeping Line Ahead</option>'
       break
     case 'polygon':
@@ -91,6 +92,8 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
         return '/search/expandingbox/create/'
       case 'track-line':
         return '/search/trackline/create/'
+      case 'shore-line':
+        return '/search/shoreline/create/'
       case 'creeping-line':
         return (objectType === 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/polygon/'
       default:
