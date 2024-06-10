@@ -379,7 +379,6 @@ class Search(GeoTime):
         A track line search following a line.
 
         Track line searches are useful for checking a path known to be travelled.
-        They can also be used as to approximate a feature search (like a shoreline, river, etc).
         No math required, the search has exactly the same points as the reference line.
         """
         search = Search(
@@ -390,6 +389,26 @@ class Search(GeoTime):
             sweep_width=params.sweep_width(),
             mission=params.from_geo().mission,
             search_type='Track Line')
+        if save:
+            search.save()
+        return search
+
+    @staticmethod
+    def create_shore_line_search(params, save=False):
+        """
+        A shore line search following a line.
+
+        Shore line searches are useful for checking a shore line.
+        No math required, the search has exactly the same points as the reference line.
+        """
+        search = Search(
+            geo=params.from_geo().geo,
+            created_by=params.creator(),
+            datum=params.from_geo(),
+            created_for=params.asset_type(),
+            sweep_width=params.sweep_width(),
+            mission=params.from_geo().mission,
+            search_type='Shore Line')
         if save:
             search.save()
         return search

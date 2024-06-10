@@ -133,6 +133,19 @@ class SearchHelpers:
         })
         return SearchWrapper(self.smm, response.json())
 
+    def create_shoreline_search(self, line, sweep_width, asset_type, client=None):
+        """
+        Create a shore line search
+        """
+        if client is None:
+            client = self.smm.client1
+        response = client.post('/search/shoreline/create/', data={
+            'line_id': line.pk,
+            'asset_type_id': asset_type.pk,
+            'sweep_width': sweep_width
+        })
+        return SearchWrapper(self.smm, response.json())
+
     def create_creepingline_search_line(self, line, sweep_width, search_width, asset_type, client=None):
         # pylint: disable=R0913
         """
@@ -348,6 +361,26 @@ class SearchTestCase(TestCase):
         self.assertEqual(search.queued_for_asset, None)
         self.assertEqual(search.datum.pk, polygon.pk)
         self.assertEqual(search.search_type, 'Parallel Line')
+        self.assertEqual(search.iterations, None)
+        self.assertEqual(search.first_bearing, None)
+        self.assertEqual(search.width, None)
+
+    def test_0600_create_shoreline_basic(self):
+        """
+        Test creating a shoreline search
+        """
+        line = self.create_line(((172.5, -43.5), (172.6, -43.6)))
+        search = self.searches.create_shoreline_search(line, 200, self.asset_type1).as_object()
+        self.assertEqual(search.created_for, self.asset_type1)
+        self.assertEqual(search.sweep_width, 200)
+        self.assertEqual(search.inprogress_by, None)
+        self.assertEqual(search.inprogress_at, None)
+        self.assertEqual(search.completed_by, None)
+        self.assertEqual(search.completed_at, None)
+        self.assertEqual(search.queued_at, None)
+        self.assertEqual(search.queued_for_asset, None)
+        self.assertEqual(search.datum.pk, line.pk)
+        self.assertEqual(search.search_type, 'Shore Line')
         self.assertEqual(search.iterations, None)
         self.assertEqual(search.first_bearing, None)
         self.assertEqual(search.width, None)

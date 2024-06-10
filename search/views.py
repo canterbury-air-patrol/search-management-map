@@ -387,6 +387,32 @@ def track_line_search_create(request):
 
 
 @login_required
+def shore_line_search_create(request):
+    """
+    Create a shore line search
+    """
+    save = False
+    if request.method == 'POST':
+        line_id = request.POST.get('line_id')
+        asset_type_id = request.POST.get('asset_type_id')
+        sweep_width = request.POST.get('sweep_width')
+        save = True
+    elif request.method == 'GET':
+        line_id = request.GET.get('line_id')
+        asset_type_id = request.GET.get('asset_type_id')
+        sweep_width = request.GET.get('sweep_width')
+    else:
+        return HttpResponseNotFound('Unknown Method')
+
+    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
+    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+
+    search = Search.create_shore_line_search(SearchParams(line, asset_type, request.user, sweep_width), save=save)
+
+    return to_geojson(Search, [search])
+
+
+@login_required
 def track_creeping_line_search_create(request):
     """
     Create a creeping line ahead search (from a line)

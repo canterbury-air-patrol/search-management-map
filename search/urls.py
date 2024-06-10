@@ -23,6 +23,7 @@ urlpatterns = [
     re_path(r'^search/sector/create/$', views.sector_search_create, name='sector_search_create'),
     re_path(r'^search/expandingbox/create/$', views.expanding_box_search_create, name='expanding_box_search_create'),
     re_path(r'^search/trackline/create/$', views.track_line_search_create, name='track_line_search_create'),
+    re_path(r'^search/shoreline/create/$', views.shore_line_search_create, name='shore_line_search_create'),
     re_path(r'^search/creepingline/create/track/$', views.track_creeping_line_search_create, name='track_creeping_line_search_create'),
     re_path(r'^search/creepingline/create/polygon/$', views.polygon_creeping_line_search_create, name='polygon_creeping_line_search_create'),
     re_path(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
