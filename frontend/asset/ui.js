@@ -129,7 +129,96 @@ AssetTrackAs.propTypes = {
 }
 
 class AssetCommandView extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      message: '',
+      type: 'Accepted'
+    }
+
+    this.updateSelectedType = this.updateSelectedType.bind(this)
+    this.updateMessage = this.updateMessage.bind(this)
+    this.submitResponse = this.submitResponse.bind(this)
+  }
+
+  updateSelectedType (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ type: value })
+  }
+
+  updateMessage (event) {
+    const target = event.target
+    const value = target.value
+
+    this.setState({ message: value })
+  }
+
+  submitResponse () {
+    $.post(`/assets/${this.props.asset}/command/`, {
+      command_id: this.props.lastCommand.id,
+      message: this.state.message,
+      type: this.state.type,
+      csrfmiddlewaretoken: this.props.csrftoken
+    })
+  }
+
   render () {
+    const responseData = []
+    if (this.props.lastCommand.response !== undefined) {
+      if (this.props.lastCommand.response.set !== null) {
+        responseData.push((
+          <tr key='response_type'>
+            <td>Response:</td>
+            <td>{this.props.lastCommand.response.type}</td>
+          </tr>))
+        responseData.push((
+          <tr key='response_at'>
+            <td>At:</td>
+            <td>{(new Date(this.props.lastCommand.response.set)).toLocaleString()}</td>
+          </tr>
+        ))
+        responseData.push((
+          <tr key='response_by'>
+            <td>By:</td>
+            <td>{this.props.lastCommand.response.by}</td>
+          </tr>
+        ))
+        responseData.push((
+          <tr>
+            <td>Message:</td>
+            <td>{this.props.lastCommand.response.message}</td>
+          </tr>
+        ))
+      } else {
+        responseData.push((
+          <tr key='response_form_type'>
+            <td>Type:</td>
+            <td>
+              <select onChange={this.updateSelectedType} defaultValue={this.state.type}>
+                <option value='Accepted'>Accept</option>
+                <option value='More Info'>More Info</option>
+                <option value='Unable'>Unable</option>
+              </select>
+            </td>
+          </tr>
+        ))
+        responseData.push((
+          <tr key='response_form_message'>
+            <td colSpan={2}><textarea onChange={this.updateMessage}></textarea></td>
+          </tr>
+        ))
+        responseData.push((
+          <tr>
+            <td colSpan={2}>
+              <Button onClick={this.submitResponse}>Respond</Button>
+            </td>
+          </tr>
+        ))
+      }
+    }
     return (
       <Table responsive>
         <thead>
@@ -149,13 +238,16 @@ class AssetCommandView extends React.Component {
             <td>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, true) : ''}</td>
             <td>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, false) : ''}</td>
           </tr>
+          {responseData}
         </thead>
       </Table>
     )
   }
 }
 AssetCommandView.propTypes = {
-  lastCommand: PropTypes.object.isRequired
+  lastCommand: PropTypes.object.isRequired,
+  asset: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 class AssetDetails extends React.Component {
@@ -440,7 +532,9 @@ class AssetUI extends React.Component {
         <AssetDetails
           details={this.state.details} />
         <AssetCommandView
-          lastCommand={this.state.lastCommand} />
+          lastCommand={this.state.lastCommand}
+          asset={this.props.asset}
+          csrftoken={this.props.csrftoken} />
         { missionStatus }
         <AssetTrackAs
           asset={this.props.asset} />
