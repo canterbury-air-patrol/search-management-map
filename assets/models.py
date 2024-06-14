@@ -106,7 +106,7 @@ class AssetCommand(models.Model):
     """
     asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
     issued = models.DateTimeField(default=timezone.now)
-    issued_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+    issued_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_by%(app_label)s_%(class)s_related')
     COMMAND_CHOICES = (
         ('RTL', "Return To Launch"),
         ('RON', "Continue"),  # Resume own navigation
@@ -119,12 +119,15 @@ class AssetCommand(models.Model):
     REQUIRES_POSITION = ('GOTO',)
     position = models.PointField(geography=True, null=True, blank=True)
     reason = models.TextField()
-    acknowledged = models.BooleanField(default=False)
+    responded_at = models.DateTimeField(blank=True, null=True)
+    responded_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='responder%(app_label)s_%(class)s_related', null=True, blank=True)
+    response_type = models.CharField(max_length=10, null=True, blank=True)
+    response_message = models.TextField(null=True, blank=True)
 
     mission = models.ForeignKey('mission.Mission', on_delete=models.PROTECT, null=True)
 
     GEOFIELD = 'position'
-    GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason',)
+    GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason', 'responded_at', 'responded_by', 'response_type', 'response_message')
 
     def __str__(self):
         return f"Command {self.asset} to {self.get_command_display()}"
@@ -153,6 +156,14 @@ class AssetCommand(models.Model):
                 'action_txt': asset_command.get_command_display(),
                 'reason': asset_command.reason,
                 'issued': asset_command.issued,
+                'issued_by': str(asset_command.issued_by),
+                'id': asset_command.pk,
+                'response': {
+                    'set': asset_command.responded_at,
+                    'by': str(asset_command.responded_by),
+                    'type': asset_command.response_type,
+                    'message': asset_command.response_message,
+                }
             }
             if asset_command.position:
                 last_command['latitude'] = asset_command.position.y
