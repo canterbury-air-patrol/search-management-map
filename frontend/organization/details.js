@@ -313,7 +313,7 @@ class OrganizationAssetAdd extends React.Component {
   }
 
   async updateData () {
-    await $.getJSON('/assets/mine/json/', this.updateDataResponse)
+    await $.getJSON('/assets/', this.updateDataResponse)
   }
 
   updateSelectedAsset (event) {

@@ -40,7 +40,7 @@ class AssetsHelpers:
         """
         if client is None:
             client = self.smm.client1
-        return client.get('/assets/mine/json/')
+        return client.get('/assets/', HTTP_ACCEPT='application/json')
 
 
 class AssetTestCase(TestCase):
