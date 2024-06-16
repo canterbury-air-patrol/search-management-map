@@ -101,7 +101,7 @@ class AssetListPage extends React.Component {
   }
 
   async updateData () {
-    await $.get('/assets/mine/json/', this.updateAssets)
+    await $.getJSON('/assets/', this.updateAssets)
   }
 
   updateAssets (data) {

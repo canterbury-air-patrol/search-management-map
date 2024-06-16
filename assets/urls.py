@@ -9,8 +9,7 @@ from . import views
 
 urlpatterns = [
     re_path(r'^assets/assettypes/json/$', views.asset_types_list, name='asset_types_list'),
-    re_path(r'^assets/mine/json/$', views.assets_mine_list, name='assets_mine_list'),
-    re_path(r'^assets/$', views.assets_list, name='assets_list'),
+    re_path(r'^assets/$', views.AssetsView.as_view(), name='assets_view'),
     re_path(r'^assets/(?P<asset_id>\d+)/ui/$', views.assets_ui, name='assets_ui'),
     re_path(r'^assets/(?P<asset_id>\d+)/details/$', views.asset_details, name='assets_details'),
     re_path(r'^assets/(?P<asset_id>\d+)/status/$', views.asset_status, name='assets_status'),

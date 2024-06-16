@@ -32,24 +32,6 @@ def asset_types_list(request):
 
 
 @login_required
-def assets_mine_list(request):
-    """
-    List all the assets that belong to the current user
-    """
-    assets = Asset.objects.filter(owner=request.user)
-
-    return JsonResponse({'assets': [a.as_object() for a in assets]})
-
-
-@login_required
-def assets_list(request):
-    """
-    Main view for managing assets
-    """
-    return render(request, 'assets/list.html', {})
-
-
-@login_required
 def assets_status_value_list(request):
     """
     List all of the asset status values
@@ -127,6 +109,27 @@ def asset_command_set(request, mission_user):
         form = AssetCommandForm(mission=mission_user.mission)
 
     return render(request, 'asset-command-form.html', {'form': form})
+
+
+@method_decorator(login_required, name="dispatch")
+class AssetsView(View):
+    """
+    View for all assets this user can see
+    """
+    def as_json(self, request):
+        """
+        Return all this users assets as json
+        """
+        assets = Asset.objects.filter(owner=request.user)
+        return JsonResponse({'assets': [a.as_object() for a in assets]})
+
+    def get(self, request):
+        """
+        Show the assets this user is the owner of
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request)
+        return render(request, 'assets/list.html', {})
 
 
 @method_decorator(login_required, name="dispatch")
