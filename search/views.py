@@ -17,6 +17,8 @@ from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import View
 
 from assets.models import AssetType, Asset
 from assets.decorators import asset_id_in_get_post
@@ -69,7 +71,7 @@ def find_next_search(request, asset, mission):
 
     def search_data(search):
         data = {
-            'object_url': f"/search/{search.pk}/json/",
+            'object_url': f"/search/{search.pk}/",
             'distance': int(search.distance_from(point)),
             'length': int(search.length()),
             'sweep_width': int(search.sweep_width),
@@ -174,24 +176,6 @@ def search_finished(request, search_id, object_class, asset, mission):
 @search_from_id
 @data_get_mission_id(arg_name='search')
 @mission_is_member
-def search_delete(request, mission_user, search):
-    """
-    Delete a search
-    """
-    error = check_search_state(search, 'delete', None)
-    if error is not None:
-        return error
-
-    if search.delete(mission_user.user):
-        return HttpResponse('Success')
-
-    return HttpResponseNotFound('Try again')
-
-
-@login_required
-@search_from_id
-@data_get_mission_id(arg_name='search')
-@mission_is_member
 def search_queue(request, search, mission_user):
     """
     Queue a search
@@ -210,17 +194,6 @@ def search_queue(request, search, mission_user):
     search.queue_search(mission_user=mission_user, asset=asset)
 
     return HttpResponse("Success")
-
-
-@login_required
-@search_from_id
-@data_get_mission_id(arg_name='search')
-@mission_is_member
-def search_details(request, search, mission_user):
-    """
-    Show details of a single search
-    """
-    return render(request, 'search/search_details.html', {'searchId': search.pk, 'missionId': mission_user.mission.pk})
 
 
 @login_required
@@ -464,3 +437,39 @@ def polygon_creeping_line_search_create(request):
     search = Search.create_polygon_creeping_line_search(SearchParams(poly, asset_type, request.user, sweep_width), save=save)
 
     return to_geojson(Search, [search])
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(search_from_id, name="dispatch")
+@method_decorator(data_get_mission_id(arg_name='search'), name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class SearchView(View):
+    """
+    View of a specific search
+    """
+    def as_json(self, request, search):
+        """
+        Return this search as a json object
+        """
+        return to_geojson(Search, [search])
+
+    def get(self, request, search, mission_user):
+        """
+        Show the search details
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, search)
+        return render(request, 'search/search_details.html', {'searchId': search.pk, 'missionId': mission_user.mission.pk})
+
+    def delete(self, request, search, mission_user):
+        """
+        Delete the search, assuming the constraints are satisfied
+        """
+        error = check_search_state(search, 'delete', None)
+        if error is not None:
+            return error
+
+        if search.delete(mission_user.user):
+            return HttpResponse('Success')
+
+        return HttpResponseNotFound('Unable')

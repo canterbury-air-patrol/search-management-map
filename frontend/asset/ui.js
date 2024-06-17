@@ -259,7 +259,7 @@ class AssetDetails extends React.Component {
           <td>
             ({details.current_search_id})
             <ButtonGroup>
-              <Button href={`/search/${details.current_search_id}/details/`}>Details</Button>
+              <Button href={`/search/${details.current_search_id}/`}>Details</Button>
               <Button onClick={function () { $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`) }}>Mark as Completed</Button>
             </ButtonGroup>
           </td>
@@ -278,7 +278,7 @@ class AssetDetails extends React.Component {
   queuedSearchRow (details) {
     if (Number.isInteger(details.queued_search_id)) {
       const buttons = [(
-        <Button key='details' href={`/search/${details.queued_search_id}/details/`}>Details</Button>)]
+        <Button key='details' href={`/search/${details.queued_search_id}/`}>Details</Button>)]
       if (!(Number.isInteger(details.current_search_id))) {
         buttons.push((
           <Button key='begin' onClick={function () { $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`) }}>Begin Search</Button>
