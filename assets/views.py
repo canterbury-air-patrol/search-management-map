@@ -16,7 +16,7 @@ from organization.helpers import organization_user_is_asset_recorder
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
 
-from .decorators import asset_is_recorder, asset_is_operator
+from .decorators import asset_is_operator
 from .models import AssetType, Asset, AssetCommand, AssetStatusValue, AssetStatus
 from .forms import AssetCommandForm
 
@@ -37,50 +37,6 @@ def assets_status_value_list(request):
     List all of the asset status values
     """
     return JsonResponse({'values': [v.as_object() for v in AssetStatusValue.objects.all()]})
-
-
-@login_required
-@asset_is_recorder
-def assets_ui(request, asset):
-    """
-    Present UI for an Asset
-    """
-    return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
-
-
-@login_required
-def asset_details(request, asset_id):
-    """
-    Provide the details of an asset
-    """
-    asset = get_object_or_404(Asset, pk=asset_id)
-
-    data = {
-        'asset_id': asset.pk,
-        'name': asset.name,
-        'asset_type': asset.asset_type.name,
-        'owner': str(asset.owner)
-    }
-
-    data['last_command'] = AssetCommand.last_command_for_asset_to_json(asset)
-
-    mission_asset = mission_asset_get(asset)
-    if mission_asset is not None:
-        data['mission_id'] = mission_asset.mission.pk
-        data['mission_name'] = mission_asset.mission.mission_name
-
-        current_search = check_searches_in_progress(mission_asset.mission, asset)
-        if current_search is not None:
-            data['current_search_id'] = current_search.pk
-        queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
-        if queued_search is not None:
-            data['queued_search_id'] = queued_search.pk
-
-    status = AssetStatus.current_for_asset(asset)
-    if status is not None:
-        data['status'] = status.as_object()
-
-    return JsonResponse(data)
 
 
 @login_required
@@ -109,6 +65,52 @@ def asset_command_set(request, mission_user):
         form = AssetCommandForm(mission=mission_user.mission)
 
     return render(request, 'asset-command-form.html', {'form': form})
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(asset_is_operator, name="dispatch")
+class AssetView(View):
+    """
+    View of a specific asset
+    """
+    def as_json(self, request, asset):
+        """
+        Provide the details of an asset
+        """
+        data = {
+            'asset_id': asset.pk,
+            'name': asset.name,
+            'asset_type': asset.asset_type.name,
+            'owner': str(asset.owner)
+        }
+
+        data['last_command'] = AssetCommand.last_command_for_asset_to_json(asset)
+
+        mission_asset = mission_asset_get(asset)
+        if mission_asset is not None:
+            data['mission_id'] = mission_asset.mission.pk
+            data['mission_name'] = mission_asset.mission.mission_name
+
+            current_search = check_searches_in_progress(mission_asset.mission, asset)
+            if current_search is not None:
+                data['current_search_id'] = current_search.pk
+            queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
+            if queued_search is not None:
+                data['queued_search_id'] = queued_search.pk
+
+        status = AssetStatus.current_for_asset(asset)
+        if status is not None:
+            data['status'] = status.as_object()
+
+        return JsonResponse(data)
+
+    def get(self, request, asset):
+        """
+        View of the specific asset
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, asset)
+        return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
 
 
 @method_decorator(login_required, name="dispatch")

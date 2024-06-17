@@ -170,8 +170,8 @@ class AssetTestCase(TestCase):
         asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
-        asset_details_url = f'/assets/{asset.pk}/details/'
-        response = self.smm.client1.get(asset_details_url)
+        asset_details_url = f'/assets/{asset.pk}/'
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -184,8 +184,8 @@ class AssetTestCase(TestCase):
         self.assertTrue('queued_search_id' not in json_data)
 
         # Check another user cannot access these details
-        response = self.smm.client2.get(asset_details_url)
-        self.assertEqual(response.status_code, 200)
+        response = self.smm.client2.get(asset_details_url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 403)
 
         # Check authenication is required
         response = self.smm.unauth_client.get(asset_details_url)
@@ -198,9 +198,9 @@ class AssetTestCase(TestCase):
         asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
-        asset_details_url = f'/assets/{asset.pk}/details/'
+        asset_details_url = f'/assets/{asset.pk}/'
         mission_asset = self.add_asset_to_mission(asset=asset)
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -212,7 +212,7 @@ class AssetTestCase(TestCase):
 
         # Create a search and check this doesn't automatically queue it
         search_id = self.create_search(asset=asset, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -220,7 +220,7 @@ class AssetTestCase(TestCase):
         self.assertTrue('queued_search_id' not in json_data)
         # Now check the search for the asset and check it is listed as queued
         self.queue_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -228,7 +228,7 @@ class AssetTestCase(TestCase):
         self.assertEqual(json_data['queued_search_id'], search_id)
         # Start the search and check it moves from queued to current
         self.begin_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_id'], asset.id)
@@ -240,7 +240,7 @@ class AssetTestCase(TestCase):
         Check that only the owner can access the assets UI page
         """
         asset = self.assets.create_asset()
-        asset_ui_url = f'/assets/{asset.pk}/ui/'
+        asset_ui_url = f'/assets/{asset.pk}/'
 
         # Check the owner has access
         response = self.smm.client1.get(asset_ui_url)
@@ -260,12 +260,12 @@ class AssetTestCase(TestCase):
         in response to reporting their position
         """
         asset = self.assets.create_asset()
-        asset_details_url = f'/assets/{asset.pk}/details/'
+        asset_details_url = f'/assets/{asset.pk}/'
         asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
 
         # Check the initial case (no command)
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['last_command']), 0)
@@ -293,7 +293,7 @@ class AssetTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         # Check this command is now showing
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'RON')
@@ -320,7 +320,7 @@ class AssetTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 200)
         # Check the GOTO is now showing
-        response = self.smm.client1.get(asset_details_url)
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'GOTO')

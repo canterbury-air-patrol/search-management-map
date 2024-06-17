@@ -129,7 +129,7 @@ class AssetStatusUrlTestCase(AssetStatusBase):
             client = self.smm.client1
         if asset is None:
             asset = self.asset1
-        return client.get(f'/assets/{asset.pk}/details/').json()
+        return client.get(f'/assets/{asset.pk}/', HTTP_ACCEPT='application/json').json()
 
     def get_asset_status(self, client=None, asset=None):
         """
