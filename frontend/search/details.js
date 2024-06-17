@@ -151,7 +151,7 @@ class SearchDetailsPage extends React.Component {
   }
 
   async updateData () {
-    await $.get(`/search/${this.props.searchId}/json/`, this.updateDataResponse)
+    await $.getJSON(`/search/${this.props.searchId}/`, this.updateDataResponse)
   }
 
   render () {

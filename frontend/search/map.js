@@ -29,13 +29,20 @@ class SMMSearch {
   }
 
   deleteCallback () {
-    $.get(`/search/${this.SearchID}/delete/`)
+    const csrftoken = this.parent.csrftoken
+    $.ajax({
+      url: `/search/${this.SearchID}/`,
+      method: 'DELETE',
+      beforeSend: function (xhr) {
+        xhr.setRequestHeader('X-CSRFToken', csrftoken)
+      }
+    })
   }
 
   createDetailsButton () {
     return {
       label: 'Details',
-      href: `/search/${this.SearchID}/details/`,
+      href: `/search/${this.SearchID}/`,
       'btn-class': 'btn-light'
     }
   }

@@ -47,7 +47,7 @@ class SearchWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/search/{self.search_id}/delete/')
+        return client.delete(f'/search/{self.search_id}/')
 
     def details(self):
         """
@@ -55,7 +55,7 @@ class SearchWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.get(f'/search/{self.search_id}/details/')
+        return client.get(f'/search/{self.search_id}/')
 
     def json(self):
         """
@@ -63,7 +63,7 @@ class SearchWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.get(f'/search/{self.search_id}/json/')
+        return client.get(f'/search/{self.search_id}/', HTTP_ACCEPT='application/json')
 
     def begin(self):
         """
@@ -399,14 +399,14 @@ class SearchTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         # Check we get the search we expected based on this location
-        self.assertEqual(data['object_url'], f'/search/{search1.pk}/json/')
+        self.assertEqual(data['object_url'], f'/search/{search1.pk}/')
         self.assertEqual(data['distance'], 0)
         # Try the other location
         response = self.searches.find_closest(-44.5, 173.5, self.asset1)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         # Check we get the search we expected based on this location
-        self.assertEqual(data['object_url'], f'/search/{search2.pk}/json/')
+        self.assertEqual(data['object_url'], f'/search/{search2.pk}/')
         self.assertEqual(data['distance'], 0)
 
     def test_1001_check_queued_asset_type(self):
@@ -424,12 +424,12 @@ class SearchTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         # Check we get the search we expected based on this location
-        self.assertEqual(data['object_url'], f'/search/{search2_obj.pk}/json/')
+        self.assertEqual(data['object_url'], f'/search/{search2_obj.pk}/')
         self.assertNotEqual(data['distance'], 0)
         # Try the other location
         response = self.searches.find_closest(-44.5, 173.5, self.asset1)
         self.assertEqual(response.status_code, 200)
         data = response.json()
         # Check we get the search we expected based on this location
-        self.assertEqual(data['object_url'], f'/search/{search2_obj.pk}/json/')
+        self.assertEqual(data['object_url'], f'/search/{search2_obj.pk}/')
         self.assertEqual(data['distance'], 0)
