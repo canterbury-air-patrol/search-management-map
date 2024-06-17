@@ -57,7 +57,7 @@ def asset_is_owner(view_func):
 
 def asset_id_in_get_post(view_func):
     """
-    Make sure the asset_id in the GET/POST is a valid assest and this user can act as them.
+    Make sure the asset_id in the GET/POST is a valid asset and this user can act as them.
     """
     def asset_id_check(*args, **kwargs):
         request = args[0]

@@ -9,9 +9,10 @@ def organization_user_is_asset_recorder(user, asset):
     org_memberships = OrganizationAsset.objects.filter(asset=asset, removed__isnull=True)
     for org in org_memberships:
         # see if this user is in the org
-        org_user = OrganizationMember.objects.get(user=user, organization=org.organization, removed__isnull=True)
-        if org_user.is_asset_recorder():
-            return True
+        org_users = OrganizationMember.objects.filter(user=user, organization=org.organization, removed__isnull=True)
+        for org_user in org_users:
+            if org_user.is_asset_recorder():
+                return True
     return False
 
 
@@ -23,7 +24,8 @@ def organization_user_is_asset_radio_operator(user, asset):
     org_memberships = OrganizationAsset.objects.filter(asset=asset, removed__isnull=True)
     for org in org_memberships:
         # see if this user is in the org
-        org_user = OrganizationMember.objects.get(user=user, organization=org.organization, removed__isnull=True)
-        if org_user.is_radio_operator():
-            return True
+        org_users = OrganizationMember.objects.filter(user=user, organization=org.organization, removed__isnull=True)
+        for org_user in org_users:
+            if org_user.is_radio_operator():
+                return True
     return False

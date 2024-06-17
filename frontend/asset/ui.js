@@ -518,7 +518,7 @@ class AssetUI extends React.Component {
   }
 
   async updateData () {
-    await $.get(`/assets/${this.props.asset}/details/`, this.updateDataResponse)
+    await $.getJSON(`/assets/${this.props.asset}/`, this.updateDataResponse)
   }
 
   render () {

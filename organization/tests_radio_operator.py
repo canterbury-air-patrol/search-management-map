@@ -54,23 +54,23 @@ class RadioOperatorTestCase(TestCase):
         """
         org1 = self.orgs.create_organization(client=self.smm.client1)
         asset1 = self.assets.create_asset()
-        asset_details_url = f'/assets/{asset1.pk}/details/'
-        response = self.smm.client1.get(asset_details_url)
+        asset_details_url = f'/assets/{asset1.pk}/'
+        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         # check another user cannot access the details currently
-        response = self.smm.client2.get(asset_details_url)
-        self.assertEqual(response.status_code, 200)
+        response = self.smm.client2.get(asset_details_url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 403)
         # Add the asset to the org
         org1.add_asset(asset1)
-        response = self.smm.client2.get(asset_details_url)
-        self.assertEqual(response.status_code, 200)
+        response = self.smm.client2.get(asset_details_url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 403)
         # Check regular org members cannot access the asset details
         org1.add_user(self.smm.user2, role='M')
-        response = self.smm.client2.get(asset_details_url)
-        self.assertEqual(response.status_code, 200)
+        response = self.smm.client2.get(asset_details_url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 403)
         # Check radio operators can access the details
         org1.add_user(self.smm.user2, role='R')
-        response = self.smm.client2.get(asset_details_url)
+        response = self.smm.client2.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
 
     def test_0100_mission_asset_accept_search(self):
@@ -84,8 +84,8 @@ class RadioOperatorTestCase(TestCase):
         mission = self.missions.create_mission('test_mission')
         mission.add_organization(org1)
         mission.add_asset(asset1)
-        asset_details_url = f'/assets/{asset1.pk}/details/'
-        json_data = self.smm.client1.get(asset_details_url).json()
+        asset_details_url = f'/assets/{asset1.pk}/'
+        json_data = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json').json()
         # Create the POI and search object
         poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.smm.user1, label='Test Point', geo_type='poi', mission=mission.get_object())
         sector_search_create = '/search/sector/create/'
