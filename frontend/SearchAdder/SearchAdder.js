@@ -21,7 +21,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   }
   searchSelection += '</select>'
   const assetSelection = `<select class="form-control" id="SearchAdder-asset-type-${RAND_NUM}"></select>`
-  $.get('/assets/assettypes/json/', function (data) {
+  $.getJSON('/assets/assettypes/', function (data) {
     $.each(data, function (index, json) {
       for (const at in json) {
         $(`#SearchAdder-asset-type-${RAND_NUM}`).append(`<option value='${json[at].id}'>${json[at].name}</option>`)
