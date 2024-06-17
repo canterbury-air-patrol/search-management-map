@@ -61,7 +61,7 @@ class AssetTypeTestCase(TestCase):
         """
         client = Client()
         client.login(username='test', password='password')
-        response = client.get('/assets/assettypes/json/')
+        response = client.get('/assets/assettypes/', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertTrue('asset_types' in data)
@@ -71,5 +71,5 @@ class AssetTypeTestCase(TestCase):
             self.assertTrue(asset_type['name'] in ('flying-wing', 'boat'))
         # Check this requires authentication
         client.logout()
-        response = client.get('/assets/assettype/json/')
+        response = client.get('/assets/assettypes/')
         self.assertNotEqual(response.status_code, 200)

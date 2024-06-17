@@ -116,7 +116,7 @@ class AssetTestCase(TestCase):
         """
         if client is None:
             client = self.smm.client1
-        response = self.smm.client1.get('/assets/assettypes/json/')
+        response = self.smm.client1.get('/assets/assettypes/', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_types'][0]['name'], at_name)
@@ -135,7 +135,7 @@ class AssetTestCase(TestCase):
         self.check_asset_type_api(client=self.smm.client2, at_name=at_name, at_id=asset_type.id)
 
         # Test that login is required
-        response = self.smm.unauth_client.get('/assets/assettypes/json/')
+        response = self.smm.unauth_client.get('/assets/assettypes/', HTTP_ACCEPT='application/json')
         self.assertNotEqual(response.status_code, 200)
 
     def test_asset_mine(self):

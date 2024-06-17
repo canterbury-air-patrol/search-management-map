@@ -22,16 +22,6 @@ from .forms import AssetCommandForm
 
 
 @login_required
-def asset_types_list(request):
-    """
-    List all the asset types
-    """
-    asset_types = AssetType.objects.all()
-
-    return JsonResponse({'asset_types': [at.as_object() for at in asset_types]})
-
-
-@login_required
 def assets_status_value_list(request):
     """
     List all of the asset status values
@@ -111,6 +101,27 @@ class AssetView(View):
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
             return self.as_json(request, asset)
         return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
+
+
+@method_decorator(login_required, name="dispatch")
+class AssetsTypeView(View):
+    """
+    View for all asset types
+    """
+    def as_json(self):
+        """
+        Return the asset types as a json array
+        """
+        asset_types = AssetType.objects.all()
+        return JsonResponse({'asset_types': [at.as_object() for at in asset_types]})
+
+    def get(self, request):
+        """
+        Return a list of possible asset types
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json()
+        return render(request, 'assets/type_list.html', {})
 
 
 @method_decorator(login_required, name="dispatch")
