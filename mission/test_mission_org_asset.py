@@ -76,7 +76,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.status_code, 302)
         # Try adding the asset
         response = mission.add_asset(asset, client=self.smm.client2)
-        self.assertEqual(response.status_code, 200)  # this is a failure, the form is being shown
+        self.assertEqual(response.status_code, 404)  # Form is incomplete/invalid input
         # Add with a user that is actually allowed to
         response = mission.add_asset(asset, client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)

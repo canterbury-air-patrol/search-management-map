@@ -111,7 +111,7 @@ class SMMSearch {
     ].join('')
     this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.parent.map).hideClose()
     $(`#queue_${this.SearchID}_select_asset`).hide()
-    $.get(`/mission/${this.parent.missionId}/assets/json/`, this.searchQueueAssetListCallback)
+    $.getJSON(`/mission/${this.parent.missionId}/assets/`, this.searchQueueAssetListCallback)
     $(`#queue_${this.SearchID}_select_type`).on('change', this.searchQueueUpdateSelectType)
     $(`#queue_${this.SearchID}_queue`).on('click', this.searchQueueSubmit)
     $(`#queue_${this.SearchID}_cancel`).on('click', this.searchQueueDestroy)

@@ -167,7 +167,7 @@ class SMMAssets extends SMMRealtime {
   }
 
   updateAssetNameMap () {
-    $.getJSON(`/mission/${this.missionId}/assets/json/?include_removed=true`, this.assetListCB)
+    $.getJSON(`/mission/${this.missionId}/assets/?include_removed=true`, this.assetListCB)
   }
 
   realtime () {
