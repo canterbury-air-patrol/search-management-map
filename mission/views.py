@@ -266,14 +266,53 @@ def mission_user_make_admin(request, mission_user, user_id):
     return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
 
-@login_required
-@mission_is_member
-def mission_asset_add(request, mission_user):
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionAssetsView(View):
     """
-    Add an Asset to a Mission
+    View to manage assets in the mission
     """
-    form = None
-    if request.method == 'POST':
+    def as_json(self, request, mission_user):
+        """
+        Get the assets in this mission as json list
+        """
+        include_removed = request.GET.get('include_removed', False)
+        if include_removed:
+            assets = MissionAsset.objects.filter(mission=mission_user.mission)
+        else:
+            assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
+        assets_json = []
+        for mission_asset in assets:
+            asset_data = {
+                'id': mission_asset.asset.pk,
+                'name': mission_asset.asset.name,
+                'type_id': mission_asset.asset.asset_type.id,
+                'type_name': mission_asset.asset.asset_type.name,
+                'icon_url': mission_asset.asset.icon_url(),
+            }
+            asset_status = MissionAssetStatus.current_for_asset(mission_asset)
+            if asset_status:
+                asset_data['status'] = asset_status.as_object()
+            assets_json.append(asset_data)
+
+        data = {
+            'assets': assets_json,
+        }
+        return JsonResponse(data)
+
+    def get(self, request, mission_user):
+        """
+        Display the assets in this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, mission_user)
+        return render(request, "mission/assets_view.html")
+
+    def post(self, request, mission_user):
+        """
+        Add an asset to this mission
+        """
+        form = None
         form = MissionAssetForm(request.POST, user=request.user, mission=mission_user.mission)
         if form.is_valid():
             # Check if this asset is in any other missions currently
@@ -287,42 +326,7 @@ def mission_asset_add(request, mission_user):
             command.save()
 
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
-
-    if form is None:
-        form = MissionAssetForm(user=request.user, mission=mission_user.mission)
-
-    return render(request, 'mission_asset_add.html', {'form': form})
-
-
-@login_required
-@mission_is_member
-def mission_asset_json(request, mission_user):
-    """
-    List Assets in a Mission
-    """
-    include_removed = request.GET.get('include_removed', False)
-    if include_removed:
-        assets = MissionAsset.objects.filter(mission=mission_user.mission)
-    else:
-        assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
-    assets_json = []
-    for mission_asset in assets:
-        asset_data = {
-            'id': mission_asset.asset.pk,
-            'name': mission_asset.asset.name,
-            'type_id': mission_asset.asset.asset_type.id,
-            'type_name': mission_asset.asset.asset_type.name,
-            'icon_url': mission_asset.asset.icon_url(),
-        }
-        asset_status = MissionAssetStatus.current_for_asset(mission_asset)
-        if asset_status:
-            asset_data['status'] = asset_status.as_object()
-        assets_json.append(asset_data)
-
-    data = {
-        'assets': assets_json,
-    }
-    return JsonResponse(data)
+        return HttpResponseNotFound()
 
 
 def mission_asset_is_owner(mission_user, asset, user):

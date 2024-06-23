@@ -69,7 +69,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/mission/{self.mission_pk}/assets/add/', {'asset': asset.pk}, follow=True)
+        return client.post(f'/mission/{self.mission_pk}/assets/', {'asset': asset.pk}, follow=True)
 
     def remove_asset(self, asset, client=None):
         """
@@ -88,7 +88,7 @@ class MissionTestWrapper:
         extra = ''
         if include_removed:
             extra = '?include_removed=true'
-        return client.get(f'/mission/{self.mission_pk}/assets/json/{extra}')
+        return client.get(f'/mission/{self.mission_pk}/assets/{extra}', HTTP_ACCEPT='application/json')
 
     def add_organization(self, organization, client=None):
         """
