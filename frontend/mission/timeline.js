@@ -1,6 +1,6 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
-import { Table, Button, ButtonGroup } from 'react-bootstrap'
+import { Table, Button } from 'react-bootstrap'
 
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -8,8 +8,106 @@ import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
+import DateTimePicker from 'react-datetime-picker'
+import 'react-datetime-picker/dist/DateTimePicker.css'
+
 import { MissionHeader } from './header'
 import { SMMMissionTopBar } from '../menu/topbar'
+
+class MissionTimeLineEntryAdd extends React.Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      timeNow: true,
+      specificDateTime: new Date(),
+      message: '',
+      url: ''
+    }
+
+    this.changeNow = this.changeNow.bind(this)
+    this.changeDateTime = this.changeDateTime.bind(this)
+    this.changeMessage = this.changeMessage.bind(this)
+    this.changeUrl = this.changeUrl.bind(this)
+    this.submit = this.submit.bind(this)
+  }
+
+  changeNow (event) {
+    const target = event.target
+
+    this.setState({
+      timeNow: target.checked
+    })
+  }
+
+  changeDateTime (value) {
+    this.setState({
+      specificDateTime: value
+    })
+  }
+
+  changeMessage (event) {
+    const target = event.target
+    this.setState({
+      message: target.value
+    })
+  }
+
+  changeUrl (event) {
+    const target = event.target
+    this.setState({
+      url: target.value
+    })
+  }
+
+  submit () {
+    let timestamp = this.state.specificDateTime
+    if (this.state.timeNow) {
+      timestamp = new Date()
+    }
+    $.post(`/mission/${this.props.missionId}/timeline/`, {
+      csrfmiddlewaretoken: this.props.csrftoken,
+      timestamp: timestamp.toISOString(),
+      message: this.state.message,
+      url: this.state.url
+    })
+    this.setState({
+      timeNow: true,
+      specificDateTime: new Date()
+    })
+  }
+
+  render () {
+    let datePicker = null
+    if (this.state.timeNow === false) {
+      datePicker = (<DateTimePicker onChange={this.changeDateTime} value={this.state.specificDateTime} format='y-MM-dd HH:mm:ss' />)
+    }
+    return (
+      <Table>
+        <thead>
+          <tr>
+            <td>Date/Time:</td>
+            <td>Entry:</td>
+            <td>URL:</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Now: <input type="checkbox" checked={this.state.timeNow} onChange={this.changeNow}/> {datePicker}</td>
+            <td><input type="text" value={this.state.message} onChange={this.changeMessage} /></td>
+            <td><input type="text" value={this.state.url} onChange={this.changeUrl} /></td>
+            <td><Button onClick={this.submit}>Add</Button></td>
+          </tr>
+        </tbody>
+      </Table>
+    )
+  }
+}
+MissionTimeLineEntryAdd.propTypes = {
+  missionId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
+}
 
 class MissionTimelineEntry extends React.Component {
   render () {
@@ -27,24 +125,6 @@ class MissionTimelineEntry extends React.Component {
 }
 MissionTimelineEntry.propTypes = {
   timelineEntry: PropTypes.object.isRequired
-}
-
-class MissionTimelineButtons extends React.Component {
-  render () {
-    const buttons = []
-    if (!this.props.missionClosed) {
-      buttons.push((<Button key='addEntry' href={`/mission/${this.props.missionId}/timeline/add/`}>Add Entry</Button>))
-    }
-    return (
-      <ButtonGroup>
-        {buttons}
-      </ButtonGroup>
-    )
-  }
-}
-MissionTimelineButtons.propTypes = {
-  missionId: PropTypes.number.isRequired,
-  missionClosed: PropTypes.bool.isRequired
 }
 
 export class MissionTimeLine extends React.Component {
@@ -79,7 +159,7 @@ export class MissionTimeLine extends React.Component {
   }
 
   async updateData () {
-    await $.get(`/mission/${this.props.missionId}/timeline/json/`, this.updateDataResponse)
+    await $.getJSON(`/mission/${this.props.missionId}/timeline/`, this.updateDataResponse)
   }
 
   updateTimeline (timelineEntries) {
@@ -114,14 +194,18 @@ export class MissionTimeLine extends React.Component {
     }
 
     let missionData = null
+    let timelineAdd = null
     if (this.state.missionData !== null) {
       missionData = (<MissionHeader key='missionHeader' mission={this.state.missionData} />)
+      if (this.state.missionClosed !== null) {
+        timelineAdd = (<MissionTimeLineEntryAdd missionId={this.props.missionId} csrftoken={this.props.csrftoken} />)
+      }
     }
 
     return (
       <div>
         { missionData }
-        <MissionTimelineButtons missionId={this.props.missionId} missionClosed={this.state.missionClosed} />
+        { timelineAdd }
         <Table responsive>
           <thead>
             <tr>
@@ -144,12 +228,15 @@ export class MissionTimeLine extends React.Component {
   }
 }
 MissionTimeLine.propTypes = {
-  missionId: PropTypes.number.isRequired
+  missionId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 export function createMissionTimeline (elementId, missionId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<><SMMMissionTopBar missionId={missionId}/><MissionTimeLine missionId={missionId} /></>)
+  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
+
+  div.render(<><SMMMissionTopBar missionId={missionId}/><MissionTimeLine missionId={missionId} csrftoken={csrftoken} /></>)
 }
 
 globalThis.createMissionTimeline = createMissionTimeline
