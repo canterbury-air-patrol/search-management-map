@@ -6,7 +6,6 @@ from django.db.models import OuterRef
 
 from assets.models import Asset, AssetStatus
 from organization.models import OrganizationAsset, OrganizationMember
-from timeline.models import TimeLineEntry
 from .models import Mission, MissionUser, MissionAsset, MissionOrganization
 
 
@@ -52,15 +51,6 @@ class MissionAssetForm(ModelForm):
     class Meta:
         model = MissionAsset
         fields = ['asset']
-
-
-class MissionTimeLineEntryForm(ModelForm):
-    """
-    Form for adding a custom (user defined time/message) timeline entry to a mission
-    """
-    class Meta:
-        model = TimeLineEntry
-        fields = ['timestamp', 'message', 'url']
 
 
 class MissionOrganizationForm(ModelForm):

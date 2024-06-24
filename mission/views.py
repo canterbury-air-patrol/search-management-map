@@ -7,7 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound
+from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -23,7 +23,7 @@ from timeline.helpers import timeline_record_create, timeline_record_mission_org
     timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
-from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionTimeLineEntryForm, MissionOrganizationForm
+from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
 from .decorators import mission_is_member, mission_is_admin
 
 
@@ -49,18 +49,6 @@ def mission_details(request, mission_user):
         'mission_asset_add': MissionAssetForm(user=request.user, mission=mission_user.mission),
     }
     return render(request, 'mission_details.html', data)
-
-
-@login_required
-@mission_is_member
-def mission_timeline(request, mission_user):
-    """
-    Mission timeline, a history of everything that happened during a mission.
-    """
-    data = {
-        'mission': mission_user.mission,
-    }
-    return render(request, 'mission_timeline.html', data)
 
 
 @login_required
@@ -160,40 +148,48 @@ def mission_new(request):
     return render(request, 'mission_create.html', {'form': form})
 
 
-@login_required
-@mission_is_member
-def mission_timeline_json(request, mission_user):
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionTimelineView(View):
     """
-    Mission timeline, a history of everything that happened during a mission, in json
+    Show/update the timeline for a mission
     """
-    timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp')
+    def as_json(self, mission_user):
+        """
+        Mission timeline, a history of everything that happened during a mission, in json
+        """
+        timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp')
 
-    data = {
-        'mission': mission_user.mission.as_object(mission_user.is_admin()),
-        'timeline': [timeline_entry.as_object() for timeline_entry in timeline_entries],
-    }
-    return JsonResponse(data)
+        data = {
+            'mission': mission_user.mission.as_object(mission_user.is_admin()),
+            'timeline': [timeline_entry.as_object() for timeline_entry in timeline_entries],
+        }
+        return JsonResponse(data)
 
+    def get(self, request, mission_user):
+        """
+        Display the assets in this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_user)
+        data = {
+            'mission': mission_user.mission,
+        }
+        return render(request, 'mission_timeline.html', data)
 
-@login_required
-@mission_is_member
-def mission_timeline_add(request, mission_user):
-    """
-    Add a custom entry to the timeline for a mission.
-    """
-    form = None
-    if request.method == 'POST':
-        form = MissionTimeLineEntryForm(request.POST)
-        if form.is_valid():
-            entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=form.cleaned_data['message'], timestamp=form.cleaned_data['timestamp'], url=form.cleaned_data['url'], event_type='usr')
+    def post(self, request, mission_user):
+        """
+        Add a custom entry to the mission timeline
+        """
+        message = request.POST.get('message')
+        url = request.POST.get('url')
+        timestamp = request.POST.get('timestamp')
+        if message:
+            entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=message, timestamp=timestamp, url=url, event_type='usr')
             entry.save()
             timeline_record_create(mission_user.mission, request.user, entry)
-            return HttpResponseRedirect(f"/mission/{mission_user.mission.pk}/timeline/")
-
-    if form is None:
-        form = MissionTimeLineEntryForm()
-
-    return render(request, 'mission_timeline_add.html', {'form': form})
+            return HttpResponse("Done")
+        return HttpResponse("Failed")
 
 
 @login_required
