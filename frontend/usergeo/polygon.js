@@ -11,6 +11,7 @@ class SMMPolygon {
     this.PolyID = polygon.properties.pk
     this.coords = polygon.geometry.coordinates
     this.editCallback = this.editCallback.bind(this)
+    this.setXHR = this.setXHR.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
     this.createSearchCallback = this.createSearchCallback.bind(this)
   }
@@ -19,10 +20,15 @@ class SMMPolygon {
     L.PolygonAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.coords[0].map(x => L.latLng(x[1], x[0])), this.PolyID, this.PolyLabel)
   }
 
+  setXHR (xhr) {
+    xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
+  }
+
   deleteCallback () {
     $.ajax({
       url: `/data/usergeo/${this.PolyID}/`,
-      method: 'DELETE'
+      type: 'DELETE',
+      beforeSend: this.setXHR
     })
   }
 
