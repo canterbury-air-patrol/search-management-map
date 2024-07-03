@@ -10,6 +10,7 @@ class SMMLine {
     this.coords = line.geometry.coordinates
     this.LineLabel = line.properties.label
     this.LineID = line.properties.pk
+    this.setXHR = this.setXHR.bind(this)
     this.editCallback = this.editCallback.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
     this.createSearchCallback = this.createSearchCallback.bind(this)
@@ -19,10 +20,15 @@ class SMMLine {
     L.LineAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.coords.map(x => L.latLng(x[1], x[0])), this.LineID, this.LineLabel)
   }
 
+  setXHR (xhr) {
+    xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
+  }
+
   deleteCallback () {
     $.ajax({
-      url: `/data/userlines/${this.LineID}/`,
-      method: 'DELETE'
+      url: `/data/usergeo/${this.LineID}/`,
+      type: 'DELETE',
+      beforeSend: this.setXHR
     })
   }
 

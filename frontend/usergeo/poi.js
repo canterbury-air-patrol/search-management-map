@@ -14,6 +14,7 @@ class SMMPOI {
     this.POILabel = poi.properties.label
     this.poiID = poi.properties.pk
     this.editCallback = this.editCallback.bind(this)
+    this.setXHR = this.setXHR.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
     this.createSearchCallback = this.createSearchCallback.bind(this)
     this.calculateTDVCallback = this.calculateTDVCallback.bind(this)
@@ -23,10 +24,15 @@ class SMMPOI {
     L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.poiID, this.POILabel)
   }
 
+  setXHR (xhr) {
+    xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
+  }
+
   deleteCallback () {
     $.ajax({
-      url: `/data/pois/${this.poiID}/`,
-      method: 'DELETE'
+      url: `/data/usergeo/${this.poiID}/`,
+      type: 'DELETE',
+      beforeSend: this.setXHR
     })
   }
 
