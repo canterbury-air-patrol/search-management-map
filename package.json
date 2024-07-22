@@ -33,7 +33,7 @@
     "react-collapsible": "^2.10.0",
     "react-color": "^2.19.3",
     "react-leaflet": "^4.2.1",
-    "universal-cookie": "^7.1.4"
+    "universal-cookie": "^7.2.0"
   },
   "devDependencies": {
     "eslint": "^8.57.0",
