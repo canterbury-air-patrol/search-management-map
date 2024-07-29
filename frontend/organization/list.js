@@ -102,7 +102,7 @@ class OrganizationAdd extends React.Component {
   }
 
   createOrganization () {
-    $.post('/organization/create/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
+    $.post('/organization/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
   }
 
   render () {
@@ -159,7 +159,7 @@ class OrganizationListPage extends React.Component {
   }
 
   async updateData () {
-    await $.get('/organization/list/all/', this.updateDataResponse)
+    await $.getJSON('/organization/', this.updateDataResponse)
   }
 
   render () {
