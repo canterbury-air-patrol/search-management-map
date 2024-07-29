@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views import View
 
 from assets.decorators import asset_is_owner
 
@@ -11,12 +13,52 @@ from .models import Organization, OrganizationMember, OrganizationAsset
 from .decorators import organization_is_admin, organization_assets_admin, organization_radio_operator
 
 
-@login_required
-def organization_list(request):
+@method_decorator(login_required, name="dispatch")
+class OrganizationView(View):
     """
-    Display the organization list/management interface
+    View for all organizations
     """
-    return render(request, 'organization/list.html')
+    def as_json(self, request):
+        """
+        Return all this users assets as json
+        """
+        if request.GET.get('only', '') == 'mine':
+            organization_memberships = OrganizationMember.user_current(user=request.user).filter(organization__deleted__isnull=True)
+            return JsonResponse({'organizations': [om.organization.as_object(request.user) for om in organization_memberships]})
+        organizations = Organization.objects.filter(deleted__isnull=True)
+        return JsonResponse({'organizations': [org.as_object(request.user) for org in organizations]})
+
+    def get(self, request):
+        """
+        Show the organizations list
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request)
+        return render(request, 'organization/list.html')
+
+    def post(self, request):
+        """
+        Create a new organization
+        Organizations must have unique names, the creator is automatically an admin
+        """
+        organization_name = None
+        if request.method == 'POST':
+            organization_name = request.POST.get('name')
+        else:
+            return HttpResponseNotAllowed(['POST'])
+
+        if organization_name is None:
+            return HttpResponseBadRequest()
+
+        organizations = Organization.objects.filter(name=organization_name)
+        if len(organizations) > 0:
+            return HttpResponseForbidden()
+
+        organization = Organization(name=organization_name, creator=request.user)
+        organization.save()
+        OrganizationMember(organization=organization, user=request.user, added_by=request.user, role='A').save()
+
+        return JsonResponse(organization.as_object(request.user))
 
 
 @login_required
@@ -41,60 +83,6 @@ def organization_details(request, organization_id):
         return JsonResponse(organization_data)
 
     return render(request, 'organization/details.html', {'organization': organization})
-
-
-@login_required
-def organization_create(request):
-    """
-    Create an organization
-
-    Organizations must have unique names, the creator is automatically an admin
-    """
-    organization_name = None
-    if request.method == 'POST':
-        organization_name = request.POST.get('name')
-    else:
-        return HttpResponseNotAllowed(['POST'])
-
-    if organization_name is None:
-        return HttpResponseBadRequest()
-
-    organizations = Organization.objects.filter(name=organization_name)
-    if len(organizations) > 0:
-        return HttpResponseForbidden()
-
-    organization = Organization(name=organization_name, creator=request.user)
-    organization.save()
-    OrganizationMember(organization=organization, user=request.user, added_by=request.user, role='A').save()
-
-    return JsonResponse(organization.as_object(request.user))
-
-
-@login_required
-def organization_list_all(request):
-    """
-    List all of the organizations, that haven't been deleted
-    """
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
-
-    organizations = Organization.objects.filter(deleted__isnull=True)
-
-    return JsonResponse({'organizations': [org.as_object(request.user) for org in organizations]})
-
-
-@login_required
-def organization_list_mine(request):
-    """
-    List all of the organizations the current user is a member of
-    Ignores organizations that have been deleted
-    """
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
-
-    organization_memberships = OrganizationMember.user_current(user=request.user).filter(organization__deleted__isnull=True)
-
-    return JsonResponse({'organizations': [om.organization.as_object(request.user) for om in organization_memberships]})
 
 
 @login_required

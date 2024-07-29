@@ -92,7 +92,7 @@ class OrganizationFunctions:
         """
         Create an organization
         """
-        organization_create_url = '/organization/create/'
+        organization_create_url = '/organization/'
         if client is None:
             client = self.smm.client1
         data = client.post(organization_create_url, {'name': organization_name}).json()
@@ -111,7 +111,7 @@ class OrganizationFunctions:
         """
         Get all the organizations
         """
-        organization_list_all_url = '/organization/list/all/'
+        organization_list_all_url = '/organization/'
         json_data = self.get_url_json(organization_list_all_url, client=client)
         return json_data['organizations']
 
@@ -119,7 +119,7 @@ class OrganizationFunctions:
         """
         Get any organizations the current user is in
         """
-        organization_list_mine_url = '/organization/list/mine/'
+        organization_list_mine_url = '/organization/?only=mine'
         json_data = self.get_url_json(organization_list_mine_url, client=client)
         return json_data['organizations']
 
@@ -140,11 +140,11 @@ class OrganizationTestCase(TestCase):
         """
         Test creating organizations
         """
-        organization_create_url = '/organization/create/'
+        organization_create_url = '/organization/'
         organization_name = 'org1'
         alt_organization_name = 'alt org'
-        # Check that get cannot be used
-        response = self.smm.client1.get(organization_create_url, {'name': organization_name})
+        # Check that put cannot be used
+        response = self.smm.client1.put(organization_create_url, {'name': organization_name})
         self.assertEqual(response.status_code, 405)
         # Check that post can be used
         response = self.smm.client1.post(organization_create_url, {'name': organization_name})
