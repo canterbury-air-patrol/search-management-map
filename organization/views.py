@@ -10,7 +10,7 @@ from django.views import View
 from assets.decorators import asset_is_owner
 
 from .models import Organization, OrganizationMember, OrganizationAsset
-from .decorators import organization_is_admin, organization_assets_admin, organization_radio_operator
+from .decorators import organization_is_admin, organization_assets_admin, organization_radio_operator, get_target_user
 
 
 @method_decorator(login_required, name="dispatch")
@@ -85,19 +85,21 @@ def organization_details(request, organization_id):
     return render(request, 'organization/details.html', {'organization': organization})
 
 
-@login_required
-@organization_is_admin
-def organization_user_modify(request, organization_member, username):
+@method_decorator(login_required, name="dispatch")
+@method_decorator(get_target_user, name="dispatch")
+@method_decorator(organization_is_admin, name="dispatch")
+class OrganizationUserView(View):
     """
-    Modify the role/membership of a member
+    View/Control the role of a user in this organization
     """
-    # Don't allow self-modifying
-    if username == request.user.username:
-        return HttpResponseForbidden('Self-modification prohibited')
+    def as_json(self, request, om):
+        return JsonResponse(om.as_object(request.user))
 
-    target_user = get_object_or_404(get_user_model(), username=username)
+    def get(self, request, organization_member, target_user):
+        om = get_object_or_404(OrganizationMember, organization=organization_member.organization, user=target_user, removed__isnull=True)
+        return self.as_json(request, om)
 
-    if request.method == 'POST':
+    def post(self, request, organization_member, target_user):
         # Create/modify the membership
         try:
             om = OrganizationMember.objects.get(organization=organization_member.organization, user=target_user, removed__isnull=True)
@@ -109,17 +111,13 @@ def organization_user_modify(request, organization_member, username):
             om.role = role
             om.save()
         return JsonResponse(om.as_object(request.user))
-    elif request.method == 'DELETE':
-        try:
-            om = OrganizationMember.objects.get(organization=organization_member.organization, user=target_user, removed__isnull=True)
-            om.removed = timezone.now()
-            om.removed_by = organization_member.user
-            om.save()
-        except ObjectDoesNotExist:
-            pass
+
+    def delete(self, request, organization_member, target_user):
+        om = get_object_or_404(OrganizationMember, organization=organization_member.organization, user=target_user, removed__isnull=True)
+        om.removed = timezone.now()
+        om.removed_by = organization_member.user
+        om.save()
         return HttpResponse('')
-    else:
-        return HttpResponseNotAllowed(['POST'])
 
 
 @login_required

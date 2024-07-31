@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 
@@ -50,3 +51,14 @@ def organization_radio_operator(view_func):
             return view_func(*args, organization_member=organization_member, **kwargs)
         return HttpResponseForbidden("You are not a radio operator for this organization")
     return wrapper_is_radio_operator
+
+
+def get_target_user(view_func):
+    """
+    Convert a username into a user object
+    """
+    def wrapper_get_target_user(*args, **kwargs):
+        target_user = get_object_or_404(get_user_model(), username=kwargs['username'])
+        kwargs.pop('username')
+        return view_func(*args, target_user=target_user, **kwargs)
+    return wrapper_get_target_user
