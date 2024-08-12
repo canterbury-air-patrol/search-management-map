@@ -21,5 +21,8 @@ DATABASES = {
         'NAME': 'POSTGRES_DBNAME',
         'USER': 'POSTGRES_USER',
         'PASSWORD': 'POSTGRES_PASSWORD',
+        'OPTIONS': {
+            'pool': True,
+        },
     }
 }
