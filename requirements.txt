@@ -5,6 +5,7 @@ pytz
 
 # Database
 psycopg[binary]==3.2.1
+psycopg[pool]==3.2.1
 
 # Code checking
 pycodestyle
