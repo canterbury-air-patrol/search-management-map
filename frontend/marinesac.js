@@ -4,6 +4,12 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import { MarineSACTable } from '@canterbury-air-patrol/marine-search-area-coverage'
+import { SMMMissionTopBar } from './menu/topbar'
 
-const root = ReactDOM.createRoot(document.getElementById('root'))
-root.render(<MarineSACTable />)
+export function createMarineSACTable (elementId, missionId) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId))
+
+  div.render(<><SMMMissionTopBar missionId={missionId}/><MarineSACTable /></>)
+}
+
+globalThis.createMarineSACTable = createMarineSACTable
