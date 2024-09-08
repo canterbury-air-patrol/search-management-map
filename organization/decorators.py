@@ -10,7 +10,7 @@ def organization_member_get(organization_id, user):
     Get the organization_member for the given organization id and user.
     """
     organization = get_object_or_404(Organization, pk=organization_id)
-    organization_member = get_object_or_404(OrganizationMember, organization=organization, user=user)
+    organization_member = get_object_or_404(OrganizationMember, organization=organization, user=user, removed__isnull=True)
     return organization_member
 
 
