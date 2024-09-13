@@ -41,11 +41,7 @@ class OrganizationView(View):
         Create a new organization
         Organizations must have unique names, the creator is automatically an admin
         """
-        organization_name = None
-        if request.method == 'POST':
-            organization_name = request.POST.get('name')
-        else:
-            return HttpResponseNotAllowed(['POST'])
+        organization_name = request.POST.get('name')
 
         if organization_name is None:
             return HttpResponseBadRequest()
