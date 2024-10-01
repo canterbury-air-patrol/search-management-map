@@ -3,6 +3,12 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 
 class SMMMarineVector extends SMMRealtime {
+  constructor (map, csrftoken, missionId, interval, color) {
+    super(map, csrftoken, missionId, interval, color)
+
+    this.createPopup = this.createPopup.bind(this)
+  }
+
   getUrl () {
     return `/mission/${this.missionId}/sar/marine/vectors/current/`
   }
