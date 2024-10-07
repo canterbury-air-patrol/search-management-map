@@ -8,7 +8,7 @@ psycopg[binary,pool]==3.2.3
 
 # Code checking
 pycodestyle
-pylint==3.2.*
+pylint==3.3.*
 pylint-django==2.5.5
 
 # Numerical
