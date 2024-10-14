@@ -25,7 +25,9 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
 
   let pointCount = 0
   const addPointRow = function () {
-    $(`#polygonadder-points-${RAND_NUM}`).append(`<div id="polygonadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`)
+    $(`#polygonadder-points-${RAND_NUM}`).append(
+      `<div id="polygonadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id = "polygonadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`
+    )
     return pointCount++
   }
 
@@ -48,7 +50,9 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
   currentPoints.forEach(addMarker)
 
   const removeAllMarkers = function () {
-    markers.forEach(function (m) { map.removeLayer(m.getMarker()) })
+    markers.forEach(function (m) {
+      map.removeLayer(m.getMarker())
+    })
   }
 
   const removeMarker = function () {
@@ -112,7 +116,7 @@ L.Control.PolygonAdder = L.Control.extend({
   },
 
   onAdd: function (map) {
-    const container = this._container = L.DomUtil.create('div', 'PolygonAdder-container leaflet-bar')
+    const container = (this._container = L.DomUtil.create('div', 'PolygonAdder-container leaflet-bar'))
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Add Area'

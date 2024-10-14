@@ -13,38 +13,38 @@ import { MissionAssetStatus } from '../mission/asset/status'
 import { SMMOrganizationTopBar } from '../menu/topbar'
 
 class RadioOperatorAsset extends AssetUI {
-  render () {
+  render() {
     let missionStatus
     if (Number.isInteger(this.state.details.mission_id)) {
-      missionStatus = (<MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />)
+      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
     }
     return (
       <>
-      <thead>
-        <tr>
-          <td colSpan={2} align='center' style={ { fontWeight: 'bold' } } className='bg-info'>{this.state.details.name}</td>
-        </tr>
-      </thead>
-      <tbody>
-      <tr>
-        <td>
-        <AssetDetails
-          details={this.state.details} />
-        </td>
-        <td>
-        <AssetCommandView
-          lastCommand={this.state.lastCommand} />
-        {missionStatus}
-        </td>
-      </tr>
-      </tbody>
+        <thead>
+          <tr>
+            <td colSpan={2} align="center" style={{ fontWeight: 'bold' }} className="bg-info">
+              {this.state.details.name}
+            </td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <AssetDetails details={this.state.details} />
+            </td>
+            <td>
+              <AssetCommandView lastCommand={this.state.lastCommand} />
+              {missionStatus}
+            </td>
+          </tr>
+        </tbody>
       </>
     )
   }
 }
 
 class OrganizationRadioOperatorPage extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -53,18 +53,18 @@ class OrganizationRadioOperatorPage extends React.Component {
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  updateDataResponse (data) {
+  updateDataResponse(data) {
     this.setState(function () {
       return {
         organizationAssets: data.assets
@@ -72,20 +72,17 @@ class OrganizationRadioOperatorPage extends React.Component {
     })
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON(`/organization/${this.props.organizationId}/`, this.updateDataResponse)
   }
 
-  render () {
+  render() {
     const assets = []
     for (const assetId in this.state.organizationAssets) {
       const asset = this.state.organizationAssets[assetId]
-      assets.push((<RadioOperatorAsset key={asset.id} asset={asset.asset.id} />))
+      assets.push(<RadioOperatorAsset key={asset.id} asset={asset.asset.id} />)
     }
-    return (
-      <Table responsive>
-        { assets }
-      </Table>)
+    return <Table responsive>{assets}</Table>
   }
 }
 OrganizationRadioOperatorPage.propTypes = {
@@ -93,12 +90,17 @@ OrganizationRadioOperatorPage.propTypes = {
   csrftoken: PropTypes.string.isRequired
 }
 
-function createRadioOperator (elementId, organizationId) {
+function createRadioOperator(elementId, organizationId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<><SMMOrganizationTopBar organizationId={organizationId} /><OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} /></>)
+  div.render(
+    <>
+      <SMMOrganizationTopBar organizationId={organizationId} />
+      <OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} />
+    </>
+  )
 }
 
 globalThis.createRadioOperator = createRadioOperator

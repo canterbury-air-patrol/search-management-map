@@ -47,7 +47,11 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
     { id: 'at', label: 'Asset Type', input_html: assetSelection },
     { id: 'sw', label: 'Sweep Width', input_html: `<input class="form-control form-control-sm" type="number" id="SearchAdder-sweep-width-${RAND_NUM}" size="4" />` },
     { id: 'i', label: 'Iterations', input_html: `<input class="form-control form-control-sm" type="number" id="SearchAdder-iterations-${RAND_NUM}" size="3" />` },
-    { id: 'fb', label: 'First Bearing', input_html: `<input class="form-control form-control-sm" type="number" id="SearchAdder-first-bearing-${RAND_NUM}" min="0" max="359" value="0" size="3"/>` },
+    {
+      id: 'fb',
+      label: 'First Bearing',
+      input_html: `<input class="form-control form-control-sm" type="number" id="SearchAdder-first-bearing-${RAND_NUM}" min="0" max="359" value="0" size="3"/>`
+    },
     { id: 'w', label: 'Width (across line)', input_html: `<input class="form-control form-control-sm" type="number" id="SearchAdder-width-${RAND_NUM}" min="0" size="4" />` }
   ])
 
@@ -95,7 +99,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
       case 'shore-line':
         return '/search/shoreline/create/'
       case 'creeping-line':
-        return (objectType === 'line') ? '/search/creepingline/create/track/' : '/search/creepingline/create/polygon/'
+        return objectType === 'line' ? '/search/creepingline/create/track/' : '/search/creepingline/create/polygon/'
       default:
         console.log('search type not supported')
     }

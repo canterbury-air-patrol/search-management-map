@@ -11,16 +11,17 @@ import $ from 'jquery'
 import { SMMTopBar } from '../menu/topbar'
 
 class IconListRow extends React.Component {
-  render () {
+  render() {
     const icon = this.props.icon
     const dataFields = []
-    dataFields.push((<td key='name'>{icon.name}</td>))
-    dataFields.push((<td key='img'><img src={icon.url} /></td>))
+    dataFields.push(<td key="name">{icon.name}</td>)
+    dataFields.push(
+      <td key="img">
+        <img src={icon.url} />
+      </td>
+    )
 
-    return ((
-      <tr key={icon.id}>
-        {dataFields}
-      </tr>))
+    return <tr key={icon.id}>{dataFields}</tr>
   }
 }
 IconListRow.propTypes = {
@@ -28,31 +29,28 @@ IconListRow.propTypes = {
 }
 
 class IconList extends React.Component {
-  render () {
+  render() {
     const iconRows = []
     for (const iconIdx in this.props.icons) {
       const icon = this.props.icons[iconIdx]
-      iconRows.push((
-        <IconListRow
-          key={icon.id}
-          icon={icon} />
-      ))
+      iconRows.push(<IconListRow key={icon.id} icon={icon} />)
     }
     return (
       <Table responsive>
         <thead>
-          <tr key='heading'>
-            <th colSpan={5} align='center'>Icons</th>
+          <tr key="heading">
+            <th colSpan={5} align="center">
+              Icons
+            </th>
           </tr>
-          <tr key='labels'>
+          <tr key="labels">
             <th>Name</th>
             <th>Image</th>
           </tr>
         </thead>
-        <tbody>
-          {iconRows}
-        </tbody>
-      </Table>)
+        <tbody>{iconRows}</tbody>
+      </Table>
+    )
   }
 }
 IconList.propTypes = {
@@ -60,7 +58,7 @@ IconList.propTypes = {
 }
 
 class IconListPage extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -70,22 +68,22 @@ class IconListPage extends React.Component {
     this.updateIcons = this.updateIcons.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON('/icons/', this.updateIcons)
   }
 
-  updateIcons (data) {
+  updateIcons(data) {
     this.setState(function () {
       return {
         knownIcons: data.icons
@@ -93,19 +91,23 @@ class IconListPage extends React.Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <div>
-        <IconList
-          icons={this.state.knownIcons} />
+        <IconList icons={this.state.knownIcons} />
       </div>
     )
   }
 }
 
-function createIconList (elementId) {
+function createIconList(elementId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<><SMMTopBar /><IconListPage /></>)
+  div.render(
+    <>
+      <SMMTopBar />
+      <IconListPage />
+    </>
+  )
 }
 
 globalThis.createIconList = createIconList

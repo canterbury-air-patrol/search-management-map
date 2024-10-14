@@ -12,7 +12,7 @@ import { CompactPicker } from 'react-color'
 import Cookies from 'universal-cookie'
 
 class AssetColorPicker extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.state = {
       color: this.props.color
@@ -24,12 +24,8 @@ class AssetColorPicker extends React.Component {
     this.setState({ color })
   }
 
-  render () {
-    return (
-      <CompactPicker
-        color={this.state.color}
-        onChangeComplete={this.updateColor} />
-    )
+  render() {
+    return <CompactPicker color={this.state.color} onChangeComplete={this.updateColor} />
   }
 }
 AssetColorPicker.propTypes = {
@@ -38,7 +34,7 @@ AssetColorPicker.propTypes = {
 }
 
 class SMMAsset {
-  constructor (map, missionId, assetId, assetName, color) {
+  constructor(map, missionId, assetId, assetName, color) {
     this.missionId = missionId
     this.assetId = assetId
     this.assetName = assetName
@@ -56,11 +52,11 @@ class SMMAsset {
     this.updateFailed = this.updateFailed.bind(this)
   }
 
-  overlay () {
+  overlay() {
     return this.polyline
   }
 
-  updateColor (color) {
+  updateColor(color) {
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`asset_${this.assetId}_track_color`, color)
     this.color = color
@@ -69,12 +65,12 @@ class SMMAsset {
     })
   }
 
-  closeColorPicker () {
+  closeColorPicker() {
     this.colorDialog.destroy()
     this.colorDialog = null
   }
 
-  colorPicker () {
+  colorPicker() {
     if (this.colorDialog === null) {
       const dialogContent = document.createElement('div')
       const label = document.createElement('div')
@@ -91,16 +87,13 @@ class SMMAsset {
       this.colorDialog = L.control.dialog({ initOpen: true })
       this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
       const div = ReactDOM.createRoot(colorPickerDiv)
-      div.render(
-        <AssetColorPicker
-          color={this.color}
-          updateColor={this.updateColor} />)
+      div.render(<AssetColorPicker color={this.color} updateColor={this.updateColor} />)
     } else {
       this.colorDialog.show()
     }
   }
 
-  updateNewRoute (route) {
+  updateNewRoute(route) {
     for (const f in route.features) {
       const lon = route.features[f].geometry.coordinates[0]
       const lat = route.features[f].geometry.coordinates[1]
@@ -111,12 +104,14 @@ class SMMAsset {
     this.updating = false
   }
 
-  updateFailed () {
+  updateFailed() {
     this.updating = false
   }
 
-  update () {
-    if (this.updating) { return }
+  update() {
+    if (this.updating) {
+      return
+    }
     this.updating = true
 
     let assetUrl = `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/?oldest=last`
@@ -134,7 +129,7 @@ class SMMAsset {
 }
 
 class SMMAssets extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color, overlayAdd) {
+  constructor(map, csrftoken, missionId, interval, color, overlayAdd) {
     super(map, csrftoken, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
@@ -149,11 +144,11 @@ class SMMAssets extends SMMRealtime {
     window.setInterval(this.updateAssetNameMap, interval)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/data/assets/positions/latest/`
   }
 
-  assetListCB (data) {
+  assetListCB(data) {
     for (const assetIdx in data.assets) {
       const asset = data.assets[assetIdx]
       this.assetNameMap[asset.id] = asset.name
@@ -166,24 +161,29 @@ class SMMAssets extends SMMRealtime {
     }
   }
 
-  updateAssetNameMap () {
+  updateAssetNameMap() {
     $.getJSON(`/mission/${this.missionId}/assets/?include_removed=true`, this.assetListCB)
   }
 
-  realtime () {
-    return L.realtime({
-      url: this.getUrl(),
-      type: 'json'
-    }, {
-      interval: this.interval,
-      onEachFeature: this.createPopup,
-      updateFeature: this.assetUpdate,
-      getFeatureId: function (feature) { return feature.properties.asset },
-      pointToLayer: this.assetLayer
-    })
+  realtime() {
+    return L.realtime(
+      {
+        url: this.getUrl(),
+        type: 'json'
+      },
+      {
+        interval: this.interval,
+        onEachFeature: this.createPopup,
+        updateFeature: this.assetUpdate,
+        getFeatureId: function (feature) {
+          return feature.properties.asset
+        },
+        pointToLayer: this.assetLayer
+      }
+    )
   }
 
-  createAsset (assetId) {
+  createAsset(assetId) {
     if (!(assetId in this.assetNameMap)) {
       return null
     }
@@ -204,13 +204,13 @@ class SMMAssets extends SMMRealtime {
     return assetObject
   }
 
-  getAssetIcon (assetId) {
+  getAssetIcon(assetId) {
     if (!(assetId in this.assetIconMap)) {
       return this.assetIconMap[assetId]
     }
   }
 
-  createPopup (asset, layer) {
+  createPopup(asset, layer) {
     const assetId = asset.properties.asset
 
     this.createAsset(assetId)
@@ -222,11 +222,11 @@ class SMMAssets extends SMMRealtime {
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
-  assetPathUpdate (assetId) {
+  assetPathUpdate(assetId) {
     this.createAsset(assetId)?.update()
   }
 
-  assetDataToPopUp (data) {
+  assetDataToPopUp(data) {
     const dl = document.createElement('dl')
     dl.className = 'row'
 
@@ -244,17 +244,20 @@ class SMMAssets extends SMMRealtime {
     return dl
   }
 
-  assetLayer (asset, latlng) {
+  assetLayer(asset, latlng) {
     const iconUrl = this.getAssetIcon(asset.properties.id)
     if (iconUrl) {
       return L.marker(latlng, {
-        icon: L.icon({
-          iconUrl,
-          iconSize: [50, 50],
-          iconAnchor: [25, 50]
-        }, {
-          title: this.assetNameMap[asset.properties.id]
-        })
+        icon: L.icon(
+          {
+            iconUrl,
+            iconSize: [50, 50],
+            iconAnchor: [25, 50]
+          },
+          {
+            title: this.assetNameMap[asset.properties.id]
+          }
+        )
       })
     }
     return L.marker(latlng, {
@@ -262,11 +265,13 @@ class SMMAssets extends SMMRealtime {
     })
   }
 
-  assetUpdate (asset, oldLayer) {
+  assetUpdate(asset, oldLayer) {
     const assetId = asset.properties.asset
     this.assetPathUpdate(assetId)
 
-    if (!oldLayer) { return }
+    if (!oldLayer) {
+      return
+    }
 
     const coords = asset.geometry.coordinates
 
@@ -290,7 +295,7 @@ class SMMAssets extends SMMRealtime {
       data.push(['Fix', fix])
     }
 
-    if ((assetId in this.assetStatusMap)) {
+    if (assetId in this.assetStatusMap) {
       data.push(['Status', this.assetStatusMap[assetId].status])
       if (this.assetStatusMap[assetId].notes !== '') {
         data.push(['Status Notes', this.assetStatusMap[assetId].notes])
@@ -308,15 +313,17 @@ class SMMAssets extends SMMRealtime {
       }
 
       const currentIcon = oldLayer.getIcon()
-      if ((assetId in this.assetIconMap)) {
+      if (assetId in this.assetIconMap) {
         const iconUrl = this.assetIconMap[assetId]
         if (currentIcon.options.iconUrl !== iconUrl) {
-          oldLayer.setIcon(L.icon({
-            iconUrl,
-            iconSize: [50, 50],
-            iconAnchor: [25, 50],
-            title: this.assetNameMap[assetId]
-          }))
+          oldLayer.setIcon(
+            L.icon({
+              iconUrl,
+              iconSize: [50, 50],
+              iconAnchor: [25, 50],
+              title: this.assetNameMap[assetId]
+            })
+          )
         }
       }
 

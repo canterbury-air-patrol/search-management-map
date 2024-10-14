@@ -3,7 +3,7 @@ import L from 'leaflet'
 import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
 import { SearchObjectLeeway } from '@canterbury-air-patrol/marine-leeway-data'
 
-function timeFractions (humanTime) {
+function timeFractions(humanTime) {
   const minutes = humanTime % 100
   let hours = (humanTime - minutes) / 100
   hours += minutes / 60
@@ -11,7 +11,7 @@ function timeFractions (humanTime) {
 }
 
 class MarineVectorsCurrent {
-  constructor (idx, timeFrom, timeTo, currentDirection, currentSpeed) {
+  constructor(idx, timeFrom, timeTo, currentDirection, currentSpeed) {
     this.idx = idx
     this.timeFrom = timeFrom
     this.timeTo = timeTo
@@ -19,37 +19,37 @@ class MarineVectorsCurrent {
     this.currentSpeed = currentSpeed
   }
 
-  getTimeInterval () {
+  getTimeInterval() {
     return timeFractions(this.timeTo) - timeFractions(this.timeFrom)
   }
 
-  getCurrentVectorDirection () {
+  getCurrentVectorDirection() {
     return this.currentDirection
   }
 
-  getCurrentVectorDistance () {
+  getCurrentVectorDistance() {
     return this.getTimeInterval() * this.currentSpeed
   }
 
-  updateTimeFrom (newTime) {
+  updateTimeFrom(newTime) {
     this.timeFrom = newTime
   }
 
-  updateTimeTo (newTime) {
+  updateTimeTo(newTime) {
     this.timeTo = newTime
   }
 
-  updateCurrentDirection (newDirection) {
+  updateCurrentDirection(newDirection) {
     this.currentDirection = newDirection
   }
 
-  updateCurrentSpeed (newSpeed) {
+  updateCurrentSpeed(newSpeed) {
     this.currentSpeed = newSpeed
   }
 }
 
 class MarineVectorsWind {
-  constructor (idx, timeFrom, timeTo, windDirection, windSpeed, leewayData) {
+  constructor(idx, timeFrom, timeTo, windDirection, windSpeed, leewayData) {
     this.idx = idx
     this.timeFrom = timeFrom
     this.timeTo = timeTo
@@ -58,35 +58,35 @@ class MarineVectorsWind {
     this.leewayData = leewayData
   }
 
-  updateLeewayData (leewayData) {
+  updateLeewayData(leewayData) {
     this.leewayData = leewayData
   }
 
-  getWindDirectionTo () {
+  getWindDirectionTo() {
     return (this.windDirectionFrom + 180) % 360
   }
 
-  updateWindDirectFrom (newDirection) {
+  updateWindDirectFrom(newDirection) {
     this.windDirectionFrom = parseInt(newDirection)
   }
 
-  updateWindSpeed (newSpeed) {
+  updateWindSpeed(newSpeed) {
     this.windSpeed = parseInt(newSpeed)
   }
 
-  getLeewayRate () {
-    return (this.windSpeed * this.leewayData.multiplier) + this.leewayData.modifier
+  getLeewayRate() {
+    return this.windSpeed * this.leewayData.multiplier + this.leewayData.modifier
   }
 
-  getTimeInterval () {
+  getTimeInterval() {
     return timeFractions(this.timeTo) - timeFractions(this.timeFrom)
   }
 
-  getWindVectorDirection () {
+  getWindVectorDirection() {
     return this.getWindDirectionTo()
   }
 
-  getWindVectorDistance () {
+  getWindVectorDistance() {
     return this.getTimeInterval() * this.getLeewayRate()
   }
 }
@@ -120,7 +120,7 @@ const marinesarVectorsInputRows = [
 ]
 
 export class MarineVectors {
-  constructor (inputTableId, currentVectorsTableId, windVectorsTableId) {
+  constructor(inputTableId, currentVectorsTableId, windVectorsTableId) {
     this.currentVectors = []
     this.windVectors = []
     this.leewayData = {}
@@ -129,7 +129,7 @@ export class MarineVectors {
     this.windVectorsTableId = windVectorsTableId
   }
 
-  getResultingVector () {
+  getResultingVector() {
     let computedBearing = 0
     let computedDistance = 0
     for (const idx in this.currentVectors) {
@@ -139,16 +139,16 @@ export class MarineVectors {
         computedDistance = currVector.getCurrentVectorDistance()
       } else {
         /* do trig to work out the resulting vector */
-        const x1 = computedDistance * Math.cos(computedBearing * Math.PI / 180)
-        const y1 = computedDistance * Math.sin(computedBearing * Math.PI / 180)
+        const x1 = computedDistance * Math.cos((computedBearing * Math.PI) / 180)
+        const y1 = computedDistance * Math.sin((computedBearing * Math.PI) / 180)
         const currBearing = currVector.getCurrentVectorDirection()
         const currDistance = currVector.getCurrentVectorDistance()
-        const x2 = currDistance * Math.cos(currBearing * Math.PI / 180)
-        const y2 = currDistance * Math.sin(currBearing * Math.PI / 180)
+        const x2 = currDistance * Math.cos((currBearing * Math.PI) / 180)
+        const y2 = currDistance * Math.sin((currBearing * Math.PI) / 180)
         const x = x1 + x2
         const y = y1 + y2
         computedDistance = Math.sqrt(x * x + y * y)
-        computedBearing = Math.atan(y / x) * 180 / Math.PI
+        computedBearing = (Math.atan(y / x) * 180) / Math.PI
       }
     }
     for (const idx in this.windVectors) {
@@ -158,35 +158,35 @@ export class MarineVectors {
         computedDistance = windVector.getWindVectorDistance()
       } else {
         /* do trig to work out the resulting vector */
-        const x1 = computedDistance * Math.cos(computedBearing * Math.PI / 180)
-        const y1 = computedDistance * Math.sin(computedBearing * Math.PI / 180)
+        const x1 = computedDistance * Math.cos((computedBearing * Math.PI) / 180)
+        const y1 = computedDistance * Math.sin((computedBearing * Math.PI) / 180)
         const windBearing = windVector.getWindVectorDirection()
         const windDistance = windVector.getWindVectorDistance()
-        const x2 = windDistance * Math.cos(windBearing * Math.PI / 180)
-        const y2 = windDistance * Math.sin(windBearing * Math.PI / 180)
+        const x2 = windDistance * Math.cos((windBearing * Math.PI) / 180)
+        const y2 = windDistance * Math.sin((windBearing * Math.PI) / 180)
         const x = x1 + x2
         const y = y1 + y2
         computedDistance = Math.sqrt(x * x + y * y)
-        computedBearing = Math.atan(y / x) * 180 / Math.PI
+        computedBearing = (Math.atan(y / x) * 180) / Math.PI
       }
     }
     computedBearing = (computedBearing + 360) % 360
     return { bearing: computedBearing, distance: computedDistance }
   }
 
-  addCurrentVector () {
+  addCurrentVector() {
     const currentVector = new MarineVectorsCurrent(this.currentVectors.length + 1, 0, 0, 0, 0)
     this.currentVectors.push(currentVector)
     return currentVector
   }
 
-  addWindVector () {
+  addWindVector() {
     const windVector = new MarineVectorsWind(this.windVectors.length + 1, 0, 0, 0, 0, this.leewayData)
     this.windVectors.push(windVector)
     return windVector
   }
 
-  populate_input_table () {
+  populate_input_table() {
     for (const idx in marinesarVectorsInputRows) {
       const row = marinesarVectorsInputRows[idx]
       let html = '<tr>'
@@ -228,7 +228,7 @@ export class MarineVectors {
     this.update_leeway_data()
   }
 
-  populate_data_tables () {
+  populate_data_tables() {
     let html = '<thead>'
     html += '<th>From:</th>'
     html += '<th>To:</th>'
@@ -256,7 +256,7 @@ export class MarineVectors {
     $(`#${this.windVectorsTableId}`).html(html)
   }
 
-  update_leeway_data () {
+  update_leeway_data() {
     const idx = $(`#${this.leewaySelector}`).val()
     this.leewayData = SearchObjectLeeway[idx]
     $('#leeway_multiplier').text(this.leewayData.multiplier)
@@ -265,7 +265,7 @@ export class MarineVectors {
     this.recalculate()
   }
 
-  populate_leeway_selector (leewaySelector) {
+  populate_leeway_selector(leewaySelector) {
     const vectors = this
     this.leewaySelector = leewaySelector
 
@@ -281,7 +281,7 @@ export class MarineVectors {
     })
   }
 
-  recalculate () {
+  recalculate() {
     for (const idx in this.currentVectors) {
       const currVector = this.currentVectors[idx]
       const cvc = currVector.idx
@@ -312,18 +312,42 @@ export class MarineVectors {
     $('#tdv_result_distance').text(results.distance.toFixed(2))
   }
 
-  newCurrentVector () {
+  newCurrentVector() {
     const currVector = this.addCurrentVector()
     const cvc = currVector.idx
-    $('#' + this.currentVectorsTableId).append('<tr>' +
-        '<td><input type="number" minlength="4" maxlength="4" id="curr_time_start_' + cvc + '" name="curr_time_start_' + cvc + '" /></td>' +
-        '<td><input type="number" minlength="4" maxlength="4" id="curr_time_end_' + cvc + '" name="curr_time_end_' + cvc + '" /></td>' +
-        '<td><input type="number" minlength="3" maxlength="3" max="360" id="curr_direction_' + cvc + '" name="curr_direction_' + cvc + '" /></td>' +
-        '<td><input type="number" minlength="1" maxlength="3" id="curr_speed_' + cvc + '" name="curr_speed_' + cvc + '" /></td>' +
-        '<td id="curr_time_interval_' + cvc + '">0.0</td>' +
-        '<td id="curr_vector_degrees_' + cvc + '">000</td>' +
-        '<td id="curr_vector_distance_' + cvc + '">0</td>' +
-    '</tr>')
+    $('#' + this.currentVectorsTableId).append(
+      '<tr>' +
+        '<td><input type="number" minlength="4" maxlength="4" id="curr_time_start_' +
+        cvc +
+        '" name="curr_time_start_' +
+        cvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="4" maxlength="4" id="curr_time_end_' +
+        cvc +
+        '" name="curr_time_end_' +
+        cvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="3" maxlength="3" max="360" id="curr_direction_' +
+        cvc +
+        '" name="curr_direction_' +
+        cvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="1" maxlength="3" id="curr_speed_' +
+        cvc +
+        '" name="curr_speed_' +
+        cvc +
+        '" /></td>' +
+        '<td id="curr_time_interval_' +
+        cvc +
+        '">0.0</td>' +
+        '<td id="curr_vector_degrees_' +
+        cvc +
+        '">000</td>' +
+        '<td id="curr_vector_distance_' +
+        cvc +
+        '">0</td>' +
+        '</tr>'
+    )
     const vectors = this
     $(`#curr_time_start_${cvc}`).on('change', function () {
       vectors.recalculate()
@@ -339,21 +363,49 @@ export class MarineVectors {
     })
   }
 
-  newWindVector () {
+  newWindVector() {
     const vectors = this
     const windVector = this.addWindVector()
     const wvc = windVector.idx
-    $('#' + this.windVectorsTableId).append('<tr>' +
-      '<td><input type="number" minlength="4" maxlength="4" id="wind_time_start_' + wvc + '" name="wind_time_start_' + wvc + '" /></td>' +
-      '<td><input type="number" minlength="4" maxlength="4" id="wind_time_end_' + wvc + '" name="wind_time_end_' + wvc + '" /></td>' +
-      '<td><input type="number" minlength="3" maxlength="3" max="360" id="wind_from_direction_' + wvc + '" name="wind_from_direction_' + wvc + '" /></td>' +
-      '<td><input type="number" minlength="1" maxlength="3" id="wind_speed_' + wvc + '" name="wind_speed_' + wvc + '" /></td>' +
-      '<td id="wind_leeway_direction_' + wvc + '">000</td>' +
-      '<td id="wind_leeway_rate_' + wvc + '">0</td>' +
-      '<td id="wind_time_interval_' + wvc + '">0.0</td>' +
-      '<td id="wind_vector_degrees_' + wvc + '">000</td>' +
-      '<td id="wind_vector_distance_' + wvc + '">0</td>' +
-      '</tr>')
+    $('#' + this.windVectorsTableId).append(
+      '<tr>' +
+        '<td><input type="number" minlength="4" maxlength="4" id="wind_time_start_' +
+        wvc +
+        '" name="wind_time_start_' +
+        wvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="4" maxlength="4" id="wind_time_end_' +
+        wvc +
+        '" name="wind_time_end_' +
+        wvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="3" maxlength="3" max="360" id="wind_from_direction_' +
+        wvc +
+        '" name="wind_from_direction_' +
+        wvc +
+        '" /></td>' +
+        '<td><input type="number" minlength="1" maxlength="3" id="wind_speed_' +
+        wvc +
+        '" name="wind_speed_' +
+        wvc +
+        '" /></td>' +
+        '<td id="wind_leeway_direction_' +
+        wvc +
+        '">000</td>' +
+        '<td id="wind_leeway_rate_' +
+        wvc +
+        '">0</td>' +
+        '<td id="wind_time_interval_' +
+        wvc +
+        '">0.0</td>' +
+        '<td id="wind_vector_degrees_' +
+        wvc +
+        '">000</td>' +
+        '<td id="wind_vector_distance_' +
+        wvc +
+        '">0</td>' +
+        '</tr>'
+    )
     $(`#wind_time_start_${wvc}`).on('change', function () {
       vectors.recalculate()
     })
@@ -384,7 +436,11 @@ L.MarineVectors = function (map, missionId, csrftoken, posName, pos, poiId) {
     '<div><button class="btn btn-primary" id="tdv_create">Create</button>',
     '<button class="btn btn-danger" id="tdv_cancel">Cancel</button></div>'
   ].join('')
-  const marineVectorsDialog = L.control.dialog({ initOpen: true, size: [1000, 500] }).setContent(contents).addTo(map).hideClose()
+  const marineVectorsDialog = L.control
+    .dialog({ initOpen: true, size: [1000, 500] })
+    .setContent(contents)
+    .addTo(map)
+    .hideClose()
   const marineVectors = new MarineVectors('mvd_input_table', 'mvd_curr_vectors', 'mvd_wind_vectors')
   let onMap = null
 

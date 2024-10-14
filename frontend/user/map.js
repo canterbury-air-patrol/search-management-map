@@ -10,7 +10,7 @@ import * as ReactDOM from 'react-dom/client'
 import Cookies from 'universal-cookie'
 
 class SMMUserPosition {
-  constructor (map, missionId, userName, color) {
+  constructor(map, missionId, userName, color) {
     this.missionId = missionId
     this.userName = userName
     this.color = color
@@ -27,11 +27,11 @@ class SMMUserPosition {
     this.updateError = this.updateError.bind(this)
   }
 
-  overlay () {
+  overlay() {
     return this.polyline
   }
 
-  updateColor (color) {
+  updateColor(color) {
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`user_${this.userName}_track_color`, color)
     this.color = color
@@ -40,12 +40,12 @@ class SMMUserPosition {
     })
   }
 
-  closeColorPicker () {
+  closeColorPicker() {
     this.colorDialog.destroy()
     this.colorDialog = null
   }
 
-  colorPicker () {
+  colorPicker() {
     if (this.colorDialog === null) {
       const dialogContent = document.createElement('div')
       const label = document.createElement('div')
@@ -62,16 +62,13 @@ class SMMUserPosition {
       this.colorDialog = L.control.dialog({ initOpen: true })
       this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
       const div = ReactDOM.createRoot(colorPickerDiv)
-      div.render(
-        <AssetColorPicker
-          color={this.color}
-          updateColor={this.updateColor} />)
+      div.render(<AssetColorPicker color={this.color} updateColor={this.updateColor} />)
     } else {
       this.colorDialog.show()
     }
   }
 
-  updateNewPosition (route) {
+  updateNewPosition(route) {
     for (const f in route.features) {
       const lon = route.features[f].geometry.coordinates[0]
       const lat = route.features[f].geometry.coordinates[1]
@@ -82,12 +79,14 @@ class SMMUserPosition {
     this.updating = false
   }
 
-  updateError () {
+  updateError() {
     this.updating = false
   }
 
-  update () {
-    if (this.updating) { return }
+  update() {
+    if (this.updating) {
+      return
+    }
     this.updating = true
 
     let userUrl = `/mission/${this.missionId}/data/user/${this.userName}/position/history/?oldest=last`
@@ -105,7 +104,7 @@ class SMMUserPosition {
 }
 
 class SMMUserPositions extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color, overlayAdd) {
+  constructor(map, csrftoken, missionId, interval, color, overlayAdd) {
     super(map, csrftoken, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
@@ -114,24 +113,29 @@ class SMMUserPositions extends SMMRealtime {
     this.userLayer = this.userLayer.bind(this)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/data/users/positions/latest/`
   }
 
-  realtime () {
-    return L.realtime({
-      url: this.getUrl(),
-      type: 'json'
-    }, {
-      interval: this.interval,
-      onEachFeature: this.createPopup,
-      updateFeature: this.userUpdate,
-      getFeatureId: function (feature) { return feature.properties.user },
-      pointToLayer: this.userLayer
-    })
+  realtime() {
+    return L.realtime(
+      {
+        url: this.getUrl(),
+        type: 'json'
+      },
+      {
+        interval: this.interval,
+        onEachFeature: this.createPopup,
+        updateFeature: this.userUpdate,
+        getFeatureId: function (feature) {
+          return feature.properties.user
+        },
+        pointToLayer: this.userLayer
+      }
+    )
   }
 
-  createUser (userName) {
+  createUser(userName) {
     if (!(userName in this.userObjects)) {
       /* Create an overlay for this object */
       const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
@@ -149,7 +153,7 @@ class SMMUserPositions extends SMMRealtime {
     return userObject
   }
 
-  createPopup (user, layer) {
+  createPopup(user, layer) {
     const userName = user.properties.user
 
     this.createUser(userName)
@@ -161,17 +165,17 @@ class SMMUserPositions extends SMMRealtime {
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
-  userLayer (user, latlng) {
+  userLayer(user, latlng) {
     return L.marker(latlng, {
       title: user.properties.user
     })
   }
 
-  userPathUpdate (userName) {
+  userPathUpdate(userName) {
     this.createUser(userName).update()
   }
 
-  userDataToPopUp (data) {
+  userDataToPopUp(data) {
     const dl = document.createElement('dl')
     dl.className = 'row'
 
@@ -189,11 +193,13 @@ class SMMUserPositions extends SMMRealtime {
     return dl
   }
 
-  userUpdate (user, oldLayer) {
+  userUpdate(user, oldLayer) {
     const userName = user.properties.user
     this.userPathUpdate(userName)
 
-    if (!oldLayer) { return }
+    if (!oldLayer) {
+      return
+    }
 
     const coords = user.geometry.coordinates
 

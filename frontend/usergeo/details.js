@@ -12,18 +12,18 @@ import { GeometryPoints } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
 
 class UserGeoDetails extends SMMObjectDetails {
-  renderModelSpecificData (tableRows, data) {
-    tableRows.push((
-        <tr key='label'>
-          <td>Label:</td>
-          <td>{data.label}</td>
-        </tr>
-    ))
+  renderModelSpecificData(tableRows, data) {
+    tableRows.push(
+      <tr key="label">
+        <td>Label:</td>
+        <td>{data.label}</td>
+      </tr>
+    )
   }
 }
 
 class UserGeoDetailsPage extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -34,52 +34,38 @@ class UserGeoDetailsPage extends React.Component {
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  updateDataResponse (data) {
+  updateDataResponse(data) {
     this.setState({
       data: data.features['0'].properties,
       geometry: data.features['0'].geometry
     })
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON(`/data/usergeo/${this.props.userGeoId}/`, this.updateDataResponse)
   }
 
-  render () {
+  render() {
     const parts = []
     if (this.state.data !== null) {
-      parts.push((
-        <UserGeoDetails key='details'
-          data={this.state.data}
-        />
-      ))
+      parts.push(<UserGeoDetails key="details" data={this.state.data} />)
     }
     if (this.state.geometry !== null && this.state.geometry.points !== null) {
-      parts.push((
-        <GeometryPoints key='points'
-            points={this.state.geometry.coordinates}
-        />
-      ))
-      parts.push((
-        <GeoJsonMap key='map'
-          geometry={this.state.geometry}
-        />
-      ))
+      parts.push(<GeometryPoints key="points" points={this.state.geometry.coordinates} />)
+      parts.push(<GeoJsonMap key="map" geometry={this.state.geometry} />)
     }
-    return (<div>
-      {parts}
-    </div>)
+    return <div>{parts}</div>
   }
 }
 UserGeoDetailsPage.propTypes = {
@@ -87,12 +73,9 @@ UserGeoDetailsPage.propTypes = {
   missionId: PropTypes.number.isRequired
 }
 
-function createUserGeoDetailsPage (elementId, missionId, userGeoId) {
+function createUserGeoDetailsPage(elementId, missionId, userGeoId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<UserGeoDetailsPage
-    missionId={missionId}
-    userGeoId={userGeoId}
-    />)
+  div.render(<UserGeoDetailsPage missionId={missionId} userGeoId={userGeoId} />)
 }
 export { UserGeoDetailsPage, createUserGeoDetailsPage }
 

@@ -3,7 +3,7 @@ import L from 'leaflet'
 import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
 
 class MappedMarker {
-  constructor (latInput, lngInput, pos, cb = null) {
+  constructor(latInput, lngInput, pos, cb = null) {
     this.latInput = latInput
     this.lngInput = lngInput
     this.cb = cb
@@ -20,7 +20,7 @@ class MappedMarker {
     this.updateTxtLatLng()
   }
 
-  updateMarkerLatLng () {
+  updateMarkerLatLng() {
     const latLng = L.latLng(DMToDegrees(this.latInput.val()), DMToDegrees(this.lngInput.val()))
     this.marker.setLatLng(latLng)
     if (this.cb !== null) {
@@ -28,7 +28,7 @@ class MappedMarker {
     }
   }
 
-  updateTxtLatLng () {
+  updateTxtLatLng() {
     const markerCoords = this.marker.getLatLng()
     this.latInput.val(degreesToDM(markerCoords.lat, true))
     this.lngInput.val(degreesToDM(markerCoords.lng, false))
@@ -37,7 +37,7 @@ class MappedMarker {
     }
   }
 
-  getMarker () {
+  getMarker() {
     return this.marker
   }
 }

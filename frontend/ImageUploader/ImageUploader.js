@@ -74,7 +74,7 @@ L.Control.ImageUploader = L.Control.extend({
   },
 
   onAdd: function (map) {
-    const container = this._container = L.DomUtil.create('div', 'ImageUploader-container leaflet-bar')
+    const container = (this._container = L.DomUtil.create('div', 'ImageUploader-container leaflet-bar'))
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Image Uploader'

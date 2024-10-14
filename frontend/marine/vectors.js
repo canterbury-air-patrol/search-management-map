@@ -3,17 +3,17 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 
 class SMMMarineVector extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/sar/marine/vectors/current/`
   }
 
-  createPopup (tdv, layer) {
+  createPopup(tdv, layer) {
     const tdvID = tdv.properties.pk
 
     const popupContent = document.createElement('div')
@@ -32,13 +32,17 @@ class SMMMarineVector extends SMMRealtime {
     dl.appendChild(dd)
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
-      popupContent.appendChild(this.createButtonGroup([
-        {
-          label: 'Delete',
-          onclick: function () { $.get(`/sar/marine/vectors/${tdvID}/delete/`) },
-          'btn-class': 'btn-danger'
-        }
-      ]))
+      popupContent.appendChild(
+        this.createButtonGroup([
+          {
+            label: 'Delete',
+            onclick: function () {
+              $.get(`/sar/marine/vectors/${tdvID}/delete/`)
+            },
+            'btn-class': 'btn-danger'
+          }
+        ])
+      )
     }
 
     layer.bindPopup(popupContent)

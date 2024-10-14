@@ -10,30 +10,43 @@ import $ from 'jquery'
 import { SMMTopBar } from '../menu/topbar'
 
 class OrganizationListRow extends React.Component {
-  render () {
+  render() {
     const organization = this.props.organization
     const dataFields = []
-    dataFields.push((<td key='name'>{organization.name}</td>))
-    dataFields.push((<td key='created'>{(new Date(organization.created)).toLocaleString()}</td>))
-    dataFields.push((<td key='creator'>{organization.creator}</td>))
-    dataFields.push((<td key='role'>{organization.role}</td>))
+    dataFields.push(<td key="name">{organization.name}</td>)
+    dataFields.push(<td key="created">{new Date(organization.created).toLocaleString()}</td>)
+    dataFields.push(<td key="creator">{organization.creator}</td>)
+    dataFields.push(<td key="role">{organization.role}</td>)
 
     if (this.props.showButtons) {
       const buttons = []
-      buttons.push((<Button key='details' href={ `/organization/${organization.id}/` }>Details</Button>))
+      buttons.push(
+        <Button key="details" href={`/organization/${organization.id}/`}>
+          Details
+        </Button>
+      )
       if (organization.role === 'Radio Operator' || organization.role === 'Admin') {
-        buttons.push(<Button key='radio-operator' href={ `/organization/${organization.id}/radio/operator/` }>Radio Operator</Button>)
+        buttons.push(
+          <Button key="radio-operator" href={`/organization/${organization.id}/radio/operator/`}>
+            Radio Operator
+          </Button>
+        )
       }
       if (organization.role === 'Admin') {
-        buttons.push((<Button key='delete' className='btn-danger' onClick={this.delete_organization}>Delete</Button>))
+        buttons.push(
+          <Button key="delete" className="btn-danger" onClick={this.delete_organization}>
+            Delete
+          </Button>
+        )
       }
-      dataFields.push((<td key='buttons'><ButtonGroup key='buttons'>{buttons}</ButtonGroup></td>))
+      dataFields.push(
+        <td key="buttons">
+          <ButtonGroup key="buttons">{buttons}</ButtonGroup>
+        </td>
+      )
     }
 
-    return ((
-      <tr key={organization.id}>
-        {dataFields}
-      </tr>))
+    return <tr key={organization.id}>{dataFields}</tr>
   }
 }
 OrganizationListRow.propTypes = {
@@ -42,24 +55,21 @@ OrganizationListRow.propTypes = {
 }
 
 class OrganizationList extends React.Component {
-  render () {
+  render() {
     const organizationRows = []
     for (const organizationIdx in this.props.organizations) {
       const organization = this.props.organizations[organizationIdx]
-      organizationRows.push((
-        <OrganizationListRow
-          key={organization.id}
-          organization={organization}
-          showButtons />
-      ))
+      organizationRows.push(<OrganizationListRow key={organization.id} organization={organization} showButtons />)
     }
     return (
       <Table responsive>
         <thead>
-          <tr key='heading'>
-            <th colSpan={4} align='center'>Current Organizations</th>
+          <tr key="heading">
+            <th colSpan={4} align="center">
+              Current Organizations
+            </th>
           </tr>
-          <tr key='labels'>
+          <tr key="labels">
             <th>Organization Name</th>
             <th>Created</th>
             <th>By</th>
@@ -67,10 +77,9 @@ class OrganizationList extends React.Component {
             <th></th>
           </tr>
         </thead>
-        <tbody>
-          { organizationRows }
-        </tbody>
-      </Table>)
+        <tbody>{organizationRows}</tbody>
+      </Table>
+    )
   }
 }
 OrganizationList.propTypes = {
@@ -78,7 +87,7 @@ OrganizationList.propTypes = {
 }
 
 class OrganizationAdd extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -90,22 +99,22 @@ class OrganizationAdd extends React.Component {
     this.createOrgCallback = this.createOrgCallback.bind(this)
   }
 
-  updateOrganizationName (event) {
+  updateOrganizationName(event) {
     const target = event.target
     const value = target.value
 
     this.setState({ organizationName: value })
   }
 
-  createOrgCallback () {
+  createOrgCallback() {
     this.setState({ organizationName: '' })
   }
 
-  createOrganization () {
+  createOrganization() {
     $.post('/organization/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
   }
 
-  render () {
+  render() {
     return (
       <Table responsive>
         <thead>
@@ -116,8 +125,12 @@ class OrganizationAdd extends React.Component {
         </thead>
         <tbody>
           <tr>
-            <td><input type="text" onChange={this.updateOrganizationName} value={this.state.organizationName}></input></td>
-            <td><Button onClick={this.createOrganization}>Create</Button></td>
+            <td>
+              <input type="text" onChange={this.updateOrganizationName} value={this.state.organizationName}></input>
+            </td>
+            <td>
+              <Button onClick={this.createOrganization}>Create</Button>
+            </td>
           </tr>
         </tbody>
       </Table>
@@ -129,7 +142,7 @@ OrganizationAdd.propTypes = {
 }
 
 class OrganizationListPage extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -139,18 +152,18 @@ class OrganizationListPage extends React.Component {
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  updateDataResponse (data) {
+  updateDataResponse(data) {
     this.setState(function () {
       return {
         knownOrganizations: data.organizations
@@ -158,16 +171,14 @@ class OrganizationListPage extends React.Component {
     })
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON('/organization/', this.updateDataResponse)
   }
 
-  render () {
+  render() {
     return (
       <div>
-        <OrganizationList
-          organizations={this.state.knownOrganizations}
-          showButtons={true} />
+        <OrganizationList organizations={this.state.knownOrganizations} showButtons={true} />
         <OrganizationAdd csrftoken={this.props.csrftoken} />
       </div>
     )
@@ -177,12 +188,17 @@ OrganizationListPage.propTypes = {
   csrftoken: PropTypes.string.isRequired
 }
 
-function createOrganizationList (elementId) {
+function createOrganizationList(elementId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<><SMMTopBar /><OrganizationListPage csrftoken={csrftoken} /></>)
+  div.render(
+    <>
+      <SMMTopBar />
+      <OrganizationListPage csrftoken={csrftoken} />
+    </>
+  )
 }
 
 export { OrganizationListRow }
