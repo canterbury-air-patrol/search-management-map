@@ -15,7 +15,7 @@ import { mapCoordinates } from './geometry/details'
 import './geomap.css'
 
 class GeoJsonMap extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     L.Icon.Default.prototype.options.iconUrl = markerIcon
@@ -23,7 +23,7 @@ class GeoJsonMap extends React.Component {
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
   }
 
-  render () {
+  render() {
     const geometry = this.props.geometry
     const coordinates = mapCoordinates(geometry.coordinates)
     let firstPoint = [0, 0]
@@ -32,28 +32,32 @@ class GeoJsonMap extends React.Component {
     switch (geometry.type) {
       case 'LineString':
         firstPoint = coordinates[0]
-        objects.push((<Polyline key='linestring' positions={coordinates}/>))
+        objects.push(<Polyline key="linestring" positions={coordinates} />)
         break
       case 'Polygon':
         firstPoint = coordinates[0][0]
-        objects.push((<Polygon key='polygon' positions={coordinates} />))
+        objects.push(<Polygon key="polygon" positions={coordinates} />)
         break
       case 'Point':
         firstPoint = coordinates
-        objects.push((<Marker key='point' position={coordinates} />))
+        objects.push(<Marker key="point" position={coordinates} />)
         break
       default:
         break
     }
 
     const tileLayers = [
-      (<TileLayer key='layer-base' attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />)
+      <TileLayer
+        key="layer-base"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
     ]
 
     return (
       <MapContainer center={firstPoint} zoom={13} className="dialog-map">
-        { tileLayers }
-        { objects }
+        {tileLayers}
+        {objects}
       </MapContainer>
     )
   }

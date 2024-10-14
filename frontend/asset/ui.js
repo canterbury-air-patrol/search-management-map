@@ -12,7 +12,7 @@ import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
 
 class AssetTrackAs extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -31,7 +31,7 @@ class AssetTrackAs extends React.Component {
     this.positionErrorHandler = this.positionErrorHandler.bind(this)
   }
 
-  positionUpdate (position) {
+  positionUpdate(position) {
     const latitude = position.coords.latitude
     const longitude = position.coords.longitude
     const altitude = position.coords.altitude
@@ -55,7 +55,7 @@ class AssetTrackAs extends React.Component {
     }
   }
 
-  positionErrorHandler (error) {
+  positionErrorHandler(error) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
         this.errorMsg = 'No permision given to access location'
@@ -72,7 +72,7 @@ class AssetTrackAs extends React.Component {
     }
   }
 
-  enableTracking () {
+  enableTracking() {
     if (navigator.geolocation) {
       const options = {
         timeout: 60000,
@@ -88,7 +88,7 @@ class AssetTrackAs extends React.Component {
     })
   }
 
-  disableTracking () {
+  disableTracking() {
     navigator.geolocation.clearWatch(this.watchID)
     this.setState(function () {
       return {
@@ -97,7 +97,7 @@ class AssetTrackAs extends React.Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <Table responsive>
         <thead>
@@ -109,15 +109,17 @@ class AssetTrackAs extends React.Component {
         </thead>
         <tbody>
           <tr>
-            <td>{ degreesToDM(this.state.latitude, true) }</td>
-            <td>{ degreesToDM(this.state.longitude, false) }</td>
-            <td>{ this.state.altitude }</td>
+            <td>{degreesToDM(this.state.latitude, true)}</td>
+            <td>{degreesToDM(this.state.longitude, false)}</td>
+            <td>{this.state.altitude}</td>
           </tr>
           <tr>
-            <td colSpan='3'><Button onClick={ this.state.tracking ? this.disableTracking : this.enableTracking}>{ this.state.tracking ? 'Disable Tracking' : 'Enable Tracking' }</Button></td>
+            <td colSpan="3">
+              <Button onClick={this.state.tracking ? this.disableTracking : this.enableTracking}>{this.state.tracking ? 'Disable Tracking' : 'Enable Tracking'}</Button>
+            </td>
           </tr>
           <tr>
-            <td colSpan='3'>{ this.errorMsg }</td>
+            <td colSpan="3">{this.errorMsg}</td>
           </tr>
         </tbody>
       </Table>
@@ -129,7 +131,7 @@ AssetTrackAs.propTypes = {
 }
 
 class AssetCommandView extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -142,21 +144,21 @@ class AssetCommandView extends React.Component {
     this.submitResponse = this.submitResponse.bind(this)
   }
 
-  updateSelectedType (event) {
+  updateSelectedType(event) {
     const target = event.target
     const value = target.value
 
     this.setState({ type: value })
   }
 
-  updateMessage (event) {
+  updateMessage(event) {
     const target = event.target
     const value = target.value
 
     this.setState({ message: value })
   }
 
-  submitResponse () {
+  submitResponse() {
     $.post(`/assets/${this.props.asset}/command/`, {
       command_id: this.props.lastCommand.id,
       message: this.state.message,
@@ -165,58 +167,61 @@ class AssetCommandView extends React.Component {
     })
   }
 
-  render () {
+  render() {
     const responseData = []
     if (this.props.lastCommand.response !== undefined) {
       if (this.props.lastCommand.response.set !== null) {
-        responseData.push((
-          <tr key='response_type'>
+        responseData.push(
+          <tr key="response_type">
             <td>Response:</td>
             <td>{this.props.lastCommand.response.type}</td>
-          </tr>))
-        responseData.push((
-          <tr key='response_at'>
-            <td>At:</td>
-            <td>{(new Date(this.props.lastCommand.response.set)).toLocaleString()}</td>
           </tr>
-        ))
-        responseData.push((
-          <tr key='response_by'>
+        )
+        responseData.push(
+          <tr key="response_at">
+            <td>At:</td>
+            <td>{new Date(this.props.lastCommand.response.set).toLocaleString()}</td>
+          </tr>
+        )
+        responseData.push(
+          <tr key="response_by">
             <td>By:</td>
             <td>{this.props.lastCommand.response.by}</td>
           </tr>
-        ))
-        responseData.push((
+        )
+        responseData.push(
           <tr>
             <td>Message:</td>
             <td>{this.props.lastCommand.response.message}</td>
           </tr>
-        ))
+        )
       } else {
-        responseData.push((
-          <tr key='response_form_type'>
+        responseData.push(
+          <tr key="response_form_type">
             <td>Type:</td>
             <td>
               <select onChange={this.updateSelectedType} defaultValue={this.state.type}>
-                <option value='Accepted'>Accept</option>
-                <option value='More Info'>More Info</option>
-                <option value='Unable'>Unable</option>
+                <option value="Accepted">Accept</option>
+                <option value="More Info">More Info</option>
+                <option value="Unable">Unable</option>
               </select>
             </td>
           </tr>
-        ))
-        responseData.push((
-          <tr key='response_form_message'>
-            <td colSpan={2}><textarea onChange={this.updateMessage}></textarea></td>
+        )
+        responseData.push(
+          <tr key="response_form_message">
+            <td colSpan={2}>
+              <textarea onChange={this.updateMessage}></textarea>
+            </td>
           </tr>
-        ))
-        responseData.push((
+        )
+        responseData.push(
           <tr>
             <td colSpan={2}>
               <Button onClick={this.submitResponse}>Respond</Button>
             </td>
           </tr>
-        ))
+        )
       }
     }
     return (
@@ -224,7 +229,7 @@ class AssetCommandView extends React.Component {
         <thead>
           <tr>
             <td>Issued:</td>
-            <td>{this.props.lastCommand.issued === undefined ? '' : (new Date(this.props.lastCommand.issued)).toLocaleString()}</td>
+            <td>{this.props.lastCommand.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
           </tr>
           <tr>
             <td>Instruction Type:</td>
@@ -251,119 +256,139 @@ AssetCommandView.propTypes = {
 }
 
 class AssetDetails extends React.Component {
-  currentSearchRow (details) {
+  currentSearchRow(details) {
     if (Number.isInteger(details.current_search_id)) {
       return (
-        <tr key='current_search'>
+        <tr key="current_search">
           <td>Current Search</td>
           <td>
             ({details.current_search_id})
             <ButtonGroup>
               <Button href={`/search/${details.current_search_id}/`}>Details</Button>
-              <Button onClick={function () { $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`) }}>Mark as Completed</Button>
+              <Button
+                onClick={function () {
+                  $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
+                }}
+              >
+                Mark as Completed
+              </Button>
             </ButtonGroup>
           </td>
         </tr>
       )
     } else {
       return (
-        <tr key='current_search'>
+        <tr key="current_search">
           <td>Current Search</td>
-          <td><b>None</b></td>
+          <td>
+            <b>None</b>
+          </td>
         </tr>
       )
     }
   }
 
-  queuedSearchRow (details) {
+  queuedSearchRow(details) {
     if (Number.isInteger(details.queued_search_id)) {
-      const buttons = [(
-        <Button key='details' href={`/search/${details.queued_search_id}/`}>Details</Button>)]
-      if (!(Number.isInteger(details.current_search_id))) {
-        buttons.push((
-          <Button key='begin' onClick={function () { $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`) }}>Begin Search</Button>
-        ))
+      const buttons = [
+        <Button key="details" href={`/search/${details.queued_search_id}/`}>
+          Details
+        </Button>
+      ]
+      if (!Number.isInteger(details.current_search_id)) {
+        buttons.push(
+          <Button
+            key="begin"
+            onClick={function () {
+              $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
+            }}
+          >
+            Begin Search
+          </Button>
+        )
       }
       return (
-        <tr key='queued_search'>
+        <tr key="queued_search">
           <td>Queued Search</td>
           <td>
-            ({details.queued_search_id})
-            <ButtonGroup>
-              {buttons}
-            </ButtonGroup>
+            ({details.queued_search_id})<ButtonGroup>{buttons}</ButtonGroup>
           </td>
         </tr>
       )
     } else {
       return (
-        <tr key='queued_search'>
+        <tr key="queued_search">
           <td>Queued Search</td>
-          <td><b>None</b></td>
+          <td>
+            <b>None</b>
+          </td>
         </tr>
       )
     }
   }
 
-  render () {
+  render() {
     const details = this.props.details
     const rows = [
-      (<tr key='asset_name'>
+      <tr key="asset_name">
         <td>Asset</td>
         <td>{details.name}</td>
-      </tr>),
-      (<tr key='asset_type'>
+      </tr>,
+      <tr key="asset_type">
         <td>Type</td>
         <td>{details.asset_type}</td>
-      </tr>),
-      (<tr key='asset_owner'>
+      </tr>,
+      <tr key="asset_owner">
         <td>Owner</td>
         <td>{details.owner}</td>
-      </tr>)
+      </tr>
     ]
     if (details.status) {
-      rows.push((
-        <tr key='status_name'>
+      rows.push(
+        <tr key="status_name">
           <td>Status:</td>
           <td>{details.status.status}</td>
-        </tr>))
-      rows.push((
-        <tr key='status_since'>
-          <td>Since:</td>
-          <td>{details.status.since === undefined ? '' : (new Date(details.status.since)).toLocaleString()}</td>
         </tr>
-      ))
-      rows.push((
-        <tr key='status_notes'>
+      )
+      rows.push(
+        <tr key="status_since">
+          <td>Since:</td>
+          <td>{details.status.since === undefined ? '' : new Date(details.status.since).toLocaleString()}</td>
+        </tr>
+      )
+      rows.push(
+        <tr key="status_notes">
           <td>Status Notes:</td>
           <td>{details.status.notes}</td>
         </tr>
-      ))
+      )
     }
 
     if (Number.isInteger(details.mission_id)) {
-      rows.push((
-          <tr key='current_mission'>
-            <td>Current Mission</td>
-            <td>{details.mission_name} <Button href={`/mission/${details.mission_id}/details/`}>Details</Button></td>
-          </tr>
-      ))
+      rows.push(
+        <tr key="current_mission">
+          <td>Current Mission</td>
+          <td>
+            {details.mission_name} <Button href={`/mission/${details.mission_id}/details/`}>Details</Button>
+          </td>
+        </tr>
+      )
       rows.push(this.currentSearchRow(details))
       rows.push(this.queuedSearchRow(details))
     } else {
-      rows.push((
-        <tr key='current_mission'>
+      rows.push(
+        <tr key="current_mission">
           <td>Current Mission</td>
-          <td><b>None</b></td>
+          <td>
+            <b>None</b>
+          </td>
         </tr>
-      ))
+      )
     }
 
     return (
       <Table responsive>
-        <tbody>
-          {rows}
-        </tbody>
+        <tbody>{rows}</tbody>
       </Table>
     )
   }
@@ -373,7 +398,7 @@ AssetDetails.propTypes = {
 }
 
 class AssetStatusSet extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -389,18 +414,18 @@ class AssetStatusSet extends React.Component {
     this.setStatus = this.setStatus.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateStatusValues()
     this.timer = setInterval(() => this.updateStatusValues(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  updateStatusValuesResponse (data) {
+  updateStatusValuesResponse(data) {
     this.setState(function (oldState) {
       const newState = {
         statusValues: data.values
@@ -412,63 +437,73 @@ class AssetStatusSet extends React.Component {
     })
   }
 
-  async updateStatusValues () {
+  async updateStatusValues() {
     await $.get('/assets/status/values/', this.updateStatusValuesResponse)
   }
 
-  updateSelectedStateValue (event) {
+  updateSelectedStateValue(event) {
     const target = event.target
     const value = target.value
 
     this.setState({ selectedValueId: value })
   }
 
-  updateNotes (event) {
+  updateNotes(event) {
     const target = event.target
     const value = target.value
 
     this.setState({ notesText: value })
   }
 
-  resetForm () {
+  resetForm() {
     this.setState({
       selectedValueId: null,
       notesText: ''
     })
   }
 
-  setStatus () {
-    $.post(`/assets/${this.props.asset}/status/`, {
-      value_id: this.state.selectedValueId,
-      notes: this.state.notesText,
-      csrfmiddlewaretoken: this.props.csrftoken
-    }, this.resetForm)
+  setStatus() {
+    $.post(
+      `/assets/${this.props.asset}/status/`,
+      {
+        value_id: this.state.selectedValueId,
+        notes: this.state.notesText,
+        csrfmiddlewaretoken: this.props.csrftoken
+      },
+      this.resetForm
+    )
   }
 
-  render () {
-    const statusValues = this.state.statusValues.map((v) => (<option key={v.id} value={v.id}>{v.name}</option>))
+  render() {
+    const statusValues = this.state.statusValues.map((v) => (
+      <option key={v.id} value={v.id}>
+        {v.name}
+      </option>
+    ))
     return (
-    <Table responsive>
-      <thead>
-        <tr>
-          <td>Status:</td>
-          <td>Notes:</td>
-        </tr>
-        <tr>
-          <td>
-            <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
-              {statusValues}
-            </select>
-          </td>
-          <td colSpan={2}>
-            <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
-          </td>
-        </tr>
-        <tr>
-          <td colSpan={3}><Button onClick={this.setStatus}>Set Status</Button></td>
-        </tr>
-      </thead>
-    </Table>
+      <Table responsive>
+        <thead>
+          <tr>
+            <td>Status:</td>
+            <td>Notes:</td>
+          </tr>
+          <tr>
+            <td>
+              <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
+                {statusValues}
+              </select>
+            </td>
+            <td colSpan={2}>
+              <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
+            </td>
+          </tr>
+          <tr>
+            <td colSpan={3}>
+              <Button onClick={this.setStatus}>Set Status</Button>
+            </td>
+          </tr>
+        </thead>
+      </Table>
     )
   }
 }
@@ -478,7 +513,7 @@ AssetStatusSet.propTypes = {
 }
 
 class AssetUI extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -491,24 +526,24 @@ class AssetUI extends React.Component {
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
-  currentCommand (data) {
+  currentCommand(data) {
     this.setState({
       lastCommand: data
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  updateDataResponse (data) {
+  updateDataResponse(data) {
     this.setState({
       details: data
     })
@@ -517,29 +552,25 @@ class AssetUI extends React.Component {
     }
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON(`/assets/${this.props.asset}/`, this.updateDataResponse)
   }
 
-  render () {
+  render() {
     let missionStatus
     if (Number.isInteger(this.state.details.mission_id)) {
-      missionStatus = (<MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />)
+      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
     }
     return (
       <div>
-        <div style={ { fontWeight: 'bold', textAlign: 'center' } } className='bg-info'>{this.state.details.name}</div>
-        <AssetDetails
-          details={this.state.details} />
-        <AssetCommandView
-          lastCommand={this.state.lastCommand}
-          asset={this.props.asset}
-          csrftoken={this.props.csrftoken} />
-        { missionStatus }
-        <AssetTrackAs
-          asset={this.props.asset} />
-        <AssetStatusSet
-          asset={this.props.asset} csrftoken={this.props.csrftoken} />
+        <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
+          {this.state.details.name}
+        </div>
+        <AssetDetails details={this.state.details} />
+        <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} csrftoken={this.props.csrftoken} />
+        {missionStatus}
+        <AssetTrackAs asset={this.props.asset} />
+        <AssetStatusSet asset={this.props.asset} csrftoken={this.props.csrftoken} />
       </div>
     )
   }
@@ -549,12 +580,17 @@ AssetUI.propTypes = {
   csrftoken: PropTypes.string.isRequired
 }
 
-function createAssetUI (elementId, assetId) {
+function createAssetUI(elementId, assetId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<><SMMTopBar /><AssetUI asset={assetId} csrftoken={csrftoken} /></>)
+  div.render(
+    <>
+      <SMMTopBar />
+      <AssetUI asset={assetId} csrftoken={csrftoken} />
+    </>
+  )
 }
 
 globalThis.createAssetUI = createAssetUI

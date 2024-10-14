@@ -22,7 +22,7 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
   const mappedMarker = new MappedMarker($(`#poi-dialog-lat-${RAND_NUM}`), $(`#poi-dialog-lon-${RAND_NUM}`), pos)
   mappedMarker.getMarker().addTo(map)
 
-  function createOrReplace () {
+  function createOrReplace() {
     const marker = mappedMarker.getMarker()
     const latLng = marker.getLatLng()
 
@@ -62,7 +62,7 @@ L.Control.POIAdder = L.Control.extend({
   },
 
   onAdd: function (map) {
-    const container = this._container = L.DomUtil.create('div', 'POIAdder-container leaflet-bar')
+    const container = (this._container = L.DomUtil.create('div', 'POIAdder-container leaflet-bar'))
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Add POI'

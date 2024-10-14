@@ -7,33 +7,38 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 
 class SMMImage extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
   }
 
-  realtime () {
-    return L.realtime({
-      url: this.getUrl(),
-      type: 'json'
-    }, {
-      interval: this.interval,
-      color: this.color,
-      onEachFeature: this.createPopup,
-      getFeatureId: function (feature) { return feature.properties.pk },
-      pointToLayer: function (feature, latlng) {
-        return L.marker(latlng, {
-          icon: L.icon({
-            iconUrl: '/static/icons/image-x-generic.png',
-            iconSize: [24, 24]
+  realtime() {
+    return L.realtime(
+      {
+        url: this.getUrl(),
+        type: 'json'
+      },
+      {
+        interval: this.interval,
+        color: this.color,
+        onEachFeature: this.createPopup,
+        getFeatureId: function (feature) {
+          return feature.properties.pk
+        },
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng, {
+            icon: L.icon({
+              iconUrl: '/static/icons/image-x-generic.png',
+              iconSize: [24, 24]
+            })
           })
-        })
+        }
       }
-    })
+    )
   }
 
-  createPopup (image, layer) {
+  createPopup(image, layer) {
     const ImageDesc = image.properties.description
     const imageID = image.properties.pk
     const coords = image.geometry.coordinates
@@ -73,21 +78,29 @@ class SMMImage extends SMMRealtime {
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
       if (image.properties.priority) {
-        popupContent.appendChild(this.createButtonGroup([
-          {
-            label: 'Deprioritize',
-            onclick: function () { $.get(`/image/${imageID}/priority/unset/`) },
-            'btn-class': 'btn-light'
-          }
-        ]))
+        popupContent.appendChild(
+          this.createButtonGroup([
+            {
+              label: 'Deprioritize',
+              onclick: function () {
+                $.get(`/image/${imageID}/priority/unset/`)
+              },
+              'btn-class': 'btn-light'
+            }
+          ])
+        )
       } else {
-        popupContent.appendChild(this.createButtonGroup([
-          {
-            label: 'Prioritize',
-            onclick: function () { $.get(`/image/${imageID}/priority/set/`) },
-            'btn-class': 'btn-light'
-          }
-        ]))
+        popupContent.appendChild(
+          this.createButtonGroup([
+            {
+              label: 'Prioritize',
+              onclick: function () {
+                $.get(`/image/${imageID}/priority/set/`)
+              },
+              'btn-class': 'btn-light'
+            }
+          ])
+        )
       }
     }
 
@@ -96,23 +109,23 @@ class SMMImage extends SMMRealtime {
 }
 
 class SMMImageAll extends SMMImage {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/image/list/all/`
   }
 }
 
 class SMMImageImportant extends SMMImage {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/image/list/important/`
   }
 }

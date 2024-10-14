@@ -6,7 +6,7 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 
 class SMMSearch {
-  constructor (parent, search) {
+  constructor(parent, search) {
     this.parent = parent
     this.SearchID = search.properties.pk
     this.SweepWidth = search.properties.sweep_width
@@ -28,7 +28,7 @@ class SMMSearch {
     this.searchQueueDialog = this.searchQueueDialog.bind(this)
   }
 
-  deleteCallback () {
+  deleteCallback() {
     const csrftoken = this.parent.csrftoken
     $.ajax({
       url: `/search/${this.SearchID}/`,
@@ -39,7 +39,7 @@ class SMMSearch {
     })
   }
 
-  createDetailsButton () {
+  createDetailsButton() {
     return {
       label: 'Details',
       href: `/search/${this.SearchID}/`,
@@ -47,7 +47,7 @@ class SMMSearch {
     }
   }
 
-  searchDataToPopUp (data) {
+  searchDataToPopUp(data) {
     const dl = document.createElement('dl')
     dl.className = 'search-data row'
 
@@ -65,7 +65,7 @@ class SMMSearch {
     return dl
   }
 
-  searchQueueAssetListCallback (data) {
+  searchQueueAssetListCallback(data) {
     if ('assets' in data) {
       for (const at in data.assets) {
         if (data.assets[at].type_name === this.AssetType) {
@@ -75,16 +75,18 @@ class SMMSearch {
     }
   }
 
-  searchQueueDestroy () {
+  searchQueueDestroy() {
     this.QueueDialog.destroy()
     this.QueueDialog = null
   }
 
-  searchQueueSubmit () {
-    const data = [{
-      name: 'csrfmiddlewaretoken',
-      value: this.parent.csrftoken
-    }]
+  searchQueueSubmit() {
+    const data = [
+      {
+        name: 'csrfmiddlewaretoken',
+        value: this.parent.csrftoken
+      }
+    ]
     if ($(`#queue_${this.SearchID}_select_type`).val() === 'asset') {
       data.push({
         name: 'asset',
@@ -94,7 +96,7 @@ class SMMSearch {
     $.post(`/search/${this.SearchID}/queue/`, data, this.searchQueueDestroy)
   }
 
-  searchQueueUpdateSelectType () {
+  searchQueueUpdateSelectType() {
     if ($(`#queue_${this.SearchID}_select_type`).val() === 'type') {
       $(`#queue_${this.SearchID}_select_asset`).hide()
     } else {
@@ -102,7 +104,7 @@ class SMMSearch {
     }
   }
 
-  searchQueueDialog () {
+  searchQueueDialog() {
     const contents = [
       `<div>Queue for <select id='queue_${this.SearchID}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
       `<div><select id='queue_${this.SearchID}_select_asset'></select></div>`,
@@ -117,7 +119,7 @@ class SMMSearch {
     $(`#queue_${this.SearchID}_cancel`).on('click', this.searchQueueDestroy)
   }
 
-  createPopup (layer) {
+  createPopup(layer) {
     const data = [
       { css: 'type', label: 'Search Type', value: this.SearchType },
       { css: 'status', label: 'Status', value: this.parent.searchStatus(this) },
@@ -180,14 +182,14 @@ class SMMSearch {
 }
 
 class SMMSearches extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
 
     this.searchObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }
 
-  getObject (pk, search) {
+  getObject(pk, search) {
     if (!(pk in this.searchObjects)) {
       const searchObject = new SMMSearch(this, search)
       this.searchObjects[pk] = searchObject
@@ -195,17 +197,17 @@ class SMMSearches extends SMMRealtime {
     return this.searchObjects[pk]
   }
 
-  createPopup (search, layer) {
+  createPopup(search, layer) {
     this.getObject(search.properties.pk, search).createPopup(layer)
   }
 }
 
 class SMMSearchesNotStarted extends SMMSearches {
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/search/notstarted/`
   }
 
-  searchStatus (search) {
+  searchStatus(search) {
     let status = 'Unassigned'
     if (search.QueuedAt) {
       if (search.QueuedForAsset) {
@@ -215,26 +217,26 @@ class SMMSearchesNotStarted extends SMMSearches {
       }
     }
 
-      return status
+    return status
   }
 }
 
 class SMMSearchesInprogress extends SMMSearches {
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/search/inprogress/`
   }
 
-  searchStatus (search) {
+  searchStatus(search) {
     return `In Progress: ${search.InprogressBy}`
   }
 }
 
 class SMMSearchesComplete extends SMMSearches {
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/search/completed/`
   }
 
-  searchStatus () {
+  searchStatus() {
     return 'Completed'
   }
 }

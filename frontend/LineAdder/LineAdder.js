@@ -25,7 +25,9 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
 
   let pointCount = 0
   const addPointRow = function () {
-    $(`#lineadder-points-${RAND_NUM}`).append(`<div id="lineadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "lineadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id="lineadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`)
+    $(`#lineadder-points-${RAND_NUM}`).append(
+      `<div id="lineadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "lineadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id="lineadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`
+    )
     return pointCount++
   }
 
@@ -48,7 +50,9 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
   currentPoints.forEach(addMarker)
 
   const removeAllMarkers = function () {
-    markers.forEach(function (m) { map.removeLayer(m.getMarker()) })
+    markers.forEach(function (m) {
+      map.removeLayer(m.getMarker())
+    })
   }
 
   const removeMarker = function () {
@@ -112,7 +116,7 @@ L.Control.LineAdder = L.Control.extend({
   },
 
   onAdd: function (map) {
-    const container = this._container = L.DomUtil.create('div', 'LineAdder-container leaflet-bar')
+    const container = (this._container = L.DomUtil.create('div', 'LineAdder-container leaflet-bar'))
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Add Line'

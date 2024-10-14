@@ -37,7 +37,7 @@ import { SMMMissionTopBar } from './menu/topbar.js'
 import { SMMUserPositions } from './user/map.js'
 
 class SMMMap {
-  constructor (mapElem, missionId, csrftoken) {
+  constructor(mapElem, missionId, csrftoken) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
@@ -53,13 +53,13 @@ class SMMMap {
     this.setupMap()
   }
 
-  layerStateChanged (e) {
+  layerStateChanged(e) {
     const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`layer_${layer.name}_on_map`, e.type === 'add')
   }
 
-  mapLayersCallback (data) {
+  mapLayersCallback(data) {
     let baseSelected = false
     for (const d in data.layers) {
       const layer = data.layers[d]
@@ -90,7 +90,7 @@ class SMMMap {
     }
   }
 
-  setupMap () {
+  setupMap() {
     L.Icon.Default.prototype.options.iconUrl = markerIcon
     L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
@@ -110,11 +110,13 @@ class SMMMap {
       L.control.poiadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
       L.control.polygonadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
       L.control.lineadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
-      L.control.locate({
-        setView: 'untilPan',
-        keepCurrentZoomLevel: true,
-        locateOptions: { enableHighAccuracy: true }
-      }).addTo(this.map)
+      L.control
+        .locate({
+          setView: 'untilPan',
+          keepCurrentZoomLevel: true,
+          locateOptions: { enableHighAccuracy: true }
+        })
+        .addTo(this.map)
       L.control.imageuploader({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
     }
     L.control.smmadmin({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
@@ -163,20 +165,20 @@ class SMMMap {
     this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
   }
 
-  overlayAdd (name, layer) {
+  overlayAdd(name, layer) {
     this.layerControl.addOverlay(layer, name)
   }
 
-  overlayAddAsset (name, layer) {
+  overlayAddAsset(name, layer) {
     this.layerControlAssets.addOverlay(layer, name)
   }
 
-  overlayAddUser (name, layer) {
+  overlayAddUser(name, layer) {
     this.layerControlUsers.addOverlay(layer, name)
   }
 }
 
-function mapInit () {
+function mapInit() {
   const wrapperEl = document.createElement('div')
   wrapperEl.setAttribute('style', 'width:100%;height:100%;display:flex;flex-flow:column;')
   document.body.appendChild(wrapperEl)

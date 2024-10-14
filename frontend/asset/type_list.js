@@ -11,15 +11,12 @@ import $ from 'jquery'
 import { SMMTopBar } from '../menu/topbar'
 
 class AssetTypeListRow extends React.Component {
-  render () {
+  render() {
     const assetType = this.props.assetType
     const dataFields = []
-    dataFields.push((<td key='type'>{assetType.name}</td>))
+    dataFields.push(<td key="type">{assetType.name}</td>)
 
-    return ((
-      <tr key={assetType.id}>
-        {dataFields}
-      </tr>))
+    return <tr key={assetType.id}>{dataFields}</tr>
   }
 }
 AssetTypeListRow.propTypes = {
@@ -27,31 +24,27 @@ AssetTypeListRow.propTypes = {
 }
 
 class AssetTypeList extends React.Component {
-  render () {
+  render() {
     const assetTypeRows = []
     for (const assetIdx in this.props.assetTypes) {
       const assetType = this.props.assetTypes[assetIdx]
-      assetTypeRows.push((
-        <AssetTypeListRow
-          key={assetType.id}
-          showButtons={true}
-          assetType={assetType} />
-      ))
+      assetTypeRows.push(<AssetTypeListRow key={assetType.id} showButtons={true} assetType={assetType} />)
     }
     return (
       <Table responsive>
         <thead>
-          <tr key='heading'>
-            <th colSpan={5} align='center'>Asset Types</th>
+          <tr key="heading">
+            <th colSpan={5} align="center">
+              Asset Types
+            </th>
           </tr>
-          <tr key='labels'>
+          <tr key="labels">
             <th>Asset Type</th>
           </tr>
         </thead>
-        <tbody>
-          {assetTypeRows}
-        </tbody>
-      </Table>)
+        <tbody>{assetTypeRows}</tbody>
+      </Table>
+    )
   }
 }
 AssetTypeList.propTypes = {
@@ -59,7 +52,7 @@ AssetTypeList.propTypes = {
 }
 
 class AssetTypeListPage extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -69,22 +62,22 @@ class AssetTypeListPage extends React.Component {
     this.updateAssetTypes = this.updateAssetTypes.bind(this)
   }
 
-  componentDidMount () {
+  componentDidMount() {
     $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     clearInterval(this.timer)
     this.timer = null
   }
 
-  async updateData () {
+  async updateData() {
     await $.getJSON('/assets/assettypes/', this.updateAssetTypes)
   }
 
-  updateAssetTypes (data) {
+  updateAssetTypes(data) {
     this.setState(function () {
       return {
         knownAssetTypes: data.asset_types
@@ -92,19 +85,23 @@ class AssetTypeListPage extends React.Component {
     })
   }
 
-  render () {
+  render() {
     return (
       <div>
-        <AssetTypeList
-          assetTypes={this.state.knownAssetTypes} />
+        <AssetTypeList assetTypes={this.state.knownAssetTypes} />
       </div>
     )
   }
 }
 
-function createAssetTypeList (elementId) {
+function createAssetTypeList(elementId) {
   const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<><SMMTopBar /><AssetTypeListPage /></>)
+  div.render(
+    <>
+      <SMMTopBar />
+      <AssetTypeListPage />
+    </>
+  )
 }
 
 globalThis.createAssetTypeList = createAssetTypeList

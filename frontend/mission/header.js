@@ -6,7 +6,7 @@ import PropTypes from 'prop-types'
 import { MissionListRow } from './list'
 
 class MissionHeader extends React.Component {
-  render () {
+  render() {
     return (
       <Table responsive>
         <thead>

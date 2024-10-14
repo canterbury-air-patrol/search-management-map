@@ -2,7 +2,7 @@ import L from 'leaflet'
 import 'leaflet-realtime'
 
 class SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     this.map = map
     this.csrftoken = csrftoken
     this.missionId = missionId
@@ -10,19 +10,24 @@ class SMMRealtime {
     this.color = color
   }
 
-  realtime () {
-    return L.realtime({
-      url: this.getUrl(),
-      type: 'json'
-    }, {
-      interval: this.interval,
-      color: this.color,
-      onEachFeature: this.createPopup,
-      getFeatureId: function (feature) { return feature.properties.pk }
-    })
+  realtime() {
+    return L.realtime(
+      {
+        url: this.getUrl(),
+        type: 'json'
+      },
+      {
+        interval: this.interval,
+        color: this.color,
+        onEachFeature: this.createPopup,
+        getFeatureId: function (feature) {
+          return feature.properties.pk
+        }
+      }
+    )
   }
 
-  createButtonGroup (data) {
+  createButtonGroup(data) {
     const btngroup = document.createElement('div')
     btngroup.className = 'btn-group'
 

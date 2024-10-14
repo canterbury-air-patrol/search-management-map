@@ -5,7 +5,7 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 
 class SMMPolygon {
-  constructor (parent, polygon) {
+  constructor(parent, polygon) {
     this.parent = parent
     this.PolyLabel = polygon.properties.label
     this.PolyID = polygon.properties.pk
@@ -16,15 +16,22 @@ class SMMPolygon {
     this.createSearchCallback = this.createSearchCallback.bind(this)
   }
 
-  editCallback () {
-    L.PolygonAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.coords[0].map(x => L.latLng(x[1], x[0])), this.PolyID, this.PolyLabel)
+  editCallback() {
+    L.PolygonAdder(
+      this.parent.map,
+      this.parent.missionId,
+      this.parent.csrftoken,
+      this.coords[0].map((x) => L.latLng(x[1], x[0])),
+      this.PolyID,
+      this.PolyLabel
+    )
   }
 
-  setXHR (xhr) {
+  setXHR(xhr) {
     xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
   }
 
-  deleteCallback () {
+  deleteCallback() {
     $.ajax({
       url: `/data/usergeo/${this.PolyID}/`,
       type: 'DELETE',
@@ -32,11 +39,11 @@ class SMMPolygon {
     })
   }
 
-  createSearchCallback () {
+  createSearchCallback() {
     L.SearchAdder(this.parent.map, this.parent.csrftoken, 'polygon', this.PolyID)
   }
 
-  createPopup (layer) {
+  createPopup(layer) {
     const popupContent = document.createElement('div')
     const dl = document.createElement('dl')
     dl.className = 'polygon row'
@@ -51,28 +58,30 @@ class SMMPolygon {
     dl.appendChild(dd)
 
     if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
-      popupContent.appendChild(this.parent.createButtonGroup([
-        {
-          label: 'Edit',
-          onclick: this.editCallback,
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Delete',
-          onclick: this.deleteCallback,
-          'btn-class': 'btn-danger'
-        },
-        {
-          label: 'Create Search',
-          onclick: this.createSearchCallback,
-          'btn-class': 'btn-light'
-        },
-        {
-          label: 'Details',
-          href: `/data/usergeo/${this.PolyID}/`,
-          'btn-class': 'btn-light'
-        }
-      ]))
+      popupContent.appendChild(
+        this.parent.createButtonGroup([
+          {
+            label: 'Edit',
+            onclick: this.editCallback,
+            'btn-class': 'btn-light'
+          },
+          {
+            label: 'Delete',
+            onclick: this.deleteCallback,
+            'btn-class': 'btn-danger'
+          },
+          {
+            label: 'Create Search',
+            onclick: this.createSearchCallback,
+            'btn-class': 'btn-light'
+          },
+          {
+            label: 'Details',
+            href: `/data/usergeo/${this.PolyID}/`,
+            'btn-class': 'btn-light'
+          }
+        ])
+      )
     }
 
     layer.bindPopup(popupContent, { minWidth: 200 })
@@ -80,17 +89,17 @@ class SMMPolygon {
 }
 
 class SMMPolygons extends SMMRealtime {
-  constructor (map, csrftoken, missionId, interval, color) {
+  constructor(map, csrftoken, missionId, interval, color) {
     super(map, csrftoken, missionId, interval, color)
     this.polygonObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }
 
-  getUrl () {
+  getUrl() {
     return `/mission/${this.missionId}/data/userpolygons/current/`
   }
 
-  getObject (pk, polygon) {
+  getObject(pk, polygon) {
     if (!(pk in this.polygonObjects)) {
       const polygonObject = new SMMPolygon(this, polygon)
       this.polygonObjects[pk] = polygonObject
@@ -98,7 +107,7 @@ class SMMPolygons extends SMMRealtime {
     return this.polygonObjects[pk]
   }
 
-  createPopup (polygon, layer) {
+  createPopup(polygon, layer) {
     this.getObject(polygon.properties.pk, polygon).createPopup(layer)
   }
 }
