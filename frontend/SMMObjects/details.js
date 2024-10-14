@@ -47,7 +47,7 @@ class SMMObjectDetails extends React.Component {
     }
   }
 
-  renderModelSpecificData (tableRows, data) {
+  renderModelSpecificData () {
 
   }
 
