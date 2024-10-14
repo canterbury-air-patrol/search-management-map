@@ -457,7 +457,7 @@ L.MarineVectors = function (map, missionId, csrftoken, posName, pos, poiId) {
     const data = getData()
     data.push({ name: 'csrfmiddlewaretoken', value: csrftoken })
 
-    $.post(`/mission/${missionId}/sar/marine/vectors/create/`, data, function (data) {
+    $.post(`/mission/${missionId}/sar/marine/vectors/create/`, data, function () {
       if (onMap !== null) {
         onMap.remove()
       }

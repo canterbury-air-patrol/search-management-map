@@ -215,7 +215,7 @@ class SMMSearchesNotStarted extends SMMSearches {
       }
     }
 
-    return status
+      return status
   }
 }
 
@@ -234,7 +234,7 @@ class SMMSearchesComplete extends SMMSearches {
     return `/mission/${this.missionId}/search/completed/`
   }
 
-  searchStatus (search) {
+  searchStatus () {
     return 'Completed'
   }
 }

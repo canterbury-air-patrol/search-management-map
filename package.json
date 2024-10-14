@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "frontend/map.js",
   "scripts": {
-    "check": "eslint frontend/",
+    "check": "eslint frontend/ && prettier -c frontend/",
     "build-only": "esbuild $(esbuild-config)",
     "build": "esbuild $(esbuild-config) && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -37,11 +37,10 @@
     "universal-cookie": "^7.2.1"
   },
   "devDependencies": {
-    "eslint": "^8.57.1",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.6.0",
-    "eslint-plugin-react": "^7.37.1"
+    "@eslint/js": "^9.12.0",
+    "eslint": "^9.12.0",
+    "eslint-plugin-react": "^7.37.1",
+    "globals": "^15.11.0",
+    "prettier": "3.3.3"
   }
 }
