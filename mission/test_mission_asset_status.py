@@ -30,7 +30,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         """
         return MissionAssetStatusValue.objects.create(name=name, description=description)
 
-    # pylint: disable=R0913
+    # pylint: disable=R0913,R0917
     def set_mission_asset_status(self, mission, asset, status, notes=None, client=None):
         """
         Set the mission assets status

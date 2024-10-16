@@ -103,7 +103,7 @@ class SearchHelpers:
         return SearchWrapper(self.smm, response.json())
 
     def create_expanding_box_search(self, poi, sweep_width, iterations, asset_type, first_bearing=None, client=None):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         """
         Create an expanding box search
         """
@@ -147,7 +147,7 @@ class SearchHelpers:
         return SearchWrapper(self.smm, response.json())
 
     def create_creepingline_search_line(self, line, sweep_width, search_width, asset_type, client=None):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         """
         Create a creeping line search from a line
         """
@@ -215,7 +215,7 @@ class SearchTestCase(TestCase):
         self.mission1.add_asset(self.asset1)
 
     def create_poi(self, lat, long, label='Test Point', user=None, mission=None):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         """
         Create a POI at lat/long
         """
