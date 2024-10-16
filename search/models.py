@@ -78,7 +78,7 @@ class FirstPointDistance(Func):
     function = 'ST_Distance'
 
     def as_sql(self, compiler, connection, function=None, template=None, arg_joiner=None, **extra_context):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         point_sql = f"ST_Point({self.extra['point'].x},{self.extra['point'].y},4326)::geography"
         return super().as_sql(compiler, connection, function='ST_Distance', template="%(function)s(ST_PointN(geo::geometry,1)::geography, " + point_sql + ")",
                               arg_joiner=arg_joiner, extra_context=extra_context)
@@ -171,7 +171,7 @@ class Search(GeoTime):
         return cls.filter_objects(objects, current_at=current_at, started=started, finished=finished)
 
     @classmethod
-    # pylint: disable=R0913
+    # pylint: disable=R0913,R0917
     def all_current_user(cls, user, current_at=None, current_only=False, started=False, finished=False):
         """
         Get all the searches that are current and finished as per params
@@ -521,7 +521,7 @@ class ExpandingBoxSearchParams(SearchParams):
     Parameters for an expanding box search
     """
     def __init__(self, from_geo, asset_type, creator, sweep_width, iterations, first_bearing):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         super().__init__(from_geo, asset_type, creator, sweep_width)
         self._iterations = int(iterations)
         if self._iterations < 1:
@@ -548,7 +548,7 @@ class TrackLineCreepingSearchParams(SearchParams):
     Parameters for a track line creeping search
     """
     def __init__(self, from_geo, asset_type, creator, sweep_width, width):
-        # pylint: disable=R0913
+        # pylint: disable=R0913,R0917
         super().__init__(from_geo, asset_type, creator, sweep_width)
         self._width = int(width)
         if self._width < 0:
