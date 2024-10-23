@@ -20,7 +20,12 @@ jobs:
       run: |
           docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
-    - name: Build the frontend
+    - name: Get node ready
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+
+    - name: Build frontend
       run: ./build-frontend.sh
 
     - name: Build the Docker image
