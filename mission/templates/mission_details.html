@@ -126,7 +126,7 @@ Add User to Mission:
             </tbody>
         </table>
 Add Asset to Mission:
-        <form action="/mission/{{ mission.pk }}/assets/add/" method="POST">
+        <form action="/mission/{{ mission.pk }}/assets/" method="POST">
 {% csrf_token %}
             <table class="table">
 {{ mission_asset_add.as_table }}
