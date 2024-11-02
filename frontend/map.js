@@ -53,10 +53,14 @@ class SMMMap {
     this.setupMap()
   }
 
+  convertCookieName(name) {
+    return name.replace(/[^a-zA-Z0-9]/g, '_')
+  }
+
   layerStateChanged(e) {
     const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
-    cookieJar.set(`layer_${layer.name}_on_map`, e.type === 'add')
+    cookieJar.set(`layer_${this.convertCookieName(layer.name)}_on_map`, e.type === 'add')
   }
 
   mapLayersCallback(data) {
@@ -81,7 +85,7 @@ class SMMMap {
       } else {
         this.layerControlMaps.addOverlay(tileLayer, layer.name)
         const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
-        const layerEnabled = cookieJar.get(`layer_${layer.name}_on_map`)
+        const layerEnabled = cookieJar.get(`layer_${this.convertCookieName(layer.name)}_on_map`)
         if (layerEnabled === true) {
           tileLayer.addTo(this.map)
         }
