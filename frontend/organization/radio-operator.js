@@ -33,7 +33,7 @@ class RadioOperatorAsset extends AssetUI {
               <AssetDetails details={this.state.details} />
             </td>
             <td>
-              <AssetCommandView lastCommand={this.state.lastCommand} />
+              <AssetCommandView asset={this.props.asset} lastCommand={this.state.lastCommand} csrftoken={this.props.csrftoken} />
               {missionStatus}
             </td>
           </tr>
@@ -41,6 +41,10 @@ class RadioOperatorAsset extends AssetUI {
       </>
     )
   }
+}
+RadioOperatorAsset.propTypes = {
+  asset: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired
 }
 
 class OrganizationRadioOperatorPage extends React.Component {
@@ -80,7 +84,7 @@ class OrganizationRadioOperatorPage extends React.Component {
     const assets = []
     for (const assetId in this.state.organizationAssets) {
       const asset = this.state.organizationAssets[assetId]
-      assets.push(<RadioOperatorAsset key={asset.id} asset={asset.asset.id} />)
+      assets.push(<RadioOperatorAsset key={asset.id} asset={asset.asset.id} csrftoken={this.props.csrftoken} />)
     }
     return <Table responsive>{assets}</Table>
   }

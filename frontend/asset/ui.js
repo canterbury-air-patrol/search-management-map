@@ -190,7 +190,7 @@ class AssetCommandView extends React.Component {
           </tr>
         )
         responseData.push(
-          <tr>
+          <tr key="message">
             <td>Message:</td>
             <td>{this.props.lastCommand.response.message}</td>
           </tr>
@@ -216,7 +216,7 @@ class AssetCommandView extends React.Component {
           </tr>
         )
         responseData.push(
-          <tr>
+          <tr key="response_buttons">
             <td colSpan={2}>
               <Button onClick={this.submitResponse}>Respond</Button>
             </td>
