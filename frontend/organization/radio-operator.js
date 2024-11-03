@@ -101,7 +101,7 @@ function createRadioOperator(elementId, organizationId) {
 
   div.render(
     <>
-      <SMMOrganizationTopBar organizationId={organizationId} />
+      <SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={true} />
       <OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} />
     </>
   )
