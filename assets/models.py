@@ -13,6 +13,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from icons.models import Icon
+from timeline.helpers import timeline_record_asset_command_response, timeline_record_asset_command_sent
 
 
 class AssetType(models.Model):
@@ -128,6 +129,23 @@ class AssetCommand(models.Model):
 
     GEOFIELD = 'position'
     GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason', 'responded_at', 'responded_by', 'response_type', 'response_message')
+
+    def get_command_display(self):
+        """
+        Convert the command to the human readable name
+        """
+        for row in self.COMMAND_CHOICES:
+            if row[0] == self.command:
+                return row[1]
+        return "Unknown"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.mission is not None:
+            if self.responded_at is not None:
+                timeline_record_asset_command_response(self.mission, self.responded_by, self.asset, self.get_command_display(), self.response_type, self.response_message)
+            else:
+                timeline_record_asset_command_sent(self.mission, self.issued_by, self.asset, self.get_command_display(), self.reason, self.position)
 
     def __str__(self):
         return f"Command {self.asset} to {self.get_command_display()}"

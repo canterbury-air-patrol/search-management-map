@@ -135,3 +135,25 @@ def timeline_record_mission_asset_status(mission, user, asset, status):
     message = f"{user} set the status for {asset} in mission {mission.pk} to {status}"
     entry = TimeLineEntry(mission=mission, user=user, event_type='mas', message=message, url="")
     entry.save()
+
+
+def timeline_record_asset_command_sent(mission, user, asset, command, text, geo):
+    """
+    Create a timeline entry for sending a command to an asset
+    """
+    # pylint: disable=R0913,R0917
+    message = f"{user} sent {asset} in mission {mission.pk}: {command}, with message {text}"
+    if geo is not None:
+        message = message + f" ({geo})"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='acs', message=message, url="")
+    entry.save()
+
+
+def timeline_record_asset_command_response(mission, user, asset, command, response_type, response_message):
+    """
+    Create a timeline entry when an asset responds to a command
+    """
+    # pylint: disable=R0913,R0917
+    message = f"{asset} (by {user}) in mission {mission.pk} replied to {command} with {response_type}: {response_message}"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='acr', message=message, url="")
+    entry.save()
