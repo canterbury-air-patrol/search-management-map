@@ -6,14 +6,12 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
-from mission.models import Mission
-
 
 class TimeLineEntry(models.Model):
     """
     An entry in the timeline
     """
-    mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
+    mission = models.ForeignKey("mission.Mission", on_delete=models.PROTECT)
     user = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
     timestamp = models.DateTimeField(default=timezone.now)
 
@@ -34,6 +32,8 @@ class TimeLineEntry(models.Model):
         ('ipc', "Image priority changed"),
         ('que', 'Search was Queued or Dequeued'),
         ('mas', 'Mission Asset Status'),
+        ('acs', 'Asset Command Sent'),
+        ('acr', 'Asset Command Response'),
     )
     event_type = models.CharField(max_length=3, choices=EVENT_TYPE)
 
