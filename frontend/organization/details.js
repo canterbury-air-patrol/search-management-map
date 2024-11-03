@@ -427,6 +427,9 @@ class OrganizationDetailsPage extends React.Component {
         organizationDetails: data
       }
     })
+    if (this.props.updateRadioOperator) {
+      this.props.updateRadioOperator(data.role === 'Admin' || data.role == 'Radio Operator')
+    }
   }
 
   async updateData() {
@@ -469,6 +472,37 @@ class OrganizationDetailsPage extends React.Component {
 }
 OrganizationDetailsPage.propTypes = {
   organizationId: PropTypes.number.isRequired,
+  csrftoken: PropTypes.string.isRequired,
+  updateRadioOperator: PropTypes.func
+}
+
+class OrganizationPage extends React.Component {
+  constructor(props) {
+    super(props)
+    this.updateRadioOperator = this.updateRadioOperator.bind(this)
+
+    this.state = {
+      isRadioOperator: false
+    }
+  }
+
+  updateRadioOperator(radioOperator) {
+    this.setState({
+      isRadioOperator: radioOperator
+    })
+  }
+
+  render() {
+    return (
+      <>
+        <SMMOrganizationTopBar organizationId={this.props.organizationId} showRadioOperator={this.state.isRadioOperator} />
+        <OrganizationDetailsPage organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} updateRadioOperator={this.updateRadioOperator} />
+      </>
+    )
+  }
+}
+OrganizationPage.propTypes = {
+  organizationId: PropTypes.number.isRequired,
   csrftoken: PropTypes.string.isRequired
 }
 
@@ -477,12 +511,7 @@ function createOrganizationDetails(elementId, organizationId) {
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(
-    <>
-      <SMMOrganizationTopBar organizationId={organizationId} />
-      <OrganizationDetailsPage organizationId={organizationId} csrftoken={csrftoken} />
-    </>
-  )
+  div.render(<OrganizationPage organizationId={organizationId} csrftoken={csrftoken} />)
 }
 
 globalThis.createOrganizationDetails = createOrganizationDetails
