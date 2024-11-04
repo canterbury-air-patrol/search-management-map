@@ -57,10 +57,9 @@ class OrganizationMember(models.Model):
         """
         Return a human-readable name for this users' role.
         """
-        for row in self.USER_ROLE:
-            if row[0] == self.role:
-                return row[1]
-        return "Unknown"
+        return next(
+            (row[1] for row in self.USER_ROLE if row[0] == self.role), "Unknown"
+        )
 
     def as_object(self, org=True, user=None):
         """

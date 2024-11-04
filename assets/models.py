@@ -77,8 +77,7 @@ class Asset(models.Model):
             'type_name': self.asset_type.name,
             'owner': str(self.owner)
         }
-        status = AssetStatus.current_for_asset(self)
-        if status:
+        if status := AssetStatus.current_for_asset(self):
             data['status'] = str(status.status)
             data['status_inop'] = status.status.inop
             data['status_since'] = status.since
@@ -134,10 +133,10 @@ class AssetCommand(models.Model):
         """
         Convert the command to the human readable name
         """
-        for row in self.COMMAND_CHOICES:
-            if row[0] == self.command:
-                return row[1]
-        return "Unknown"
+        return next(
+            (row[1] for row in self.COMMAND_CHOICES if row[0] == self.command),
+            "Unknown",
+        )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -167,8 +166,7 @@ class AssetCommand(models.Model):
         Return in the a structure for json
         """
         last_command = {}
-        asset_command = AssetCommand.last_command_for_asset(asset)
-        if asset_command:
+        if asset_command := AssetCommand.last_command_for_asset(asset):
             last_command = {
                 'action': asset_command.command,
                 'action_txt': asset_command.get_command_display(),

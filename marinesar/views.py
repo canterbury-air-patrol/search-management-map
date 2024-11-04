@@ -26,7 +26,7 @@ def convert_time(time_value):
     """
     if ':' in time_value:
         return time_value
-    return f'{time_value[0:2]}:{time_value[2:4]}'
+    return f'{time_value[:2]}:{time_value[2:4]}'
 
 
 @login_required
@@ -71,7 +71,7 @@ def marine_vectors_create(request, mission_user):
     leeway_multiplier = float(user_data.get('leeway_multiplier'))
     leeway_modifier = float(user_data.get('leeway_modifier'))
     curr_count = int(user_data.get('curr_total'))
-    for i in range(0, curr_count):
+    for i in range(curr_count):
         time_from = int(user_data.get(f'curr_{i}_from'))
         time_to = int(user_data.get(f'curr_{i}_to'))
         bearing = int(user_data.get(f'curr_{i}_direction'))
@@ -81,7 +81,7 @@ def marine_vectors_create(request, mission_user):
         current_vectors.append(vector)
         vectors.append(vector)
     wind_count = int(user_data.get('wind_total'))
-    for i in range(0, wind_count):
+    for i in range(wind_count):
         time_from = int(user_data.get(f'wind_{i}_from'))
         time_to = int(user_data.get(f'wind_{i}_to'))
         wind_from = user_data.get(f'wind_{i}_from_direction')

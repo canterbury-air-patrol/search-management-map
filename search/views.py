@@ -138,17 +138,14 @@ def search_begin(request, search_id, object_class, asset, mission):
         return HttpResponseForbidden("Asset not currently assigned to the mission this search is in.")
 
     inprogress_search = check_searches_in_progress(mission, asset)
-    if inprogress_search is not None:
-        if inprogress_search != search:
-            return HttpResponseForbidden("Asset already has a search in progress.")
+    if inprogress_search is not None and inprogress_search != search:
+        return HttpResponseForbidden("Asset already has a search in progress.")
 
     if search.set_inprogress_by(asset, request.user):
         return to_geojson(object_class, [search])
 
     error = check_search_state(search, 'begin', asset)
-    if error is not None:
-        return error
-    return HttpResponseNotFound('Try Again')
+    return error if error is not None else HttpResponseNotFound('Try Again')
 
 
 @login_required
@@ -185,11 +182,10 @@ def search_queue(request, search, mission_user):
         return HttpResponseForbidden(f"This search is already queued for {search.get_match()}")
 
     asset = None
-    if request.method == "POST":
-        if 'asset' in request.POST:
-            asset = get_object_or_404(Asset, pk=request.POST['asset'])
-            # Make sure this asset is a member of this mission
-            get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+    if request.method == "POST" and 'asset' in request.POST:
+        asset = get_object_or_404(Asset, pk=request.POST['asset'])
+        # Make sure this asset is a member of this mission
+        get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
 
     search.queue_search(mission_user=mission_user, asset=asset)
 

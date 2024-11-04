@@ -104,7 +104,7 @@ def mission_list_data(request):
         only = request.GET.get('only', '')
         if only == 'active':
             exclude_closed = True
-        if only == 'closed':
+        elif only == 'closed':
             exclude_open = True
 
     user_missions = MissionUser.objects.filter(user=request.user)
@@ -118,11 +118,14 @@ def mission_list_data(request):
         organization_missions = organization_missions.exclude(mission__closed__isnull=True)
         user_missions = user_missions.exclude(mission__closed__isnull=True)
 
-    missions = []
-    for user_mission in user_missions:
-        missions.append(user_mission.mission.as_object(user_mission.is_admin()))
-    for organization_mission in organization_missions:
-        missions.append(organization_mission.mission.as_object(False))
+    missions = [
+        user_mission.mission.as_object(user_mission.is_admin())
+        for user_mission in user_missions
+    ]
+    missions.extend(
+        organization_mission.mission.as_object(False)
+        for organization_mission in organization_missions
+    )
     data = {
         'missions': missions,
     }
@@ -370,17 +373,14 @@ class MissionUserView(View):
         if admin is not None or add_organization is not None or add_user is not None:
             target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
             if admin is not None:
-                admin = admin.lower() == "true"
-                target_mission_user.permissions_admin = admin
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', admin)
+                target_mission_user.permissions_admin = admin.lower() == "true"
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', target_mission_user.permissions_admin)
             if add_organization is not None:
-                add_organization = add_organization.lower() == "true"
-                target_mission_user.permissions_organization_add = add_organization
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add organization', add_organization)
+                target_mission_user.permissions_organization_add = add_organization.lower() == "true"
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add organization', target_mission_user.permissions_organization_add)
             if add_user is not None:
-                add_user = add_user.lower() == "true"
-                target_mission_user.permissions_user_add = add_user
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add user', add_user)
+                target_mission_user.permissions_user_add = add_user.lower() == "true"
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add user', target_mission_user.permissions_user_add)
             target_mission_user.save()
         return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
@@ -395,8 +395,7 @@ class MissionAssetsView(View):
         """
         Get the assets in this mission as json list
         """
-        include_removed = request.GET.get('include_removed', False)
-        if include_removed:
+        if request.GET.get('include_removed', False):
             assets = MissionAsset.objects.filter(mission=mission_user.mission)
         else:
             assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
@@ -409,8 +408,7 @@ class MissionAssetsView(View):
                 'type_name': mission_asset.asset.asset_type.name,
                 'icon_url': mission_asset.asset.icon_url(),
             }
-            asset_status = MissionAssetStatus.current_for_asset(mission_asset)
-            if asset_status:
+            if asset_status := MissionAssetStatus.current_for_asset(mission_asset):
                 asset_data['status'] = asset_status.as_object()
             assets_json.append(asset_data)
 

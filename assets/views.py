@@ -72,10 +72,9 @@ class AssetView(View):
             'asset_id': asset.pk,
             'name': asset.name,
             'asset_type': asset.asset_type.name,
-            'owner': str(asset.owner)
+            'owner': str(asset.owner),
+            'last_command': AssetCommand.last_command_for_asset_to_json(asset),
         }
-
-        data['last_command'] = AssetCommand.last_command_for_asset_to_json(asset)
 
         mission_asset = mission_asset_get(asset)
         if mission_asset is not None:
@@ -140,11 +139,7 @@ class AssetsView(View):
             for org_member in org_members:
                 org_assets = OrganizationAsset.objects.filter(organization=org_member.organization, removed__isnull=True)
                 for org_asset in org_assets:
-                    found = False
-                    for a in assets:
-                        if a.pk == org_asset.asset.pk:
-                            found = True
-                            break
+                    found = any(a.pk == org_asset.asset.pk for a in assets)
                     if not found:
                         assets.append(org_asset.asset)
         return JsonResponse({'assets': [a.as_object() for a in assets]})
@@ -206,11 +201,11 @@ def asset_status(request, asset_id):
 
     if request.method == 'GET':
         status = AssetStatus.current_for_asset(asset)
-        if status:
-            return JsonResponse(status.as_object())
-        return JsonResponse({})
+        return JsonResponse(status.as_object()) if status else JsonResponse({})
     if request.method == 'POST':
-        if not (asset.owner == request.user or organization_user_is_asset_recorder(request.user, asset)):
+        if (
+            asset.owner != request.user and not organization_user_is_asset_recorder(request.user, asset)
+        ):
             return HttpResponseForbidden()
         value_id = request.POST.get('value_id')
         status_value = get_object_or_404(AssetStatusValue, pk=value_id)

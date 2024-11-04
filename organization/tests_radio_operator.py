@@ -6,7 +6,6 @@ from django.test import TestCase
 from django.contrib.gis.geos import Point
 
 from data.models import GeoTimeLabel
-from search.models import Search, SearchParams
 
 from smm.tests import SMMTestUsers
 from assets.tests import AssetsHelpers
@@ -85,7 +84,7 @@ class RadioOperatorTestCase(TestCase):
         mission.add_organization(org1)
         mission.add_asset(asset1)
         asset_details_url = f'/assets/{asset1.pk}/'
-        json_data = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json').json()
+        self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json').json()
         # Create the POI and search object
         poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.smm.user1, label='Test Point', geo_type='poi', mission=mission.get_object())
         sector_search_create = '/search/sector/create/'
