@@ -42,7 +42,7 @@ class Mission(models.Model):
         Get all missions the given user is a member of (either directly or via an organization)
         """
         missions = list(MissionUser.user_missions(user))
-        missions = missions + list(MissionOrganization.mission_user(user))
+        missions += list(MissionOrganization.mission_user(user))
         return missions
 
 

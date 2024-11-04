@@ -41,10 +41,10 @@ class TimeLineEntry(models.Model):
         """
         Convert the event type to a human-readable string
         """
-        for row in self.EVENT_TYPE:
-            if row[0] == self.event_type:
-                return row[1]
-        return "Unknown"
+        return next(
+            (row[1] for row in self.EVENT_TYPE if row[0] == self.event_type),
+            "Unknown",
+        )
 
     message = models.TextField()
 

@@ -97,9 +97,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        extra = ''
-        if include_removed:
-            extra = '?include_removed=true'
+        extra = '?include_removed=true' if include_removed else ''
         return client.get(f'/mission/{self.mission_pk}/assets/{extra}', HTTP_ACCEPT='application/json')
 
     def add_organization(self, organization, client=None):
@@ -146,9 +144,7 @@ class MissionFunctions:
         """
         if client is None:
             client = self.smm.client1
-        only_query = ''
-        if only is not None:
-            only_query = f'?only={only}'
+        only_query = f'?only={only}' if only is not None else ''
         return client.get(f'/mission/list/{only_query}').json()['missions']
 
 

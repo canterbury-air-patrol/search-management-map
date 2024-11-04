@@ -187,8 +187,9 @@ class Search(GeoTime):
         """
         try:
             possibles = cls.all_waiting(mission).filter(created_for=asset_type)
-            search = possibles.annotate(distance=Distance('geo', point)).order_by('distance')[0]
-            return search
+            return possibles.annotate(distance=Distance('geo', point)).order_by(
+                'distance'
+            )[0]
         except IndexError:
             return None
 
@@ -199,8 +200,12 @@ class Search(GeoTime):
         Only entries that haven't already been started/deleted are considered
         """
         try:
-            search = cls.all_waiting(mission).filter(queued_for_asset=asset).filter(queued_at__isnull=False).order_by('queued_at')[0]
-            return search
+            return (
+                cls.all_waiting(mission)
+                .filter(queued_for_asset=asset)
+                .filter(queued_at__isnull=False)
+                .order_by('queued_at')[0]
+            )
         except IndexError:
             return None
 
@@ -211,8 +216,13 @@ class Search(GeoTime):
         Only entries that haven't already been used/deleted are considered
         """
         try:
-            search = cls.all_waiting(mission).filter(queued_for_asset__isnull=True).filter(created_for=asset_type).filter(queued_at__isnull=False).order_by('queued_at')[0]
-            return search
+            return (
+                cls.all_waiting(mission)
+                .filter(queued_for_asset__isnull=True)
+                .filter(created_for=asset_type)
+                .filter(queued_at__isnull=False)
+                .order_by('queued_at')[0]
+            )
         except IndexError:
             return None
 
@@ -296,10 +306,7 @@ class Search(GeoTime):
 
         # Create a SectorSector
         points_order = [0, 12, 2, 8, 10, 4, 6, 0, 1, 3, 9, 11, 5, 7, 0, 2, 4, 10, 12, 6, 8, 0]
-        points = []
-        for point in points_order:
-            points.append(GEOSGeometry(reference_points[point]))
-
+        points = [GEOSGeometry(reference_points[point]) for point in points_order]
         search = Search(
             geo=LineString(points),
             created_by=params.creator(),
@@ -445,12 +452,10 @@ class Search(GeoTime):
         reverse = False
         for segment in db_points:
             if reverse:
-                points.append(GEOSGeometry(segment['b']))
-                points.append(GEOSGeometry(segment['a']))
+                points.extend((GEOSGeometry(segment['b']), GEOSGeometry(segment['a'])))
                 reverse = False
             else:
-                points.append(GEOSGeometry(segment['a']))
-                points.append(GEOSGeometry(segment['b']))
+                points.extend((GEOSGeometry(segment['a']), GEOSGeometry(segment['b'])))
                 reverse = True
 
         search = Search(

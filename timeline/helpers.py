@@ -158,7 +158,7 @@ def timeline_record_asset_command_sent(mission, user, asset, command, text, geo)
     # pylint: disable=R0913,R0917
     message = f"{user} sent {asset} in mission {mission.pk}: {command}, with message {text}"
     if geo is not None:
-        message = message + f" ({geo})"
+        message = f"{message} ({geo})"
     entry = TimeLineEntry(mission=mission, user=user, event_type='acs', message=message, url="")
     entry.save()
 

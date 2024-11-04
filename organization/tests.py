@@ -39,7 +39,7 @@ class OrganizationWrapper:
         """
         if client is None:
             client = self.smm.client1
-        response = client.delete(f'/organization/{self.org_id}/user/{user}/')
+        client.delete(f'/organization/{self.org_id}/user/{user}/')
 
     def get_details(self, client=None):
         """
@@ -172,8 +172,8 @@ class OrganizationTestCase(TestCase):
         org_list = self.orgs.get_all_organizations(client=self.smm.client2)
         self.assertEqual(len(org_list), 0)
         # Create an organization for each user
-        org1 = self.orgs.create_organization(organization_name='org1', client=self.smm.client1)
-        org2 = self.orgs.create_organization(organization_name='org2', client=self.smm.client2)
+        self.orgs.create_organization(organization_name='org1', client=self.smm.client1)
+        self.orgs.create_organization(organization_name='org2', client=self.smm.client2)
         # Check they both show up in the all list
         org_list = self.orgs.get_all_organizations(client=self.smm.client1)
         self.assertEqual(len(org_list), 2)

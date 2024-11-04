@@ -77,10 +77,9 @@ def point_label_make(request, mission=None, replaces=None):
     ptl = GeoTimeLabel(geo=point, label=poi_label, created_by=request.user, mission=mission, geo_type='poi')
     ptl.save()
 
-    if replaces is not None:
-        if not replaces.replace(ptl):
-            ptl.delete(request.user)
-            return HttpResponseBadRequest()
+    if replaces is not None and not replaces.replace(ptl):
+        ptl.delete(request.user)
+        return HttpResponseBadRequest()
 
     return to_geojson(GeoTimeLabel, [ptl])
 
@@ -89,46 +88,42 @@ def user_polygon_make(request, mission=None, replaces=None):
     """
     Create a polygon based on user supplied data.
     """
-    if request.method == 'POST':
-        points = []
-        label = request.POST['label']
-        points_count = int(request.POST['points'])
-        for i in range(0, points_count):
-            lat = request.POST[f'point{i}_lat']
-            lng = request.POST[f'point{i}_lng']
-            point = Point(float(lng), float(lat))
-            points.append(point)
-        points.append(points[0])
-        ptl = GeoTimeLabel(geo=Polygon(points), label=label, created_by=request.user, mission=mission, geo_type='polygon')
-        ptl.save()
-        if replaces is not None:
-            if not replaces.replace(ptl):
-                ptl.delete(request.user)
-                return HttpResponseBadRequest()
-        return to_geojson(GeoTimeLabel, [ptl])
-
-    return HttpResponseBadRequest()
+    if request.method != 'POST':
+        return HttpResponseBadRequest()
+    points = []
+    label = request.POST['label']
+    points_count = int(request.POST['points'])
+    for i in range(points_count):
+        lat = request.POST[f'point{i}_lat']
+        lng = request.POST[f'point{i}_lng']
+        point = Point(float(lng), float(lat))
+        points.append(point)
+    points.append(points[0])
+    ptl = GeoTimeLabel(geo=Polygon(points), label=label, created_by=request.user, mission=mission, geo_type='polygon')
+    ptl.save()
+    if replaces is not None and not replaces.replace(ptl):
+        ptl.delete(request.user)
+        return HttpResponseBadRequest()
+    return to_geojson(GeoTimeLabel, [ptl])
 
 
 def user_line_make(request, mission=None, replaces=None):
     """
     Create a line (string) based on user supplied data.
     """
-    if request.method == 'POST':
-        points = []
-        label = request.POST['label']
-        points_count = int(request.POST['points'])
-        for i in range(0, points_count):
-            lat = request.POST[f'point{i}_lat']
-            lng = request.POST[f'point{i}_lng']
-            point = Point(float(lng), float(lat))
-            points.append(point)
-        lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
-        lstl.save()
-        if replaces is not None:
-            if not replaces.replace(lstl):
-                lstl.delete(request.user)
-                return HttpResponseBadRequest()
-        return to_geojson(GeoTimeLabel, [lstl])
-
-    return HttpResponseBadRequest()
+    if request.method != 'POST':
+        return HttpResponseBadRequest()
+    points = []
+    label = request.POST['label']
+    points_count = int(request.POST['points'])
+    for i in range(points_count):
+        lat = request.POST[f'point{i}_lat']
+        lng = request.POST[f'point{i}_lng']
+        point = Point(float(lng), float(lat))
+        points.append(point)
+    lstl = GeoTimeLabel(geo=LineString(points), label=label, created_by=request.user, mission=mission, geo_type='line')
+    lstl.save()
+    if replaces is not None and not replaces.replace(lstl):
+        lstl.delete(request.user)
+        return HttpResponseBadRequest()
+    return to_geojson(GeoTimeLabel, [lstl])

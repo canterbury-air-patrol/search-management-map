@@ -26,9 +26,7 @@ class UserDrawnLineTestCase(UserDataTestCase):
         """
         Create a UDL with only 1 point
         """
-        points = []
-        for i in range(0, 100):
-            points.append((172.0 + i * 0.1, -42 - i * 0.1))
+        points = [(172.0 + i * 0.1, -42 - i * 0.1) for i in range(100)]
         line = GeoTimeLabel.objects.create(geo=LineString(points), created_by=self.user, label='Test Line', geo_type='line', mission=self.mission)
         self.assertEqual(str(line).startswith("Test Line"), True)
         self.assertEqual(len(line.geo), 100)

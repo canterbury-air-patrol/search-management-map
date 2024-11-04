@@ -10,8 +10,12 @@ def organization_member_get(organization_id, user):
     Get the organization_member for the given organization id and user.
     """
     organization = get_object_or_404(Organization, pk=organization_id)
-    organization_member = get_object_or_404(OrganizationMember, organization=organization, user=user, removed__isnull=True)
-    return organization_member
+    return get_object_or_404(
+        OrganizationMember,
+        organization=organization,
+        user=user,
+        removed__isnull=True,
+    )
 
 
 def organization_is_admin(view_func):
@@ -40,7 +44,7 @@ def organization_assets_admin(view_func):
     return wrapper_is_asset_admin
 
 
-def organization_radio_operator(view_func):
+def organization_is_radio_operator(view_func):
     """
     Make sure the user is a member and they are have the radio operator or admin role
     """

@@ -41,7 +41,7 @@ class SearchWrapper:
             data['asset'] = asset.pk
         return client.post(f'/search/{self.search_id}/queue/', data=data)
 
-    def delete(self):
+    def delete(self, client=None):
         """
         Delete this search
         """
@@ -49,7 +49,7 @@ class SearchWrapper:
             client = self.smm.client1
         return client.delete(f'/search/{self.search_id}/')
 
-    def details(self):
+    def details(self, client=None):
         """
         Get the details of this search
         """
@@ -57,7 +57,7 @@ class SearchWrapper:
             client = self.smm.client1
         return client.get(f'/search/{self.search_id}/')
 
-    def json(self):
+    def json(self, client=None):
         """
         Get the json version of this search
         """
@@ -65,7 +65,7 @@ class SearchWrapper:
             client = self.smm.client1
         return client.get(f'/search/{self.search_id}/', HTTP_ACCEPT='application/json')
 
-    def begin(self):
+    def begin(self, client=None):
         """
         Begin this search
         """
@@ -73,7 +73,7 @@ class SearchWrapper:
             client = self.smm.client1
         return client.post(f'/search/{self.search_id}/begin/')
 
-    def finished(self):
+    def finished(self, client=None):
         """
         Mark this search as finished
         """

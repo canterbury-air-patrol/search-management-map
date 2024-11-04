@@ -7,6 +7,8 @@ Mostly directly user created, but also some data
 that assets provide directly (i.e. position reports).
 """
 
+
+import contextlib
 from django.contrib.gis.db import models
 from django.db.models import Q
 from django.utils import timezone
@@ -92,16 +94,11 @@ class GeoTime(models.Model):
 
     # pylint: disable=W0221
     def save(self, *args, **kwargs):
-        exists = False
         replaced = False
-        if self.pk is not None:
-            exists = True
-        try:
+        exists = self.pk is not None
+        with contextlib.suppress(AttributeError):
             if self.replaced_by:
                 replaced = True
-        except AttributeError:
-            pass
-
         super().save(*args, **kwargs)
         if self.RECORD_TIMELINE:
             if exists:
@@ -233,10 +230,14 @@ class GeoTimeLabel(GeoTime):
         '''
         Return the human-readable version of the name
         '''
-        for geo_type in self.GEO_TYPE:
-            if geo_type[0] == self.geo_type:
-                return geo_type[1]
-        return None
+        return next(
+            (
+                geo_type[1]
+                for geo_type in self.GEO_TYPE
+                if geo_type[0] == self.geo_type
+            ),
+            None,
+        )
 
     @classmethod
     def all_current_of_geo(cls, mission, geo_type, current_at=None):
@@ -247,8 +248,9 @@ class GeoTimeLabel(GeoTime):
         geo_type needs to be one of GEO_TYPE
         current_at being None means now, otherwise only objects that existed at the time will be returned
         '''
-        objects = cls.all_current(mission, current_at=current_at).filter(geo_type=geo_type)
-        return objects
+        return cls.all_current(mission, current_at=current_at).filter(
+            geo_type=geo_type
+        )
 
     @classmethod
     def all_current_of_geo_user(cls, user, geo_type, current_at=None, current_only=False):
@@ -260,8 +262,9 @@ class GeoTimeLabel(GeoTime):
         current_at being None means now, otherwise only objects that existed at the time will be returned
         current_only if True, only consider missions that haven't ended yet
         '''
-        objects = cls.all_current_user(user, current_at=current_at, current_only=current_only).filter(geo_type=geo_type)
-        return objects
+        return cls.all_current_user(
+            user, current_at=current_at, current_only=current_only
+        ).filter(geo_type=geo_type)
 
     def __str__(self):
         # pylint: disable=E1101

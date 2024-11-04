@@ -10,7 +10,7 @@ from django.views import View
 from assets.decorators import asset_is_owner
 
 from .models import Organization, OrganizationMember, OrganizationAsset
-from .decorators import organization_is_admin, organization_assets_admin, organization_radio_operator, get_target_user
+from .decorators import organization_is_admin, organization_assets_admin, organization_is_radio_operator, get_target_user
 
 
 @method_decorator(login_required, name="dispatch")
@@ -160,7 +160,7 @@ def organization_not_members(request, organization_member):
 
 
 @login_required
-@organization_radio_operator
+@organization_is_radio_operator
 def organization_radio_operator(request, organization_member):
     """
     Present the Radio Operator screen

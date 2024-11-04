@@ -5,6 +5,8 @@ These views mostly cover the data that users can create/edit on the map.
 Also, the asset tracks are handled here too.
 """
 
+
+import contextlib
 from io import TextIOWrapper
 import csv
 from datetime import datetime
@@ -46,9 +48,7 @@ def assets_position_latest(request, mission_user):
     positions = []
     for asset in assets:
         points = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset).order_by('-created_at')[:1]
-        for point in points:
-            positions.append(point)
-
+        positions.extend(iter(points))
     return to_geojson(AssetPointTime, positions)
 
 
@@ -64,9 +64,7 @@ def assets_position_latest_user(request, current_only):
         if current_only:
             points = points.filter(mission__closed__isnull=True)
         points = points.filter(mission__missionuser__user=request.user, asset=asset).order_by('-created_at')[:1]
-        for point in points:
-            positions.append(point)
-
+        positions.extend(iter(points))
     return to_geojson(AssetPointTime, positions)
 
 
@@ -103,11 +101,8 @@ def asset_record_position(request, asset):
         return HttpResponseBadRequest("Unsupported method")
 
     point = None
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         point = Point(float(lon), float(lat))
-    except (ValueError, TypeError):
-        pass
-
     try:
         fix = int(fix)
     except (TypeError, ValueError):
@@ -197,9 +192,7 @@ def users_position_latest(request, mission_user):
     positions = []
     for user in users:
         points = UserPointTime.objects.filter(mission=mission_user.mission, user=user).order_by('-created_at')[:1]
-        for point in points:
-            positions.append(point)
-
+        positions.extend(iter(points))
     return to_geojson(UserPointTime, positions)
 
 
@@ -215,9 +208,7 @@ def users_position_latest_user(request, current_only):
         if current_only:
             points = points.filter(mission__closed__isnull=True)
         points = points.filter(mission__missionuser__user=request.user, user=user).order_by('-created_at')[:1]
-        for point in points:
-            positions.append(point)
-
+        positions.extend(iter(points))
     return to_geojson(UserPointTime, positions)
 
 
@@ -254,11 +245,8 @@ def user_record_position(request, mission_user, user):
         return HttpResponseBadRequest("Unsupported method")
 
     point = None
-    try:
+    with contextlib.suppress(ValueError, TypeError):
         point = Point(float(lon), float(lat))
-    except (ValueError, TypeError):
-        pass
-
     try:
         fix = int(fix)
     except (TypeError, ValueError):
@@ -486,7 +474,7 @@ def convert_typhoon_time(timestamp):
     """
     parts = timestamp.split(' ')
     date = parts[0]
-    year = int(date[0:4])
+    year = int(date[:4])
     month = int(date[4:6])
     day = int(date[6:8])
     time = parts[1].split(':')
