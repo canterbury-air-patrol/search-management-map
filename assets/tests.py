@@ -337,3 +337,31 @@ class AssetTestCase(TestCase):
             'longitude': 'East',
         })
         self.assertEqual(response.status_code, 400)
+
+    def test_asset_record_position_not_other(self):
+        """
+        Check only the owner of the asset can record the position
+        """
+        asset = self.assets.create_asset()
+        asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
+
+        # Record the position as the asset owner
+        response = self.smm.client1.post(asset_report_position_url, {
+            'lat': -43.5,
+            'lng': 172.5,
+            'fix': 3,
+            'alt': 0,
+            'heading': 0,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content.decode('utf8'), 'Continue')
+
+        # Attempt to record the position as a non-owner
+        response = self.smm.client2.post(asset_report_position_url, {
+            'lat': -43.5,
+            'lng': 172.5,
+            'fix': 3,
+            'alt': 0,
+            'heading': 0,
+        })
+        self.assertEqual(response.status_code, 403)
