@@ -15,7 +15,8 @@ import markerIconShadow from 'leaflet/dist/images/marker-shadow.png'
 import 'leaflet-realtime'
 import '@canterbury-air-patrol/leaflet-dialog'
 import '@canterbury-air-patrol/leaflet-dialog/Leaflet.Dialog.css'
-import 'leaflet.locatecontrol'
+import { LocateControl } from 'leaflet.locatecontrol'
+import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
 import Cookies from 'universal-cookie'
 
 import './Admin/admin.js'
@@ -114,13 +115,11 @@ class SMMMap {
       L.control.poiadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
       L.control.polygonadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
       L.control.lineadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
-      L.control
-        .locate({
-          setView: 'untilPan',
-          keepCurrentZoomLevel: true,
-          locateOptions: { enableHighAccuracy: true }
-        })
-        .addTo(this.map)
+      new LocateControl({
+        setView: 'untilPan',
+        keepCurrentZoomLevel: true,
+        locateOptions: { enableHighAccuracy: true }
+      }).addTo(this.map)
       L.control.imageuploader({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
     }
     L.control.smmadmin({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
