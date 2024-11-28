@@ -139,7 +139,7 @@ def mission_new(request):
             mission = Mission(mission_name=form.cleaned_data['mission_name'], mission_description=form.cleaned_data['mission_description'], creator=request.user)
             mission.save()
             # Give the user who created this mission admin permissions
-            MissionUser(mission=mission, user=request.user, role='A', creator=request.user).save()
+            MissionUser(mission=mission, user=request.user, permissions_admin=True, creator=request.user).save()
             return redirect(f'/mission/{mission.pk}/details/')
 
     if form is None:
@@ -256,7 +256,7 @@ def mission_user_make_admin(request, mission_user, user_id):
     user = get_object_or_404(get_user_model(), pk=user_id)
     # Find the MissionUser
     mission_user_update = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
-    mission_user_update.role = 'A'
+    mission_user_update.permissions_admin = True
     mission_user_update.save()
     timeline_record_mission_user_update(mission_user.mission, request.user, mission_user_update)
     return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')

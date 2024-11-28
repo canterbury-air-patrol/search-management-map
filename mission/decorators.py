@@ -23,7 +23,7 @@ def mission_user_get(mission_id, user):
     except ObjectDoesNotExist:
         organization_member = OrganizationMember.objects.filter(organization__in=[mo.organization for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)], user=user, removed__isnull=True)
         if organization_member:
-            return MissionUser(mission=mission, user=user, role='M')
+            return MissionUser(mission=mission, user=user)
     raise Http404("Not Found")
 
 

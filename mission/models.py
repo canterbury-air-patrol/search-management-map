@@ -57,38 +57,31 @@ class MissionUser(models.Model):
     creator = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='creator%(app_label)s_%(class)s_related')
     added = models.DateTimeField(default=timezone.now)
 
-    USER_ROLE = (
-        ('M', 'Member'),
-        ('A', 'Admin'),
-    )
-    role = models.CharField(max_length=1, choices=USER_ROLE, default='M')
+    permissions_admin = models.BooleanField(default=False)
 
     def user_role_name(self):
         """
         Return a human-readable name for this users' role.
         """
-        for row in self.USER_ROLE:
-            if row[0] == self.role:
-                return row[1]
-        return "Unknown"
+        return "Admin" if self.permissions_admin else "Member"
 
     def is_admin(self):
         """
         Return true if this user is an admin
         """
-        return self.role == 'A'
+        return self.permissions_admin
 
     def can_add_organization(self):
         """
         Return true if this user can add organizations to this mission
         """
-        return self.role == 'A'
+        return self.permissions_admin
 
     def can_add_user(self):
         """
         Return true if this user can add users to this mission
         """
-        return self.role == 'A'
+        return self.permissions_admin
 
     @classmethod
     def user_missions(cls, user):
