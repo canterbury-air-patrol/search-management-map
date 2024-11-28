@@ -24,7 +24,7 @@ from timeline.helpers import timeline_record_create, timeline_record_mission_org
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
 from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
-from .decorators import mission_is_member, mission_is_admin
+from .decorators import mission_can_add_organization, mission_is_member, mission_is_admin
 
 
 @login_required
@@ -193,7 +193,7 @@ class MissionTimelineView(View):
 
 
 @login_required
-@mission_is_admin
+@mission_can_add_organization
 def mission_organization_add(request, mission_user):
     """
     Add an Organization to a Mission
