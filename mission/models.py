@@ -84,6 +84,12 @@ class MissionUser(models.Model):
         """
         return self.role == 'A'
 
+    def can_add_user(self):
+        """
+        Return true if this user can add users to this mission
+        """
+        return self.role == 'A'
+
     @classmethod
     def user_missions(cls, user):
         """
