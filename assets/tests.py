@@ -54,7 +54,7 @@ class AssetTestCase(TestCase):
         self.smm = SMMTestUsers()
         self.assets = AssetsHelpers(self.smm)
         self.mission = Mission.objects.create(creator=self.smm.user1, mission_name='mission1')
-        MissionUser(mission=self.mission, user=self.smm.user1, role='A', creator=self.smm.user1).save()
+        MissionUser(mission=self.mission, user=self.smm.user1, permissions_admin=True, creator=self.smm.user1).save()
 
     def add_asset_to_mission(self, asset=None, mission=None):
         """
