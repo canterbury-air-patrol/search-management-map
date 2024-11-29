@@ -45,6 +45,16 @@ class MissionTestWrapper:
             'user': user.pk,
         })
 
+    def get_user_details(self, client=None, user=None):
+        """
+        Get the details of a user in the mission
+        """
+        if client is None:
+            client = self.smm.client1
+        if user is None:
+            user = self.smm.user2
+        return client.get(f'/mission/{self.mission_pk}/users/{user.pk}/', HTTP_ACCEPT='application/json')
+
     def make_admin(self, client=None, user=None):
         """
         Make a mission user an admin
@@ -53,7 +63,9 @@ class MissionTestWrapper:
             client = self.smm.client1
         if user is None:
             user = self.smm.user2
-        return client.get(f'/mission/{self.mission_pk}/users/{user.pk}/make/admin/')
+        return client.post(f'/mission/{self.mission_pk}/users/{user.pk}/', data={
+            'admin': True,
+        })
 
     def close(self, client=None):
         """
@@ -323,6 +335,39 @@ class MissionTestCase(MissionBaseTestCase):
         # and neither in the closed list
         mission_list = self.missions.get_mission_list(only='closed')
         self.assertEqual(len(mission_list), 2)
+
+
+class MissionUsersTestCase(MissionBaseTestCase):
+    """
+    Mission/User API
+    """
+    def test_mission_user_creator(self):
+        """
+        Check user that started the mission gets mission data
+        """
+        mission = self.missions.create_mission('test_mission_user_creator')
+        response = mission.get_user_details(user=self.smm.user1)
+        self.assertEqual(response.status_code, 200)
+
+    def test_mission_user_non_member(self):
+        """
+        Check users who are not members, cannot access the details of mission users
+        """
+        mission = self.missions.create_mission('test_mission_user_non_member')
+        response = mission.get_user_details(client=self.smm.client2, user=self.smm.user1)
+        self.assertEqual(response.status_code, 404)
+
+    def test_mission_other_member(self):
+        """
+        Check that details of users is available once they are added to the mission
+        """
+        mission = self.missions.create_mission('test_mission_other_member')
+        response = mission.get_user_details(user=self.smm.user2)
+        self.assertEqual(response.status_code, 404)
+        # Add the user to the mission and check they exist
+        mission.add_user(user=self.smm.user2)
+        response = mission.get_user_details(user=self.smm.user2)
+        self.assertEqual(response.status_code, 200)
 
 
 class MissionAssetsTestCase(MissionBaseTestCase):

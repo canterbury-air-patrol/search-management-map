@@ -5,6 +5,7 @@ Function decorators to make dealing with missions easier
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseForbidden, Http404
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import get_user_model
 
 from organization.models import OrganizationMember
 
@@ -109,3 +110,14 @@ def mission_asset_get_mission(view_func):
             return HttpResponseForbidden("This Asset is not currently in a mission")
         return view_func(*args, mission=mission_asset.mission, **kwargs)
     return wrapper_mission
+
+
+def get_user_from_id(view_func):
+    """
+    Convert the user_id field to a user object
+    """
+    def wrapper(*args, **kwargs):
+        user = get_object_or_404(get_user_model(), pk=kwargs['user_id'])
+        kwargs.pop('user_id')
+        return view_func(*args, user=user, **kwargs)
+    return wrapper

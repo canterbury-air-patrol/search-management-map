@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+    <head>
+        <title>User Details for {{ target_user.user }} in Mission</title>
+        <base href="/static/" />
+        <link rel="stylesheet" href="pretty.css">
+        <script type="module" src="pretty.js"></script>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body style="height: 100%">
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Admin</td>
+                    <td>Add Organizations</td>
+                    <td>Add Users</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ target_user.user }}</td>
+                    <td>{{ target_user.is_admin }}</td>
+                    <td>{{ target_user.can_add_organization }}</td>
+                    <td>{{ target_user.can_add_user }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </body>
+</html>

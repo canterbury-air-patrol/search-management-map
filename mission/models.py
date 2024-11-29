@@ -83,6 +83,22 @@ class MissionUser(models.Model):
         """
         return self.permissions_admin
 
+    def as_json(self):
+        """
+        return this mission user as a json object
+        """
+        return {
+            'mission': self.mission.pk,
+            'user': str(self.user),
+            'creator': str(self.creator),
+            'added': self.added,
+            'permissions': {
+                'admin': self.is_admin(),
+                'add_organization': self.can_add_organization(),
+                'add_user': self.can_add_user(),
+            }
+        }
+
     @classmethod
     def user_missions(cls, user):
         """
