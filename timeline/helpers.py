@@ -75,11 +75,13 @@ def timeline_record_mission_user_add(mission, actioner, user):
     entry.save()
 
 
-def timeline_record_mission_user_update(mission, actioner, mission_user):
+def timeline_record_mission_user_update(mission, actioner, mission_user, permission, value):
     """
-    Create a timeline entry for an users role being changed in a mission
+    Create a timeline entry for an users permission(s) being changed in a mission
     """
-    message = f"{actioner} Changed {mission_user.user} in Mission {mission.pk} To {mission_user.user_role_name()}"
+    action = "Granted" if value else "Removed"
+    direction = "to" if value else "from"
+    message = f"{actioner} {action} {permission} {direction} {mission_user.user} in Mission {mission.pk}"
     url = ""
     entry = TimeLineEntry(mission=mission, user=actioner, event_type='uup', message=message, url=url)
     entry.save()

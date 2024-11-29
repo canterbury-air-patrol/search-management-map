@@ -5,7 +5,6 @@ Mission Create/Management Views.
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
 from django.db.models import OuterRef, Subquery
@@ -24,7 +23,7 @@ from timeline.helpers import timeline_record_create, timeline_record_mission_org
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
 from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
-from .decorators import mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
+from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
 
 
 @login_required
@@ -246,20 +245,49 @@ def mission_user_add(request, mission_user):
     return render(request, 'mission_user_add.html', {'form': form})
 
 
-@login_required
-@mission_is_admin
-def mission_user_make_admin(request, mission_user, user_id):
+@method_decorator(login_required, name="dispatch")
+@method_decorator(get_user_from_id, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionUserView(View):
     """
-    Make an existing user an admin for this mission.
+    Show and adjust the permissions of a user in the mission
     """
-    # Find the User
-    user = get_object_or_404(get_user_model(), pk=user_id)
-    # Find the MissionUser
-    mission_user_update = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
-    mission_user_update.permissions_admin = True
-    mission_user_update.save()
-    timeline_record_mission_user_update(mission_user.mission, request.user, mission_user_update)
-    return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+    def as_json(self, mission_user, user):
+        """
+        Mission User details, in json
+        """
+        target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
+        return JsonResponse(target_mission_user.as_json())
+
+    def get(self, request, mission_user, user):
+        """
+        Display the details of this user in this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_user, user)
+        data = {
+            'current_user': mission_user,
+            'target_user': get_object_or_404(MissionUser, mission=mission_user.mission, user=user),
+        }
+        return render(request, 'mission_user_details.html', data)
+
+    def post(self, request, mission_user, user):
+        """
+        Update the permissions of a user
+        """
+        if not mission_user.is_admin():
+            return HttpResponseForbidden("Not an admin")
+        if mission_user.user == user:
+            return HttpResponseForbidden("Cannot modify yourself")
+        admin = request.POST.get('admin', None)
+
+        if admin is not None:
+            admin = admin.lower() == "true"
+            target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
+            target_mission_user.permissions_admin = admin
+            timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', admin)
+            target_mission_user.save()
+        return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
 
 @method_decorator(login_required, name="dispatch")
