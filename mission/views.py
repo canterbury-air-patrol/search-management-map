@@ -39,6 +39,8 @@ def mission_details(request, mission_user):
         'mission': mission_user.mission,
         'me': request.user,
         'admin': mission_user.is_admin(),
+        'can_add_organizations': mission_user.can_add_organization(),
+        'can_add_users': mission_user.can_add_user(),
         'mission_organizations': MissionOrganization.objects.filter(mission=mission_user.mission),
         'mission_assets': mission_assets,
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
@@ -280,12 +282,23 @@ class MissionUserView(View):
         if mission_user.user == user:
             return HttpResponseForbidden("Cannot modify yourself")
         admin = request.POST.get('admin', None)
+        add_organization = request.POST.get('add_organization', None)
+        add_user = request.POST.get('add_user', None)
 
-        if admin is not None:
-            admin = admin.lower() == "true"
+        if admin is not None or add_organization is not None or add_user is not None:
             target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
-            target_mission_user.permissions_admin = admin
-            timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', admin)
+            if admin is not None:
+                admin = admin.lower() == "true"
+                target_mission_user.permissions_admin = admin
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', admin)
+            if add_organization is not None:
+                add_organization = add_organization.lower() == "true"
+                target_mission_user.permissions_organization_add = add_organization
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add organization', add_organization)
+            if add_user is not None:
+                add_user = add_user.lower() == "true"
+                target_mission_user.permissions_user_add = add_user
+                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add user', add_user)
             target_mission_user.save()
         return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
