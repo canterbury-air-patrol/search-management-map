@@ -217,22 +217,6 @@ class MissionOrganization(models.Model):
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
 
-    # This is the highest role an organization member can have, depending on their organization role
-    ORGANIZATION_ROLE = (
-        ('M', 'Member'),
-        ('A', 'Admin'),
-    )
-    role = models.CharField(max_length=1, choices=ORGANIZATION_ROLE, default='M')
-
-    def role_name(self):
-        """
-        Return a human-readable name for this organizations' role.
-        """
-        for row in self.ORGANIZATION_ROLE:
-            if row[0] == self.role:
-                return row[1]
-        return "Unknown"
-
     @classmethod
     def mission_user(cls, user):
         """
