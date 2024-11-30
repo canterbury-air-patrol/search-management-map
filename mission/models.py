@@ -58,6 +58,8 @@ class MissionUser(models.Model):
     added = models.DateTimeField(default=timezone.now)
 
     permissions_admin = models.BooleanField(default=False)
+    permissions_organization_add = models.BooleanField(default=False)
+    permissions_user_add = models.BooleanField(default=False)
 
     def user_role_name(self):
         """
@@ -75,13 +77,13 @@ class MissionUser(models.Model):
         """
         Return true if this user can add organizations to this mission
         """
-        return self.permissions_admin
+        return self.permissions_admin or self.permissions_organization_add
 
     def can_add_user(self):
         """
         Return true if this user can add users to this mission
         """
-        return self.permissions_admin
+        return self.permissions_admin or self.permissions_user_add
 
     def as_json(self):
         """
