@@ -19,12 +19,34 @@ def mission_user_get(mission_id, user):
     mission = get_object_or_404(Mission, pk=mission_id)
     # Find any direct membership first
     try:
-        mission_user = MissionUser.objects.get(mission=mission, user=user)
-        return mission_user
+        return MissionUser.objects.get(mission=mission, user=user)
     except ObjectDoesNotExist:
-        organization_member = OrganizationMember.objects.filter(organization__in=[mo.organization for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)], user=user, removed__isnull=True)
-        if organization_member:
-            return MissionUser(mission=mission, user=user)
+        mission_organizations = MissionOrganization.objects.filter(mission=mission, removed__isnull=True).select_related('organization')
+
+        # Fetch all OrganizationMember entries for the user in these organizations
+        organization_ids = mission_organizations.values_list('organization_id', flat=True)
+        organization_members = OrganizationMember.objects.filter(
+            organization_id__in=organization_ids, user=user, removed__isnull=True
+        )
+
+        if organization_members.exists():
+            add_orgs = False
+            add_users = False
+
+            for mission_org in mission_organizations:
+                if mission_org.permissions_organization_add:
+                    add_orgs = True
+                if mission_org.permissions_user_add:
+                    add_users = True
+                if add_orgs and add_users:
+                    break
+
+            return MissionUser(
+                mission=mission,
+                user=user,
+                permissions_organization_add=add_orgs,
+                permissions_user_add=add_users,
+            )
     raise Http404("Not Found")
 
 

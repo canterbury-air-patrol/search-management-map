@@ -11,6 +11,7 @@ urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/details/$', views.mission_details, name='mission_details'),
     re_path(r'^mission/(?P<mission_id>\d+)/timeline/$', views.MissionTimelineView.as_view(), name='mission_timeline'),
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/add/$', views.mission_organization_add, name='mission_organization_add'),
+    re_path(r'^mission/(?P<mission_id>\d+)/organizations/(?P<organization_id>\d+)/$', views.MissionOrganizationView.as_view(), name='mission_organization'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/add/$', views.mission_user_add, name='mission_user_add'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/(?P<user_id>\d+)/$', views.MissionUserView.as_view(), name='mission_user'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/$', views.MissionAssetsView.as_view()),

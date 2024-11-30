@@ -6,7 +6,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
+from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
+from django.db import transaction
 from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -16,9 +17,10 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_operator
+from organization.decorators import get_organization_from_id
 from organization.models import OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_user_add, \
+from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_organization_update, timeline_record_mission_user_add, \
     timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
 from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
@@ -218,6 +220,64 @@ def mission_organization_add(request, mission_user):
         form = MissionUserForm()
 
     return render(request, 'mission_user_add.html', {'form': form})
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(get_organization_from_id, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionOrganizationView(View):
+    """
+    Show and adjust the permissions of a organization in the mission
+    """
+    def as_json(self, mission_organization):
+        """
+        Mission Organization details, in json
+        """
+        return JsonResponse(mission_organization.as_json())
+
+    def get(self, request, mission_user, organization):
+        """
+        Display the details of this organization in this mission
+        """
+        mission_organization = get_object_or_404(MissionOrganization, mission=mission_user.mission, organization=organization)
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_organization)
+        data = {
+            'current_user': mission_user,
+            'organization': mission_organization,
+        }
+        return render(request, 'mission_organization_details.html', data)
+
+    def _set_organization_permissions(self, mission_user, mission_organization, permission_type, value):
+        """
+        Set mission organizations permissions
+        """
+        setattr(mission_organization, f'permissions_{permission_type}', value)
+        timeline_record_mission_organization_update(mission_user.mission, mission_user.user, mission_organization.organization, permission_type, value)
+
+    def post(self, request, mission_user, organization):
+        """
+        Update the permissions of an organization
+        """
+        if not mission_user.is_admin():
+            return HttpResponseForbidden("Not an admin")
+        add_organization = request.POST.get('add_organization', None)
+        add_user = request.POST.get('add_user', None)
+
+        if add_organization is not None and add_organization.lower() not in ["true", "false"]:
+            return HttpResponseBadRequest()
+        if add_user is not None and add_user.lower() not in ["true", "false"]:
+            return HttpResponseBadRequest()
+
+        if add_organization is not None or add_user is not None:
+            with transaction.atomic():
+                mission_organization = get_object_or_404(MissionOrganization, mission=mission_user.mission, organization=organization)
+                if add_organization is not None:
+                    self._set_organization_permissions(mission_user, mission_organization, 'add_organization', add_organization.lower() == "true")
+                if add_user is not None:
+                    self._set_organization_permissions(mission_user, mission_organization, 'add_user', add_user.lower() == "true")
+                mission_organization.save()
+        return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
 
 @login_required

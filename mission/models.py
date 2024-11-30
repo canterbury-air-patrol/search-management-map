@@ -217,6 +217,36 @@ class MissionOrganization(models.Model):
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
 
+    permissions_organization_add = models.BooleanField(default=False)
+    permissions_user_add = models.BooleanField(default=False)
+
+    def can_add_organization(self):
+        """
+        Return true if members of this organization can add organizations to this mission
+        """
+        return self.permissions_organization_add
+
+    def can_add_user(self):
+        """
+        Return true if members of this organization can add users to this mission
+        """
+        return self.permissions_user_add
+
+    def as_json(self):
+        """
+        return this mission organization as a json object
+        """
+        return {
+            'mission': self.mission.pk,
+            'organization': self.organization,
+            'creator': str(self.creator),
+            'added': self.added,
+            'permissions': {
+                'add_organization': self.can_add_organization(),
+                'add_user': self.can_add_user(),
+            }
+        }
+
     @classmethod
     def mission_user(cls, user):
         """
