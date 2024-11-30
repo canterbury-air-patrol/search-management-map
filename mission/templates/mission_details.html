@@ -33,6 +33,16 @@
                     <td><a href="/organization/{{ mission_organization.organization.pk }}/">{{ mission_organization.organization.name }}</a></td>
                     <td>
 {% if admin %}
+{% if mission_organization.permissions_organization_add %}
+                          <form action="/mission/{{ mission.pk }}/organizations/{{ mission_organization.organization.pk }}/" method="POST">{% csrf_token %}<input type="hidden" name="add_organization" value=false /> <input type="submit" class="btn btn-danger" value="Disable Adding Organizations" /></form>
+{% else %}
+                          <form action="/mission/{{ mission.pk }}/organizations/{{ mission_organization.organization.pk }}/" method="POST">{% csrf_token %}<input type="hidden" name="add_organization" value=true /> <input type="submit" class="btn btn-danger" value="Enable Adding Organizations" /></form>
+{% endif %}
+{% if mission_organization.permissions_user_add %}
+                          <form action="/mission/{{ mission.pk }}/organizations/{{ mission_organization.organization.pk }}/" method="POST">{% csrf_token %}<input type="hidden" name="add_user" value=false /> <input type="submit" class="btn btn-danger" value="Disable Adding Users" /></form>
+{% else %}
+                          <form action="/mission/{{ mission.pk }}/organizations/{{ mission_organization.organization.pk }}/" method="POST">{% csrf_token %}<input type="hidden" name="add_user" value=true /> <input type="submit" class="btn btn-danger" value="Enable Adding Users" /></form>
+{% endif %}
 {% endif %}
                     </td>
                 </tr>

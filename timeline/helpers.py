@@ -65,6 +65,18 @@ def timeline_record_mission_organization_add(mission, actioner, organization):
     entry.save()
 
 
+def timeline_record_mission_organization_update(mission, actioner, organization, permission, value):
+    """
+    Create a timeline entry for an organization permission(s) being changed in a mission
+    """
+    action = "Granted" if value else "Removed"
+    direction = "to" if value else "from"
+    message = f"{actioner} {action} {permission} {direction} {organization} in Mission {mission.pk}"
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=actioner, event_type='oup', message=message, url=url)
+    entry.save()
+
+
 def timeline_record_mission_user_add(mission, actioner, user):
     """
     Create a timeline entry for an user being added to a mission

@@ -62,3 +62,14 @@ def get_target_user(view_func):
         kwargs.pop('username')
         return view_func(*args, target_user=target_user, **kwargs)
     return wrapper_get_target_user
+
+
+def get_organization_from_id(view_func):
+    """
+    Convert an organization id into an organization object
+    """
+    def wrapper(*args, **kwargs):
+        organization = get_object_or_404(Organization, pk=kwargs['organization_id'])
+        kwargs.pop('organization_id')
+        return view_func(*args, organization=organization, **kwargs)
+    return wrapper
