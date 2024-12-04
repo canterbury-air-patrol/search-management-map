@@ -1,7 +1,7 @@
 """
 Views for assets
 """
-from django.http import JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
+from django.http import HttpResponseNotAllowed, JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
@@ -169,8 +169,6 @@ class AssetCommandView(View):
         Return the current asset command as json
         """
         asset_command = AssetCommand.last_command_for_asset_to_json(asset)
-        if asset_command is None:
-            return HttpResponseNotFound()
         data = {
             'command': asset_command,
         }
@@ -187,7 +185,6 @@ class AssetCommandView(View):
         Allow setting the asset command response
         """
         command_id = request.POST.get('command_id')
-        print(f'command_id = {command_id}')
         asset_command = get_object_or_404(AssetCommand, pk=command_id, asset=asset)
         type_str = request.POST.get('type')
         message = request.POST.get('message')
@@ -221,4 +218,4 @@ def asset_status(request, asset_id):
         status = AssetStatus.objects.create(status=status_value, asset=asset, notes=notes)
         return JsonResponse(status.as_object())
 
-    return HttpResponseBadRequest()
+    return HttpResponseNotAllowed(['GET', 'POST'])

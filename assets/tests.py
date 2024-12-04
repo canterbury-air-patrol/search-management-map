@@ -34,13 +34,14 @@ class AssetsHelpers:
             owner = self.smm.user1
         return Asset.objects.create(name=name, asset_type=asset_type, owner=owner)
 
-    def get_my_asset_list(self, client=None):
+    def get_my_asset_list(self, client=None, all_assets=False):
         """
         Get the asset list this user owns
         """
         if client is None:
             client = self.smm.client1
-        return client.get('/assets/', HTTP_ACCEPT='application/json')
+        url = '/assets/?all=True' if all_assets else '/assets/'
+        return client.get(url, HTTP_ACCEPT='application/json')
 
 
 class AssetTestCase(TestCase):
@@ -60,8 +61,6 @@ class AssetTestCase(TestCase):
         """
         Add an asset to a mission
         """
-        if asset is None:
-            asset = self.assets.create_asset()
         if mission is None:
             mission = self.mission
         MissionAsset(mission=mission, asset=asset, creator=self.smm.user1).save()
@@ -88,12 +87,6 @@ class AssetTestCase(TestCase):
         """
         Queue a search for a specific asset
         """
-        if client is None:
-            client = self.smm.client1
-        if asset is None:
-            asset = self.assets.create_asset()
-        if search_id is None:
-            search_id = self.create_search(asset=asset, client=client)
         response = client.post(f'/search/{search_id}/queue/', {'asset': asset.pk})
         self.assertEqual(response.status_code, 200)
 
@@ -101,12 +94,6 @@ class AssetTestCase(TestCase):
         """
         Begin a search for a specific asset
         """
-        if client is None:
-            client = self.smm.client1
-        if asset is None:
-            asset = self.assets.create_asset()
-        if search_id is None:
-            search_id = self.create_search(asset=asset, client=client)
         response = client.post(f'/search/{search_id}/begin/', {'asset_id': asset.pk})
         self.assertEqual(response.status_code, 200)
 
@@ -114,9 +101,7 @@ class AssetTestCase(TestCase):
         """
         Check the result of getting the asset type API contains the expected asset type
         """
-        if client is None:
-            client = self.smm.client1
-        response = self.smm.client1.get('/assets/assettypes/', HTTP_ACCEPT='application/json')
+        response = client.get('/assets/assettypes/', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['asset_types'][0]['name'], at_name)
