@@ -2,15 +2,14 @@
 Tests for asset status
 """
 
-from django.test import TestCase
-
 from smm.tests import SMMTestUsers
 
-from .models import AssetStatus, AssetStatusValue
+from .models import AssetStatus
 from .tests import AssetsHelpers
+from .test_asset_status_value import AssetStatusValueBase
 
 
-class AssetStatusBase(TestCase):
+class AssetStatusBase(AssetStatusValueBase):
     """
     Base class for Asset Status tests
     """
@@ -28,26 +27,10 @@ class AssetStatusBase(TestCase):
         self.asset1 = self.assets.create_asset(name='asset1', asset_type=self.asset_type, owner=self.smm.user1)
         self.asset2 = self.assets.create_asset(name='asset2', asset_type=self.asset_type, owner=self.smm.user2)
 
-    def create_asset_status_value(self, name='test'):
-        """
-        Create an asset status
-        """
-        return AssetStatusValue.objects.create(name=name)
-
-    def get_asset_status_value(self, name='test'):
-        """
-        Get an existing asset by name
-        """
-        return AssetStatusValue.objects.get(name=name)
-
     def create_asset_status(self, asset=None, status=None):
         """
         Create an asset status
         """
-        if asset is None:
-            asset = self.asset1
-        if status is None:
-            status = self.status_value1
         return AssetStatus.objects.create(asset=asset, status=status)
 
 
@@ -127,8 +110,6 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         """
         if client is None:
             client = self.smm.client1
-        if asset is None:
-            asset = self.asset1
         return client.get(f'/assets/{asset.pk}/', HTTP_ACCEPT='application/json').json()
 
     def get_asset_status(self, client=None, asset=None):
@@ -137,8 +118,6 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         """
         if client is None:
             client = self.smm.client1
-        if asset is None:
-            asset = self.asset1
         return client.get(f'/assets/{asset.pk}/status/').json()
 
     def set_asset_status(self, client=None, asset=None, value=None, notes=None):
@@ -147,10 +126,6 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         """
         if client is None:
             client = self.smm.client1
-        if asset is None:
-            asset = self.asset1
-        if value is None:
-            value = self.status_value1
         data = {
             'value_id': value.pk
         }
@@ -266,3 +241,10 @@ class AssetStatusUrlTestCase(AssetStatusBase):
         self.assertEqual(self.set_asset_status(asset=self.asset2, value=self.status_value1).status_code, 403)
         json_data = self.get_asset_status(asset=self.asset2)
         self.assertEqual(json_data, {})
+
+    def test_0030_wrong_http_method_asset_status(self):
+        """
+        Check what happens when the wrong method is used to access the asset status
+        """
+        response = self.smm.client1.put(f'/assets/{self.asset1.pk}/status/', data={})
+        self.assertEqual(response.status_code, 405)

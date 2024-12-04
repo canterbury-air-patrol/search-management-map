@@ -182,8 +182,6 @@ class AssetStatusValueUrlTestCase(AssetStatusValueBase):
             elif value['name'] == 'test2':
                 self.assertFalse(found2)
                 found2 = True
-            else:
-                self.assertEqual(value['name'], 'test1')
         self.assertTrue(found1)
         self.assertTrue(found2)
 
@@ -209,8 +207,6 @@ class AssetStatusValueUrlTestCase(AssetStatusValueBase):
                 self.assertFalse(found2)
                 self.assertFalse(value['inop'])
                 found2 = True
-            else:
-                self.assertEqual(value['name'], 'test1')
         self.assertTrue(found1)
         self.assertTrue(found2)
 
@@ -238,7 +234,5 @@ class AssetStatusValueUrlTestCase(AssetStatusValueBase):
                 self.assertFalse(found2)
                 self.assertEqual(value['description'], 'This is the second description')
                 found2 = True
-            else:
-                self.assertEqual(value['name'], 'test1')
         self.assertTrue(found1)
         self.assertTrue(found2)

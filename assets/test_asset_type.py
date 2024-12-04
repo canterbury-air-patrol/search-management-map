@@ -69,6 +69,10 @@ class AssetTypeTestCase(TestCase):
             self.assertTrue('id' in asset_type)
             self.assertTrue('name' in asset_type)
             self.assertTrue(asset_type['name'] in ('flying-wing', 'boat'))
+        # Check the html is presented when not asking for json
+        response = client.get('/assets/assettypes/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, text='<!DOCTYPE html>')
         # Check this requires authentication
         client.logout()
         response = client.get('/assets/assettypes/')

@@ -80,3 +80,7 @@ class AssetTestCase(TestCase):
         self.assertEqual('FX-79-1', data['assets'][0]['name'])
         self.assertEqual('wing', data['assets'][0]['type_name'])
         self.assertEqual(self.smm.user2.username, data['assets'][0]['owner'])
+        # check the default request returns html
+        response = self.smm.client2.get('/assets/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, text='<!DOCTYPE html>')

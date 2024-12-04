@@ -433,3 +433,18 @@ class SearchTestCase(TestCase):
         # Check we get the search we expected based on this location
         self.assertEqual(data['object_url'], f'/search/{search2_obj.pk}/')
         self.assertEqual(data['distance'], 0)
+
+    def test_1010_check_invalid_closest_queries(self):
+        """
+        Test that invalid queries for find closest get a failure
+        """
+        poi1 = self.create_poi(-43.5, 172.5)
+        self.searches.create_expanding_box_search(poi1, 200, 2, self.asset_type1, first_bearing=90).as_object()
+        response = self.searches.find_closest(-43.5, 172.5, self.asset1, client=self.smm.client2)
+        self.assertEqual(response.status_code, 403)
+        response = self.smm.client1.put('/search/find/closest/', data={
+            'latitude': -43.5,
+            'longitude': 172.5,
+            'asset_id': self.asset1.pk,
+        })
+        self.assertEqual(response.status_code, 405)

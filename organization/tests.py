@@ -292,6 +292,29 @@ class OrganizationTestCase(TestCase):
         response = org2.add_asset(asset2, client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
 
+    def check_asset_count(self, client, all_assets, expected):
+        """
+        Check how many assets a client is seeing
+        """
+        asset_list = self.assets.get_my_asset_list(client=client, all_assets=all_assets).json()['assets']
+        self.assertEqual(len(asset_list), expected)
+
+    def test_organization_assets_list(self):
+        """
+        Check that adding an asset to an organization influences the assets a user can see
+        """
+        self.check_asset_count(self.smm.client2, False, 0)
+        org = self.orgs.create_organization(organization_name='org', client=self.smm.client1)
+        asset_type = self.assets.create_asset_type()
+        asset = self.assets.create_asset(asset_type=asset_type, owner=self.smm.user1)
+        org.add_asset(asset)
+        self.check_asset_count(self.smm.client2, False, 0)
+        org.add_user(self.smm.user2)
+        self.check_asset_count(self.smm.client2, False, 0)
+        org.add_user(self.smm.user2, role='R')
+        self.check_asset_count(self.smm.client2, False, 0)
+        self.check_asset_count(self.smm.client2, True, 1)
+
     def test_organization_details(self):
         """
         Check the organization details (page)
