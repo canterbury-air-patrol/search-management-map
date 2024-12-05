@@ -339,24 +339,31 @@ class MissionUserView(View):
     """
     Show and adjust the permissions of a user in the mission
     """
-    def as_json(self, mission_user, user):
+    def as_json(self, target_mission_user):
         """
         Mission User details, in json
         """
-        target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
         return JsonResponse(target_mission_user.as_json())
 
     def get(self, request, mission_user, user):
         """
         Display the details of this user in this mission
         """
+        target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
-            return self.as_json(mission_user, user)
+            return self.as_json(target_mission_user)
         data = {
             'current_user': mission_user,
-            'target_user': get_object_or_404(MissionUser, mission=mission_user.mission, user=user),
+            'target_user': target_mission_user,
         }
         return render(request, 'mission_user_details.html', data)
+
+    def _update_user_permissions(self, mission_user, target_mission_user, permission_type, value):
+        """
+        Set the permission (permission_type) on the mission user
+        """
+        setattr(target_mission_user, f"permissions_{permission_type}", value)
+        timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, permission_type, value)
 
     def post(self, request, mission_user, user):
         """
@@ -373,14 +380,11 @@ class MissionUserView(View):
         if admin is not None or add_organization is not None or add_user is not None:
             target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
             if admin is not None:
-                target_mission_user.permissions_admin = admin.lower() == "true"
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'admin', target_mission_user.permissions_admin)
+                self._update_user_permissions(mission_user, target_mission_user, 'admin', admin.lower() == "true")
             if add_organization is not None:
-                target_mission_user.permissions_organization_add = add_organization.lower() == "true"
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add organization', target_mission_user.permissions_organization_add)
+                self._update_user_permissions(mission_user, target_mission_user, 'organization_add', add_organization.lower() == "true")
             if add_user is not None:
-                target_mission_user.permissions_user_add = add_user.lower() == "true"
-                timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, 'add user', target_mission_user.permissions_user_add)
+                self._update_user_permissions(mission_user, target_mission_user, 'user_add', add_user.lower() == "true")
             target_mission_user.save()
         return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
