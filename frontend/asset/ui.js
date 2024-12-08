@@ -1,6 +1,6 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
-import { Table, Button, ButtonGroup } from 'react-bootstrap'
+import { Table, Button } from 'react-bootstrap'
 
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -261,18 +261,18 @@ class AssetDetails extends React.Component {
       return (
         <tr key="current_search">
           <td>Current Search</td>
+          <td>({details.current_search_id})</td>
           <td>
-            ({details.current_search_id})
-            <ButtonGroup>
-              <Button href={`/search/${details.current_search_id}/`}>Details</Button>
-              <Button
-                onClick={function () {
-                  $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
-                }}
-              >
-                Mark as Completed
-              </Button>
-            </ButtonGroup>
+            <Button href={`/search/${details.current_search_id}/`}>Details</Button>
+          </td>
+          <td>
+            <Button
+              onClick={function () {
+                $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
+              }}
+            >
+              Mark as Completed
+            </Button>
           </td>
         </tr>
       )
@@ -283,45 +283,46 @@ class AssetDetails extends React.Component {
           <td>
             <b>None</b>
           </td>
+          <td></td>
+          <td></td>
         </tr>
       )
     }
   }
 
   queuedSearchRow(details) {
+    const data = [<td key="title">Queued Search</td>, <td key="id">{details.queued_search_id}</td>]
     if (Number.isInteger(details.queued_search_id)) {
-      const buttons = [
-        <Button key="details" href={`/search/${details.queued_search_id}/`}>
-          Details
-        </Button>
-      ]
-      if (!Number.isInteger(details.current_search_id)) {
-        buttons.push(
-          <Button
-            key="begin"
-            onClick={function () {
-              $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
-            }}
-          >
-            Begin Search
-          </Button>
-        )
-      }
-      return (
-        <tr key="queued_search">
-          <td>Queued Search</td>
-          <td>
-            ({details.queued_search_id})<ButtonGroup>{buttons}</ButtonGroup>
-          </td>
-        </tr>
+      data.push(
+        <td key="details">
+          <Button href={`/search/${details.queued_search_id}/`}>Details</Button>
+        </td>
       )
+      if (!Number.isInteger(details.current_search_id)) {
+        data.push(
+          <td key="begin">
+            <Button
+              onClick={function () {
+                $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
+              }}
+            >
+              Begin Search
+            </Button>
+          </td>
+        )
+      } else {
+        data.push(<td key="no_begin"></td>)
+      }
+      return <tr key={`queued_search_${details.queued_search_id}`}>{data}</tr>
     } else {
       return (
-        <tr key="queued_search">
+        <tr key="queued_search_none">
           <td>Queued Search</td>
           <td>
             <b>None</b>
           </td>
+          <td></td>
+          <td></td>
         </tr>
       )
     }
@@ -329,29 +330,12 @@ class AssetDetails extends React.Component {
 
   render() {
     const details = this.props.details
-    const rows = [
-      <tr key="asset_name">
-        <td>Asset</td>
-        <td>{details.name}</td>
-      </tr>,
-      <tr key="asset_type">
-        <td>Type</td>
-        <td>{details.asset_type}</td>
-      </tr>,
-      <tr key="asset_owner">
-        <td>Owner</td>
-        <td>{details.owner}</td>
-      </tr>
-    ]
+    const rows = []
     if (details.status) {
       rows.push(
         <tr key="status_name">
           <td>Status:</td>
           <td>{details.status.status}</td>
-        </tr>
-      )
-      rows.push(
-        <tr key="status_since">
           <td>Since:</td>
           <td>{details.status.since === undefined ? '' : new Date(details.status.since).toLocaleString()}</td>
         </tr>
@@ -359,7 +343,7 @@ class AssetDetails extends React.Component {
       rows.push(
         <tr key="status_notes">
           <td>Status Notes:</td>
-          <td>{details.status.notes}</td>
+          <td colSpan={3}>{details.status.notes}</td>
         </tr>
       )
     }
@@ -368,8 +352,12 @@ class AssetDetails extends React.Component {
       rows.push(
         <tr key="current_mission">
           <td>Current Mission</td>
+          <td>{details.mission_name}</td>
           <td>
-            {details.mission_name} <Button href={`/mission/${details.mission_id}/details/`}>Details</Button>
+            <Button href={`/mission/${details.mission_id}/details/`}>Details</Button>
+          </td>
+          <td>
+            <Button href={`/mission/${details.mission_id}/map/`}>Map</Button>
           </td>
         </tr>
       )
@@ -382,6 +370,8 @@ class AssetDetails extends React.Component {
           <td>
             <b>None</b>
           </td>
+          <td></td>
+          <td></td>
         </tr>
       )
     }
