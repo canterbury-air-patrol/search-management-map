@@ -23,7 +23,7 @@ class RadioOperatorAsset extends AssetUI {
         <thead>
           <tr>
             <td colSpan={2} align="center" style={{ fontWeight: 'bold' }} className="bg-info">
-              {this.state.details.name}
+              {this.state.details.name} ({this.state.details.asset_type})
             </td>
           </tr>
         </thead>
