@@ -172,76 +172,72 @@ class AssetCommandView extends React.Component {
     if (this.props.lastCommand.response !== undefined) {
       if (this.props.lastCommand.response.set !== null) {
         responseData.push(
-          <tr key="response_type">
-            <td>Response:</td>
-            <td>{this.props.lastCommand.response.type}</td>
-          </tr>
-        )
-        responseData.push(
-          <tr key="response_at">
-            <td>At:</td>
-            <td>{new Date(this.props.lastCommand.response.set).toLocaleString()}</td>
-          </tr>
-        )
-        responseData.push(
-          <tr key="response_by">
-            <td>By:</td>
-            <td>{this.props.lastCommand.response.by}</td>
+          <tr key="response">
+            <td>
+              <i>{this.props.lastCommand.response.type}</i>
+            </td>
+            <td>At: {new Date(this.props.lastCommand.response.set).toLocaleString()}</td>
+            <td>By: {this.props.lastCommand.response.by}</td>
           </tr>
         )
         responseData.push(
           <tr key="message">
             <td>Message:</td>
-            <td>{this.props.lastCommand.response.message}</td>
+            <td colSpan={2}>{this.props.lastCommand.response.message}</td>
           </tr>
         )
       } else {
         responseData.push(
-          <tr key="response_form_type">
-            <td>Type:</td>
+          <tr key="response_form">
             <td>
+              Response:
+              <br />
               <select onChange={this.updateSelectedType} defaultValue={this.state.type}>
                 <option value="Accepted">Accept</option>
                 <option value="More Info">More Info</option>
                 <option value="Unable">Unable</option>
               </select>
             </td>
-          </tr>
-        )
-        responseData.push(
-          <tr key="response_form_message">
-            <td colSpan={2}>
-              <textarea onChange={this.updateMessage}></textarea>
+            <td>
+              Message:
+              <br /> <input type="text" onChange={this.updateMessage}></input>
             </td>
-          </tr>
-        )
-        responseData.push(
-          <tr key="response_buttons">
-            <td colSpan={2}>
+            <td>
               <Button onClick={this.submitResponse}>Respond</Button>
             </td>
           </tr>
         )
       }
     }
+    const gotoRow = []
+    if (this.props.lastCommand.latitude || this.props.lastCommand.longitude) {
+      gotoRow.push(
+        <tr key="goto_pos">
+          <td>
+            <b>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, true) : ''}</b>
+          </td>
+          <td>
+            <b>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, false) : ''}</b>
+          </td>
+          <td></td>
+        </tr>
+      )
+    }
+
     return (
       <Table responsive>
         <thead>
           <tr>
-            <td>Issued:</td>
-            <td>{this.props.lastCommand.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
+            <td>
+              <b>{this.props.lastCommand.action_txt}</b>
+            </td>
+            <td>Issued: {this.props.lastCommand.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
+            <td>By: {this.props.lastCommand.issued_by}</td>
           </tr>
+          {gotoRow}
           <tr>
-            <td>Instruction Type:</td>
-            <td>{this.props.lastCommand.action_txt}</td>
-          </tr>
-          <tr>
-            <td>Reason/Details:</td>
-            <td>{this.props.lastCommand.reason}</td>
-          </tr>
-          <tr>
-            <td>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, true) : ''}</td>
-            <td>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, false) : ''}</td>
+            <td>Message:</td>
+            <td colSpan={2}>{this.props.lastCommand.reason}</td>
           </tr>
           {responseData}
         </thead>
