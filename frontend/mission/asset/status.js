@@ -173,7 +173,7 @@ class MissionAssetStatus extends React.Component {
             </tr>
             <tr>
               <td>Since</td>
-              <td>{this.state.statusData.since}</td>
+              <td>{this.state.statusData.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
             </tr>
             <tr>
               <td>Notes</td>
