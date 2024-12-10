@@ -8,7 +8,7 @@ import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
-import { AssetCommandView, AssetDetails, AssetUI } from '../asset/ui'
+import { AssetCommandView, AssetMissionDetails, AssetUI } from '../asset/ui'
 import { MissionAssetStatus } from '../mission/asset/status'
 import { SMMOrganizationTopBar } from '../menu/topbar'
 
@@ -30,7 +30,7 @@ class RadioOperatorAsset extends AssetUI {
         <tbody>
           <tr>
             <td>
-              <AssetDetails details={this.state.details} />
+              <AssetMissionDetails details={this.state.details} />
             </td>
             <td>
               <AssetCommandView asset={this.props.asset} lastCommand={this.state.lastCommand} csrftoken={this.props.csrftoken} />
