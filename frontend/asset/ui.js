@@ -251,7 +251,7 @@ AssetCommandView.propTypes = {
   csrftoken: PropTypes.string.isRequired
 }
 
-class AssetDetails extends React.Component {
+class AssetMissionDetails extends React.Component {
   currentSearchRow(details) {
     if (Number.isInteger(details.current_search_id)) {
       return (
@@ -327,22 +327,6 @@ class AssetDetails extends React.Component {
   render() {
     const details = this.props.details
     const rows = []
-    if (details.status) {
-      rows.push(
-        <tr key="status_name">
-          <td>Status:</td>
-          <td>{details.status.status}</td>
-          <td>Since:</td>
-          <td>{details.status.since === undefined ? '' : new Date(details.status.since).toLocaleString()}</td>
-        </tr>
-      )
-      rows.push(
-        <tr key="status_notes">
-          <td>Status Notes:</td>
-          <td colSpan={3}>{details.status.notes}</td>
-        </tr>
-      )
-    }
 
     if (Number.isInteger(details.mission_id)) {
       rows.push(
@@ -379,11 +363,11 @@ class AssetDetails extends React.Component {
     )
   }
 }
-AssetDetails.propTypes = {
+AssetMissionDetails.propTypes = {
   details: PropTypes.object.isRequired
 }
 
-class AssetStatusSet extends React.Component {
+class AssetStatus extends React.Component {
   constructor(props) {
     super(props)
 
@@ -461,6 +445,25 @@ class AssetStatusSet extends React.Component {
   }
 
   render() {
+    const details = this.props.details
+
+    const rows = []
+    if (details.status) {
+      rows.push(
+        <tr key="status_name">
+          <td>Status:</td>
+          <td>{details.status.status}</td>
+          <td>Since:</td>
+          <td>{details.status.since === undefined ? '' : new Date(details.status.since).toLocaleString()}</td>
+        </tr>
+      )
+      rows.push(
+        <tr key="status_notes">
+          <td>Status Notes:</td>
+          <td colSpan={3}>{details.status.notes}</td>
+        </tr>
+      )
+    }
     const statusValues = this.state.statusValues.map((v) => (
       <option key={v.id} value={v.id}>
         {v.name}
@@ -469,33 +472,34 @@ class AssetStatusSet extends React.Component {
     return (
       <Table responsive>
         <thead>
+          {rows}
           <tr>
             <td>Status:</td>
-            <td>Notes:</td>
-          </tr>
-          <tr>
             <td>
               <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
                 {statusValues}
               </select>
             </td>
+            <td>
+              <Button onClick={this.setStatus}>Set Status</Button>
+            </td>
+          </tr>
+          <tr>
+            <td>Notes:</td>
             <td colSpan={2}>
               <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
             </td>
           </tr>
-          <tr>
-            <td colSpan={3}>
-              <Button onClick={this.setStatus}>Set Status</Button>
-            </td>
-          </tr>
+          <tr></tr>
         </thead>
       </Table>
     )
   }
 }
-AssetStatusSet.propTypes = {
+AssetStatus.propTypes = {
   asset: PropTypes.string.isRequired,
-  csrftoken: PropTypes.string.isRequired
+  csrftoken: PropTypes.string.isRequired,
+  details: PropTypes.object.isRequired
 }
 
 class AssetUI extends React.Component {
@@ -552,11 +556,11 @@ class AssetUI extends React.Component {
         <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
           {this.state.details.name}
         </div>
-        <AssetDetails details={this.state.details} />
+        <AssetMissionDetails details={this.state.details} />
         <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} csrftoken={this.props.csrftoken} />
         {missionStatus}
         <AssetTrackAs asset={this.props.asset} />
-        <AssetStatusSet asset={this.props.asset} csrftoken={this.props.csrftoken} />
+        <AssetStatus asset={this.props.asset} csrftoken={this.props.csrftoken} details={this.state.details} />
       </div>
     )
   }
@@ -581,4 +585,4 @@ function createAssetUI(elementId, assetId) {
 
 globalThis.createAssetUI = createAssetUI
 
-export { AssetCommandView, AssetDetails, AssetUI }
+export { AssetCommandView, AssetMissionDetails, AssetUI }
