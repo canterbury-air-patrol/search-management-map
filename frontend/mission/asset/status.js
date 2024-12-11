@@ -93,29 +93,20 @@ class MissionAssetStatusForm extends React.Component {
       </option>
     ))
     return (
-      <Table>
-        <thead>
-          <tr>
-            <td>Mission Status:</td>
-            <td>Notes:</td>
-          </tr>
-          <tr>
-            <td>
-              <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
-                {statusValues}
-              </select>
-            </td>
-            <td colSpan={2}>
-              <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
-            </td>
-          </tr>
-          <tr>
-            <td colSpan={3}>
-              <Button onClick={this.setStatus}>Set Status</Button>
-            </td>
-          </tr>
-        </thead>
-      </Table>
+      <tr>
+        <td>
+          <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
+            {statusValues}
+          </select>
+        </td>
+        <td></td>
+        <td>
+          <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
+        </td>
+        <td>
+          <Button onClick={this.setStatus}>Set Status</Button>
+        </td>
+      </tr>
     )
   }
 }
@@ -165,23 +156,21 @@ class MissionAssetStatus extends React.Component {
           <thead>
             <tr>
               <td>Mission Status</td>
-              <td>{this.state.statusData.status}</td>
-            </tr>
-            <tr>
               <td>Description</td>
-              <td>{this.state.statusData.status_description}</td>
-            </tr>
-            <tr>
-              <td>Since</td>
-              <td>{this.state.statusData.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
-            </tr>
-            <tr>
               <td>Notes</td>
-              <td>{this.state.statusData.notes}</td>
+              <td>Since</td>
             </tr>
           </thead>
+          <tbody>
+            <tr>
+              <td>{this.state.statusData.status}</td>
+              <td>{this.state.statusData.status_description}</td>
+              <td>{this.state.statusData.notes}</td>
+              <td>{this.state.statusData.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
+            </tr>
+            <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} csrftoken={this.props.csrftoken} />
+          </tbody>
         </Table>
-        <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} csrftoken={this.props.csrftoken} />
       </div>
     )
   }
