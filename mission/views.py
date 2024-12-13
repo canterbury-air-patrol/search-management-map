@@ -273,9 +273,9 @@ class MissionOrganizationView(View):
             with transaction.atomic():
                 mission_organization = get_object_or_404(MissionOrganization, mission=mission_user.mission, organization=organization)
                 if add_organization is not None:
-                    self._set_organization_permissions(mission_user, mission_organization, 'add_organization', add_organization.lower() == "true")
+                    self._set_organization_permissions(mission_user, mission_organization, 'organization_add', add_organization.lower() == "true")
                 if add_user is not None:
-                    self._set_organization_permissions(mission_user, mission_organization, 'add_user', add_user.lower() == "true")
+                    self._set_organization_permissions(mission_user, mission_organization, 'user_add', add_user.lower() == "true")
                 mission_organization.save()
         return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
 
