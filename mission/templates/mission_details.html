@@ -51,7 +51,7 @@
         </table>
 
 {% if can_add_organizations %}
-        <form action="/mission/{{ mission.pk }}/organizations/add/" method="POST">
+        <form action="/mission/{{ mission.pk }}/organizations/" method="POST">
 {% csrf_token %}
             <table class="table">
                 <tr>
