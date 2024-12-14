@@ -108,7 +108,15 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/mission/{self.mission_pk}/organizations/add/', data={'organization': organization.org_id}, follow=True)
+        return client.post(f'/mission/{self.mission_pk}/organizations/', data={'organization': organization.org_id}, follow=True)
+
+    def get_organizations(self, client=None):
+        """
+        Get the list of organizations in this mission
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.get(f'/mission/{self.mission_pk}/organizations/', HTTP_ACCEPT='application/json')
 
 
 class MissionFunctions:

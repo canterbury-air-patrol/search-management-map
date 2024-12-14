@@ -238,7 +238,7 @@ class MissionOrganization(models.Model):
         """
         return {
             'mission': self.mission.pk,
-            'organization': self.organization,
+            'organization': self.organization.as_object(),
             'creator': str(self.creator),
             'added': self.added,
             'permissions': {

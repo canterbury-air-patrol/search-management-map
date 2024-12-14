@@ -19,7 +19,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
     """
     Test Mission and Organization integration
     """
-    def test_mission_organization_list(self):
+    def test_user_mission_organization_list(self):
         """
         Check that users in organizations can see one copy of the mission in the list
         """
@@ -38,7 +38,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list = self.missions.get_mission_list()
         self.assertEqual(len(mission_list), 1)
 
-    def test_mission_organization_list_for_other(self):
+    def test_user_mission_organization_list_for_other(self):
         """
         Check that users can see missions because they are a member of an organization added to the mission
         """
@@ -60,7 +60,7 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 1)
 
-    def test_mission_organization_deleted_user(self):
+    def test_user_mission_organization_deleted_user(self):
         """
         Check that a user removed from an organization no longer sees missions that organization is a member of
         """
@@ -84,3 +84,23 @@ class MissionOrganizationsTestCase(MissionOrganizationBaseTestCase):
         org1.remove_user(self.smm.user2, client=self.smm.client1)
         mission_list = self.missions.get_mission_list(client=self.smm.client2)
         self.assertEqual(len(mission_list), 0)
+
+    def test_mission_organization_list(self):
+        """
+        Check that organization(s) added to the mission appear in the organization list
+        """
+        org1 = self.orgs.create_organization('org1')
+        org2 = self.orgs.create_organization('org2')
+        mission = self.missions.create_mission('test_org_list')
+        # check the initial organization list
+        mission_org_list = mission.get_organizations().json()
+        self.assertEqual(len(mission_org_list['organizations']), 0)
+        # check an organization appears in the list
+        mission.add_organization(org1)
+        mission_org_list = mission.get_organizations().json()
+        self.assertEqual(len(mission_org_list['organizations']), 1)
+        self.assertEqual(mission_org_list['organizations'][0]['organization']['id'], org1.org_id)
+        # check all organizations appears in the list
+        mission.add_organization(org2)
+        mission_org_list = mission.get_organizations().json()
+        self.assertEqual(len(mission_org_list['organizations']), 2)

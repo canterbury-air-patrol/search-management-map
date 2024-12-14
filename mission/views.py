@@ -195,31 +195,53 @@ class MissionTimelineView(View):
         return HttpResponse("Failed")
 
 
-@login_required
-@mission_can_add_organization
-def mission_organization_add(request, mission_user):
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+@method_decorator(mission_can_add_organization, name="post")
+class MissionOrganizationsView(View):
     """
-    Add an Organization to a Mission
+    Show and add organizations to the mission
     """
-    form = None
-    if request.method == 'POST':
-        form = MissionOrganizationForm(request.POST)
-        if form.is_valid():
-            # Check if this organization is already in this mission
-            try:
-                MissionOrganization.objects.get(organization=form.cleaned_data['organization'], mission=mission_user.mission)
-                return HttpResponseForbidden("Organization is already in this Mission")
-            except ObjectDoesNotExist:
-                # Create the new mission<->organization
-                mission_user = MissionOrganization(mission=mission_user.mission, organization=form.cleaned_data['organization'], creator=request.user)
-                mission_user.save()
-                timeline_record_mission_organization_add(mission_user.mission, request.user, form.cleaned_data['organization'])
-                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+    def as_json(self, mission) -> JsonResponse:
+        """
+        Mission Organizations as json
+        """
+        mission_orgs = [mo.as_json() for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)]
+        return JsonResponse(data={
+            'organizations': mission_orgs
+        })
 
-    if form is None:
-        form = MissionUserForm()
+    def get(self, request, mission_user):
+        """
+        Get a list of the organizations in this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_user.mission)
+        return render(request, 'mission_organizations_list.html')
 
-    return render(request, 'mission_user_add.html', {'form': form})
+    def post(self, request, mission_user):
+        """
+        Add an organization to this mission
+        """
+        form = None
+        if request.method == 'POST':
+            form = MissionOrganizationForm(request.POST)
+            if form.is_valid():
+                # Check if this organization is already in this mission
+                try:
+                    MissionOrganization.objects.get(organization=form.cleaned_data['organization'], mission=mission_user.mission)
+                    return HttpResponseForbidden("Organization is already in this Mission")
+                except ObjectDoesNotExist:
+                    # Create the new mission<->organization
+                    mission_user = MissionOrganization(mission=mission_user.mission, organization=form.cleaned_data['organization'], creator=request.user)
+                    mission_user.save()
+                    timeline_record_mission_organization_add(mission_user.mission, request.user, form.cleaned_data['organization'])
+                    return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+
+        if form is None:
+            form = MissionUserForm()
+
+        return render(request, 'mission_user_add.html', {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")
