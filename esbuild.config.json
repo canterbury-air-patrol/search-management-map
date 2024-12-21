@@ -3,7 +3,7 @@
         "frontend/map.js",
         "frontend/marinesac.js",
         "frontend/marinevectors.js",
-        "frontend/pretty.js",
+        "frontend/pretty.tsx",
         "frontend/asset/ui.js",
         "frontend/asset/list.js",
         "frontend/asset/type_list.js",
