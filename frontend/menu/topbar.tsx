@@ -1,5 +1,4 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import 'bootstrap'
@@ -7,10 +6,10 @@ import 'bootstrap/dist/css/bootstrap.css'
 
 import { Nav, Navbar, NavbarBrand } from 'react-bootstrap'
 
-class SMMTopBar extends React.Component {
+class SMMTopBar extends React.Component<object, never> {
   render() {
     return (
-      <Navbar expand="lg" bg="secondary" data-bs-theme="dark" collapseOnSelect fixed={top}>
+      <Navbar expand="lg" bg="secondary" data-bs-theme="dark" collapseOnSelect>
         <NavbarBrand href="https://github.com/canterbury-air-patrol/search-management-map/">Search Management Map</NavbarBrand>
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
@@ -25,7 +24,11 @@ class SMMTopBar extends React.Component {
   }
 }
 
-class SMMMissionTopBar extends React.Component {
+interface SMMMissionTopBarProps {
+  missionId: number
+}
+
+class SMMMissionTopBar extends React.Component<SMMMissionTopBarProps, never> {
   render() {
     return (
       <Navbar bg="secondary" data-bs-theme="dark">
@@ -40,18 +43,25 @@ class SMMMissionTopBar extends React.Component {
     )
   }
 }
-SMMMissionTopBar.propTypes = {
-  missionId: PropTypes.number.isRequired
-}
 
-function createSMMMissionTopBar(elementId, missionId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createSMMMissionTopBar(elementId: string, missionId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   div.render(<SMMMissionTopBar missionId={missionId} />)
 }
 
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createSMMMissionTopBar = createSMMMissionTopBar
 
-class SMMOrganizationTopBar extends React.Component {
+interface SMMOrganizationTopBarProps {
+  organizationId: number
+  showRadioOperator: boolean
+}
+
+class SMMOrganizationTopBar extends React.Component<SMMOrganizationTopBarProps, never> {
+  constructor(props: SMMOrganizationTopBarProps) {
+    super(props)
+  }
+
   render() {
     const links = [
       <Nav.Link href="/organization/" key="orgList">
@@ -75,16 +85,13 @@ class SMMOrganizationTopBar extends React.Component {
     )
   }
 }
-SMMOrganizationTopBar.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  showRadioOperator: PropTypes.bool
+
+function createSMMOrganizationTopBar(elementId: string, organizationId: number, showRadioOperator: boolean) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
+  div.render(<SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={showRadioOperator} />)
 }
 
-function createSMMOrganizationTopBar(elementId, organizationId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<SMMMissionTopBar organizationId={organizationId} />)
-}
-
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createSMMOrganizationTopBar = createSMMOrganizationTopBar
 
 export { SMMTopBar, SMMMissionTopBar, SMMOrganizationTopBar }

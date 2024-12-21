@@ -17,7 +17,7 @@
         "frontend/organization/list.js",
         "frontend/organization/details.js",
         "frontend/organization/radio-operator.js",
-        "frontend/menu/topbar.js"
+        "frontend/menu/topbar.tsx"
     ],
     "bundle": true,
     "minify": true,
