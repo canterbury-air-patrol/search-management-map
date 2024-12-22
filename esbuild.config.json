@@ -15,7 +15,7 @@
         "frontend/search/details.js",
         "frontend/usergeo/details.js",
         "frontend/organization/list.tsx",
-        "frontend/organization/details.js",
+        "frontend/organization/details.tsx",
         "frontend/organization/radio-operator.js",
         "frontend/menu/topbar.tsx"
     ],
