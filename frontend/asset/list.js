@@ -90,7 +90,7 @@ class AssetListPage extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   async updateData() {
