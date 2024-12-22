@@ -3,16 +3,22 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
 import { SMMTopBar } from '../menu/topbar'
 
-class AssetListRow extends React.Component {
+import { AssetData } from './types'
+
+interface AssetListRowProps {
+  asset: AssetData
+  showButtons: boolean
+}
+
+class AssetListRow extends React.Component<AssetListRowProps, never> {
   render() {
-    const asset = this.props.asset
+    const { asset } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{asset.name}</td>)
     dataFields.push(<td key="type">{asset.type_name}</td>)
@@ -34,12 +40,12 @@ class AssetListRow extends React.Component {
     return <tr key={asset.id}>{dataFields}</tr>
   }
 }
-AssetListRow.propTypes = {
-  asset: PropTypes.object.isRequired,
-  showButtons: PropTypes.bool.isRequired
+
+interface AssetListProps {
+  assets: AssetData[]
 }
 
-class AssetList extends React.Component {
+class AssetList extends React.Component<AssetListProps, never> {
   render() {
     const assetRows = []
     for (const assetIdx in this.props.assets) {
@@ -67,12 +73,15 @@ class AssetList extends React.Component {
     )
   }
 }
-AssetList.propTypes = {
-  assets: PropTypes.array.isRequired
+
+interface AssetListPageState {
+  knownAssets: AssetData[]
 }
 
-class AssetListPage extends React.Component {
-  constructor(props) {
+class AssetListPage extends React.Component<object, AssetListPageState> {
+  timer?: number
+
+  constructor(props: object) {
     super(props)
 
     this.state = {
@@ -97,7 +106,7 @@ class AssetListPage extends React.Component {
     await $.getJSON('/assets/', this.updateAssets)
   }
 
-  updateAssets(data) {
+  updateAssets(data: { assets: AssetData[] }) {
     this.setState(function () {
       return {
         knownAssets: data.assets
@@ -114,8 +123,8 @@ class AssetListPage extends React.Component {
   }
 }
 
-function createAssetList(elementId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createAssetList(elementId: string) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   div.render(
     <>
       <SMMTopBar />
@@ -124,4 +133,5 @@ function createAssetList(elementId) {
   )
 }
 
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createAssetList = createAssetList
