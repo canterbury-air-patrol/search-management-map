@@ -3,32 +3,38 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
 import { SMMTopBar } from '../menu/topbar'
 
-class AssetTypeListRow extends React.Component {
+import { AssetTypeData } from './types'
+
+interface AssetTypeListRowProps {
+  assetType: AssetTypeData
+}
+
+class AssetTypeListRow extends React.Component<AssetTypeListRowProps, never> {
   render() {
-    const assetType = this.props.assetType
+    const { assetType } = this.props
     const dataFields = []
     dataFields.push(<td key="type">{assetType.name}</td>)
 
     return <tr key={assetType.id}>{dataFields}</tr>
   }
 }
-AssetTypeListRow.propTypes = {
-  assetType: PropTypes.object.isRequired
+
+interface AssetTypeListProps {
+  assetTypes: AssetTypeData[]
 }
 
-class AssetTypeList extends React.Component {
+class AssetTypeList extends React.Component<AssetTypeListProps, never> {
   render() {
     const assetTypeRows = []
     for (const assetIdx in this.props.assetTypes) {
       const assetType = this.props.assetTypes[assetIdx]
-      assetTypeRows.push(<AssetTypeListRow key={assetType.id} showButtons={true} assetType={assetType} />)
+      assetTypeRows.push(<AssetTypeListRow key={assetType.id} assetType={assetType} />)
     }
     return (
       <Table responsive>
@@ -47,12 +53,15 @@ class AssetTypeList extends React.Component {
     )
   }
 }
-AssetTypeList.propTypes = {
-  assetTypes: PropTypes.array.isRequired
+
+interface AssetTypeListPageState {
+  knownAssetTypes: AssetTypeData[]
 }
 
-class AssetTypeListPage extends React.Component {
-  constructor(props) {
+class AssetTypeListPage extends React.Component<object, AssetTypeListPageState> {
+  timer?: number
+
+  constructor(props: object) {
     super(props)
 
     this.state = {
@@ -77,7 +86,7 @@ class AssetTypeListPage extends React.Component {
     await $.getJSON('/assets/assettypes/', this.updateAssetTypes)
   }
 
-  updateAssetTypes(data) {
+  updateAssetTypes(data: { asset_types: AssetTypeData[] }) {
     this.setState(function () {
       return {
         knownAssetTypes: data.asset_types
@@ -94,8 +103,8 @@ class AssetTypeListPage extends React.Component {
   }
 }
 
-function createAssetTypeList(elementId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createAssetTypeList(elementId: string) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   div.render(
     <>
       <SMMTopBar />
@@ -104,4 +113,5 @@ function createAssetTypeList(elementId) {
   )
 }
 
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createAssetTypeList = createAssetTypeList
