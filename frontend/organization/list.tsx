@@ -3,15 +3,28 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 import { SMMTopBar } from '../menu/topbar'
+import { OrganizationData } from './types'
 
-class OrganizationListRow extends React.Component {
+interface OrganizationListRowProps {
+  organization: OrganizationData
+  showButtons: boolean
+}
+
+class OrganizationListRow extends React.Component<OrganizationListRowProps, never> {
+  constructor(props: OrganizationListRowProps) {
+    super(props)
+
+    this.delete_organization = this.delete_organization.bind(this)
+  }
+
+  delete_organization() {}
+
   render() {
-    const organization = this.props.organization
+    const { organization } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{organization.name}</td>)
     dataFields.push(<td key="created">{new Date(organization.created).toLocaleString()}</td>)
@@ -49,18 +62,17 @@ class OrganizationListRow extends React.Component {
     return <tr key={organization.id}>{dataFields}</tr>
   }
 }
-OrganizationListRow.propTypes = {
-  organization: PropTypes.object.isRequired,
-  showButtons: PropTypes.bool
+
+interface OrganizationListProps {
+  organizations: OrganizationData[]
+  showButtons: boolean
 }
 
-class OrganizationList extends React.Component {
+class OrganizationList extends React.Component<OrganizationListProps, never> {
   render() {
-    const organizationRows = []
-    for (const organizationIdx in this.props.organizations) {
-      const organization = this.props.organizations[organizationIdx]
-      organizationRows.push(<OrganizationListRow key={organization.id} organization={organization} showButtons />)
-    }
+    const organizationRows = this.props.organizations.map((organization) => (
+      <OrganizationListRow key={organization.id} organization={organization} showButtons={this.props.showButtons} />
+    ))
     return (
       <Table responsive>
         <thead>
@@ -82,12 +94,17 @@ class OrganizationList extends React.Component {
     )
   }
 }
-OrganizationList.propTypes = {
-  organizations: PropTypes.array.isRequired
+
+interface OrganizationAddProps {
+  csrftoken: string
 }
 
-class OrganizationAdd extends React.Component {
-  constructor(props) {
+interface OrganizationAddState {
+  organizationName: string
+}
+
+class OrganizationAdd extends React.Component<OrganizationAddProps, OrganizationAddState> {
+  constructor(props: OrganizationAddProps) {
     super(props)
 
     this.state = {
@@ -99,9 +116,8 @@ class OrganizationAdd extends React.Component {
     this.createOrgCallback = this.createOrgCallback.bind(this)
   }
 
-  updateOrganizationName(event) {
-    const target = event.target
-    const value = target.value
+  updateOrganizationName(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
 
     this.setState({ organizationName: value })
   }
@@ -137,12 +153,18 @@ class OrganizationAdd extends React.Component {
     )
   }
 }
-OrganizationAdd.propTypes = {
-  csrftoken: PropTypes.string.isRequired
+
+interface OrganizationListPageProps {
+  csrftoken: string
 }
 
-class OrganizationListPage extends React.Component {
-  constructor(props) {
+interface OrganizationListPageState {
+  knownOrganizations: OrganizationData[]
+}
+
+class OrganizationListPage extends React.Component<OrganizationListPageProps, OrganizationListPageState> {
+  timer?: number
+  constructor(props: OrganizationListPageProps) {
     super(props)
 
     this.state = {
@@ -163,7 +185,7 @@ class OrganizationListPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { organizations: OrganizationData[] }) {
     this.setState(function () {
       return {
         knownOrganizations: data.organizations
@@ -184,23 +206,21 @@ class OrganizationListPage extends React.Component {
     )
   }
 }
-OrganizationListPage.propTypes = {
-  csrftoken: PropTypes.string.isRequired
-}
 
-function createOrganizationList(elementId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createOrganizationList(elementId: string) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMTopBar />
-      <OrganizationListPage csrftoken={csrftoken} />
+      <OrganizationListPage csrftoken={csrftoken as string} />
     </>
   )
 }
 
 export { OrganizationListRow }
 
+// @ts-expect-error: globalThis is not defined
 globalThis.createOrganizationList = createOrganizationList
