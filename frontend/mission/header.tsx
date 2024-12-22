@@ -1,11 +1,15 @@
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 
 import { MissionListRow } from './list'
+import { MissionData } from './types'
 
-class MissionHeader extends React.Component {
+interface MissionHeaderProps {
+  mission: MissionData
+}
+
+class MissionHeader extends React.Component<MissionHeaderProps, never> {
   render() {
     return (
       <Table responsive>
@@ -24,9 +28,6 @@ class MissionHeader extends React.Component {
       </Table>
     )
   }
-}
-MissionHeader.propTypes = {
-  mission: PropTypes.object.isRequired
 }
 
 export { MissionHeader }
