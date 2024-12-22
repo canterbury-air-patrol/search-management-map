@@ -1,10 +1,22 @@
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 
-class SMMObjectDetails extends React.Component {
-  renderCreatedDeletedReplaced(tableRows, data) {
+interface SMMObjectData {
+  created_at: string
+  created_by: string
+  deleted_at?: string
+  deleted_by?: string
+  replaced_at?: string
+  replaced_by?: string
+}
+
+interface SMMObjectDetailsProps {
+  data: SMMObjectData
+}
+
+class SMMObjectDetails extends React.Component<SMMObjectDetailsProps, never> {
+  renderCreatedDeletedReplaced(tableRows: React.JSX.Element[], data: SMMObjectData) {
     tableRows.push(
       <tr key="created_at">
         <td>Created:</td>
@@ -17,7 +29,7 @@ class SMMObjectDetails extends React.Component {
         <td>{data.created_by}</td>
       </tr>
     )
-    if (data.deleted_at !== null) {
+    if (data.deleted_at) {
       tableRows.push(
         <tr key="deleted_at">
           <td>Deleted:</td>
@@ -47,11 +59,12 @@ class SMMObjectDetails extends React.Component {
     }
   }
 
-  renderModelSpecificData() {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMObjectData) {}
 
   render() {
     const data = this.props.data
-    const tableRows = []
+    const tableRows: React.JSX.Element[] = []
 
     this.renderCreatedDeletedReplaced(tableRows, data)
     this.renderModelSpecificData(tableRows, data)
@@ -63,8 +76,5 @@ class SMMObjectDetails extends React.Component {
     )
   }
 }
-SMMObjectDetails.propTypes = {
-  data: PropTypes.object.isRequired
-}
 
-export { SMMObjectDetails }
+export { SMMObjectDetails, SMMObjectData }
