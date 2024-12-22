@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
@@ -11,8 +10,24 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
 
-class AssetTrackAs extends React.Component {
-  constructor(props) {
+import { AssetCommandData, AssetFullStatusData, AssetStatusValueData } from './types'
+
+interface AssetTrackAsProps {
+  asset: number
+}
+
+interface AssetTrackAsState {
+  latitude: number
+  longitude: number
+  altitude: number | null
+  tracking: boolean
+}
+
+class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState> {
+  watchID: number
+  errorMsg: string
+
+  constructor(props: AssetTrackAsProps) {
     super(props)
 
     this.state = {
@@ -31,10 +46,8 @@ class AssetTrackAs extends React.Component {
     this.positionErrorHandler = this.positionErrorHandler.bind(this)
   }
 
-  positionUpdate(position) {
-    const latitude = position.coords.latitude
-    const longitude = position.coords.longitude
-    const altitude = position.coords.altitude
+  positionUpdate(position: GeolocationPosition) {
+    const { latitude, longitude, altitude } = position.coords
     const newHeading = position.coords.heading
 
     const data = {
@@ -55,7 +68,7 @@ class AssetTrackAs extends React.Component {
     }
   }
 
-  positionErrorHandler(error) {
+  positionErrorHandler(error: GeolocationPositionError) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
         this.errorMsg = 'No permision given to access location'
@@ -114,24 +127,32 @@ class AssetTrackAs extends React.Component {
             <td>{this.state.altitude}</td>
           </tr>
           <tr>
-            <td colSpan="3">
+            <td colSpan={3}>
               <Button onClick={this.state.tracking ? this.disableTracking : this.enableTracking}>{this.state.tracking ? 'Disable Tracking' : 'Enable Tracking'}</Button>
             </td>
           </tr>
           <tr>
-            <td colSpan="3">{this.errorMsg}</td>
+            <td colSpan={3}>{this.errorMsg}</td>
           </tr>
         </tbody>
       </Table>
     )
   }
 }
-AssetTrackAs.propTypes = {
-  asset: PropTypes.string.isRequired
+
+interface AssetCommandViewProps {
+  asset: number
+  lastCommand?: AssetCommandData
+  csrftoken: string
 }
 
-class AssetCommandView extends React.Component {
-  constructor(props) {
+interface AssetCommandViewState {
+  message: string
+  type: string
+}
+
+class AssetCommandView extends React.Component<AssetCommandViewProps, AssetCommandViewState> {
+  constructor(props: AssetCommandViewProps) {
     super(props)
 
     this.state = {
@@ -144,39 +165,39 @@ class AssetCommandView extends React.Component {
     this.submitResponse = this.submitResponse.bind(this)
   }
 
-  updateSelectedType(event) {
-    const target = event.target
-    const value = target.value
+  updateSelectedType(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { value } = event.target
 
     this.setState({ type: value })
   }
 
-  updateMessage(event) {
-    const target = event.target
-    const value = target.value
+  updateMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const { value } = event.target
 
     this.setState({ message: value })
   }
 
   submitResponse() {
-    $.post(`/assets/${this.props.asset}/command/`, {
-      command_id: this.props.lastCommand.id,
-      message: this.state.message,
-      type: this.state.type,
-      csrfmiddlewaretoken: this.props.csrftoken
-    })
+    if (this.props.lastCommand !== undefined) {
+      $.post(`/assets/${this.props.asset}/command/`, {
+        command_id: this.props.lastCommand.id,
+        message: this.state.message,
+        type: this.state.type,
+        csrfmiddlewaretoken: this.props.csrftoken
+      })
+    }
   }
 
   render() {
     const responseData = []
-    if (this.props.lastCommand.response !== undefined) {
+    if (this.props.lastCommand?.response !== undefined) {
       if (this.props.lastCommand.response.set !== null) {
         responseData.push(
           <tr key="response">
             <td>
               <i>{this.props.lastCommand.response.type}</i>
             </td>
-            <td>At: {new Date(this.props.lastCommand.response.set).toLocaleString()}</td>
+            <td>At: {this.props.lastCommand.response.set !== undefined ? new Date(this.props.lastCommand.response.set).toLocaleString() : ''}</td>
             <td>By: {this.props.lastCommand.response.by}</td>
           </tr>
         )
@@ -210,7 +231,7 @@ class AssetCommandView extends React.Component {
       }
     }
     const gotoRow = []
-    if (this.props.lastCommand.latitude || this.props.lastCommand.longitude) {
+    if (this.props.lastCommand?.latitude || this.props.lastCommand?.longitude) {
       gotoRow.push(
         <tr key="goto_pos">
           <td>
@@ -229,15 +250,15 @@ class AssetCommandView extends React.Component {
         <thead>
           <tr>
             <td>
-              <b>{this.props.lastCommand.action_txt}</b>
+              <b>{this.props.lastCommand?.action_txt}</b>
             </td>
-            <td>Issued: {this.props.lastCommand.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
-            <td>By: {this.props.lastCommand.issued_by}</td>
+            <td>Issued: {this.props.lastCommand?.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
+            <td>By: {this.props.lastCommand?.issued_by}</td>
           </tr>
           {gotoRow}
           <tr>
             <td>Message:</td>
-            <td colSpan={2}>{this.props.lastCommand.reason}</td>
+            <td colSpan={2}>{this.props.lastCommand?.reason}</td>
           </tr>
           {responseData}
         </thead>
@@ -245,14 +266,13 @@ class AssetCommandView extends React.Component {
     )
   }
 }
-AssetCommandView.propTypes = {
-  lastCommand: PropTypes.object.isRequired,
-  asset: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface AssetMissionDetailsProps {
+  details?: AssetFullStatusData
 }
 
-class AssetMissionDetails extends React.Component {
-  currentSearchRow(details) {
+class AssetMissionDetails extends React.Component<AssetMissionDetailsProps, never> {
+  currentSearchRow(details: AssetFullStatusData) {
     if (Number.isInteger(details.current_search_id)) {
       return (
         <tr key="current_search">
@@ -286,15 +306,15 @@ class AssetMissionDetails extends React.Component {
     }
   }
 
-  queuedSearchRow(details) {
-    const data = [<td key="title">Queued Search</td>, <td key="id">{details.queued_search_id}</td>]
-    if (Number.isInteger(details.queued_search_id)) {
+  queuedSearchRow(details?: AssetFullStatusData) {
+    const data = [<td key="title">Queued Search</td>, <td key="id">{details?.queued_search_id}</td>]
+    if (details?.queued_search_id) {
       data.push(
         <td key="details">
           <Button href={`/search/${details.queued_search_id}/`}>Details</Button>
         </td>
       )
-      if (!Number.isInteger(details.current_search_id)) {
+      if (details.current_search_id === undefined) {
         data.push(
           <td key="begin">
             <Button
@@ -325,10 +345,10 @@ class AssetMissionDetails extends React.Component {
   }
 
   render() {
-    const details = this.props.details
+    const { details } = this.props
     const rows = []
 
-    if (Number.isInteger(details.mission_id)) {
+    if (details?.mission_id) {
       rows.push(
         <tr key="current_mission">
           <td>Current Mission</td>
@@ -363,17 +383,28 @@ class AssetMissionDetails extends React.Component {
     )
   }
 }
-AssetMissionDetails.propTypes = {
-  details: PropTypes.object.isRequired
+
+interface AssetStatusProps {
+  asset: number
+  csrftoken: string
+  details?: AssetFullStatusData
 }
 
-class AssetStatus extends React.Component {
-  constructor(props) {
+interface AssetStatusState {
+  statusValues: AssetStatusValueData[]
+  selectedValueId?: number
+  notes?: string
+}
+
+class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
+  timer?: number
+
+  constructor(props: AssetStatusProps) {
     super(props)
 
     this.state = {
       statusValues: [],
-      selectedValueId: null,
+      selectedValueId: undefined,
       notes: ''
     }
 
@@ -395,9 +426,9 @@ class AssetStatus extends React.Component {
     this.timer = undefined
   }
 
-  updateStatusValuesResponse(data) {
+  updateStatusValuesResponse(data: { values: AssetStatusValueData[] }) {
     this.setState(function (oldState) {
-      const newState = {
+      const newState: AssetStatusState = {
         statusValues: data.values
       }
       if (oldState.selectedValueId === null && data.values.length > 0) {
@@ -411,24 +442,22 @@ class AssetStatus extends React.Component {
     await $.get('/assets/status/values/', this.updateStatusValuesResponse)
   }
 
-  updateSelectedStateValue(event) {
-    const target = event.target
-    const value = target.value
+  updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { value } = event.target
 
-    this.setState({ selectedValueId: value })
+    this.setState({ selectedValueId: Number(value) })
   }
 
-  updateNotes(event) {
-    const target = event.target
-    const value = target.value
+  updateNotes(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    const { value } = event.target
 
-    this.setState({ notesText: value })
+    this.setState({ notes: value })
   }
 
   resetForm() {
     this.setState({
-      selectedValueId: null,
-      notesText: ''
+      selectedValueId: undefined,
+      notes: ''
     })
   }
 
@@ -437,7 +466,7 @@ class AssetStatus extends React.Component {
       `/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,
-        notes: this.state.notesText,
+        notes: this.state.notes,
         csrfmiddlewaretoken: this.props.csrftoken
       },
       this.resetForm
@@ -448,7 +477,7 @@ class AssetStatus extends React.Component {
     const details = this.props.details
 
     const rows = []
-    if (details.status) {
+    if (details?.status) {
       rows.push(
         <tr key="status_name">
           <td>Status:</td>
@@ -487,7 +516,7 @@ class AssetStatus extends React.Component {
           <tr>
             <td>Notes:</td>
             <td colSpan={2}>
-              <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
+              <textarea onChange={this.updateNotes} value={this.state.notes}></textarea>
             </td>
           </tr>
           <tr></tr>
@@ -496,27 +525,31 @@ class AssetStatus extends React.Component {
     )
   }
 }
-AssetStatus.propTypes = {
-  asset: PropTypes.string.isRequired,
-  csrftoken: PropTypes.string.isRequired,
-  details: PropTypes.object.isRequired
+
+interface AssetUIProps {
+  asset: number
+  csrftoken: string
 }
 
-class AssetUI extends React.Component {
-  constructor(props) {
+interface AssetUIState {
+  lastCommand?: AssetCommandData
+  details?: AssetFullStatusData
+}
+
+class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
+  timer?: number
+  constructor(props: AssetUIProps) {
     super(props)
 
     this.state = {
-      lastCommand: {},
-      details: {
-        name: props.asset
-      }
+      lastCommand: undefined,
+      details: undefined
     }
 
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
-  currentCommand(data) {
+  currentCommand(data: AssetCommandData) {
     this.setState({
       lastCommand: data
     })
@@ -533,11 +566,11 @@ class AssetUI extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: AssetFullStatusData) {
     this.setState({
       details: data
     })
-    if ('last_command' in data) {
+    if (data.last_command) {
       this.currentCommand(data.last_command)
     }
   }
@@ -548,13 +581,13 @@ class AssetUI extends React.Component {
 
   render() {
     let missionStatus
-    if (Number.isInteger(this.state.details.mission_id)) {
+    if (this.state.details?.mission_id !== undefined) {
       missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
     }
     return (
       <div>
         <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
-          {this.state.details.name}
+          {this.state.details?.name}
         </div>
         <AssetMissionDetails details={this.state.details} />
         <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} csrftoken={this.props.csrftoken} />
@@ -565,24 +598,21 @@ class AssetUI extends React.Component {
     )
   }
 }
-AssetUI.propTypes = {
-  asset: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
-}
 
-function createAssetUI(elementId, assetId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createAssetUI(elementId: string, assetId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMTopBar />
-      <AssetUI asset={assetId} csrftoken={csrftoken} />
+      <AssetUI asset={assetId} csrftoken={csrftoken as string} />
     </>
   )
 }
 
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createAssetUI = createAssetUI
 
 export { AssetCommandView, AssetMissionDetails, AssetUI }

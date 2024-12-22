@@ -15,7 +15,7 @@ import { SMMOrganizationTopBar } from '../menu/topbar'
 class RadioOperatorAsset extends AssetUI {
   render() {
     let missionStatus
-    if (Number.isInteger(this.state.details.mission_id)) {
+    if (this.state.details && this.state.details.mission_id) {
       missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
     }
     return (
@@ -23,7 +23,7 @@ class RadioOperatorAsset extends AssetUI {
         <thead>
           <tr>
             <td colSpan={2} align="center" style={{ fontWeight: 'bold' }} className="bg-info">
-              {this.state.details.name} ({this.state.details.asset_type})
+              {this.state.details?.name} ({this.state.details?.asset_type})
             </td>
           </tr>
         </thead>
