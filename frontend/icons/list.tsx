@@ -3,16 +3,25 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
 import { SMMTopBar } from '../menu/topbar'
 
-class IconListRow extends React.Component {
+interface IconData {
+  id: number
+  name: string
+  url: string
+}
+
+interface IconListRowProps {
+  icon: IconData
+}
+
+class IconListRow extends React.Component<IconListRowProps, never> {
   render() {
-    const icon = this.props.icon
+    const { icon } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{icon.name}</td>)
     dataFields.push(
@@ -24,17 +33,14 @@ class IconListRow extends React.Component {
     return <tr key={icon.id}>{dataFields}</tr>
   }
 }
-IconListRow.propTypes = {
-  icon: PropTypes.object.isRequired
+
+interface IconListProps {
+  icons: IconData[]
 }
 
-class IconList extends React.Component {
+class IconList extends React.Component<IconListProps, never> {
   render() {
-    const iconRows = []
-    for (const iconIdx in this.props.icons) {
-      const icon = this.props.icons[iconIdx]
-      iconRows.push(<IconListRow key={icon.id} icon={icon} />)
-    }
+    const iconRows = this.props.icons.map((icon) => <IconListRow key={icon.id} icon={icon} />)
     return (
       <Table responsive>
         <thead>
@@ -53,12 +59,14 @@ class IconList extends React.Component {
     )
   }
 }
-IconList.propTypes = {
-  icons: PropTypes.array.isRequired
+
+interface IconListPageState {
+  knownIcons?: IconData[]
 }
 
-class IconListPage extends React.Component {
-  constructor(props) {
+class IconListPage extends React.Component<object, IconListPageState> {
+  timer?: number
+  constructor(props: object) {
     super(props)
 
     this.state = {
@@ -83,7 +91,7 @@ class IconListPage extends React.Component {
     await $.getJSON('/icons/', this.updateIcons)
   }
 
-  updateIcons(data) {
+  updateIcons(data: { icons: IconData[] }) {
     this.setState(function () {
       return {
         knownIcons: data.icons
@@ -92,16 +100,19 @@ class IconListPage extends React.Component {
   }
 
   render() {
-    return (
-      <div>
-        <IconList icons={this.state.knownIcons} />
-      </div>
-    )
+    if (this.state.knownIcons) {
+      return (
+        <div>
+          <IconList icons={this.state.knownIcons} />
+        </div>
+      )
+    }
+    return <div></div>
   }
 }
 
-function createIconList(elementId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createIconList(elementId: string) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   div.render(
     <>
       <SMMTopBar />
@@ -110,4 +121,5 @@ function createIconList(elementId) {
   )
 }
 
+// @ts-expect-error: globalTime has no definition
 globalThis.createIconList = createIconList
