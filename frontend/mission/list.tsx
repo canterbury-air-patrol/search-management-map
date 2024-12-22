@@ -3,15 +3,21 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 import { SMMTopBar } from '../menu/topbar'
+import { MissionData } from './types'
 
-class MissionListRow extends React.Component {
+interface MissionListRowProps {
+  mission: MissionData
+  showClosed: boolean
+  showButtons: boolean
+}
+
+class MissionListRow extends React.Component<MissionListRowProps, never> {
   render() {
-    const mission = this.props.mission
+    const { mission } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{mission.name}</td>)
     dataFields.push(<td key="opened">{new Date(mission.started).toLocaleString()}</td>)
@@ -50,19 +56,14 @@ class MissionListRow extends React.Component {
     return <tr key={mission.id}>{dataFields}</tr>
   }
 }
-MissionListRow.propTypes = {
-  mission: PropTypes.object.isRequired,
-  showButtons: PropTypes.bool.isRequired,
-  showClosed: PropTypes.bool.isRequired
+
+interface ActiveMissionListProps {
+  missions: MissionData[]
 }
 
-class ActiveMissionList extends React.Component {
+class ActiveMissionList extends React.Component<ActiveMissionListProps, never> {
   render() {
-    const missionRows = []
-    for (const missionIdx in this.props.missions) {
-      const mission = this.props.missions[missionIdx]
-      missionRows.push(<MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} />)
-    }
+    const missionRows = this.props.missions.map((mission) => <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} />)
     return (
       <Table responsive>
         <thead>
@@ -83,9 +84,6 @@ class ActiveMissionList extends React.Component {
     )
   }
 }
-ActiveMissionList.propTypes = {
-  missions: PropTypes.array.isRequired
-}
 
 class GeneralMissionButtons extends React.Component {
   render() {
@@ -99,13 +97,13 @@ class GeneralMissionButtons extends React.Component {
   }
 }
 
-class CompletedMissionList extends React.Component {
+interface CompletedMissionListProps {
+  missions: MissionData[]
+}
+
+class CompletedMissionList extends React.Component<CompletedMissionListProps, never> {
   render() {
-    const missionRows = []
-    for (const missionIdx in this.props.missions) {
-      const mission = this.props.missions[missionIdx]
-      missionRows.push(<MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={true} />)
-    }
+    const missionRows = this.props.missions.map((mission) => <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={true} />)
     return (
       <Table responsive>
         <thead>
@@ -128,12 +126,16 @@ class CompletedMissionList extends React.Component {
     )
   }
 }
-CompletedMissionList.propTypes = {
-  missions: PropTypes.array.isRequired
+
+interface MissionListPageState {
+  knownActiveMissions: MissionData[]
+  knownCompletedMissions: MissionData[]
 }
 
-class MissionListPage extends React.Component {
-  constructor(props) {
+class MissionListPage extends React.Component<object, MissionListPageState> {
+  timer?: number
+
+  constructor(props: object) {
     super(props)
 
     this.state = {
@@ -154,7 +156,7 @@ class MissionListPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { missions: MissionData[] }) {
     this.updateMissions(data.missions)
   }
 
@@ -162,7 +164,7 @@ class MissionListPage extends React.Component {
     await $.get('/mission/list/', this.updateDataResponse)
   }
 
-  updateMissions(missions) {
+  updateMissions(missions: MissionData[]) {
     const activeMissions = missions.filter((mission) => !mission.closed)
     const completeMissions = missions.filter((mission) => mission.closed)
     this.setState(function () {
@@ -184,8 +186,8 @@ class MissionListPage extends React.Component {
   }
 }
 
-function createMissionList(elementId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createMissionList(elementId: string) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   div.render(
     <>
       <SMMTopBar />
@@ -196,4 +198,5 @@ function createMissionList(elementId) {
 
 export { MissionListRow, MissionListPage }
 
+// @ts-expect-error: globalThis doesn't have a definition
 globalThis.createMissionList = createMissionList
