@@ -3,16 +3,28 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 
 import { OrganizationListRow } from './list'
 import { SMMOrganizationTopBar } from '../menu/topbar'
+import { OrganizationAssetData, OrganizationData, OrganizationMemberData } from './types'
+import { AssetData } from '../asset/types'
 
-class OrganizationMemberRow extends React.Component {
-  constructor(props) {
+interface OrganizationMemberRowProps {
+  csrftoken: string
+  organizationId: number
+  organization_member: OrganizationMemberData
+  showButtons: boolean
+}
+
+interface OrganizationMemberRowState {
+  selectedRole?: string
+}
+
+class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, OrganizationMemberRowState> {
+  constructor(props: OrganizationMemberRowProps) {
     super(props)
     this.delete = this.delete.bind(this)
     this.updateSelectedRole = this.updateSelectedRole.bind(this)
@@ -20,7 +32,7 @@ class OrganizationMemberRow extends React.Component {
     this.setXHR = this.setXHR.bind(this)
   }
 
-  setXHR(xhr) {
+  setXHR(xhr: JQuery.jqXHR) {
     xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
   }
 
@@ -33,9 +45,8 @@ class OrganizationMemberRow extends React.Component {
     })
   }
 
-  updateSelectedRole(event) {
-    const target = event.target
-    const value = target.value
+  updateSelectedRole(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { value } = event.target
 
     this.setState({ selectedRole: value })
   }
@@ -61,7 +72,7 @@ class OrganizationMemberRow extends React.Component {
   }
 
   saveChanges() {
-    const user = this.props.organization_member.user
+    const { user } = this.props.organization_member
     $.post(`/organization/${this.props.organizationId}/user/${user}/`, { csrfmiddlewaretoken: this.props.csrftoken, role: this.state.selectedRole }, function () {})
   }
 
@@ -95,14 +106,13 @@ class OrganizationMemberRow extends React.Component {
     return <tr key={organizationMember.id}>{dataFields}</tr>
   }
 }
-OrganizationMemberRow.propTypes = {
-  organization_member: PropTypes.object.isRequired,
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string,
-  showButtons: PropTypes.bool
+
+interface OrganizationAssetRowProps {
+  organization_asset: OrganizationAssetData
+  showButtons: boolean
 }
 
-class OrganizationAssetRow extends React.Component {
+class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, never> {
   render() {
     const organizationAsset = this.props.organization_asset
     const dataFields = []
@@ -128,26 +138,25 @@ class OrganizationAssetRow extends React.Component {
     return <tr key={organizationAsset.id}>{dataFields}</tr>
   }
 }
-OrganizationAssetRow.propTypes = {
-  organization_asset: PropTypes.object.isRequired,
-  showButtons: PropTypes.bool
+
+interface OrganizationMemberListProps {
+  organizationId: number
+  organization_members?: OrganizationMemberData[]
+  csrftoken: string
+  showButtons: boolean
 }
 
-class OrganizationMemberList extends React.Component {
+class OrganizationMemberList extends React.Component<OrganizationMemberListProps, never> {
   render() {
-    const organizationMemberRows = []
-    for (const organizationMemberIdx in this.props.organization_members) {
-      const organizationMember = this.props.organization_members[organizationMemberIdx]
-      organizationMemberRows.push(
-        <OrganizationMemberRow
-          key={organizationMember.id}
-          organizationId={this.props.organizationId}
-          organization_member={organizationMember}
-          csrftoken={this.props.csrftoken}
-          showButtons={this.props.showButtons}
-        />
-      )
-    }
+    const organizationMemberRows = this.props.organization_members?.map((organizationMember) => (
+      <OrganizationMemberRow
+        key={organizationMember.id}
+        organizationId={this.props.organizationId}
+        organization_member={organizationMember}
+        csrftoken={this.props.csrftoken}
+        showButtons={this.props.showButtons}
+      />
+    ))
     return (
       <Table responsive>
         <thead>
@@ -168,20 +177,25 @@ class OrganizationMemberList extends React.Component {
     )
   }
 }
-OrganizationMemberList.propTypes = {
-  organization_members: PropTypes.array.isRequired,
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string,
-  showButtons: PropTypes.bool
+
+interface OrganizationMemberAddProps {
+  organizationId: number
+  csrftoken: string
 }
 
-class OrganizationMemberAdd extends React.Component {
-  constructor(props) {
+interface OrganizationMemberAddState {
+  userList: { id: number; username: string }[]
+  userId?: number
+}
+
+class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, OrganizationMemberAddState> {
+  timer?: number
+  constructor(props: OrganizationMemberAddProps) {
     super(props)
 
     this.state = {
       userList: [],
-      userId: null
+      userId: undefined
     }
 
     this.updateSelectedUser = this.updateSelectedUser.bind(this)
@@ -201,9 +215,9 @@ class OrganizationMemberAdd extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { users: { id: number; username: string }[] }) {
     this.setState(function (oldState) {
-      const newState = {
+      const newState: OrganizationMemberAddState = {
         userList: data.users
       }
       if (oldState.userId === null && data.users.length > 0) {
@@ -217,32 +231,27 @@ class OrganizationMemberAdd extends React.Component {
     await $.getJSON(`/organization/${this.props.organizationId}/users/notmember/`, this.updateDataResponse)
   }
 
-  updateSelectedUser(event) {
-    const target = event.target
-    const value = Number(target.value)
+  updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
+    const value = Number(event.target.value)
 
     this.setState({ userId: value })
   }
 
   addOrgMemberCallback() {
-    this.setState({ memberId: null })
+    this.setState({ userId: undefined })
   }
 
   addOrganizationMember() {
     const user = this.state.userList.find((user) => user.id === this.state.userId)
-    $.post(`/organization/${this.props.organizationId}/user/${user.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgMemberCallback)
+    $.post(`/organization/${this.props.organizationId}/user/${user?.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgMemberCallback)
   }
 
   render() {
-    const possibleMembers = []
-    for (const userIdx in this.state.userList) {
-      const user = this.state.userList[userIdx]
-      possibleMembers.push(
-        <option key={user.id} value={user.id}>
-          {user.username}
-        </option>
-      )
-    }
+    const possibleMembers = this.state.userList.map((user) => (
+      <option key={user.id} value={user.id}>
+        {user.username}
+      </option>
+    ))
     return (
       <Table responsive>
         <thead>
@@ -265,18 +274,16 @@ class OrganizationMemberAdd extends React.Component {
     )
   }
 }
-OrganizationMemberAdd.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface OrganizationAssetListProps {
+  organization_assets?: OrganizationAssetData[]
 }
 
-class OrganizationAssetList extends React.Component {
+class OrganizationAssetList extends React.Component<OrganizationAssetListProps, never> {
   render() {
-    const organizationAssetRows = []
-    for (const organizationAssetIdx in this.props.organization_assets) {
-      const organizationAsset = this.props.organization_assets[organizationAssetIdx]
-      organizationAssetRows.push(<OrganizationAssetRow key={organizationAsset.id} organization_asset={organizationAsset} showButtons />)
-    }
+    const organizationAssetRows = this.props.organization_assets?.map((organizationAsset) => (
+      <OrganizationAssetRow key={organizationAsset.id} organization_asset={organizationAsset} showButtons />
+    ))
     return (
       <Table responsive>
         <thead>
@@ -298,17 +305,26 @@ class OrganizationAssetList extends React.Component {
     )
   }
 }
-OrganizationAssetList.propTypes = {
-  organization_assets: PropTypes.array.isRequired
+
+interface OrganizationAssetAddProps {
+  organizationId: number
+  csrftoken: string
 }
 
-class OrganizationAssetAdd extends React.Component {
-  constructor(props) {
+interface OrganizationAssetAddState {
+  assetList: AssetData[]
+  assetId?: number
+}
+
+class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, OrganizationAssetAddState> {
+  timer?: number
+
+  constructor(props: OrganizationAssetAddProps) {
     super(props)
 
     this.state = {
       assetList: [],
-      assetId: null
+      assetId: undefined
     }
 
     this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
@@ -328,9 +344,9 @@ class OrganizationAssetAdd extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { assets: AssetData[] }) {
     this.setState(function (oldState) {
-      const newState = {
+      const newState: OrganizationAssetAddState = {
         assetList: data.assets
       }
       if (oldState.assetId === null && data.assets.length > 0) {
@@ -344,15 +360,14 @@ class OrganizationAssetAdd extends React.Component {
     await $.getJSON('/assets/', this.updateDataResponse)
   }
 
-  updateSelectedAsset(event) {
-    const target = event.target
-    const value = target.value
+  updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { value } = event.target
 
-    this.setState({ assetId: value })
+    this.setState({ assetId: Number(value) })
   }
 
   addOrgAssetCallback() {
-    this.setState({ assetId: null })
+    this.setState({ assetId: undefined })
   }
 
   addOrganizationAsset() {
@@ -360,15 +375,11 @@ class OrganizationAssetAdd extends React.Component {
   }
 
   render() {
-    const possibleAssets = []
-    for (const assetIdx in this.state.assetList) {
-      const asset = this.state.assetList[assetIdx]
-      possibleAssets.push(
-        <option key={asset.id} value={asset.id}>
-          {asset.name}
-        </option>
-      )
-    }
+    const possibleAssets = this.state.assetList.map((asset) => (
+      <option key={asset.id} value={asset.id}>
+        {asset.name}
+      </option>
+    ))
     return (
       <Table responsive>
         <thead>
@@ -391,19 +402,30 @@ class OrganizationAssetAdd extends React.Component {
     )
   }
 }
-OrganizationAssetAdd.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface OrganizationDetailsPageProps {
+  organizationId: number
+  csrftoken: string
+  updateRadioOperator: (show: boolean) => void
 }
 
-class OrganizationDetailsPage extends React.Component {
-  constructor(props) {
+interface OrganizationDetailsPageState {
+  organizationDetails: OrganizationData
+}
+
+class OrganizationDetailsPage extends React.Component<OrganizationDetailsPageProps, OrganizationDetailsPageState> {
+  timer?: number
+
+  constructor(props: OrganizationDetailsPageProps) {
     super(props)
 
     this.state = {
       organizationDetails: {
-        members: [],
-        assets: []
+        id: this.props.organizationId,
+        name: '',
+        created: '',
+        creator: '',
+        role: ''
       }
     }
 
@@ -421,7 +443,7 @@ class OrganizationDetailsPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: OrganizationData) {
     this.setState(function () {
       return {
         organizationDetails: data
@@ -464,20 +486,24 @@ class OrganizationDetailsPage extends React.Component {
     if (this.state.organizationDetails.role === 'Admin') {
       organizationSections.push(<OrganizationMemberAdd key="org_add_member" organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} />)
     }
-    organizationSections.push(<OrganizationAssetList key="org_assets" organization_assets={this.state.organizationDetails.assets} showButtons={true} />)
+    organizationSections.push(<OrganizationAssetList key="org_assets" organization_assets={this.state.organizationDetails.assets} />)
     organizationSections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} />)
 
     return <div>{organizationSections}</div>
   }
 }
-OrganizationDetailsPage.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired,
-  updateRadioOperator: PropTypes.func
+
+interface OrganizationPageProps {
+  organizationId: number
+  csrftoken: string
 }
 
-class OrganizationPage extends React.Component {
-  constructor(props) {
+interface OrganizationPageState {
+  isRadioOperator: boolean
+}
+
+class OrganizationPage extends React.Component<OrganizationPageProps, OrganizationPageState> {
+  constructor(props: OrganizationPageProps) {
     super(props)
     this.updateRadioOperator = this.updateRadioOperator.bind(this)
 
@@ -486,7 +512,7 @@ class OrganizationPage extends React.Component {
     }
   }
 
-  updateRadioOperator(radioOperator) {
+  updateRadioOperator(radioOperator: boolean) {
     this.setState({
       isRadioOperator: radioOperator
     })
@@ -501,17 +527,14 @@ class OrganizationPage extends React.Component {
     )
   }
 }
-OrganizationPage.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
-}
 
-function createOrganizationDetails(elementId, organizationId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createOrganizationDetails(elementId: string, organizationId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  div.render(<OrganizationPage organizationId={organizationId} csrftoken={csrftoken} />)
+  div.render(<OrganizationPage organizationId={organizationId} csrftoken={csrftoken as string} />)
 }
 
+// @ts-expect-error: globalThis has not definition
 globalThis.createOrganizationDetails = createOrganizationDetails
