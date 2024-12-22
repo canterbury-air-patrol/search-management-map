@@ -16,7 +16,7 @@
         "frontend/usergeo/details.js",
         "frontend/organization/list.tsx",
         "frontend/organization/details.tsx",
-        "frontend/organization/radio-operator.js",
+        "frontend/organization/radio-operator.tsx",
         "frontend/menu/topbar.tsx"
     ],
     "bundle": true,
