@@ -10,7 +10,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIconShadow from 'leaflet/dist/images/marker-shadow.png'
 import { MapContainer, Polyline, Polygon, Marker, TileLayer } from 'react-leaflet'
 
-import { mapCoordinates } from './geometry/details'
+import { coordinateToLatLng, mapCoordinates } from './geometry/details'
 
 import './geomap.css'
 
@@ -25,22 +25,27 @@ class GeoJsonMap extends React.Component {
 
   render() {
     const geometry = this.props.geometry
-    const coordinates = mapCoordinates(geometry.coordinates)
-    let firstPoint = [0, 0]
+    let firstPoint = { lat: 0, lng: 0 }
     const objects = []
 
     switch (geometry.type) {
       case 'LineString':
-        firstPoint = coordinates[0]
-        objects.push(<Polyline key="linestring" positions={coordinates} />)
+        {
+          const coordinates = mapCoordinates(geometry.coordinates)
+          firstPoint = coordinates[0]
+          objects.push(<Polyline key="linestring" positions={coordinates} />)
+        }
         break
       case 'Polygon':
-        firstPoint = coordinates[0][0]
-        objects.push(<Polygon key="polygon" positions={coordinates} />)
+        {
+          const coordinates = mapCoordinates(geometry.coordinates[0])
+          firstPoint = coordinates[0]
+          objects.push(<Polygon key="polygon" positions={coordinates} />)
+        }
         break
       case 'Point':
-        firstPoint = coordinates
-        objects.push(<Marker key="point" position={coordinates} />)
+        firstPoint = coordinateToLatLng(geometry.coordinates)
+        objects.push(<Marker key="point" position={firstPoint} />)
         break
       default:
         break
