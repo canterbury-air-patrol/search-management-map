@@ -6,7 +6,7 @@
         "frontend/pretty.tsx",
         "frontend/asset/ui.js",
         "frontend/asset/list.tsx",
-        "frontend/asset/type_list.js",
+        "frontend/asset/type_list.tsx",
         "frontend/icons/list.js",
         "frontend/mission/details.js",
         "frontend/mission/list.js",
