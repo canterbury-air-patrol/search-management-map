@@ -392,7 +392,7 @@ class AssetStatus extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   updateStatusValuesResponse(data) {
@@ -530,7 +530,7 @@ class AssetUI extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   updateDataResponse(data) {

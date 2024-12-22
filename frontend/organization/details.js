@@ -198,7 +198,7 @@ class OrganizationMemberAdd extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   updateDataResponse(data) {
@@ -325,7 +325,7 @@ class OrganizationAssetAdd extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   updateDataResponse(data) {
@@ -418,7 +418,7 @@ class OrganizationDetailsPage extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
   updateDataResponse(data) {
