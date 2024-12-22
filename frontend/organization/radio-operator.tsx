@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
@@ -11,6 +10,7 @@ import $ from 'jquery'
 import { AssetCommandView, AssetMissionDetails, AssetUI } from '../asset/ui'
 import { MissionAssetStatus } from '../mission/asset/status'
 import { SMMOrganizationTopBar } from '../menu/topbar'
+import { OrganizationAssetData } from './types'
 
 class RadioOperatorAsset extends AssetUI {
   render() {
@@ -42,13 +42,19 @@ class RadioOperatorAsset extends AssetUI {
     )
   }
 }
-RadioOperatorAsset.propTypes = {
-  asset: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface OrganizationRadioOperatorPageProps {
+  organizationId: number
+  csrftoken: string
 }
 
-class OrganizationRadioOperatorPage extends React.Component {
-  constructor(props) {
+interface OrganizationRadioOperatorPageState {
+  organizationAssets: OrganizationAssetData[]
+}
+
+class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOperatorPageProps, OrganizationRadioOperatorPageState> {
+  timer?: number
+  constructor(props: OrganizationRadioOperatorPageProps) {
     super(props)
 
     this.state = {
@@ -68,7 +74,7 @@ class OrganizationRadioOperatorPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { assets: OrganizationAssetData[] }) {
     this.setState(function () {
       return {
         organizationAssets: data.assets
@@ -81,30 +87,23 @@ class OrganizationRadioOperatorPage extends React.Component {
   }
 
   render() {
-    const assets = []
-    for (const assetId in this.state.organizationAssets) {
-      const asset = this.state.organizationAssets[assetId]
-      assets.push(<RadioOperatorAsset key={asset.id} asset={asset.asset.id} csrftoken={this.props.csrftoken} />)
-    }
+    const assets = this.state.organizationAssets.map((asset) => <RadioOperatorAsset key={asset.id} asset={asset.asset.id} csrftoken={this.props.csrftoken} />)
     return <Table responsive>{assets}</Table>
   }
 }
-OrganizationRadioOperatorPage.propTypes = {
-  organizationId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
-}
 
-function createRadioOperator(elementId, organizationId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createRadioOperator(elementId: string, organizationId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={true} />
-      <OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken} />
+      <OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken as string} />
     </>
   )
 }
 
+// @ts-expect-error: globalThis has no definition
 globalThis.createRadioOperator = createRadioOperator
