@@ -3,19 +3,44 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
 import { SMMTopBar } from '../../menu/topbar'
 
-class MissionAssetStatusForm extends React.Component {
-  constructor(props) {
+interface MissionAssetStatusValue {
+  id: number
+  name: string
+}
+
+interface MissionAssetStatusData {
+  status: string
+  status_description: string
+  notes: string
+  since: string
+}
+
+interface MissionAssetStatusFormProps {
+  asset: number
+  mission: number
+  csrftoken: string
+}
+
+interface MissionAssetStatusFormState {
+  statusValues: MissionAssetStatusValue[]
+  selectedValueId?: number
+  notes?: string
+}
+
+class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps, MissionAssetStatusFormState> {
+  timer?: number
+
+  constructor(props: MissionAssetStatusFormProps) {
     super(props)
 
     this.state = {
       statusValues: [],
-      selectedValueId: null,
+      selectedValueId: undefined,
       notes: ''
     }
 
@@ -34,12 +59,12 @@ class MissionAssetStatusForm extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
-  updateStatusValuesResponse(data) {
+  updateStatusValuesResponse(data: { values: MissionAssetStatusValue[] }) {
     this.setState(function (oldState) {
-      const newState = {
+      const newState: MissionAssetStatusFormState = {
         statusValues: data.values
       }
       if (oldState.selectedValueId === null && data.values.length > 0) {
@@ -53,24 +78,24 @@ class MissionAssetStatusForm extends React.Component {
     await $.getJSON('/mission/asset/status/values/', this.updateStatusValuesResponse)
   }
 
-  updateSelectedStateValue(event) {
-    const target = event.target
-    const value = target.value
+  updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { target } = event
+    const { value } = target
 
-    this.setState({ selectedValueId: value })
+    this.setState({ selectedValueId: Number(value) })
   }
 
-  updateNotes(event) {
-    const target = event.target
-    const value = target.value
+  updateNotes(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    const { target } = event
+    const { value } = target
 
-    this.setState({ notesText: value })
+    this.setState({ notes: value })
   }
 
   resetForm() {
     this.setState({
-      selectedValueId: null,
-      notesText: ''
+      selectedValueId: undefined,
+      notes: ''
     })
   }
 
@@ -79,7 +104,7 @@ class MissionAssetStatusForm extends React.Component {
       `/mission/${this.props.mission}/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,
-        notes: this.state.notesText,
+        notes: this.state.notes,
         csrfmiddlewaretoken: this.props.csrftoken
       },
       this.resetForm
@@ -101,7 +126,7 @@ class MissionAssetStatusForm extends React.Component {
         </td>
         <td></td>
         <td>
-          <textarea onChange={this.updateNotes} value={this.state.notesText}></textarea>
+          <textarea onChange={this.updateNotes} value={this.state.notes}></textarea>
         </td>
         <td>
           <Button onClick={this.setStatus}>Set Status</Button>
@@ -110,18 +135,25 @@ class MissionAssetStatusForm extends React.Component {
     )
   }
 }
-MissionAssetStatusForm.propTypes = {
-  asset: PropTypes.number.isRequired,
-  mission: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface MissionAssetStatusProps {
+  asset: number
+  mission: number
+  csrftoken: string
 }
 
-class MissionAssetStatus extends React.Component {
-  constructor(props) {
+interface MissionAssetStatusState {
+  statusData?: MissionAssetStatusData
+}
+
+class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, MissionAssetStatusState> {
+  timer?: number
+
+  constructor(props: MissionAssetStatusProps) {
     super(props)
 
     this.state = {
-      statusData: {}
+      statusData: undefined
     }
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
@@ -134,10 +166,10 @@ class MissionAssetStatus extends React.Component {
 
   componentWillUnmount() {
     clearInterval(this.timer)
-    this.timer = null
+    this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { status: MissionAssetStatusData }) {
     this.setState(function () {
       return {
         statusData: data.status
@@ -163,10 +195,10 @@ class MissionAssetStatus extends React.Component {
           </thead>
           <tbody>
             <tr>
-              <td>{this.state.statusData.status}</td>
-              <td>{this.state.statusData.status_description}</td>
-              <td>{this.state.statusData.notes}</td>
-              <td>{this.state.statusData.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
+              <td>{this.state.statusData?.status}</td>
+              <td>{this.state.statusData?.status_description}</td>
+              <td>{this.state.statusData?.notes}</td>
+              <td>{this.state.statusData?.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
             </tr>
             <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} csrftoken={this.props.csrftoken} />
           </tbody>
@@ -175,25 +207,21 @@ class MissionAssetStatus extends React.Component {
     )
   }
 }
-MissionAssetStatus.propTypes = {
-  asset: PropTypes.number.isRequired,
-  mission: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
-}
 
-function createMissionAssetStatus(elementId, asset, mission) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createMissionAssetStatus(elementId: string, asset: number, mission: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMTopBar />
-      <MissionAssetStatus asset={asset} mission={mission} csrftoken={csrftoken} />
+      <MissionAssetStatus asset={asset} mission={mission} csrftoken={csrftoken as string} />
     </>
   )
 }
 
 export { MissionAssetStatus }
 
+// @ts-expect-error: globalThis doesn't have a define
 globalThis.createMissionAssetStatus = createMissionAssetStatus
