@@ -2,7 +2,6 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 import Collapsible from 'react-collapsible'
 import { Button } from 'react-bootstrap'
@@ -15,8 +14,24 @@ import { GeoJsonMap } from '../geomap'
 import { ExpandingBoxSearch, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
 import { SearchRunner } from '@canterbury-air-patrol/sar-search-runner'
 
+interface SMMSearchObjectDetails {
+  search_type: string
+  created_for: string
+  created_at: string
+  created_by: string
+  datum: number
+  inprogress_by?: string
+  inprogress_at?: string
+  queued_at?: string
+  queued_for?: string
+  sweep_width: number
+  iterations?: number
+  first_bearing?: number
+  width?: number
+}
+
 class SearchDetails extends SMMObjectDetails {
-  renderModelSpecificData(tableRows, data) {
+  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMSearchObjectDetails) {
     tableRows.push(
       <tr key="search_type">
         <td>Type:</td>
@@ -40,7 +55,7 @@ class SearchDetails extends SMMObjectDetails {
       </tr>
     )
 
-    if (data.inprogress_by !== null) {
+    if (data.inprogress_by && data.inprogress_at) {
       tableRows.push(
         <tr key="inprogress_at">
           <td>In Progress Since:</td>
@@ -55,7 +70,7 @@ class SearchDetails extends SMMObjectDetails {
       )
     }
 
-    if (data.queued_at !== null) {
+    if (data.queued_at) {
       tableRows.push(
         <tr key="queued_at">
           <td>Queued:</td>
@@ -110,24 +125,38 @@ class SearchDetails extends SMMObjectDetails {
   }
 }
 
-function createSearch(data) {
+function createSearch(data: SMMSearchObjectDetails) {
   if (data.search_type === 'Sector') {
     return new SectorSearch(data.sweep_width, 3, 3, 0)
   }
   if (data.search_type === 'Expanding Box') {
-    return new ExpandingBoxSearch(data.sweep_width, data.iterations, data.first_bearing)
+    return new ExpandingBoxSearch(data.sweep_width, data.iterations || 1, data.first_bearing || 0)
   }
-  return null
+  return undefined
 }
 
-class SearchDetailsPage extends React.Component {
-  constructor(props) {
+interface SearchDetailsPageProps {
+  searchId: number
+}
+
+interface SearchDetailsPageState {
+  data?: SMMSearchObjectDetails
+  search?: object
+  geometry?: {
+    type: string
+    coordinates: [number, number] | [number, number][] | [number, number][][]
+  }
+}
+
+class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDetailsPageState> {
+  timer?: number
+  constructor(props: SearchDetailsPageProps) {
     super(props)
 
     this.state = {
-      data: null,
-      search: null,
-      geometry: null
+      data: undefined,
+      search: undefined,
+      geometry: undefined
     }
     this.updateDataResponse = this.updateDataResponse.bind(this)
   }
@@ -143,7 +172,15 @@ class SearchDetailsPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: {
+    features: {
+      properties: SMMSearchObjectDetails
+      geometry: {
+        type: string
+        coordinates: [number, number] | [number, number][] | [number, number][][]
+      }
+    }[]
+  }) {
     const search = createSearch(data.features['0'].properties)
     this.setState({
       data: data.features['0'].properties,
@@ -158,17 +195,17 @@ class SearchDetailsPage extends React.Component {
 
   render() {
     const parts = []
-    if (this.state.data !== null) {
+    if (this.state.data) {
       parts.push(<SearchDetails key="details" data={this.state.data} />)
     }
-    if (this.state.search !== null) {
+    if (this.state.search) {
       parts.push(
         <Collapsible key="runner" trigger="Runner">
           <SearchRunner search={this.state.search} />
         </Collapsible>
       )
     }
-    if (this.state.geometry !== null && this.state.geometry.points !== null) {
+    if (this.state.geometry && this.state.geometry.coordinates) {
       parts.push(
         <Collapsible key="points" trigger="Coordinates">
           <GeometryPoints points={this.state.geometry.coordinates} />
@@ -179,15 +216,12 @@ class SearchDetailsPage extends React.Component {
     return <div>{parts}</div>
   }
 }
-SearchDetailsPage.propTypes = {
-  searchId: PropTypes.number.isRequired,
-  missionId: PropTypes.number.isRequired
-}
 
-function createSearchDetailsPage(elementId, missionId, searchId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<SearchDetailsPage missionId={missionId} searchId={searchId} />)
+function createSearchDetailsPage(elementId: string, missionId: number, searchId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
+  div.render(<SearchDetailsPage searchId={searchId} />)
 }
 export { SearchDetails, createSearchDetailsPage }
 
+// @ts-expect-error: globalThis has no definition
 globalThis.createSearchDetailsPage = createSearchDetailsPage
