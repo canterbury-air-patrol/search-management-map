@@ -2,7 +2,6 @@ import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
@@ -11,8 +10,14 @@ import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
 
+interface SMMUserGeoObjectData {
+  label: string
+  created_at: string
+  created_by: string
+}
+
 class UserGeoDetails extends SMMObjectDetails {
-  renderModelSpecificData(tableRows, data) {
+  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMUserGeoObjectData) {
     tableRows.push(
       <tr key="label">
         <td>Label:</td>
@@ -22,13 +27,26 @@ class UserGeoDetails extends SMMObjectDetails {
   }
 }
 
-class UserGeoDetailsPage extends React.Component {
-  constructor(props) {
+interface UserGeoDetailsPageProps {
+  userGeoId: number
+}
+
+interface UserGeoDetailsPageState {
+  data?: SMMUserGeoObjectData
+  geometry?: {
+    type: string
+    coordinates: [number, number] | [number, number][] | [number, number][][]
+  }
+}
+
+class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGeoDetailsPageState> {
+  timer?: number
+  constructor(props: UserGeoDetailsPageProps) {
     super(props)
 
     this.state = {
-      data: null,
-      geometry: null
+      data: undefined,
+      geometry: undefined
     }
 
     this.updateDataResponse = this.updateDataResponse.bind(this)
@@ -45,7 +63,15 @@ class UserGeoDetailsPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: {
+    features: {
+      properties: SMMUserGeoObjectData
+      geometry: {
+        type: string
+        coordinates: [number, number] | [number, number][] | [number, number][][]
+      }
+    }[]
+  }) {
     this.setState({
       data: data.features['0'].properties,
       geometry: data.features['0'].geometry
@@ -58,25 +84,22 @@ class UserGeoDetailsPage extends React.Component {
 
   render() {
     const parts = []
-    if (this.state.data !== null) {
+    if (this.state.data) {
       parts.push(<UserGeoDetails key="details" data={this.state.data} />)
     }
-    if (this.state.geometry !== null && this.state.geometry.points !== null) {
+    if (this.state.geometry && this.state.geometry.coordinates) {
       parts.push(<GeometryPoints key="points" points={this.state.geometry.coordinates} />)
       parts.push(<GeoJsonMap key="map" geometry={this.state.geometry} />)
     }
     return <div>{parts}</div>
   }
 }
-UserGeoDetailsPage.propTypes = {
-  userGeoId: PropTypes.number.isRequired,
-  missionId: PropTypes.number.isRequired
-}
 
-function createUserGeoDetailsPage(elementId, missionId, userGeoId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
-  div.render(<UserGeoDetailsPage missionId={missionId} userGeoId={userGeoId} />)
+function createUserGeoDetailsPage(elementId: string, missionId: number, userGeoId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
+  div.render(<UserGeoDetailsPage userGeoId={userGeoId} />)
 }
 export { UserGeoDetailsPage, createUserGeoDetailsPage }
 
+// @ts-expect-error: globalThis has no defintion
 globalThis.createUserGeoDetailsPage = createUserGeoDetailsPage

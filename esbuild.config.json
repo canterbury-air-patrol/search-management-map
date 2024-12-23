@@ -13,7 +13,7 @@
         "frontend/mission/timeline.js",
         "frontend/mission/asset/status.tsx",
         "frontend/search/details.tsx",
-        "frontend/usergeo/details.js",
+        "frontend/usergeo/details.tsx",
         "frontend/organization/list.tsx",
         "frontend/organization/details.tsx",
         "frontend/organization/radio-operator.tsx",
