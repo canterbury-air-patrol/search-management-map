@@ -127,6 +127,8 @@ export class MarineVectors {
     this.inputTableId = inputTableId
     this.currentVectorsTableId = currentVectorsTableId
     this.windVectorsTableId = windVectorsTableId
+    this.update_leeway_data = this.update_leeway_data.bind(this)
+    this.recalculate = this.recalculate.bind(this)
   }
 
   getResultingVector() {
@@ -266,7 +268,6 @@ export class MarineVectors {
   }
 
   populate_leeway_selector(leewaySelector) {
-    const vectors = this
     this.leewaySelector = leewaySelector
 
     for (const idx in SearchObjectLeeway) {
@@ -276,9 +277,7 @@ export class MarineVectors {
       $(`#${this.leewaySelector}`).append(html)
     }
 
-    $(`#${this.leewaySelector}`).on('change', function () {
-      vectors.update_leeway_data()
-    })
+    $(`#${this.leewaySelector}`).on('change', this.update_leeway_data)
   }
 
   recalculate() {
@@ -348,23 +347,13 @@ export class MarineVectors {
         '">0</td>' +
         '</tr>'
     )
-    const vectors = this
-    $(`#curr_time_start_${cvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#curr_time_end_${cvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#curr_direction_${cvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#curr_speed_${cvc}`).on('change', function () {
-      vectors.recalculate()
-    })
+    $(`#curr_time_start_${cvc}`).on('change', this.recalculate)
+    $(`#curr_time_end_${cvc}`).on('change', this.recalculate)
+    $(`#curr_direction_${cvc}`).on('change', this.recalculate)
+    $(`#curr_speed_${cvc}`).on('change', this.recalculate)
   }
 
   newWindVector() {
-    const vectors = this
     const windVector = this.addWindVector()
     const wvc = windVector.idx
     $('#' + this.windVectorsTableId).append(
@@ -406,18 +395,10 @@ export class MarineVectors {
         '">0</td>' +
         '</tr>'
     )
-    $(`#wind_time_start_${wvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#wind_time_end_${wvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#wind_from_direction_${wvc}`).on('change', function () {
-      vectors.recalculate()
-    })
-    $(`#wind_speed_${wvc}`).on('change', function () {
-      vectors.recalculate()
-    })
+    $(`#wind_time_start_${wvc}`).on('change', this.recalculate)
+    $(`#wind_time_end_${wvc}`).on('change', this.recalculate)
+    $(`#wind_from_direction_${wvc}`).on('change', this.recalculate)
+    $(`#wind_speed_${wvc}`).on('change', this.recalculate)
   }
 }
 
