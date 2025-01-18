@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
 
 import React from 'react'
-import PropTypes from 'prop-types'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
@@ -13,9 +12,22 @@ import 'react-datetime-picker/dist/DateTimePicker.css'
 
 import { MissionHeader } from './header'
 import { SMMMissionTopBar } from '../menu/topbar'
+import { MissionData } from './types'
 
-class MissionTimeLineEntryAdd extends React.Component {
-  constructor(props) {
+interface MissionTimeLineEntryAddProps {
+  missionId: number
+  csrftoken: string
+}
+
+interface MissionTimeLineEntryAddState {
+  timeNow: boolean
+  specificDateTime: Date
+  message: string
+  url: string
+}
+
+class MissionTimeLineEntryAdd extends React.Component<MissionTimeLineEntryAddProps, MissionTimeLineEntryAddState> {
+  constructor(props: MissionTimeLineEntryAddProps) {
     super(props)
 
     this.state = {
@@ -32,29 +44,31 @@ class MissionTimeLineEntryAdd extends React.Component {
     this.submit = this.submit.bind(this)
   }
 
-  changeNow(event) {
-    const target = event.target
+  changeNow(event: React.ChangeEvent<HTMLInputElement>) {
+    const { target } = event
 
     this.setState({
       timeNow: target.checked
     })
   }
 
-  changeDateTime(value) {
-    this.setState({
-      specificDateTime: value
-    })
+  changeDateTime(value: Date | null) {
+    if (value !== null) {
+      this.setState({
+        specificDateTime: value
+      })
+    }
   }
 
-  changeMessage(event) {
-    const target = event.target
+  changeMessage(event: React.ChangeEvent<HTMLInputElement>) {
+    const { target } = event
     this.setState({
       message: target.value
     })
   }
 
-  changeUrl(event) {
-    const target = event.target
+  changeUrl(event: React.ChangeEvent<HTMLInputElement>) {
+    const { target } = event
     this.setState({
       url: target.value
     })
@@ -112,12 +126,21 @@ class MissionTimeLineEntryAdd extends React.Component {
     )
   }
 }
-MissionTimeLineEntryAdd.propTypes = {
-  missionId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
+
+interface TimeLineEntry {
+  id: number
+  timestamp: string
+  creator: string
+  event_type: string
+  message: string
+  url: string
 }
 
-class MissionTimelineEntry extends React.Component {
+interface MissionTimelineEntryProps {
+  timelineEntry: TimeLineEntry
+}
+
+class MissionTimelineEntry extends React.Component<MissionTimelineEntryProps, never> {
   render() {
     const entry = this.props.timelineEntry
     return (
@@ -131,17 +154,27 @@ class MissionTimelineEntry extends React.Component {
     )
   }
 }
-MissionTimelineEntry.propTypes = {
-  timelineEntry: PropTypes.object.isRequired
+
+interface MissionTimeLineProps {
+  missionId: number
+  csrftoken: string
 }
 
-export class MissionTimeLine extends React.Component {
-  constructor(props) {
+interface MissionTimelineState {
+  timelineEntries: TimeLineEntry[]
+  missionData?: MissionData
+  missionClosed: boolean
+}
+
+export class MissionTimeLine extends React.Component<MissionTimeLineProps, MissionTimelineState> {
+  timer?: number
+
+  constructor(props: MissionTimeLineProps) {
     super(props)
 
     this.state = {
       timelineEntries: [],
-      missionData: null,
+      missionData: undefined,
       missionClosed: false
     }
     this.updateDataResponse = this.updateDataResponse.bind(this)
@@ -158,7 +191,7 @@ export class MissionTimeLine extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: { timeline: TimeLineEntry[]; mission: MissionData }) {
     this.updateTimeline(data.timeline)
     this.updateMission(data.mission)
     if (!this.state.missionClosed && data.mission.closed !== null) {
@@ -170,7 +203,7 @@ export class MissionTimeLine extends React.Component {
     await $.getJSON(`/mission/${this.props.missionId}/timeline/`, this.updateDataResponse)
   }
 
-  updateTimeline(timelineEntries) {
+  updateTimeline(timelineEntries: TimeLineEntry[]) {
     this.setState(function () {
       return {
         timelineEntries
@@ -178,7 +211,7 @@ export class MissionTimeLine extends React.Component {
     })
   }
 
-  updateMission(missionData) {
+  updateMission(missionData: MissionData) {
     this.setState(function () {
       return {
         missionData
@@ -195,15 +228,11 @@ export class MissionTimeLine extends React.Component {
   }
 
   render() {
-    const timelineEntries = []
-    for (const timelineIdx in this.state.timelineEntries) {
-      const timelineEntry = this.state.timelineEntries[timelineIdx]
-      timelineEntries.push(<MissionTimelineEntry key={timelineEntry.id} timelineEntry={timelineEntry}></MissionTimelineEntry>)
-    }
+    const timelineEntries = this.state.timelineEntries.map((timelineEntry) => <MissionTimelineEntry key={timelineEntry.id} timelineEntry={timelineEntry}></MissionTimelineEntry>)
 
     let missionData = null
     let timelineAdd = null
-    if (this.state.missionData !== null) {
+    if (this.state.missionData !== undefined) {
       missionData = <MissionHeader key="missionHeader" mission={this.state.missionData} />
       if (this.state.missionClosed !== null) {
         timelineAdd = <MissionTimeLineEntryAdd missionId={this.props.missionId} csrftoken={this.props.csrftoken} />
@@ -235,21 +264,18 @@ export class MissionTimeLine extends React.Component {
     )
   }
 }
-MissionTimeLine.propTypes = {
-  missionId: PropTypes.number.isRequired,
-  csrftoken: PropTypes.string.isRequired
-}
 
-export function createMissionTimeline(elementId, missionId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+export function createMissionTimeline(elementId: string, missionId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMMissionTopBar missionId={missionId} />
-      <MissionTimeLine missionId={missionId} csrftoken={csrftoken} />
+      <MissionTimeLine missionId={missionId} csrftoken={csrftoken as string} />
     </>
   )
 }
 
+// @ts-expect-error: globalThis has no definition
 globalThis.createMissionTimeline = createMissionTimeline
