@@ -21,7 +21,7 @@
     "@canterbury-air-patrol/marine-leeway-data": "^0.2.1",
     "@canterbury-air-patrol/marine-search-area-coverage": "^0.6.1",
     "@canterbury-air-patrol/sar-search-patterns": "0.1.2",
-    "@canterbury-air-patrol/sar-search-runner": "0.1.1",
+    "@canterbury-air-patrol/sar-search-runner": "0.1.2",
     "bootstrap": "^5.3.3",
     "esbuild": "^0.24.2",
     "esbuild-config": "^1.0.1",
