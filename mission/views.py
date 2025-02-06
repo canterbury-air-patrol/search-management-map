@@ -22,10 +22,13 @@ from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import get_organization_from_id
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_organization_update, timeline_record_mission_user_add, \
-    timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
+from timeline.helpers import timeline_record_create, \
+    timeline_record_external_reference_add, timeline_record_external_reference_remove, timeline_record_external_reference_update, \
+    timeline_record_mission_organization_add, timeline_record_mission_organization_update, \
+    timeline_record_mission_user_add, timeline_record_mission_user_update, \
+    timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
-from .models import Mission, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
+from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
 from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
 
@@ -88,6 +91,7 @@ class MissionDetailsView(View):
             'mission_assets': assets_json,
             'mission_users': [mu.as_json() for mu in MissionUser.objects.filter(mission=mission_user.mission)],
             'mission_asset_types': [mat.as_json() for mat in MissionAssetType.objects.filter(mission=mission_user.mission)],
+            'external_references': [xr.as_json() for xr in MissionExternalReference.objects.filter(mission=mission_user.mission, deleted_at__isnull=True, replaced_by__isnull=True)],
         }
         return JsonResponse(data)
 
@@ -667,3 +671,85 @@ class MissionAssetStatusValuesView(View):
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
             return self.as_json(request)
         return render(request, "mission_asset_status_value.html")
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionExternalReferencesView(View):
+    """
+    Show/add the external references for this mission
+    """
+    def as_json(self, mission_user):
+        """
+        Mission external references, in json
+        """
+        external_references = MissionExternalReference.objects.filter(mission=mission_user.mission, deleted_at__isnull=True, replaced_at__isnull=True)
+
+        data = {
+            'mission': mission_user.mission.as_object(mission_user.is_admin()),
+            'external_references': [external_reference.as_object() for external_reference in external_references],
+        }
+        return JsonResponse(data)
+
+    def get(self, request, mission_user):
+        """
+        Display the external references of this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_user)
+        data = {
+            'mission': mission_user.mission,
+        }
+        return render(request, 'mission_external_references.html', data)
+
+    def post(self, request, mission_user):
+        """
+        Add an external reference to the mission
+        """
+        name = request.POST.get('name')
+        code = request.POST.get('code')
+        url = request.POST.get('url')
+        notes = request.POST.get('notes')
+        if name:
+            entry = MissionExternalReference(mission=mission_user.mission, created_by=request.user, name=name, code=code, url=url, notes=notes)
+            entry.save()
+            timeline_record_external_reference_add(mission_user.mission, request.user, entry)
+            return HttpResponse("Done")
+        return HttpResponse("Failed")
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionExternalReferenceView(View):
+    """
+    update/delete an external reference for this mission
+    """
+    def post(self, request, ext_ref_id, mission_user):
+        """
+        Update an external reference in the mission
+        """
+        extref = MissionExternalReference.objects.get(mission=mission_user.mission, pk=ext_ref_id, deleted_at__isnull=True, replaced_at__isnull=True)
+        name = request.POST.get('name')
+        code = request.POST.get('code')
+        url = request.POST.get('url')
+        notes = request.POST.get('notes')
+        if name:
+            entry = MissionExternalReference(mission=mission_user.mission, created_by=request.user, name=name, code=code, url=url, notes=notes)
+            entry.save()
+            extref.replaced_at = timezone.now()
+            extref.replaced_by = entry
+            extref.save()
+            timeline_record_external_reference_update(mission=mission_user.mission, user=mission_user.user, old_external_reference=extref, external_reference=entry)
+            return HttpResponse("Done")
+        return HttpResponse("Failed")
+
+    def delete(self, request, ext_ref_id, mission_user):
+        """
+        Delete an external reference from the mission
+        """
+        extref = MissionExternalReference.objects.get(mission=mission_user.mission, pk=ext_ref_id, deleted_at__isnull=True, replaced_at__isnull=True)
+        extref.deleted_at = timezone.now()
+        extref.deleted_by = request.user
+        extref.save()
+        timeline_record_external_reference_remove(mission=mission_user.mission, user=mission_user.user, external_reference=extref)
+        return HttpResponse("Done")

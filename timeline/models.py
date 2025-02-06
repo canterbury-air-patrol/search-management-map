@@ -34,6 +34,9 @@ class TimeLineEntry(models.Model):
         ('mas', 'Mission Asset Status'),
         ('acs', 'Asset Command Sent'),
         ('acr', 'Asset Command Response'),
+        ('xra', 'External Reference Add'),
+        ('xrc', 'External Reference Change'),
+        ('xrr', 'External Reference Remove')
     )
     event_type = models.CharField(max_length=3, choices=EVENT_TYPE)
 
