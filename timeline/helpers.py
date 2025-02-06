@@ -171,3 +171,30 @@ def timeline_record_asset_command_response(mission, user, asset, command, respon
     message = f"{asset} (by {user}) in mission {mission.pk} replied to {command} with {response_type}: {response_message}"
     entry = TimeLineEntry(mission=mission, user=user, event_type='acr', message=message, url="")
     entry.save()
+
+
+def timeline_record_external_reference_add(mission, user, external_reference):
+    """
+    Create an external reference on a mission
+    """
+    message = f"{external_reference}"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='xra', message=message, url="")
+    entry.save()
+
+
+def timeline_record_external_reference_update(mission, user, old_external_reference, external_reference):
+    """
+    Create an external reference on a mission
+    """
+    message = f"{user} replaced external reference {old_external_reference} with {external_reference}"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='xrc', message=message, url="")
+    entry.save()
+
+
+def timeline_record_external_reference_remove(mission, user, external_reference):
+    """
+    Create an external reference on a mission
+    """
+    message = f"{user} removed external reference {external_reference}"
+    entry = TimeLineEntry(mission=mission, user=user, event_type='xrr', message=message, url="")
+    entry.save()

@@ -40,6 +40,229 @@ MissionDetails.propTypes = {
   mission: Object
 }
 
+class MissionDetailsExternalReferencesRow extends React.Component {
+  constructor(props) {
+    super(props)
+
+    const extRef = this.props.ExternalReference
+
+    this.state = {
+      editFields: {},
+      values: {
+        name: extRef.name,
+        code: extRef.code,
+        url: extRef.url,
+        notes: extRef.notes
+      }
+    }
+
+    this.toggleEdit = this.toggleEdit.bind(this)
+    this.update = this.update.bind(this)
+    this.resetEditing = this.resetEditing.bind(this)
+    this.setXHR = this.setXHR.bind(this)
+    this.delete = this.delete.bind(this)
+  }
+
+  toggleEdit(field) {
+    this.setState((prevState) => ({
+      editFields: { ...prevState.editFields, [field]: true }
+    }))
+  }
+
+  handleChange(field, event) {
+    const { value } = event.target
+    this.setState((prevState) => ({
+      values: { ...prevState.values, [field]: value }
+    }))
+  }
+
+  resetEditing() {
+    const extRef = this.props.ExternalReference
+    this.setState({
+      editFields: {},
+      values: {
+        name: extRef.name,
+        code: extRef.code,
+        url: extRef.url,
+        notes: extRef.notes
+      }
+    })
+  }
+
+  update() {
+    const extRef = this.props.ExternalReference
+    $.post(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, {
+      csrfmiddlewaretoken: this.props.csrftoken,
+      ...this.state.values
+    })
+  }
+
+  setXHR(xhr) {
+    xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
+  }
+
+  delete() {
+    const extRef = this.props.ExternalReference
+    $.ajax({
+      url: `/mission/${extRef.mission}/externalreferences/${extRef.id}/`,
+      type: 'DELETE',
+      beforeSend: this.setXHR
+    })
+  }
+
+  renderField(field, displayValue) {
+    return this.state.editFields[field] ? (
+      <input type="text" value={this.state.values[field]} onChange={(e) => this.handleChange(field, e)} />
+    ) : (
+      <span onClick={() => this.toggleEdit(field)}>{displayValue}</span>
+    )
+  }
+
+  render() {
+    const extRef = this.props.ExternalReference
+    let editing = Object.keys(this.state.editFields).length > 0
+    const buttons = []
+    if (editing) {
+      buttons.push(
+        <Button onClick={this.update} key="update">
+          Update
+        </Button>
+      )
+      buttons.push(
+        <Button onClick={this.resetEditing} key="cancel" variant="danger">
+          Cancel
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button onClick={this.delete} key="delete" variant="danger">
+          Delete
+        </Button>
+      )
+    }
+    return (
+      <tr>
+        <td>{this.renderField('name', extRef.name)}</td>
+        <td>{this.renderField('code', extRef.code)}</td>
+        <td>{this.renderField('url', extRef.url)}</td>
+        <td>{this.renderField('notes', extRef.notes)}</td>
+        <td>
+          <ButtonGroup>{buttons}</ButtonGroup>
+        </td>
+      </tr>
+    )
+  }
+}
+MissionDetailsExternalReferencesRow.propTypes = {
+  ExternalReference: Object,
+  csrftoken: String
+}
+
+class MissionDetailsExternalReferenceAdd extends React.Component {
+  constructor(props) {
+    super(props)
+
+    this.state = {
+      name: '',
+      code: '',
+      url: '',
+      notes: ''
+    }
+
+    this.add = this.add.bind(this)
+    this.addSuccess = this.addSuccess.bind(this)
+    this.handleChange = this.handleChange.bind(this)
+  }
+
+  handleChange(event) {
+    const { name, value } = event.target
+    this.setState({ [name]: value })
+  }
+
+  addSuccess() {
+    this.setState({
+      name: '',
+      code: '',
+      url: '',
+      notes: ''
+    })
+  }
+
+  add() {
+    if (this.state.name) {
+      $.post(
+        `/mission/${this.props.mission}/externalreferences/`,
+        {
+          name: this.state.name,
+          code: this.state.code,
+          url: this.state.url,
+          notes: this.state.notes,
+          csrfmiddlewaretoken: this.props.csrftoken
+        },
+        this.addSuccess
+      )
+    }
+  }
+
+  render() {
+    return (
+      <tr>
+        <td>
+          <input type="text" name="name" onChange={this.handleChange} value={this.state.name} />
+        </td>
+        <td>
+          <input type="text" name="code" onChange={this.handleChange} value={this.state.code} />
+        </td>
+        <td>
+          <input type="text" name="url" onChange={this.handleChange} value={this.state.url} />
+        </td>
+        <td>
+          <input type="text" name="notes" onChange={this.handleChange} value={this.state.notes} />
+        </td>
+        <td>
+          <Button onClick={this.add}>Add</Button>
+        </td>
+      </tr>
+    )
+  }
+}
+MissionDetailsExternalReferenceAdd.propTypes = {
+  mission: Number,
+  csrftoken: String
+}
+
+class MissionDetailsExternalReferencesList extends React.Component {
+  render() {
+    const rows = []
+    for (const refIdx in this.props.ExternalReferences) {
+      const extRef = this.props.ExternalReferences[refIdx]
+      rows.push(<MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} csrftoken={this.props.csrftoken} />)
+    }
+    return (
+      <Table>
+        <thead>
+          <tr>
+            <td>Name</td>
+            <td>Code</td>
+            <td>URL</td>
+            <td>Notes</td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          {rows}
+          <MissionDetailsExternalReferenceAdd mission={this.props.mission} csrftoken={this.props.csrftoken} />
+        </tbody>
+      </Table>
+    )
+  }
+}
+MissionDetailsExternalReferencesList.propTypes = {
+  ExternalReferences: Array,
+  mission: Number,
+  csrftoken: String
+}
+
 class MissionDetailsOrganizationsRow extends React.Component {
   constructor(props) {
     super(props)
@@ -649,6 +872,11 @@ class MissionDetailPage extends React.Component {
       return (
         <>
           <MissionDetails mission={this.state.missionDetails.mission} />
+          <MissionDetailsExternalReferencesList
+            mission={this.props.missionId}
+            ExternalReferences={this.state.missionDetails.external_references}
+            csrftoken={this.props.csrftoken}
+          />
           <MissionDetailsOrganizationsList
             mission={this.props.missionId}
             missionOrganizations={this.state.missionDetails.mission_organizations}

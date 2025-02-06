@@ -220,6 +220,50 @@ class MissionAssetStatus(models.Model):
         ]
 
 
+class MissionExternalReference(models.Model):
+    """
+    Link or Reference to an external agency or document(s)
+    """
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT)
+    created_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_by%(app_label)s_%(class)s_related')
+    created_at = models.DateTimeField(default=timezone.now)
+    deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, null=True, blank=True, related_name='deletor%(app_label)s_%(class)s_related')
+    deleted_at = models.DateTimeField(null=True, blank=True)
+    replaced_by = models.ForeignKey("MissionExternalReference", on_delete=models.SET_NULL, null=True, blank=True)
+    replaced_at = models.DateTimeField(null=True, blank=True)
+    name = models.TextField()
+    code = models.TextField(null=True, blank=True)
+    url = models.TextField(null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
+
+    def as_json(self):
+        """
+        Convert this mission external reference to an object that is suitable for returning via JsonResponse
+        """
+        data = {
+            "id": self.pk,
+            "mission": self.mission.pk,
+            "created_by": str(self.created_by),
+            "created_at": self.created_at,
+            "name": self.name,
+            "code": self.code,
+            "url": self.url,
+            "notes": self.notes,
+        }
+        if self.deleted_at:
+            data["deleted_by"] = str(self.deleted_by)
+            data["deleted_at"] = self.deleted_at
+        if self.replaced_by:
+            data["replaced_by"] = self.replaced_by.pk
+            data["replaced_at"] = self.replaced_at
+        return data
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'deleted_at', 'replaced_at']),
+        ]
+
+
 class MissionOrganization(models.Model):
     """
     An organization/mission association.
