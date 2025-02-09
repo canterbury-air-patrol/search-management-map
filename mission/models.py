@@ -90,8 +90,10 @@ class MissionUser(models.Model):
         return this mission user as a json object
         """
         return {
+            'id': self.pk,
             'mission': self.mission.pk,
             'user': str(self.user),
+            'user_id': self.user.pk,  # pylint: disable=E1101
             'creator': str(self.creator),
             'added': self.added,
             'permissions': {
@@ -121,6 +123,20 @@ class MissionAsset(models.Model):
     added = models.DateTimeField(default=timezone.now)
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
+
+    def as_json(self):
+        """
+        return this mission asset as a json object
+        """
+        return {
+            'id': self.pk,
+            'mission': self.mission.pk,
+            'asset': self.asset.as_object(),
+            'creator': str(self.creator),
+            'added': self.added,
+            'remover': str(self.remover),
+            'removed': self.removed,
+        }
 
 
 class MissionAssetType(models.Model):
@@ -237,6 +253,7 @@ class MissionOrganization(models.Model):
         return this mission organization as a json object
         """
         return {
+            'id': self.pk,
             'mission': self.mission.pk,
             'organization': self.organization.as_object(),
             'creator': str(self.creator),

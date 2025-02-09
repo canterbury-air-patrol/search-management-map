@@ -8,10 +8,11 @@ from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    re_path(r'^mission/(?P<mission_id>\d+)/details/$', views.mission_details, name='mission_details'),
+    re_path(r'^mission/(?P<mission_id>\d+)/details/$', views.MissionDetailsView.as_view(), name='mission_details'),
     re_path(r'^mission/(?P<mission_id>\d+)/timeline/$', views.MissionTimelineView.as_view(), name='mission_timeline'),
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/$', views.MissionOrganizationsView.as_view(), name='mission_organizations'),
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/(?P<organization_id>\d+)/$', views.MissionOrganizationView.as_view(), name='mission_organization'),
+    re_path(r'^mission/(?P<mission_id>\d+)/users/$', views.MissionUsersView.as_view(), name='mission_users'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/add/$', views.mission_user_add, name='mission_user_add'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/(?P<user_id>\d+)/$', views.MissionUserView.as_view(), name='mission_user'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/$', views.MissionAssetsView.as_view()),

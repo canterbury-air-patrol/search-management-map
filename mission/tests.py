@@ -396,7 +396,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check adding it again gets a fail
         response = mission.add_asset(self.asset, client=self.smm.client1)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 404)
 
     def test_mission_asset_delete(self):
         """
