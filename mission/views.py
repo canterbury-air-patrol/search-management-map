@@ -5,10 +5,11 @@ Mission Create/Management Views.
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
 from django.db import transaction
-from django.db.models import OuterRef, Subquery
+from django.db.models import OuterRef, Subquery, Exists
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -17,8 +18,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset, AssetCommand
 from assets.decorators import asset_is_operator
+from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import get_organization_from_id
-from organization.models import OrganizationMember, OrganizationAsset
+from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, timeline_record_mission_organization_add, timeline_record_mission_organization_update, timeline_record_mission_user_add, \
     timeline_record_mission_user_update, timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
@@ -43,7 +45,7 @@ def mission_details(request, mission_user):
         'admin': mission_user.is_admin(),
         'can_add_organizations': mission_user.can_add_organization(),
         'can_add_users': mission_user.can_add_user(),
-        'mission_organizations': MissionOrganization.objects.filter(mission=mission_user.mission),
+        'mission_organizations': MissionOrganization.objects.filter(mission=mission_user.mission).order_by('pk'),
         'mission_assets': mission_assets,
         'mission_users': MissionUser.objects.filter(mission=mission_user.mission),
         'mission_asset_types': MissionAssetType.objects.filter(mission=mission_user.mission),
@@ -52,6 +54,53 @@ def mission_details(request, mission_user):
         'mission_asset_add': MissionAssetForm(user=request.user, mission=mission_user.mission),
     }
     return render(request, 'mission_details.html', data)
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionDetailsView(View):
+    """
+    Show the details for a mission
+    """
+    def as_json(self, mission_user):
+        """
+        Mission details, in json
+        """
+        latest_status_subquery = MissionAssetStatus.objects.filter(mission_asset=OuterRef('pk')).order_by('-since').values('status__name')[:1]
+        latest_since_subquery = MissionAssetStatus.objects.filter(mission_asset=OuterRef('pk')).order_by('-since').values('since')[:1]
+        mission_assets = MissionAsset.objects.filter(mission=mission_user.mission).annotate(status=Subquery(latest_status_subquery), status_since=Subquery(latest_since_subquery))
+        assets_json = []
+        for ma in mission_assets:
+            ma_json = ma.as_json()
+            ma_json['status'] = {
+                'name': ma.status,
+                'since': ma.status_since,
+            }
+            assets_json.append(ma_json)
+
+        data = {
+            'mission': mission_user.mission.as_object(mission_user.is_admin()),
+            'me': str(mission_user.user),
+            'admin': mission_user.is_admin(),
+            'can_add_organizations': mission_user.can_add_organization(),
+            'can_add_users': mission_user.can_add_user(),
+            'mission_organizations': [mo.as_json() for mo in MissionOrganization.objects.filter(mission=mission_user.mission)],
+            'mission_assets': assets_json,
+            'mission_users': [mu.as_json() for mu in MissionUser.objects.filter(mission=mission_user.mission)],
+            'mission_asset_types': [mat.as_json() for mat in MissionAssetType.objects.filter(mission=mission_user.mission)],
+        }
+        return JsonResponse(data)
+
+    def get(self, request, mission_user):
+        """
+        Display the details of this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(mission_user)
+        data = {
+            'mission': mission_user.mission,
+        }
+        return render(request, 'mission_details.html', data)
 
 
 @login_required
@@ -205,10 +254,15 @@ class MissionOrganizationsView(View):
     """
     Show and add organizations to the mission
     """
-    def as_json(self, mission) -> JsonResponse:
+    def as_json(self, mission, list_not_included) -> JsonResponse:
         """
         Mission Organizations as json
         """
+        if list_not_included:
+            orgs = [org.as_object() for org in Organization.objects.filter(~Exists(MissionOrganization.objects.filter(organization=OuterRef('pk'), mission=mission, removed__isnull=True)))]
+            return JsonResponse(data={
+                'organizations': orgs
+            })
         mission_orgs = [mo.as_json() for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)]
         return JsonResponse(data={
             'organizations': mission_orgs
@@ -219,7 +273,8 @@ class MissionOrganizationsView(View):
         Get a list of the organizations in this mission
         """
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
-            return self.as_json(mission_user.mission)
+            list_not_included = request.GET.get('not_included', False)
+            return self.as_json(mission_user.mission, list_not_included)
         return render(request, 'mission_organizations_list.html')
 
     def post(self, request, mission_user):
@@ -303,6 +358,58 @@ class MissionOrganizationView(View):
                     self._set_organization_permissions(mission_user, mission_organization, 'user_add', add_user.lower() == "true")
                 mission_organization.save()
         return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+@method_decorator(mission_can_add_user, name="post")
+class MissionUsersView(View):
+    """
+    Show and add users to the mission
+    """
+    def as_json(self, mission, list_not_included) -> JsonResponse:
+        """
+        Mission Users as json
+        """
+        if list_not_included:
+            users = [{'id': user.pk, 'username': user.username} for user in get_user_model().objects.filter(~Exists(MissionUser.objects.filter(user=OuterRef('pk'), mission=mission)))]
+            return JsonResponse(data={
+                'users': users
+            })
+        mission_users = [mu.as_json() for mu in MissionUser.objects.filter(mission=mission)]
+        return JsonResponse(data={
+            'users': mission_users
+        })
+
+    def get(self, request, mission_user):
+        """
+        Get a list of the users in this mission
+        """
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            list_not_included = request.GET.get('not_included', False)
+            return self.as_json(mission_user.mission, list_not_included)
+        return render(request, 'mission_organizations_list.html')
+
+    def post(self, request, mission_user):
+        """
+        Add a user to this mission
+        """
+        form = MissionUserForm(request.POST)
+        if form.is_valid():
+            # Check if this user is already in this mission
+            try:
+                mission_user = MissionUser.objects.get(user=form.cleaned_data['user'], mission=mission_user.mission)
+                return HttpResponseForbidden("User is already in this Mission")
+            except ObjectDoesNotExist:
+                # Create the new mission<->user
+                mission_user = MissionUser(mission=mission_user.mission, user=form.cleaned_data['user'], creator=request.user)
+                mission_user.save()
+                timeline_record_mission_user_add(mission_user.mission, request.user, form.cleaned_data['user'])
+                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+        if form is None:
+            form = MissionUserForm()
+
+        return render(request, 'mission_user_add.html', {'form': form})
 
 
 @login_required
@@ -399,6 +506,10 @@ class MissionAssetsView(View):
         """
         Get the assets in this mission as json list
         """
+        if request.GET.get('not_included', False):
+            assets = get_my_assets_not_in_mission(mission_user.mission, mission_user.user)
+            return JsonResponse({'assets': [a.as_object() for a in assets]})
+
         if request.GET.get('include_removed', False):
             assets = MissionAsset.objects.filter(mission=mission_user.mission)
         else:
@@ -427,7 +538,7 @@ class MissionAssetsView(View):
         """
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
             return self.as_json(request, mission_user)
-        return render(request, "mission/assets_view.html")
+        return render(request, "mission/assets_view.html", {'mission_asset_add': MissionAssetForm(user=request.user, mission=mission_user.mission)})
 
     def post(self, request, mission_user):
         """

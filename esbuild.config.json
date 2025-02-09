@@ -8,6 +8,7 @@
         "frontend/asset/list.js",
         "frontend/asset/type_list.js",
         "frontend/icons/list.js",
+        "frontend/mission/details.js",
         "frontend/mission/list.js",
         "frontend/mission/timeline.js",
         "frontend/mission/asset/status.js",
