@@ -687,7 +687,7 @@ class MissionExternalReferencesView(View):
 
         data = {
             'mission': mission_user.mission.as_object(mission_user.is_admin()),
-            'external_references': [external_reference.as_object() for external_reference in external_references],
+            'external_references': [external_reference.as_json() for external_reference in external_references],
         }
         return JsonResponse(data)
 
