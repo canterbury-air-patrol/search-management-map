@@ -417,6 +417,7 @@ class MissionUsersView(View):
 
 
 @login_required
+@mission_is_member
 @mission_can_add_user
 def mission_user_add(request, mission_user):
     """

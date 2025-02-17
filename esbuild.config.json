@@ -8,7 +8,7 @@
         "frontend/asset/list.tsx",
         "frontend/asset/type_list.tsx",
         "frontend/icons/list.tsx",
-        "frontend/mission/details.js",
+        "frontend/mission/details.tsx",
         "frontend/mission/list.tsx",
         "frontend/mission/timeline.tsx",
         "frontend/mission/asset/status.tsx",

@@ -1,3 +1,4 @@
+import { AssetData } from '../asset/types'
 import { OrganizationData } from '../organization/types'
 
 interface MissionData {
@@ -12,8 +13,10 @@ interface MissionData {
 }
 
 interface MissionUserData {
+  id: number
   mission: number
   user: string
+  user_id: number
   creator: string
   added: string
   permissions: {
@@ -25,11 +28,16 @@ interface MissionUserData {
 
 interface MissionAssetData {
   id: number
-  name: string
-  type_id: number
-  type_name: string
-  icon_url?: string
-  status?: MissionAssetStatusData
+  mission: number
+  asset: AssetData
+  creator: string
+  added: string
+  remover?: string
+  removed?: string
+  status?: {
+    name: string
+    since: string
+  }
 }
 
 interface MissionAssetStatusValueData {
@@ -59,4 +67,34 @@ interface MissionOrganizationData {
   }
 }
 
-export { MissionData, MissionUserData, MissionAssetData, MissionAssetStatusValueData, MissionAssetStatusData, MissionOrganizationData }
+interface MissionExternalReferenceData {
+  id?: number
+  name: string
+  code?: string
+  url?: string
+  notes?: string
+  mission: number
+}
+
+interface MissionDetailsData {
+  mission: MissionData
+  me: string
+  admin: boolean
+  can_add_organizations: boolean
+  can_add_users: boolean
+  mission_organizations: Array<MissionOrganizationData>
+  mission_assets: Array<MissionAssetData>
+  mission_users: Array<MissionUserData>
+  external_references: Array<MissionExternalReferenceData>
+}
+
+export {
+  MissionData,
+  MissionUserData,
+  MissionAssetData,
+  MissionAssetStatusValueData,
+  MissionAssetStatusData,
+  MissionOrganizationData,
+  MissionExternalReferenceData,
+  MissionDetailsData
+}

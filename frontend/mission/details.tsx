@@ -9,7 +9,15 @@ import $ from 'jquery'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
-class MissionDetails extends React.Component {
+import { MissionAssetData, MissionData, MissionDetailsData, MissionExternalReferenceData, MissionOrganizationData, MissionUserData } from './types'
+import { OrganizationData } from '../organization/types'
+import { AssetData } from '../asset/types'
+
+interface MissionDetailsProps {
+  mission: MissionData
+}
+
+class MissionDetails extends React.Component<MissionDetailsProps, never> {
   render() {
     const { mission } = this.props
     return (
@@ -36,12 +44,26 @@ class MissionDetails extends React.Component {
     )
   }
 }
-MissionDetails.propTypes = {
-  mission: Object
+
+interface MissionDetailsExternalReferencesRowProps {
+  ExternalReference: MissionExternalReferenceData
+  csrftoken: string
 }
 
-class MissionDetailsExternalReferencesRow extends React.Component {
-  constructor(props) {
+interface MissionDetailsExternalReferencesRowState {
+  editFields: {
+    [name: string]: boolean
+  }
+  values: {
+    name: string
+    code?: string
+    url?: string
+    notes?: string
+  }
+}
+
+class MissionDetailsExternalReferencesRow extends React.Component<MissionDetailsExternalReferencesRowProps, MissionDetailsExternalReferencesRowState> {
+  constructor(props: MissionDetailsExternalReferencesRowProps) {
     super(props)
 
     const extRef = this.props.ExternalReference
@@ -59,17 +81,16 @@ class MissionDetailsExternalReferencesRow extends React.Component {
     this.toggleEdit = this.toggleEdit.bind(this)
     this.update = this.update.bind(this)
     this.resetEditing = this.resetEditing.bind(this)
-    this.setXHR = this.setXHR.bind(this)
     this.delete = this.delete.bind(this)
   }
 
-  toggleEdit(field) {
+  toggleEdit(field: string) {
     this.setState((prevState) => ({
       editFields: { ...prevState.editFields, [field]: true }
     }))
   }
 
-  handleChange(field, event) {
+  handleChange(field: string, event: React.ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
     this.setState((prevState) => ({
       values: { ...prevState.values, [field]: value }
@@ -97,20 +118,18 @@ class MissionDetailsExternalReferencesRow extends React.Component {
     })
   }
 
-  setXHR(xhr) {
-    xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
-  }
-
   delete() {
     const extRef = this.props.ExternalReference
     $.ajax({
       url: `/mission/${extRef.mission}/externalreferences/${extRef.id}/`,
       type: 'DELETE',
-      beforeSend: this.setXHR
+      beforeSend: (xhr) => {
+        xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
+      }
     })
   }
 
-  renderField(field, displayValue) {
+  renderField(field: string, displayValue?: string) {
     return this.state.editFields[field] ? (
       <input type="text" value={this.state.values[field]} onChange={(e) => this.handleChange(field, e)} />
     ) : (
@@ -120,7 +139,7 @@ class MissionDetailsExternalReferencesRow extends React.Component {
 
   render() {
     const extRef = this.props.ExternalReference
-    let editing = Object.keys(this.state.editFields).length > 0
+    const editing = Object.keys(this.state.editFields).length > 0
     const buttons = []
     if (editing) {
       buttons.push(
@@ -153,13 +172,18 @@ class MissionDetailsExternalReferencesRow extends React.Component {
     )
   }
 }
-MissionDetailsExternalReferencesRow.propTypes = {
-  ExternalReference: Object,
-  csrftoken: String
+
+interface MissionDetailsExternalReferenceAddProps {
+  mission: number
+  csrftoken: string
 }
 
-class MissionDetailsExternalReferenceAdd extends React.Component {
-  constructor(props) {
+interface MissionDetailsExternalReferenceAddState {
+  [field: string]: string
+}
+
+class MissionDetailsExternalReferenceAdd extends React.Component<MissionDetailsExternalReferenceAddProps, MissionDetailsExternalReferenceAddState> {
+  constructor(props: MissionDetailsExternalReferenceAddProps) {
     super(props)
 
     this.state = {
@@ -174,7 +198,7 @@ class MissionDetailsExternalReferenceAdd extends React.Component {
     this.handleChange = this.handleChange.bind(this)
   }
 
-  handleChange(event) {
+  handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target
     this.setState({ [name]: value })
   }
@@ -226,18 +250,16 @@ class MissionDetailsExternalReferenceAdd extends React.Component {
     )
   }
 }
-MissionDetailsExternalReferenceAdd.propTypes = {
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsExternalReferencesListProps {
+  ExternalReferences: Array<MissionExternalReferenceData>
+  csrftoken: string
+  mission: number
 }
 
-class MissionDetailsExternalReferencesList extends React.Component {
+class MissionDetailsExternalReferencesList extends React.Component<MissionDetailsExternalReferencesListProps, never> {
   render() {
-    const rows = []
-    for (const refIdx in this.props.ExternalReferences) {
-      const extRef = this.props.ExternalReferences[refIdx]
-      rows.push(<MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} csrftoken={this.props.csrftoken} />)
-    }
+    const rows = this.props.ExternalReferences.map((extRef) => <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} csrftoken={this.props.csrftoken} />)
     return (
       <Table>
         <thead>
@@ -257,14 +279,16 @@ class MissionDetailsExternalReferencesList extends React.Component {
     )
   }
 }
-MissionDetailsExternalReferencesList.propTypes = {
-  ExternalReferences: Array,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsOrganizationsRowProps {
+  mission: number
+  missionOrg: MissionOrganizationData
+  showButtons: boolean
+  csrftoken: string
 }
 
-class MissionDetailsOrganizationsRow extends React.Component {
-  constructor(props) {
+class MissionDetailsOrganizationsRow extends React.Component<MissionDetailsOrganizationsRowProps, never> {
+  constructor(props: MissionDetailsOrganizationsRowProps) {
     super(props)
 
     this.disableOrgAdd = this.disableOrgAdd.bind(this)
@@ -330,28 +354,25 @@ class MissionDetailsOrganizationsRow extends React.Component {
     )
   }
 }
-MissionDetailsOrganizationsRow.propTypes = {
-  missionOrg: Object,
-  showButtons: Boolean,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsOrganizationsListProps {
+  missionOrganizations: Array<MissionOrganizationData>
+  mission: number
+  isAdmin: boolean
+  csrftoken: string
 }
 
-class MissionDetailsOrganizationsList extends React.Component {
+class MissionDetailsOrganizationsList extends React.Component<MissionDetailsOrganizationsListProps, never> {
   render() {
-    const org_list = []
-    for (const orgIdx in this.props.missionOrganizations) {
-      const missionOrg = this.props.missionOrganizations[orgIdx]
-      org_list.push(
-        <MissionDetailsOrganizationsRow
-          key={missionOrg.organization.id}
-          mission={this.props.mission}
-          missionOrg={missionOrg}
-          showButtons={this.props.isAdmin}
-          csrftoken={this.props.csrftoken}
-        />
-      )
-    }
+    const org_list = this.props.missionOrganizations.map((missionOrg) => (
+      <MissionDetailsOrganizationsRow
+        key={missionOrg.organization.id}
+        mission={this.props.mission}
+        missionOrg={missionOrg}
+        showButtons={this.props.isAdmin}
+        csrftoken={this.props.csrftoken}
+      />
+    ))
     return (
       <Table>
         <thead>
@@ -365,15 +386,21 @@ class MissionDetailsOrganizationsList extends React.Component {
     )
   }
 }
-MissionDetailsOrganizationsList.propTypes = {
-  missionOrganizations: Array,
-  isAdmin: Boolean,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsOrganizationAddProps {
+  mission: number
+  csrftoken: string
 }
 
-class MissionDetailsOrganizationAdd extends React.Component {
-  constructor(props) {
+interface MissionDetailsOrganizationAddState {
+  selectedOrg?: number
+  orgs: Array<OrganizationData>
+}
+
+class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrganizationAddProps, MissionDetailsOrganizationAddState> {
+  timer?: number
+
+  constructor(props: MissionDetailsOrganizationAddProps) {
     super(props)
 
     this.state = {
@@ -397,35 +424,39 @@ class MissionDetailsOrganizationAdd extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
-    this.setState({ orgs: data.organizations })
+  updateDataResponse(data: { organizations: Array<OrganizationData> }) {
+    this.setState((oldState) => {
+      const newState: MissionDetailsOrganizationAddState = {
+        orgs: data.organizations
+      }
+      if (oldState.selectedOrg === undefined && data.organizations.length > 0) {
+        newState.selectedOrg = data.organizations[0].id
+      }
+      return newState
+    })
   }
 
   async updateData() {
     await $.getJSON(`/mission/${this.props.mission}/organizations/?not_included=True`, this.updateDataResponse)
   }
 
-  updateSelectedOrg(event) {
+  updateSelectedOrg(event: React.ChangeEvent<HTMLSelectElement>) {
     const { value } = event.target
-    this.setState({ selectedOrg: value })
+    this.setState({ selectedOrg: Number(value) })
   }
 
   add() {
     if (this.state.selectedOrg) {
-      $.post(`/mission/${this.props.mission}/organizations/`, { organization: this.state.selectedOrg })
+      $.post(`/mission/${this.props.mission}/organizations/`, { organization: this.state.selectedOrg, csrfmiddlewaretoken: this.props.csrftoken })
     }
   }
 
   render() {
-    const org_list = []
-    for (let orgIdx in this.state.orgs) {
-      const org = this.state.orgs[orgIdx]
-      org_list.push(
-        <option key={org.id} value={org.id}>
-          {org.name}
-        </option>
-      )
-    }
+    const org_list = this.state.orgs.map((org) => (
+      <option key={org.id} value={org.id}>
+        {org.name}
+      </option>
+    ))
     return (
       <form>
         <Table>
@@ -447,13 +478,16 @@ class MissionDetailsOrganizationAdd extends React.Component {
     )
   }
 }
-MissionDetailsOrganizationAdd.propTypes = {
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsUserRowProps {
+  mission: number
+  missionUser: MissionUserData
+  csrftoken: string
+  showButtons: boolean
 }
 
-class MissionDetailsUserRow extends React.Component {
-  constructor(props) {
+class MissionDetailsUserRow extends React.Component<MissionDetailsUserRowProps, never> {
+  constructor(props: MissionDetailsUserRowProps) {
     super(props)
 
     this.removeAdmin = this.removeAdmin.bind(this)
@@ -542,23 +576,26 @@ class MissionDetailsUserRow extends React.Component {
     )
   }
 }
-MissionDetailsUserRow.propTypes = {
-  missionUser: Object,
-  showButtons: Boolean,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsUsersListProps {
+  missionUsers: Array<MissionUserData>
+  isAdmin: boolean
+  me: string
+  mission: number
+  csrftoken: string
 }
 
-class MissionDetailsUsersList extends React.Component {
+class MissionDetailsUsersList extends React.Component<MissionDetailsUsersListProps, never> {
   render() {
-    const user_list = []
-    for (const userIdx in this.props.missionUsers) {
-      const missionUser = this.props.missionUsers[userIdx]
-      const showButtons = this.props.isAdmin && this.props.me !== missionUser.user
-      user_list.push(
-        <MissionDetailsUserRow key={missionUser.id} mission={this.props.mission} missionUser={missionUser} showButtons={showButtons} csrftoken={this.props.csrftoken} />
-      )
-    }
+    const user_list = this.props.missionUsers.map((missionUser) => (
+      <MissionDetailsUserRow
+        key={missionUser.id}
+        mission={this.props.mission}
+        missionUser={missionUser}
+        showButtons={this.props.isAdmin && this.props.me !== missionUser.user}
+        csrftoken={this.props.csrftoken}
+      />
+    ))
 
     return (
       <Table>
@@ -573,21 +610,26 @@ class MissionDetailsUsersList extends React.Component {
     )
   }
 }
-MissionDetailsUsersList.propTypes = {
-  missionUsers: Array,
-  me: String,
-  isAdmin: Boolean,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsUserAddProps {
+  mission: number
+  csrftoken: string
 }
 
-class MissionDetailsUserAdd extends React.Component {
-  constructor(props) {
+interface MissionDetailsUserAddState {
+  selectedUser?: number
+  users: Array<{ id: number; username: string }>
+}
+
+class MissionDetailsUserAdd extends React.Component<MissionDetailsUserAddProps, MissionDetailsUserAddState> {
+  timer?: number
+
+  constructor(props: MissionDetailsUserAddProps) {
     super(props)
 
     this.state = {
       selectedUser: undefined,
-      orgs: []
+      users: []
     }
 
     this.updateDataResponse = this.updateDataResponse.bind(this)
@@ -606,35 +648,39 @@ class MissionDetailsUserAdd extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
-    this.setState({ users: data.users })
+  updateDataResponse(data: { users: Array<{ id: number; username: string }> }) {
+    this.setState((oldState) => {
+      const newState: MissionDetailsUserAddState = {
+        users: data.users
+      }
+      if (oldState.selectedUser === undefined && data.users.length > 0) {
+        newState.selectedUser = data.users[0].id
+      }
+      return newState
+    })
   }
 
   async updateData() {
     await $.getJSON(`/mission/${this.props.mission}/users/?not_included=True`, this.updateDataResponse)
   }
 
-  updateSelectedUser(event) {
+  updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
     const { value } = event.target
-    this.setState({ selectedUser: value })
+    this.setState({ selectedUser: Number(value) })
   }
 
   add() {
     if (this.state.selectedUser) {
-      $.post(`/mission/${this.props.mission}/users/`, { user: this.state.selectedUser })
+      $.post(`/mission/${this.props.mission}/users/`, { user: this.state.selectedUser, csrfmiddlewaretoken: this.props.csrftoken })
     }
   }
 
   render() {
-    const user_list = []
-    for (let userIdx in this.state.users) {
-      const user = this.state.users[userIdx]
-      user_list.push(
-        <option key={user.id} value={user.id}>
-          {user.username}
-        </option>
-      )
-    }
+    const user_list = this.state.users.map((user) => (
+      <option key={user.id} value={user.id}>
+        {user.username}
+      </option>
+    ))
     return (
       <form>
         <Table>
@@ -656,12 +702,22 @@ class MissionDetailsUserAdd extends React.Component {
     )
   }
 }
-MissionDetailsUserAdd.propTypes = {
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsAssetRowProps {
+  missionAsset: MissionAssetData
 }
 
-class MissionDetailsAssetRow extends React.Component {
+class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps, never> {
+  constructor(props: MissionDetailsAssetRowProps) {
+    super(props)
+
+    this.remove = this.remove.bind(this)
+  }
+
+  remove() {
+    $.get(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/remove/`)
+  }
+
   render() {
     const { missionAsset } = this.props
     const buttons = []
@@ -685,7 +741,7 @@ class MissionDetailsAssetRow extends React.Component {
       removed = new Date(missionAsset.removed).toLocaleString()
     } else {
       buttons.push(
-        <Button key="btnRemove" variant="danger">
+        <Button key="btnRemove" variant="danger" onClick={this.remove}>
           Remove
         </Button>
       )
@@ -702,18 +758,15 @@ class MissionDetailsAssetRow extends React.Component {
     )
   }
 }
-MissionDetailsAssetRow.propTypes = {
-  missionAsset: Object
+
+interface MissionDetailsAssetListProps {
+  missionAssets: Array<MissionAssetData>
+  csrftoken: string
 }
 
-class MissionDetailsAssetList extends React.Component {
+class MissionDetailsAssetList extends React.Component<MissionDetailsAssetListProps, never> {
   render() {
-    const asset_list = []
-
-    for (const assetIdx in this.props.missionAssets) {
-      const missionAsset = this.props.missionAssets[assetIdx]
-      asset_list.push(<MissionDetailsAssetRow key={missionAsset.id} missionAsset={missionAsset} />)
-    }
+    const asset_list = this.props.missionAssets.map((missionAsset) => <MissionDetailsAssetRow key={missionAsset.id} missionAsset={missionAsset} />)
 
     return (
       <Table>
@@ -732,14 +785,20 @@ class MissionDetailsAssetList extends React.Component {
     )
   }
 }
-MissionDetailsAssetList.propTypes = {
-  missionAssets: Array,
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsAssetAddProps {
+  mission: number
+  csrftoken: string
 }
 
-class MissionDetailsAssetAdd extends React.Component {
-  constructor(props) {
+interface MissionDetailsAssetAddState {
+  selectedAsset?: number
+  assets: Array<AssetData>
+}
+
+class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps, MissionDetailsAssetAddState> {
+  timer?: number
+  constructor(props: MissionDetailsAssetAddProps) {
     super(props)
 
     this.state = {
@@ -763,9 +822,9 @@ class MissionDetailsAssetAdd extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
-    this.setState(function (oldState) {
-      const newState = {
+  updateDataResponse(data: { assets: Array<AssetData> }) {
+    this.setState((oldState) => {
+      const newState: MissionDetailsAssetAddState = {
         assets: data.assets
       }
       if (oldState.selectedAsset === undefined && data.assets.length > 0) {
@@ -779,9 +838,9 @@ class MissionDetailsAssetAdd extends React.Component {
     await $.getJSON(`/mission/${this.props.mission}/assets/?not_included=True`, this.updateDataResponse)
   }
 
-  updateSelectedAsset(event) {
+  updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
     const { value } = event.target
-    this.setState({ selectedAsset: value })
+    this.setState({ selectedAsset: Number(value) })
   }
 
   add() {
@@ -791,15 +850,11 @@ class MissionDetailsAssetAdd extends React.Component {
   }
 
   render() {
-    const asset_list = []
-    for (let assetIdx in this.state.assets) {
-      const asset = this.state.assets[assetIdx]
-      asset_list.push(
-        <option key={asset.id} value={asset.id}>
-          {asset.name}
-        </option>
-      )
-    }
+    const asset_list = this.state.assets.map((asset) => (
+      <option key={asset.id} value={asset.id}>
+        {asset.name}
+      </option>
+    ))
     return (
       <form>
         <Table>
@@ -821,13 +876,20 @@ class MissionDetailsAssetAdd extends React.Component {
     )
   }
 }
-MissionDetailsAssetAdd.propTypes = {
-  mission: Number,
-  csrftoken: String
+
+interface MissionDetailsPageProps {
+  missionId: number
+  csrftoken: string
 }
 
-class MissionDetailPage extends React.Component {
-  constructor(props) {
+interface MissionDetailsPageState {
+  missionDetails?: MissionDetailsData
+}
+
+class MissionDetailPage extends React.Component<MissionDetailsPageProps, MissionDetailsPageState> {
+  timer?: number
+
+  constructor(props: MissionDetailsPageProps) {
     super(props)
 
     this.state = {
@@ -848,7 +910,7 @@ class MissionDetailPage extends React.Component {
     this.timer = undefined
   }
 
-  updateDataResponse(data) {
+  updateDataResponse(data: MissionDetailsData) {
     this.setState({ missionDetails: data })
   }
 
@@ -892,30 +954,27 @@ class MissionDetailPage extends React.Component {
             csrftoken={this.props.csrftoken}
           />
           {userAdd}
-          <MissionDetailsAssetList mission={this.props.missionId} missionAssets={this.state.missionDetails.mission_assets} csrftoken={this.props.csrftoken} />
+          <MissionDetailsAssetList missionAssets={this.state.missionDetails.mission_assets} csrftoken={this.props.csrftoken} />
           {assetAdd}
         </>
       )
     }
   }
 }
-MissionDetailPage.propTypes = {
-  missionId: Number,
-  csrftoken: String
-}
 
-function createMissionDetails(elementId, missionId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+function createMissionDetails(elementId: string, missionId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMMissionTopBar missionId={missionId} />
-      <MissionDetailPage missionId={missionId} csrftoken={csrftoken} />
+      <MissionDetailPage missionId={missionId} csrftoken={csrftoken as string} />
     </>
   )
 }
 
 export { MissionDetailPage }
 
+// @ts-expect-error: globalThis has no definition
 globalThis.createMissionDetails = createMissionDetails
