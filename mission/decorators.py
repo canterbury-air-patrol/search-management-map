@@ -102,10 +102,9 @@ def mission_can_add_user(view_func):
     Make sure the user is a member and they have the ability to add an user to the mission
     """
     def wrapper(*args, **kwargs):
-        mission_user = mission_user_get(kwargs['mission_id'], args[0].user)
-        kwargs.pop('mission_id')
+        mission_user = kwargs['mission_user']
         if mission_user.can_add_user():
-            return view_func(*args, mission_user=mission_user, **kwargs)
+            return view_func(*args, **kwargs)
         return HttpResponseForbidden("You do not have permission to add users to this mission")
     return wrapper
 
