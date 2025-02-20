@@ -31,11 +31,7 @@ interface AssetTypeListProps {
 
 class AssetTypeList extends React.Component<AssetTypeListProps, never> {
   render() {
-    const assetTypeRows = []
-    for (const assetIdx in this.props.assetTypes) {
-      const assetType = this.props.assetTypes[assetIdx]
-      assetTypeRows.push(<AssetTypeListRow key={assetType.id} assetType={assetType} />)
-    }
+    const assetTypeRows = this.props.assetTypes.map((assetType) => <AssetTypeListRow key={assetType.id} assetType={assetType} />)
     return (
       <Table responsive>
         <thead>
