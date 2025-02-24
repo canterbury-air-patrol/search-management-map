@@ -49,7 +49,7 @@
     "eslint": "^9.21.0",
     "eslint-plugin-react": "^7.37.4",
     "globals": "^15.15.0",
-    "prettier": "3.5.1",
+    "prettier": "3.5.2",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.24.1"
   },
