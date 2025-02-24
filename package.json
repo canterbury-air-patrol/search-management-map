@@ -51,7 +51,7 @@
     "globals": "^15.15.0",
     "prettier": "3.5.1",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.24.1"
   },
   "overrides": {
     "react-collapsible": {
