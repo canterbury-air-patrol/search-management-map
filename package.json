@@ -23,7 +23,7 @@
     "@canterbury-air-patrol/sar-search-patterns": "0.1.3",
     "@canterbury-air-patrol/sar-search-runner": "0.1.2",
     "bootstrap": "^5.3.3",
-    "esbuild": "^0.25.0",
+    "esbuild": "^0.25.1",
     "esbuild-config": "^1.0.1",
     "jquery": "^3.7.1",
     "leaflet": "^1.9.4",
