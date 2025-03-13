@@ -2,12 +2,13 @@
 Models for missions (and mission membership)
 """
 
-from django.db import models
+from django.contrib.gis.db import models
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from assets.models import Asset, AssetType
 from organization.models import Organization, OrganizationMember
+from timeline.helpers import timeline_record_asset_command_response, timeline_record_asset_command_sent
 
 
 class Mission(models.Model):
@@ -137,6 +138,97 @@ class MissionAsset(models.Model):
             'remover': str(self.remover),
             'removed': self.removed,
         }
+
+
+class AssetCommand(models.Model):
+    """
+    An instruction for the asset
+
+    This provides a mechanism for letting an
+    asset know about changes to the plan.
+    i.e. The mission has been completed.
+    """
+    asset = models.ForeignKey(Asset, on_delete=models.PROTECT)
+    issued = models.DateTimeField(default=timezone.now)
+    issued_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='created_by%(app_label)s_%(class)s_related')
+    COMMAND_CHOICES = (
+        ('RTL', "Return To Launch"),
+        ('RON', "Continue"),  # Resume own navigation
+        ('CIR', "Circle"),
+        ('GOTO', "Goto position"),
+        ('MC', "Mission Complete"),  # Return to Base
+        ('AS', "Abandon Search"),  # Reassignment
+    )
+    command = models.CharField(max_length=4, choices=COMMAND_CHOICES)
+    REQUIRES_POSITION = ('GOTO',)
+    position = models.PointField(geography=True, null=True, blank=True)
+    reason = models.TextField()
+    responded_at = models.DateTimeField(blank=True, null=True)
+    responded_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='responder%(app_label)s_%(class)s_related', null=True, blank=True)
+    response_type = models.CharField(max_length=10, null=True, blank=True)
+    response_message = models.TextField(null=True, blank=True)
+
+    mission = models.ForeignKey(Mission, on_delete=models.PROTECT, null=True)
+
+    GEOFIELD = 'position'
+    GEOJSON_FIELDS = ('asset', 'issued', 'issued_by', 'command', 'reason', 'responded_at', 'responded_by', 'response_type', 'response_message')
+
+    def get_command_display(self):
+        """
+        Convert the command to the human readable name
+        """
+        return next(
+            (row[1] for row in self.COMMAND_CHOICES if row[0] == self.command),
+            "Unknown",
+        )
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.mission is not None:
+            if self.responded_at is not None:
+                timeline_record_asset_command_response(self.mission, self.responded_by, self.asset, self.get_command_display(), self.response_type, self.response_message)
+            else:
+                timeline_record_asset_command_sent(self.mission, self.issued_by, self.asset, self.get_command_display(), self.reason, self.position)
+
+    def __str__(self):
+        return f"Command {self.asset} to {self.get_command_display()}"
+
+    @staticmethod
+    def last_command_for_asset(asset):
+        """
+        Find the current command that applies to an asset
+        """
+        try:
+            return AssetCommand.objects.filter(asset=asset).order_by('-issued')[0]
+        except IndexError:
+            return None
+
+    @staticmethod
+    def last_command_for_asset_to_json(asset):
+        """
+        Find the current command that applies to an asset
+        Return in the a structure for json
+        """
+        last_command = {}
+        if asset_command := AssetCommand.last_command_for_asset(asset):
+            last_command = {
+                'action': asset_command.command,
+                'action_txt': asset_command.get_command_display(),
+                'reason': asset_command.reason,
+                'issued': asset_command.issued,
+                'issued_by': str(asset_command.issued_by),
+                'id': asset_command.pk,
+                'response': {
+                    'set': asset_command.responded_at,
+                    'by': str(asset_command.responded_by),
+                    'type': asset_command.response_type,
+                    'message': asset_command.response_message,
+                }
+            }
+            if asset_command.position:
+                last_command['latitude'] = asset_command.position.y
+                last_command['longitude'] = asset_command.position.x
+        return last_command
 
 
 class MissionAssetType(models.Model):
