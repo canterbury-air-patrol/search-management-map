@@ -6,10 +6,11 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from assets.tests import AssetsHelpers
+from mission.models import AssetCommand
 from mission.tests import MissionFunctions
 from smm.tests import SMMTestUsers
 
-from .models import Asset, AssetType, AssetCommand
+from .models import Asset, AssetType
 
 
 class AssetCommandTestCase(TestCase):

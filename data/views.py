@@ -21,10 +21,10 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from smm.settings import TIME_ZONE
-from assets.models import Asset, AssetCommand
+from assets.models import Asset
 from assets.decorators import asset_is_recorder
 from mission.decorators import mission_is_member, mission_asset_get
-from mission.models import Mission
+from mission.models import Mission, AssetCommand
 from .decorators import geotimelabel_from_type_id, geotimelabel_from_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel, UserPointTime
 from .forms import UploadTyphoonData

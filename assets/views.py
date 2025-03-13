@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from mission.decorators import mission_is_member, mission_asset_get
+from mission.models import AssetCommand
 
 from organization.helpers import organization_user_is_asset_recorder
 
@@ -18,7 +19,7 @@ from search.models import Search
 from search.view_helpers import check_searches_in_progress
 
 from .decorators import asset_is_operator
-from .models import AssetType, Asset, AssetCommand, AssetStatusValue, AssetStatus
+from .models import AssetType, Asset, AssetStatusValue, AssetStatus
 from .forms import AssetCommandForm
 
 

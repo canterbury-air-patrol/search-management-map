@@ -5,7 +5,8 @@ from django.forms import ModelForm
 
 from mission.models import MissionAsset
 
-from .models import AssetCommand, Asset
+from mission.models import AssetCommand
+from .models import Asset
 
 
 class AssetCommandForm(ModelForm):

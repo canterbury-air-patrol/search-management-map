@@ -16,7 +16,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from assets.models import Asset, AssetCommand
+from assets.models import Asset
 from assets.decorators import asset_is_operator
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import get_organization_from_id
@@ -28,7 +28,7 @@ from timeline.helpers import timeline_record_create, \
     timeline_record_mission_user_add, timeline_record_mission_user_update, \
     timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
-from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue
+from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue, AssetCommand
 from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
 
