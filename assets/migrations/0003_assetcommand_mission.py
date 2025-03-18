@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mission', '0001_initial'),
+        ('mission', '0100_squashed_2025_03'),
         ('assets', '0002_assetcommand'),
     ]
 

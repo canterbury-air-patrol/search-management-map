@@ -10,8 +10,8 @@ import django.utils.timezone
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mission', '0001_initial'),
-        ('assets', '0003_assetcommand_mission'),
+        ('mission', '0100_squashed_2025_03'),
+        ('assets', '0100_squashed_2025_03'),
         ('data', '0019_auto_20200523_1816'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ('search', '0016_auto_20200523_1828'),

@@ -8,9 +8,9 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assets', '0003_assetcommand_mission'),
+        ('assets', '0100_squashed_2025_03'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('mission', '0001_initial'),
+        ('mission', '0100_squashed_2025_03'),
         ('search', '0009_auto_20191011_2141'),
     ]
 

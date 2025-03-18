@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("assets", "0009_delete_assetcommand"),
-        ("mission", "0011_missionexternalreference"),
+        ("mission", "0100_squashed_2025_03"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
