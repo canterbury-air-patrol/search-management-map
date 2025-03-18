@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("assets", "0008_remove_assetcommand_acknowledged_and_more"),
+        ("assets", "0101_squashed_asset_command"),
     ]
 
     operations = [

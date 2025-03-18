@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('assets', '0001_initial'),
+        ('assets', '0100_squashed_2025_03'),
         ('search', '0004_tracklinecreepingsearch'),
     ]
 

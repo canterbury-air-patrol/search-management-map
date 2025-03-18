@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("organization", "0001_initial"),
+        ("organization", "0100_squashed_2025_03"),
         ("mission", "0004_mission_mission_name_and_more"),
     ]
 
