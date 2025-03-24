@@ -4,7 +4,6 @@ Mission Create/Management Views.
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
@@ -12,7 +11,6 @@ from django.db import transaction
 from django.db.models import OuterRef, Subquery, Exists
 from django.utils import timezone
 from django.utils.decorators import method_decorator
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
@@ -114,9 +112,7 @@ def mission_close(request, mission_user):
     Close a Mission
     """
     if mission_user.mission.closed is not None:
-        if url_has_allowed_host_and_scheme(request.META.get('HTTP_REFERER'), settings.ALLOWED_HOSTS):
-            return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-        return redirect('/')
+        return redirect(f"/mission/{mission_user.mission.pk}/details/")
 
     mission_user.mission.closed = timezone.now()
     mission_user.mission.closed_by = request.user
@@ -132,9 +128,7 @@ def mission_close(request, mission_user):
         mission_asset.save()
         timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=mission_asset.asset)
 
-    if url_has_allowed_host_and_scheme(request.META.get('HTTP_REFERER'), settings.ALLOWED_HOSTS):
-        return HttpResponseRedirect(request.META.get('HTTP_REFERER'))
-    return redirect('/')
+    return redirect(f"/mission/{mission_user.mission.pk}/details/")
 
 
 @login_required
