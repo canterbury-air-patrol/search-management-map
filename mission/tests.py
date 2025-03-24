@@ -225,7 +225,7 @@ class MissionTestCase(MissionBaseTestCase):
         # Check the mission can be closed
         response = mission.close(client=self.smm.client1)
         self.assertEqual(response.redirect_chain[0][1], 302)
-        self.assertEqual(response.redirect_chain[0][0], '/')
+        self.assertEqual(response.redirect_chain[0][0], f"/mission/{mission_obj.pk}/details/")
         mission_obj = mission.get_object()
         self.assertIsNotNone(mission_obj.closed)
         self.assertEqual(mission_obj.closed_by.username, self.smm.user1.username)
