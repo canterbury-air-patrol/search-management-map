@@ -17,32 +17,43 @@ interface MissionDetailsProps {
   mission: MissionData
 }
 
-class MissionDetails extends React.Component<MissionDetailsProps, never> {
-  render() {
-    const { mission } = this.props
-    return (
-      <Table>
-        <tbody>
+const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
+  const { mission } = props
+
+  return (
+    <Table>
+      <tbody>
+        <tr>
+          <td>Name</td>
+          <td>{mission.name}</td>
+        </tr>
+        <tr>
+          <td>Started</td>
+          <td>{new Date(mission.started).toLocaleString()}</td>
+        </tr>
+        <tr>
+          <td>Creator</td>
+          <td>{mission.creator}</td>
+        </tr>
+        <tr>
+          <td>Description</td>
+          <td>{mission.description}</td>
+        </tr>
+        {mission.closed && (
           <tr>
-            <td>Name</td>
-            <td>{mission.name}</td>
+            <td>Closed</td>
+            <td>{new Date(mission.closed).toLocaleString()}</td>
           </tr>
+        )}
+        {mission.closed_by && (
           <tr>
-            <td>Started</td>
-            <td>{new Date(mission.started).toLocaleString()}</td>
+            <td>Closed By</td>
+            <td>{mission.closed_by}</td>
           </tr>
-          <tr>
-            <td>Creator</td>
-            <td>{mission.creator}</td>
-          </tr>
-          <tr>
-            <td>Description</td>
-            <td>{mission.description}</td>
-          </tr>
-        </tbody>
-      </Table>
-    )
-  }
+        )}
+      </tbody>
+    </Table>
+  )
 }
 
 interface MissionDetailsExternalReferencesRowProps {
