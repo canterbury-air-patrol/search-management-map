@@ -11,24 +11,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-    <form action="" method="POST">
-        <table id="vector_inputs_table" class="table">
-            <tr>
-                <td>Operation: </td>
-                <td>{{ mission.mission_name }}</td>
-            </tr>
-        </table>
-        <h2>Current:</h2>
-        <table id="current_vectors" class="table">
-        </table>
-        <button id='btn_current_vector' class='btn btn-primary'>Add Current Vector</button>
-        <h2>Wind:</h2>
-        <table id="wind_vectors" class="table">
-        </table>
-        <button id="btn_wind_vector" class="btn btn-primary">Add Wind Vector</button>
-    </form>
-    <h2>Resulting Total Drift Vector:</h2>
-    Direction: <em id="tdv_result_direction"></em> &deg;T <br />
-    Distance: <em id="tdv_result_distance"></em> NM
+    <table id="vector_inputs_table" class="table">
+        <tr>
+            <td>Operation: </td>
+            <td>{{ mission.mission_name }}</td>
+        </tr>
+    </table>
+    <div id='root' />
 </body>
 </html>

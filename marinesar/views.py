@@ -72,8 +72,8 @@ def marine_vectors_create(request, mission_user):
     leeway_modifier = float(user_data.get('leeway_modifier'))
     curr_count = int(user_data.get('curr_total'))
     for i in range(curr_count):
-        time_from = int(user_data.get(f'curr_{i}_from'))
-        time_to = int(user_data.get(f'curr_{i}_to'))
+        time_from = user_data.get(f'curr_{i}_from')
+        time_to = user_data.get(f'curr_{i}_to')
         bearing = int(user_data.get(f'curr_{i}_direction'))
         distance = float(user_data.get(f'curr_{i}_distance')) * 1852
         speed = float(user_data.get(f'curr_{i}_speed'))
@@ -82,8 +82,8 @@ def marine_vectors_create(request, mission_user):
         vectors.append(vector)
     wind_count = int(user_data.get('wind_total'))
     for i in range(wind_count):
-        time_from = int(user_data.get(f'wind_{i}_from'))
-        time_to = int(user_data.get(f'wind_{i}_to'))
+        time_from = user_data.get(f'wind_{i}_from')
+        time_to = user_data.get(f'wind_{i}_to')
         wind_from = user_data.get(f'wind_{i}_from_direction')
         wind_speed = float(user_data.get(f'wind_{i}_speed'))
         bearing = int(user_data.get(f'wind_{i}_direction'))

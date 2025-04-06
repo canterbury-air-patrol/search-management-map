@@ -7,6 +7,8 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 import { SMMRealtime } from '../smmmap'
 
+import { MarineVectorsLeaflet } from '../marine/leaflet'
+
 class SMMPOI {
   constructor(parent, poi) {
     this.parent = parent
@@ -41,7 +43,7 @@ class SMMPOI {
   }
 
   calculateTDVCallback() {
-    L.MarineVectors(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.POILabel, L.latLng(this.coords[1], this.coords[0]), this.poiID)
+    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.POILabel, L.latLng(this.coords[1], this.coords[0]), this.poiID)
   }
 
   createPopup(layer) {
