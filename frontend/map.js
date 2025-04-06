@@ -25,7 +25,6 @@ import './PolygonAdder/PolygonAdder.js'
 import './LineAdder/LineAdder.js'
 import './ImageUploader/ImageUploader.js'
 import './SearchAdder/SearchAdder.js'
-import './MarineVectors/MarineVectors.js'
 
 import { SMMSearchesComplete, SMMSearchesInprogress, SMMSearchesNotStarted } from './search/map.js'
 import { SMMPOIs } from './usergeo/poi.js'

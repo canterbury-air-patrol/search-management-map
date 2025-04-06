@@ -2,7 +2,7 @@
     "entry": [
         "frontend/map.js",
         "frontend/marinesac.js",
-        "frontend/marinevectors.js",
+        "frontend/marinevectors.tsx",
         "frontend/pretty.tsx",
         "frontend/asset/ui.tsx",
         "frontend/asset/list.tsx",
