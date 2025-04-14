@@ -46,7 +46,7 @@
     "@types/leaflet": "^1.9.17",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
-    "eslint": "^9.23.0",
+    "eslint": "^9.24.0",
     "eslint-plugin-react": "^7.37.5",
     "globals": "^16.0.0",
     "prettier": "3.5.3",
