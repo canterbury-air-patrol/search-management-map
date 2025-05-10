@@ -1,14 +1,30 @@
 import L from 'leaflet'
 import 'leaflet-realtime'
 
-class SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+interface SMMRealtimeButtons {
+  btnClass: string
+  label: string
+  onclick?: () => void
+  href?: string
+}
+
+abstract class SMMRealtime {
+  map: L.Map
+  csrftoken: string
+  missionId: number | string
+  interval: number
+  color: string
+
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     this.map = map
     this.csrftoken = csrftoken
     this.missionId = missionId
     this.interval = interval
     this.color = color
   }
+
+  abstract getUrl(): string
+  abstract createPopup(feature: { properties: object }, layer: L.Layer): void
 
   realtime() {
     return L.realtime(
@@ -20,21 +36,21 @@ class SMMRealtime {
         interval: this.interval,
         color: this.color,
         onEachFeature: this.createPopup,
-        getFeatureId: function (feature) {
+        getFeatureId: function (feature: { properties: { pk: number } }) {
           return feature.properties.pk
         }
       }
     )
   }
 
-  createButtonGroup(data) {
+  createButtonGroup(data: Array<SMMRealtimeButtons>) {
     const btngroup = document.createElement('div')
     btngroup.className = 'btn-group'
 
     for (const d in data) {
       const btnData = data[d]
       const btn = document.createElement('button')
-      btn.className = `btn ${btnData['btn-class']}`
+      btn.className = `btn ${btnData['btnClass']}`
       if (btnData.onclick !== undefined) {
         btn.onclick = btnData.onclick
       }

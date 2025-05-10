@@ -85,7 +85,7 @@ class SMMImage extends SMMRealtime {
               onclick: function () {
                 $.get(`/image/${imageID}/priority/unset/`)
               },
-              'btn-class': 'btn-light'
+              btnClass: 'btn-light'
             }
           ])
         )
@@ -97,7 +97,7 @@ class SMMImage extends SMMRealtime {
               onclick: function () {
                 $.get(`/image/${imageID}/priority/set/`)
               },
-              'btn-class': 'btn-light'
+              btnClass: 'btn-light'
             }
           ])
         )
