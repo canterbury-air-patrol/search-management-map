@@ -1,9 +1,10 @@
 import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
+import { TotalDriftVectorData } from './types'
 
 class SMMMarineVector extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
@@ -13,7 +14,7 @@ class SMMMarineVector extends SMMRealtime {
     return `/mission/${this.missionId}/sar/marine/vectors/current/`
   }
 
-  createPopup(tdv, layer) {
+  createPopup(tdv: { properties: TotalDriftVectorData }, layer: L.Layer) {
     const tdvID = tdv.properties.pk
 
     const popupContent = document.createElement('div')
@@ -28,7 +29,7 @@ class SMMMarineVector extends SMMRealtime {
 
     const dd = document.createElement('dd')
     dd.className = 'image-name col-sm-10'
-    dd.textContent = tdvID
+    dd.textContent = tdvID.toString()
     dl.appendChild(dd)
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
