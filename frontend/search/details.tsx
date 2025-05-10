@@ -13,25 +13,10 @@ import { GeometryPoints } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
 import { ExpandingBoxSearch, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
 import { SearchRunner } from '@canterbury-air-patrol/sar-search-runner'
-
-interface SMMSearchObjectDetails {
-  search_type: string
-  created_for: string
-  created_at: string
-  created_by: string
-  datum: number
-  inprogress_by?: string
-  inprogress_at?: string
-  queued_at?: string
-  queued_for?: string
-  sweep_width: number
-  iterations?: number
-  first_bearing?: number
-  width?: number
-}
+import { SMMSearchObjectDetailsData } from './types'
 
 class SearchDetails extends SMMObjectDetails {
-  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMSearchObjectDetails) {
+  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMSearchObjectDetailsData) {
     tableRows.push(
       <tr key="search_type">
         <td>Type:</td>
@@ -77,11 +62,11 @@ class SearchDetails extends SMMObjectDetails {
           <td>{new Date(data.queued_at).toLocaleString()}</td>
         </tr>
       )
-      if (data.queued_for !== null) {
+      if (data.queued_for_asset !== null) {
         tableRows.push(
           <tr key="queued_for">
             <td>Queued For:</td>
-            <td>{data.queued_for}</td>
+            <td>{data.queued_for_asset}</td>
           </tr>
         )
       }
@@ -125,7 +110,7 @@ class SearchDetails extends SMMObjectDetails {
   }
 }
 
-function createSearch(data: SMMSearchObjectDetails) {
+function createSearch(data: SMMSearchObjectDetailsData) {
   if (data.search_type === 'Sector') {
     return new SectorSearch(data.sweep_width, 3, 3, 0)
   }
@@ -140,7 +125,7 @@ interface SearchDetailsPageProps {
 }
 
 interface SearchDetailsPageState {
-  data?: SMMSearchObjectDetails
+  data?: SMMSearchObjectDetailsData
   search?: object
   geometry?: {
     type: string
@@ -174,7 +159,7 @@ class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDe
 
   updateDataResponse(data: {
     features: {
-      properties: SMMSearchObjectDetails
+      properties: SMMSearchObjectDetailsData
       geometry: {
         type: string
         coordinates: [number, number] | [number, number][] | [number, number][][]

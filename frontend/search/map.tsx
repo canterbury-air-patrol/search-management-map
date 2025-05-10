@@ -4,21 +4,16 @@ import '@canterbury-air-patrol/leaflet-dialog'
 import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
+import { MissionAssetData } from '../asset/types'
+import { SMMSearchObjectDetailsData } from './types'
 
 class SMMSearch {
-  constructor(parent, search) {
+  parent: SMMSearches
+  search: SMMSearchObjectDetailsData
+  QueueDialog?: L.Control.Dialog
+  constructor(parent: SMMSearches, search: SMMSearchObjectDetailsData) {
     this.parent = parent
-    this.SearchID = search.properties.pk
-    this.SweepWidth = search.properties.sweep_width
-    this.AssetType = search.properties.created_for
-    this.SearchType = search.properties.search_type
-    this.QueuedAt = search.properties.queued_at
-    this.QueuedForAsset = search.properties.queued_for_asset
-    this.CreatedFor = search.properties.created_for
-    this.InprogressBy = search.properties.inprogress_by
-    this.InprogressAt = search.properties.inprogress_at
-    this.CompletedBy = search.properties.completed_by
-    this.CompletedAt = search.properties.completed_at
+    this.search = search
 
     this.deleteCallback = this.deleteCallback.bind(this)
     this.searchQueueAssetListCallback = this.searchQueueAssetListCallback.bind(this)
@@ -29,9 +24,9 @@ class SMMSearch {
   }
 
   deleteCallback() {
-    const csrftoken = this.parent.csrftoken
+    const { csrftoken } = this.parent
     $.ajax({
-      url: `/search/${this.SearchID}/`,
+      url: `/search/${this.search.pk}/`,
       method: 'DELETE',
       beforeSend: function (xhr) {
         xhr.setRequestHeader('X-CSRFToken', csrftoken)
@@ -42,12 +37,12 @@ class SMMSearch {
   createDetailsButton() {
     return {
       label: 'Details',
-      href: `/search/${this.SearchID}/`,
+      href: `/search/${this.search.pk}/`,
       btnClass: 'btn-light'
     }
   }
 
-  searchDataToPopUp(data) {
+  searchDataToPopUp(data: Array<{ css: string; label: string; value: string }>) {
     const dl = document.createElement('dl')
     dl.className = 'search-data row'
 
@@ -65,11 +60,11 @@ class SMMSearch {
     return dl
   }
 
-  searchQueueAssetListCallback(data) {
+  searchQueueAssetListCallback(data: { assets: Array<MissionAssetData> }) {
     if ('assets' in data) {
       for (const at in data.assets) {
-        if (data.assets[at].type_name === this.AssetType) {
-          $(`#queue_${this.SearchID}_select_asset`).append(`<option value='${data.assets[at].id}'>${data.assets[at].name}</option>`)
+        if (data.assets[at].type_name === this.search.created_for) {
+          $(`#queue_${this.search.pk}_select_asset`).append(`<option value='${data.assets[at].id}'>${data.assets[at].name}</option>`)
         }
       }
     }
@@ -77,7 +72,7 @@ class SMMSearch {
 
   searchQueueDestroy() {
     this.QueueDialog.destroy()
-    this.QueueDialog = null
+    this.QueueDialog = undefined
   }
 
   searchQueueSubmit() {
@@ -87,71 +82,71 @@ class SMMSearch {
         value: this.parent.csrftoken
       }
     ]
-    if ($(`#queue_${this.SearchID}_select_type`).val() === 'asset') {
+    if ($(`#queue_${this.search.pk}_select_type`).val() === 'asset') {
       data.push({
         name: 'asset',
-        value: $(`#queue_${this.SearchID}_select_asset`).val()
+        value: $(`#queue_${this.search.pk}_select_asset`).val() as string
       })
     }
-    $.post(`/search/${this.SearchID}/queue/`, data, this.searchQueueDestroy)
+    $.post(`/search/${this.search.pk}/queue/`, data, this.searchQueueDestroy)
   }
 
   searchQueueUpdateSelectType() {
-    if ($(`#queue_${this.SearchID}_select_type`).val() === 'type') {
-      $(`#queue_${this.SearchID}_select_asset`).hide()
+    if ($(`#queue_${this.search.pk}_select_type`).val() === 'type') {
+      $(`#queue_${this.search.pk}_select_asset`).hide()
     } else {
-      $(`#queue_${this.SearchID}_select_asset`).show()
+      $(`#queue_${this.search.pk}_select_asset`).show()
     }
   }
 
   searchQueueDialog() {
     const contents = [
-      `<div>Queue for <select id='queue_${this.SearchID}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
-      `<div><select id='queue_${this.SearchID}_select_asset'></select></div>`,
-      `<div><button class='btn btn-light' id='queue_${this.SearchID}_queue'>Queue</button></div>`,
-      `<div><button class='btn btn-danger' id='queue_${this.SearchID}_cancel'>Cancel</button>`
+      `<div>Queue for <select id='queue_${this.search.pk}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
+      `<div><select id='queue_${this.search.pk}_select_asset'></select></div>`,
+      `<div><button class='btn btn-light' id='queue_${this.search.pk}_queue'>Queue</button></div>`,
+      `<div><button class='btn btn-danger' id='queue_${this.search.pk}_cancel'>Cancel</button>`
     ].join('')
     this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.parent.map).hideClose()
-    $(`#queue_${this.SearchID}_select_asset`).hide()
+    $(`#queue_${this.search.pk}_select_asset`).hide()
     $.getJSON(`/mission/${this.parent.missionId}/assets/`, this.searchQueueAssetListCallback)
-    $(`#queue_${this.SearchID}_select_type`).on('change', this.searchQueueUpdateSelectType)
-    $(`#queue_${this.SearchID}_queue`).on('click', this.searchQueueSubmit)
-    $(`#queue_${this.SearchID}_cancel`).on('click', this.searchQueueDestroy)
+    $(`#queue_${this.search.pk}_select_type`).on('change', this.searchQueueUpdateSelectType)
+    $(`#queue_${this.search.pk}_queue`).on('click', this.searchQueueSubmit)
+    $(`#queue_${this.search.pk}_cancel`).on('click', this.searchQueueDestroy)
   }
 
-  createPopup(layer) {
+  createPopup(layer: L.Layer) {
     const data = [
-      { css: 'type', label: 'Search Type', value: this.SearchType },
-      { css: 'status', label: 'Status', value: this.parent.searchStatus(this) },
-      { css: 'sweep-width', label: 'Sweep Width', value: this.SweepWidth + 'm' },
-      { css: 'asset-type', label: 'Asset Type', value: this.AssetType }
+      { css: 'type', label: 'Search Type', value: this.search.search_type },
+      { css: 'status', label: 'Status', value: this.parent.searchStatus(this.search) },
+      { css: 'sweep-width', label: 'Sweep Width', value: this.search.sweep_width + 'm' },
+      { css: 'asset-type', label: 'Asset Type', value: this.search.created_for as string }
     ]
 
-    if (this.CompletedBy) {
+    if (this.search.completed_by) {
       data.push({
         css: 'completed',
         label: 'Completed By',
-        value: this.CompletedBy
+        value: this.search.completed_by
       })
-    } else if (this.InprogressBy) {
+    } else if (this.search.inprogress_by) {
       data.push({
         css: 'inprogress',
         label: 'Inprogress By',
-        value: this.InprogressBy
+        value: this.search.inprogress_by
       })
     }
-    if (this.InprogressAt) {
+    if (this.search.inprogress_at) {
       data.push({
         css: 'inprogress',
         label: 'Search Started',
-        value: this.InprogressAt
+        value: this.search.inprogress_at
       })
     }
-    if (this.CompletedAt) {
+    if (this.search.completed_at) {
       data.push({
         css: 'completed',
         label: 'Search Completed',
-        value: this.CompletedAt
+        value: this.search.completed_at
       })
     }
 
@@ -160,14 +155,14 @@ class SMMSearch {
 
     if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
       const buttonData = []
-      if (!this.InprogressAt) {
+      if (!this.search.inprogress_at) {
         buttonData.push({
           label: 'Delete',
           onclick: this.deleteCallback,
           btnClass: 'btn-danger'
         })
       }
-      if (!this.QueuedAt && !this.InprogressAt) {
+      if (!this.search.queued_at && !this.search.inprogress_at) {
         buttonData.push({
           label: 'Queue',
           onclick: this.searchQueueDialog,
@@ -181,15 +176,18 @@ class SMMSearch {
   }
 }
 
-class SMMSearches extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+abstract class SMMSearches extends SMMRealtime {
+  searchObjects: { [key: number]: SMMSearch }
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
 
     this.searchObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }
 
-  getObject(pk, search) {
+  abstract searchStatus(search: SMMSearchObjectDetailsData): string
+
+  getObject(pk: number, search: SMMSearchObjectDetailsData) {
     if (!(pk in this.searchObjects)) {
       const searchObject = new SMMSearch(this, search)
       this.searchObjects[pk] = searchObject
@@ -197,8 +195,8 @@ class SMMSearches extends SMMRealtime {
     return this.searchObjects[pk]
   }
 
-  createPopup(search, layer) {
-    this.getObject(search.properties.pk, search).createPopup(layer)
+  createPopup(search: { properties: SMMSearchObjectDetailsData }, layer: L.Layer) {
+    this.getObject(search.properties.pk, search.properties).createPopup(layer)
   }
 }
 
@@ -207,13 +205,13 @@ class SMMSearchesNotStarted extends SMMSearches {
     return `/mission/${this.missionId}/search/notstarted/`
   }
 
-  searchStatus(search) {
+  searchStatus(search: SMMSearchObjectDetailsData) {
     let status = 'Unassigned'
-    if (search.QueuedAt) {
-      if (search.QueuedForAsset) {
-        status = `Queued for ${search.QueuedForAsset} at ${search.QueuedAt}`
+    if (search.queued_at) {
+      if (search.queued_for_asset) {
+        status = `Queued for ${search.queued_for_asset} at ${search.queued_at}`
       } else {
-        status = `Queued for ${search.CreatedFor} at ${search.QueuedAt}`
+        status = `Queued for ${search.created_for} at ${search.queued_at}`
       }
     }
 
@@ -226,8 +224,8 @@ class SMMSearchesInprogress extends SMMSearches {
     return `/mission/${this.missionId}/search/inprogress/`
   }
 
-  searchStatus(search) {
-    return `In Progress: ${search.InprogressBy}`
+  searchStatus(search: SMMSearchObjectDetailsData) {
+    return `In Progress: ${search.inprogress_by}`
   }
 }
 
