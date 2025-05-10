@@ -62,4 +62,30 @@ interface AssetStatusData {
   notes: string
 }
 
-export { AssetTypeData, AssetData, AssetFullStatusData, AssetCommandData, AssetStatusValueData, AssetStatusData }
+interface MissionAssetStatusData {
+  id: number
+  asset: string
+  asset_id: number
+  status: string
+  status_description: string
+  since: string
+  notes: string
+}
+
+interface MissionAssetData {
+  id: number
+  name: string
+  type_id: number
+  type_name: string
+  icon_url: string
+  status?: MissionAssetStatusData
+}
+
+interface AssetPointTime {
+  asset: number
+  created_at: string
+  heading?: number
+  fix?: number
+}
+
+export { AssetTypeData, AssetData, AssetFullStatusData, AssetCommandData, AssetStatusValueData, AssetStatusData, MissionAssetData, AssetPointTime }
