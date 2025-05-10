@@ -1,7 +1,7 @@
 {
     "entry": [
         "frontend/map.tsx",
-        "frontend/marinesac.js",
+        "frontend/marinesac.tsx",
         "frontend/marinevectors.tsx",
         "frontend/pretty.tsx",
         "frontend/asset/ui.tsx",
