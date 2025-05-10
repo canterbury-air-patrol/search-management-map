@@ -43,7 +43,7 @@ class SMMSearch {
     return {
       label: 'Details',
       href: `/search/${this.SearchID}/`,
-      'btn-class': 'btn-light'
+      btnClass: 'btn-light'
     }
   }
 
@@ -164,14 +164,14 @@ class SMMSearch {
         buttonData.push({
           label: 'Delete',
           onclick: this.deleteCallback,
-          'btn-class': 'btn-danger'
+          btnClass: 'btn-danger'
         })
       }
       if (!this.QueuedAt && !this.InprogressAt) {
         buttonData.push({
           label: 'Queue',
           onclick: this.searchQueueDialog,
-          'btn-class': 'btn-light'
+          btnClass: 'btn-light'
         })
       }
       buttonData.push(this.createDetailsButton())

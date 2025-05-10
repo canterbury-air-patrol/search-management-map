@@ -77,27 +77,27 @@ class SMMPOI {
           {
             label: 'Move',
             onclick: this.editCallback,
-            'btn-class': 'btn-light'
+            btnClass: 'btn-light'
           },
           {
             label: 'Delete',
             onclick: this.deleteCallback,
-            'btn-class': 'btn-danger'
+            btnClass: 'btn-danger'
           },
           {
             label: 'Create Search',
             onclick: this.createSearchCallback,
-            'btn-class': 'btn-light'
+            btnClass: 'btn-light'
           },
           {
             label: 'Calculate TDV',
             onclick: this.calculateTDVCallback,
-            'btn-class': 'btn-light'
+            btnClass: 'btn-light'
           },
           {
             label: 'Details',
             href: `/data/usergeo/${this.poiID}/`,
-            'btn-class': 'btn-light'
+            btnClass: 'btn-light'
           }
         ])
       )

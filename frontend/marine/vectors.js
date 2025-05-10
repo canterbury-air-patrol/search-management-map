@@ -39,7 +39,7 @@ class SMMMarineVector extends SMMRealtime {
             onclick: function () {
               $.get(`/sar/marine/vectors/${tdvID}/delete/`)
             },
-            'btn-class': 'btn-danger'
+            btnClass: 'btn-danger'
           }
         ])
       )
