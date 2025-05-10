@@ -6,8 +6,8 @@ import * as ReactDOM from 'react-dom/client'
 import { MarineSACTable } from '@canterbury-air-patrol/marine-search-area-coverage'
 import { SMMMissionTopBar } from './menu/topbar'
 
-export function createMarineSACTable(elementId, missionId) {
-  const div = ReactDOM.createRoot(document.getElementById(elementId))
+export function createMarineSACTable(elementId: string, missionId: number) {
+  const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
   div.render(
     <>
@@ -17,4 +17,5 @@ export function createMarineSACTable(elementId, missionId) {
   )
 }
 
+// @ts-expect-error: globalThis has no defintion
 globalThis.createMarineSACTable = createMarineSACTable
