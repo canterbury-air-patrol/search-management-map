@@ -5,9 +5,10 @@ import $ from 'jquery'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 import { SMMRealtime } from '../smmmap'
+import { SMMImageGeoJSON } from './types'
 
-class SMMImage extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+abstract class SMMImage extends SMMRealtime {
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
@@ -23,10 +24,10 @@ class SMMImage extends SMMRealtime {
         interval: this.interval,
         color: this.color,
         onEachFeature: this.createPopup,
-        getFeatureId: function (feature) {
+        getFeatureId: function (feature: SMMImageGeoJSON) {
           return feature.properties.pk
         },
-        pointToLayer: function (feature, latlng) {
+        pointToLayer: function (feature: SMMImageGeoJSON, latlng: L.LatLng) {
           return L.marker(latlng, {
             icon: L.icon({
               iconUrl: '/static/icons/image-x-generic.png',
@@ -38,7 +39,7 @@ class SMMImage extends SMMRealtime {
     )
   }
 
-  createPopup(image, layer) {
+  createPopup(image: SMMImageGeoJSON, layer: L.Layer) {
     const ImageDesc = image.properties.description
     const imageID = image.properties.pk
     const coords = image.geometry.coordinates
@@ -52,7 +53,7 @@ class SMMImage extends SMMRealtime {
     const data = [
       ['Image', ImageDesc],
       ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
+      ['Long', degreesToDM(coords[0], false)]
     ]
 
     for (const d in data) {
@@ -109,7 +110,7 @@ class SMMImage extends SMMRealtime {
 }
 
 class SMMImageAll extends SMMImage {
-  constructor(map, csrftoken, missionId, interval, color) {
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }
@@ -120,7 +121,7 @@ class SMMImageAll extends SMMImage {
 }
 
 class SMMImageImportant extends SMMImage {
-  constructor(map, csrftoken, missionId, interval, color) {
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }
