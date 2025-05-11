@@ -8,15 +8,23 @@ import { AssetColorPicker } from '../asset/map'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import Cookies from 'universal-cookie'
+import { SMMMissionUserPointTimeGeoJSON } from './types'
 
 class SMMUserPosition {
-  constructor(map, missionId, userName, color) {
+  map: L.Map
+  missionId: number | string
+  userName: string
+  color: string
+  colorDialog?: L.Control.Dialog
+  lastUpdate?: string
+  path: L.LatLng[]
+  updating: boolean
+  polyline: L.Polyline
+  constructor(map: L.Map, missionId: number | string, userName: string, color: string) {
     this.missionId = missionId
     this.userName = userName
     this.color = color
-    this.colorDialog = null
     this.map = map
-    this.lastUpdate = null
     this.path = []
     this.updating = false
     this.polyline = L.polyline([], { color: this.color })
@@ -31,7 +39,7 @@ class SMMUserPosition {
     return this.polyline
   }
 
-  updateColor(color) {
+  updateColor(color: string) {
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`user_${this.userName}_track_color`, color)
     this.color = color
@@ -42,11 +50,11 @@ class SMMUserPosition {
 
   closeColorPicker() {
     this.colorDialog.destroy()
-    this.colorDialog = null
+    this.colorDialog = undefined
   }
 
   colorPicker() {
-    if (this.colorDialog === null) {
+    if (!this.colorDialog) {
       const dialogContent = document.createElement('div')
       const label = document.createElement('div')
       label.textContent = `Color Picker for ${this.userName}`
@@ -68,7 +76,7 @@ class SMMUserPosition {
     }
   }
 
-  updateNewPosition(route) {
+  updateNewPosition(route: { features: Array<SMMMissionUserPointTimeGeoJSON> }) {
     for (const f in route.features) {
       const lon = route.features[f].geometry.coordinates[0]
       const lat = route.features[f].geometry.coordinates[1]
@@ -104,7 +112,9 @@ class SMMUserPosition {
 }
 
 class SMMUserPositions extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color, overlayAdd) {
+  userObjects: { [key: string]: SMMUserPosition }
+  overlayAdd: (name: string, overlay: L.Layer) => void
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
     super(map, csrftoken, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
@@ -127,7 +137,7 @@ class SMMUserPositions extends SMMRealtime {
         interval: this.interval,
         onEachFeature: this.createPopup,
         updateFeature: this.userUpdate,
-        getFeatureId: function (feature) {
+        getFeatureId: function (feature: SMMMissionUserPointTimeGeoJSON) {
           return feature.properties.user
         },
         pointToLayer: this.userLayer
@@ -135,7 +145,7 @@ class SMMUserPositions extends SMMRealtime {
     )
   }
 
-  createUser(userName) {
+  createUser(userName: string) {
     if (!(userName in this.userObjects)) {
       /* Create an overlay for this object */
       const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
@@ -153,7 +163,7 @@ class SMMUserPositions extends SMMRealtime {
     return userObject
   }
 
-  createPopup(user, layer) {
+  createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {
     const userName = user.properties.user
 
     this.createUser(userName)
@@ -165,35 +175,35 @@ class SMMUserPositions extends SMMRealtime {
     layer.bindPopup(popupContent, { minWidth: 200 })
   }
 
-  userLayer(user, latlng) {
+  userLayer(user: SMMMissionUserPointTimeGeoJSON, latlng: L.LatLng) {
     return L.marker(latlng, {
       title: user.properties.user
     })
   }
 
-  userPathUpdate(userName) {
+  userPathUpdate(userName: string) {
     this.createUser(userName).update()
   }
 
-  userDataToPopUp(data) {
+  userDataToPopUp(data: Array<{ label: string; value: string }>) {
     const dl = document.createElement('dl')
     dl.className = 'row'
 
     for (const d in data) {
       const dt = document.createElement('dt')
       dt.className = 'user-label col-sm-3'
-      dt.textContent = data[d][0]
+      dt.textContent = data[d].label
       dl.appendChild(dt)
       const dd = document.createElement('dd')
       dd.className = 'user-name col-sm-9'
-      dd.textContent = data[d][1]
+      dd.textContent = data[d].value
       dl.appendChild(dd)
     }
 
     return dl
   }
 
-  userUpdate(user, oldLayer) {
+  userUpdate(user: SMMMissionUserPointTimeGeoJSON, oldLayer: L.Marker) {
     const userName = user.properties.user
     this.userPathUpdate(userName)
 
@@ -204,23 +214,15 @@ class SMMUserPositions extends SMMRealtime {
     const coords = user.geometry.coordinates
 
     const data = [
-      ['User', userName],
-      ['Lat', degreesToDM(coords[1], true)],
-      ['Long', degreesToDM(coords[0])]
+      { label: 'User', value: userName },
+      { label: 'Lat', value: degreesToDM(coords[1], true) },
+      { label: 'Long', value: degreesToDM(coords[0], false) }
     ]
 
-    const alt = user.properties.alt
-    const heading = user.properties.heading
-    const fix = user.properties.fix
+    const { alt } = user.properties
 
     if (alt) {
-      data.push(['Altitude', alt])
-    }
-    if (heading) {
-      data.push(['Heading', heading])
-    }
-    if (fix) {
-      data.push(['Fix', fix])
+      data.push({ label: 'Altitude', value: alt.toString() })
     }
 
     const popupContent = this.userDataToPopUp(data)
