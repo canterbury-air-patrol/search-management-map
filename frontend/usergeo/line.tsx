@@ -3,13 +3,16 @@ import L from 'leaflet'
 import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
+import { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON } from './types'
 
 class SMMLine {
-  constructor(parent, line) {
+  parent: SMMLines
+  coords: [number, number][]
+  data: SMMUserGeoLabelData
+  constructor(parent: SMMLines, line: SMMUserGeoLineGeoJSON) {
     this.parent = parent
     this.coords = line.geometry.coordinates
-    this.LineLabel = line.properties.label
-    this.LineID = line.properties.pk
+    this.data = line.properties
     this.setXHR = this.setXHR.bind(this)
     this.editCallback = this.editCallback.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
@@ -22,28 +25,28 @@ class SMMLine {
       this.parent.missionId,
       this.parent.csrftoken,
       this.coords.map((x) => L.latLng(x[1], x[0])),
-      this.LineID,
-      this.LineLabel
+      this.data.pk,
+      this.data.label
     )
   }
 
-  setXHR(xhr) {
+  setXHR(xhr: XMLHttpRequest) {
     xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
   }
 
   deleteCallback() {
     $.ajax({
-      url: `/data/usergeo/${this.LineID}/`,
+      url: `/data/usergeo/${this.data.pk}/`,
       type: 'DELETE',
       beforeSend: this.setXHR
     })
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'line', this.LineID)
+    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'line', this.data.pk)
   }
 
-  createPopup(layer) {
+  createPopup(layer: L.Layer) {
     const popupContent = document.createElement('div')
     const dl = document.createElement('dl')
     dl.className = 'line row'
@@ -53,7 +56,7 @@ class SMMLine {
     dl.appendChild(dt)
     const dd = document.createElement('dd')
     dd.className = 'line-name col-sm-9'
-    dd.textContent = this.LineLabel
+    dd.textContent = this.data.label
     dl.appendChild(dd)
     popupContent.appendChild(dl)
 
@@ -77,7 +80,7 @@ class SMMLine {
           },
           {
             label: 'Details',
-            href: `/data/usergeo/${this.LineID}/`,
+            href: `/data/usergeo/${this.data.pk}/`,
             btnClass: 'btn-light'
           }
         ])
@@ -89,7 +92,8 @@ class SMMLine {
 }
 
 class SMMLines extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+  lineObjects: { [key: number]: SMMLine }
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: hex) {
     super(map, csrftoken, missionId, interval, color)
     this.lineObjects = {}
     this.createPopup = this.createPopup.bind(this)
@@ -99,7 +103,7 @@ class SMMLines extends SMMRealtime {
     return `/mission/${this.missionId}/data/userlines/current/`
   }
 
-  getObject(pk, line) {
+  getObject(pk: number, line: SMMUserGeoLineGeoJSON) {
     if (!(pk in this.lineObjects)) {
       const lineObject = new SMMLine(this, line)
       this.lineObjects[pk] = lineObject
@@ -107,7 +111,7 @@ class SMMLines extends SMMRealtime {
     return this.lineObjects[pk]
   }
 
-  createPopup(line, layer) {
+  createPopup(line: SMMUserGeoLineGeoJSON, layer: L.Layer) {
     this.getObject(line.properties.pk, line).createPopup(layer)
   }
 }
