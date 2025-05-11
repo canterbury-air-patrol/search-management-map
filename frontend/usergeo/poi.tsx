@@ -8,13 +8,16 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
+import { SMMUserGeoLabelData, SMMUserGeoPOIGeoJSON } from './types'
 
 class SMMPOI {
-  constructor(parent, poi) {
+  parent: SMMPOIs
+  coords: [number, number]
+  data: SMMUserGeoLabelData
+  constructor(parent: SMMPOIs, poi: SMMUserGeoPOIGeoJSON) {
     this.parent = parent
     this.coords = poi.geometry.coordinates
-    this.POILabel = poi.properties.label
-    this.poiID = poi.properties.pk
+    this.data = poi.properties
     this.editCallback = this.editCallback.bind(this)
     this.setXHR = this.setXHR.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
@@ -26,33 +29,33 @@ class SMMPOI {
     L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.poiID, this.POILabel)
   }
 
-  setXHR(xhr) {
+  setXHR(xhr: XMLHttpRequest) {
     xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
   }
 
   deleteCallback() {
     $.ajax({
-      url: `/data/usergeo/${this.poiID}/`,
+      url: `/data/usergeo/${this.data.pk}/`,
       type: 'DELETE',
       beforeSend: this.setXHR
     })
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'point', this.poiID)
+    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'point', this.data.pk)
   }
 
   calculateTDVCallback() {
-    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.POILabel, L.latLng(this.coords[1], this.coords[0]), this.poiID)
+    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.data.label, L.latLng(this.coords[1], this.coords[0]), this.poiID)
   }
 
-  createPopup(layer) {
+  createPopup(layer: L.Layer) {
     const popupContent = document.createElement('div')
 
     const data = [
-      ['POI', this.POILabel],
+      ['POI', this.data.label],
       ['Lat', degreesToDM(this.coords[1], true)],
-      ['Long', degreesToDM(this.coords[0])]
+      ['Long', degreesToDM(this.coords[0], false)]
     ]
 
     for (const d in data) {
@@ -96,7 +99,7 @@ class SMMPOI {
           },
           {
             label: 'Details',
-            href: `/data/usergeo/${this.poiID}/`,
+            href: `/data/usergeo/${this.data.pk}/`,
             btnClass: 'btn-light'
           }
         ])
@@ -108,7 +111,8 @@ class SMMPOI {
 }
 
 class SMMPOIs extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+  poiObjects: { [key: string]: SMMPOI }
+  constructor(map: L.Map, csrftoken: string, missionId: string | number, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
     this.poiObjects = {}
     this.createPopup = this.createPopup.bind(this)
@@ -118,7 +122,7 @@ class SMMPOIs extends SMMRealtime {
     return `/mission/${this.missionId}/data/pois/current/`
   }
 
-  getObject(pk, poi) {
+  getObject(pk: number, poi: SMMUserGeoPOIGeoJSON) {
     if (!(pk in this.poiObjects)) {
       const poiObject = new SMMPOI(this, poi)
       this.poiObjects[pk] = poiObject
@@ -126,7 +130,7 @@ class SMMPOIs extends SMMRealtime {
     return this.poiObjects[pk]
   }
 
-  createPopup(poi, layer) {
+  createPopup(poi: SMMUserGeoPOIGeoJSON, layer: L.Layer) {
     this.getObject(poi.properties.pk, poi).createPopup(layer)
   }
 }

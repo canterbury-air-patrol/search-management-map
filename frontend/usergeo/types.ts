@@ -17,4 +17,12 @@ interface SMMUserGeoLineGeoJSON {
   }
 }
 
-export { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON }
+interface SMMUserGeoPOIGeoJSON {
+  properties: SMMUserGeoLabelData
+  geometry: {
+    type: 'Point'
+    coordinates: [number, number]
+  }
+}
+
+export { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON, SMMUserGeoPOIGeoJSON }
