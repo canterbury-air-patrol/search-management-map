@@ -37,7 +37,26 @@ import { SMMMissionTopBar } from './menu/topbar.js'
 import { SMMUserPositions } from './user/map.js'
 
 class SMMMap {
-  constructor(mapElem, missionId, csrftoken) {
+  map: L.Map
+  layerControl: L.Control.Layers
+  layerControlMaps: L.Control.Layers
+  layerControlAssets: L.Control.Layers
+  layerControlUsers: L.Control.Layers
+  missionId: number | string
+  csrftoken: string
+  assets?: SMMAssets
+  users?: SMMUserPositions
+  POIs?: SMMPOIs
+  polygons?: SMMPolygons
+  lines?: SMMLines
+  notStartedSearches?: SMMSearchesNotStarted
+  inprogressSearches?: SMMSearchesInprogress
+  completeSearches?: SMMSearchesComplete
+  allImages?: SMMImageAll
+  importantImages?: SMMImageImportant
+  marineVectors?: SMMMarineVector
+
+  constructor(mapElem: string | HTMLElement, missionId: number | string, csrftoken: string) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
@@ -53,21 +72,28 @@ class SMMMap {
     this.setupMap()
   }
 
-  convertCookieName(name) {
+  convertCookieName(name: string) {
     return name.replace(/[^a-zA-Z0-9]/g, '_')
   }
 
-  layerStateChanged(e) {
+  layerStateChanged(e: L.LayerEvent) {
     const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
     const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`layer_${this.convertCookieName(layer.name)}_on_map`, e.type === 'add')
   }
 
-  mapLayersCallback(data) {
+  mapLayersCallback(data: {
+    layers: Array<{ name: string; url: string; base: boolean; attribution: string; minZoom: number; maxZoom: number; subdomains?: string; active: boolean; relativeOrder: number }>
+  }) {
     let baseSelected = false
     for (const d in data.layers) {
       const layer = data.layers[d]
-      const options = {
+      const options: {
+        attribution: string
+        minZoom: number
+        maxZoom: number
+        subdomains?: string
+      } = {
         attribution: layer.attribution,
         minZoom: layer.minZoom,
         maxZoom: layer.maxZoom
@@ -167,15 +193,15 @@ class SMMMap {
     this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
   }
 
-  overlayAdd(name, layer) {
+  overlayAdd(name: string, layer: L.Layer) {
     this.layerControl.addOverlay(layer, name)
   }
 
-  overlayAddAsset(name, layer) {
+  overlayAddAsset(name: string, layer: L.Layer) {
     this.layerControlAssets.addOverlay(layer, name)
   }
 
-  overlayAddUser(name, layer) {
+  overlayAddUser(name: string, layer: L.Layer) {
     this.layerControlUsers.addOverlay(layer, name)
   }
 }
@@ -201,7 +227,7 @@ function mapInit() {
 
   const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
-  return new SMMMap(mapEl, missionId, csrftoken)
+  return new SMMMap(mapEl, missionId, csrftoken as string)
 }
 
 mapInit()
