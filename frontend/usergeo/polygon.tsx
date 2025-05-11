@@ -3,12 +3,15 @@ import L from 'leaflet'
 import $ from 'jquery'
 
 import { SMMRealtime } from '../smmmap'
+import { SMMUserGeoLabelData, SMMUserGeoPolygonGeoJSON } from './types'
 
 class SMMPolygon {
-  constructor(parent, polygon) {
+  parent: SMMPolygons
+  coords: [number, number][][]
+  data: SMMUserGeoLabelData
+  constructor(parent: SMMPolygons, polygon: SMMUserGeoPolygonGeoJSON) {
     this.parent = parent
-    this.PolyLabel = polygon.properties.label
-    this.PolyID = polygon.properties.pk
+    this.data = polygon.properties
     this.coords = polygon.geometry.coordinates
     this.editCallback = this.editCallback.bind(this)
     this.setXHR = this.setXHR.bind(this)
@@ -22,28 +25,28 @@ class SMMPolygon {
       this.parent.missionId,
       this.parent.csrftoken,
       this.coords[0].map((x) => L.latLng(x[1], x[0])),
-      this.PolyID,
-      this.PolyLabel
+      this.data.pk,
+      this.data.label
     )
   }
 
-  setXHR(xhr) {
+  setXHR(xhr: XMLHttpRequest) {
     xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
   }
 
   deleteCallback() {
     $.ajax({
-      url: `/data/usergeo/${this.PolyID}/`,
+      url: `/data/usergeo/${this.data.pk}/`,
       type: 'DELETE',
       beforeSend: this.setXHR
     })
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'polygon', this.PolyID)
+    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'polygon', this.data.pk)
   }
 
-  createPopup(layer) {
+  createPopup(layer: L.Layer) {
     const popupContent = document.createElement('div')
     const dl = document.createElement('dl')
     dl.className = 'polygon row'
@@ -54,7 +57,7 @@ class SMMPolygon {
     dl.appendChild(dt)
     const dd = document.createElement('dd')
     dd.className = 'polygon-name col-sm-9'
-    dd.textContent = this.PolyLabel
+    dd.textContent = this.data.label
     dl.appendChild(dd)
 
     if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
@@ -77,7 +80,7 @@ class SMMPolygon {
           },
           {
             label: 'Details',
-            href: `/data/usergeo/${this.PolyID}/`,
+            href: `/data/usergeo/${this.data.pk}/`,
             btnClass: 'btn-light'
           }
         ])
@@ -89,7 +92,8 @@ class SMMPolygon {
 }
 
 class SMMPolygons extends SMMRealtime {
-  constructor(map, csrftoken, missionId, interval, color) {
+  polygonObjects: { [key: number]: SMMPolygon }
+  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
     super(map, csrftoken, missionId, interval, color)
     this.polygonObjects = {}
     this.createPopup = this.createPopup.bind(this)
@@ -99,7 +103,7 @@ class SMMPolygons extends SMMRealtime {
     return `/mission/${this.missionId}/data/userpolygons/current/`
   }
 
-  getObject(pk, polygon) {
+  getObject(pk: number, polygon: SMMUserGeoPolygonGeoJSON) {
     if (!(pk in this.polygonObjects)) {
       const polygonObject = new SMMPolygon(this, polygon)
       this.polygonObjects[pk] = polygonObject
@@ -107,7 +111,7 @@ class SMMPolygons extends SMMRealtime {
     return this.polygonObjects[pk]
   }
 
-  createPopup(polygon, layer) {
+  createPopup(polygon: SMMUserGeoPolygonGeoJSON, layer: L.Layer) {
     this.getObject(polygon.properties.pk, polygon).createPopup(layer)
   }
 }

@@ -25,4 +25,12 @@ interface SMMUserGeoPOIGeoJSON {
   }
 }
 
-export { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON, SMMUserGeoPOIGeoJSON }
+interface SMMUserGeoPolygonGeoJSON {
+  properties: SMMUserGeoLabelData
+  geometry: {
+    type: 'Polygon'
+    coordinates: [number, number][][]
+  }
+}
+
+export { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON, SMMUserGeoPOIGeoJSON, SMMUserGeoPolygonGeoJSON }
