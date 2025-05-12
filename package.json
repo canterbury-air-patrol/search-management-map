@@ -30,7 +30,7 @@
     "leaflet": "^1.9.4",
     "leaflet-realtime": "^2.2.0",
     "leaflet.locatecontrol": "^0.84.2",
-    "react-bootstrap": "^2.10.9",
+    "react-bootstrap": "^2.10.10",
     "react-collapsible": "^2.10.0",
     "react-color": "^2.19.3",
     "react-datetime-picker": "^6.0.1",
