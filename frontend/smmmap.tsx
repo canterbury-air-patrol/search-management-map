@@ -47,8 +47,7 @@ abstract class SMMRealtime {
     const btngroup = document.createElement('div')
     btngroup.className = 'btn-group'
 
-    for (const d in data) {
-      const btnData = data[d]
+    for (const btnData of data) {
       const btn = document.createElement('button')
       btn.className = `btn ${btnData['btnClass']}`
       if (btnData.onclick !== undefined) {

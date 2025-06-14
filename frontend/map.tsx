@@ -86,8 +86,7 @@ class SMMMap {
     layers: Array<{ name: string; url: string; base: boolean; attribution: string; minZoom: number; maxZoom: number; subdomains?: string; active: boolean; relativeOrder: number }>
   }) {
     let baseSelected = false
-    for (const d in data.layers) {
-      const layer = data.layers[d]
+    for (const layer of data.layers) {
       const options: {
         attribution: string
         minZoom: number
