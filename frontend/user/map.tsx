@@ -77,11 +77,11 @@ class SMMUserPosition {
   }
 
   updateNewPosition(route: { features: Array<SMMMissionUserPointTimeGeoJSON> }) {
-    for (const f in route.features) {
-      const lon = route.features[f].geometry.coordinates[0]
-      const lat = route.features[f].geometry.coordinates[1]
+    for (const feature of route.features) {
+      const lon = feature.geometry.coordinates[0]
+      const lat = feature.geometry.coordinates[1]
       this.path.push(L.latLng(lat, lon))
-      this.lastUpdate = route.features[f].properties.created_at
+      this.lastUpdate = feature.properties.created_at
     }
     this.polyline.setLatLngs(this.path)
     this.updating = false
@@ -189,14 +189,14 @@ class SMMUserPositions extends SMMRealtime {
     const dl = document.createElement('dl')
     dl.className = 'row'
 
-    for (const d in data) {
+    for (const d of data) {
       const dt = document.createElement('dt')
       dt.className = 'user-label col-sm-3'
-      dt.textContent = data[d].label
+      dt.textContent = d.label
       dl.appendChild(dt)
       const dd = document.createElement('dd')
       dd.className = 'user-name col-sm-9'
-      dd.textContent = data[d].value
+      dd.textContent = d.value
       dl.appendChild(dd)
     }
 

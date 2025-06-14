@@ -23,21 +23,21 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   const assetSelection = `<select class="form-control" id="SearchAdder-asset-type-${RAND_NUM}"></select>`
   $.getJSON('/assets/assettypes/', function (data) {
     $.each(data, function (index, json) {
-      for (const at in json) {
-        $(`#SearchAdder-asset-type-${RAND_NUM}`).append(`<option value='${json[at].id}'>${json[at].name}</option>`)
+      for (const assetType of json) {
+        $(`#SearchAdder-asset-type-${RAND_NUM}`).append(`<option value='${assetType.id}'>${assetType.name}</option>`)
       }
     })
   })
   const generateInputs = function (inputs) {
     let res = ''
-    for (const i in inputs) {
-      res += `<div class="input-group input-group-sm mb-3" id="SearchAdder-${inputs[i].id}-${RAND_NUM}">`
+    for (const input of inputs) {
+      res += `<div class="input-group input-group-sm mb-3" id="SearchAdder-${input.id}-${RAND_NUM}">`
       res += '<div class="input-group-prepend">'
       res += '<span class="input-group-text">'
-      res += inputs[i].label
+      res += input.label
       res += '</span>'
       res += '</div>'
-      res += inputs[i].input_html
+      res += input.input_html
       res += '</div>'
     }
     return res

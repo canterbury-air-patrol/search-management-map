@@ -58,17 +58,17 @@ class SMMPOI {
       ['Long', degreesToDM(this.coords[0], false)]
     ]
 
-    for (const d in data) {
+    for (const d of data) {
       const dl = document.createElement('dl')
       dl.className = 'poi row'
 
       const dt = document.createElement('dt')
       dt.className = 'asset-label col-sm-2'
-      dt.textContent = data[d][0]
+      dt.textContent = d[0]
       dl.appendChild(dt)
       const dd = document.createElement('dd')
       dd.className = 'asset-name col-sm-10'
-      dd.textContent = data[d][1]
+      dd.textContent = d[1]
       dl.appendChild(dd)
 
       popupContent.appendChild(dl)

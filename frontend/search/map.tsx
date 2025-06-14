@@ -46,14 +46,14 @@ class SMMSearch {
     const dl = document.createElement('dl')
     dl.className = 'search-data row'
 
-    for (const d in data) {
+    for (const d of data) {
       const dt = document.createElement('dt')
-      dt.className = `search-${data[d].css}-label col-sm-6`
-      dt.textContent = data[d].label
+      dt.className = `search-${d.css}-label col-sm-6`
+      dt.textContent = d.label
       dl.appendChild(dt)
       const dd = document.createElement('dd')
-      dd.className = `search-${data[d].css}-value col-sm-6`
-      dd.textContent = data[d].value
+      dd.className = `search-${d.css}-value col-sm-6`
+      dd.textContent = d.value
       dl.appendChild(dd)
     }
 
@@ -62,9 +62,9 @@ class SMMSearch {
 
   searchQueueAssetListCallback(data: { assets: Array<MissionAssetData> }) {
     if ('assets' in data) {
-      for (const at in data.assets) {
-        if (data.assets[at].type_name === this.search.created_for) {
-          $(`#queue_${this.search.pk}_select_asset`).append(`<option value='${data.assets[at].id}'>${data.assets[at].name}</option>`)
+      for (const asset of data.assets) {
+        if (asset.type_name === this.search.created_for) {
+          $(`#queue_${this.search.pk}_select_asset`).append(`<option value='${asset.id}'>${asset.name}</option>`)
         }
       }
     }
