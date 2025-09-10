@@ -94,11 +94,20 @@ def marine_vectors_create(request, mission_user):
 
     points = [start_point]
     current_point = start_point
+    query = (
+        "SELECT ST_Project("
+        "ST_SetSRID(ST_Point(%s, %s), 4326)::geography, %s, radians(%s)"
+        ")"
+    )
     for vector in vectors:
-        query = f"SELECT ST_Project(ST_SetSRID(ST_Point({current_point.x}, {current_point.y}), 4326)::geography, {vector['distance']}, radians({vector['bearing']}))"
-        cursor = dbconn.cursor()
-        cursor.execute(query)
-        reference_points = cursor.fetchone()
+        with dbconn.cursor() as cursor:
+            cursor.execute(query, [
+                float(current_point.x),
+                float(current_point.y),
+                float(vector['distance']),
+                float(vector['bearing'])
+            ])
+            reference_points = cursor.fetchone()
 
         current_point = GEOSGeometry(reference_points[0])
         points.append(current_point)
