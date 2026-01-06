@@ -26,7 +26,7 @@ class SMMPOI {
   }
 
   editCallback() {
-    L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.poiID, this.POILabel)
+    L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
   }
 
   setXHR(xhr: XMLHttpRequest) {
@@ -46,7 +46,7 @@ class SMMPOI {
   }
 
   calculateTDVCallback() {
-    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.data.label, L.latLng(this.coords[1], this.coords[0]), this.poiID)
+    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.data.label, L.latLng(this.coords[1], this.coords[0]), this.data.pk)
   }
 
   createPopup(layer: L.Layer) {
