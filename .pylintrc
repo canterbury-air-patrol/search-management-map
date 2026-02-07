@@ -1,0 +1,7 @@
+[MASTER]
+max-line-length=240
+ignore=migrations
+
+load-plugins=pylint_django
+django-settings-module=smm.settings
+
