@@ -4,7 +4,7 @@ django==6.0.2
 pytz
 
 # Database
-psycopg[binary,pool]==3.3.2
+psycopg[binary,pool]==3.3.3
 
 # Code checking
 pycodestyle
