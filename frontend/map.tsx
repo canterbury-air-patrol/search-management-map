@@ -186,7 +186,7 @@ class SMMMap {
     this.importantImages = new SMMImageImportant(this.map, this.csrftoken, this.missionId, imageAllUpdateFreq, defaultColor)
 
     this.overlayAdd('Images (all)', this.allImages.realtime())
-    this.overlayAdd('Images (prioritized', this.importantImages.realtime().addTo(this.map))
+    this.overlayAdd('Images (prioritized)', this.importantImages.realtime().addTo(this.map))
 
     this.marineVectors = new SMMMarineVector(this.map, this.csrftoken, this.missionId, marineDataUpdateFreq, 'black')
     this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
