@@ -224,9 +224,7 @@ class SMMAssets extends SMMRealtime {
   }
 
   getAssetIcon(assetId: number) {
-    if (!(assetId in this.assetIconMap)) {
-      return this.assetIconMap[assetId]
-    }
+    return this.assetIconMap[assetId]
   }
 
   createPopup(asset: { properties: { asset: number } }, layer: L.Layer) {
