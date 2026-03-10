@@ -8,7 +8,7 @@ import '@canterbury-air-patrol/leaflet-dialog'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { ColorResult, CompactPicker } from 'react-color'
-import Cookies from 'universal-cookie'
+import { cookieJar } from '../cookies'
 import { MissionAssetData, AssetPointTime } from './types'
 
 interface AssetColorPickerProps {
@@ -72,7 +72,6 @@ class SMMAsset {
   }
 
   updateColor(color: string) {
-    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`asset_${this.assetId}_track_color`, color)
     this.color = color
     this.polyline.setStyle({
@@ -208,7 +207,6 @@ class SMMAssets extends SMMRealtime {
     }
     if (!(assetId in this.assetObjects)) {
       /* Create an overlay for this object */
-      const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
       const color = cookieJar.get(`asset_${assetId}_track_color`)
       const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], color !== undefined ? color : this.color)
       this.assetObjects[assetId] = assetObject

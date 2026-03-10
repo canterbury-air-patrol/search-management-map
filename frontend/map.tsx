@@ -17,7 +17,7 @@ import '@canterbury-air-patrol/leaflet-dialog'
 import '@canterbury-air-patrol/leaflet-dialog/Leaflet.Dialog.css'
 import { LocateControl } from 'leaflet.locatecontrol'
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
-import Cookies from 'universal-cookie'
+import { cookieJar } from './cookies'
 
 import './Admin/admin.js'
 import './POIAdder/POIAdder.js'
@@ -78,7 +78,6 @@ class SMMMap {
 
   layerStateChanged(e: L.LayerEvent) {
     const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
-    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`layer_${this.convertCookieName(layer.name)}_on_map`, e.type === 'add')
   }
 
@@ -109,7 +108,6 @@ class SMMMap {
         }
       } else {
         this.layerControlMaps.addOverlay(tileLayer, layer.name)
-        const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
         const layerEnabled = cookieJar.get(`layer_${this.convertCookieName(layer.name)}_on_map`)
         if (layerEnabled === true) {
           tileLayer.addTo(this.map)

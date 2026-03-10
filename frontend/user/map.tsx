@@ -7,7 +7,7 @@ import { SMMRealtime } from '../smmmap'
 import { AssetColorPicker } from '../asset/map'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import Cookies from 'universal-cookie'
+import { cookieJar } from '../cookies'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
 
 class SMMUserPosition {
@@ -40,7 +40,6 @@ class SMMUserPosition {
   }
 
   updateColor(color: string) {
-    const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000, sameSite: 'strict' })
     cookieJar.set(`user_${this.userName}_track_color`, color)
     this.color = color
     this.polyline.setStyle({
@@ -148,7 +147,6 @@ class SMMUserPositions extends SMMRealtime {
   createUser(userName: string) {
     if (!(userName in this.userObjects)) {
       /* Create an overlay for this object */
-      const cookieJar = new Cookies(null, { path: '/', maxAge: 31536000 })
       const color = cookieJar.get(`user_${userName}_track_color`)
       const userObject = new SMMUserPosition(this.map, this.missionId, userName, color !== undefined ? color : this.color)
       this.userObjects[userName] = userObject
