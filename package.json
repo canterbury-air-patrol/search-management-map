@@ -35,7 +35,7 @@
     "react-color": "^2.19.3",
     "react-datetime-picker": "^7.0.1",
     "react-leaflet": "^5.0.0",
-    "universal-cookie": "^8.0.1"
+    "universal-cookie": "^8.1.0"
   },
   "peerDependencies": {
     "react": "19.0.0",
