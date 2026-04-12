@@ -133,9 +133,9 @@ class MissionAsset(models.Model):
             'id': self.pk,
             'mission': self.mission.pk,
             'asset': self.asset.as_object(),
-            'creator': str(self.creator),
+            'creator': str(self.creator) if self.creator else None,
             'added': self.added,
-            'remover': str(self.remover),
+            'remover': str(self.remover) if self.remover else None,
             'removed': self.removed,
         }
 
@@ -243,6 +243,20 @@ class MissionAssetType(models.Model):
     added = models.DateTimeField(default=timezone.now)
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
+
+    def as_json(self):
+        """
+        return this mission asset type as a json object
+        """
+        return {
+            'id': self.pk,
+            'mission': self.mission.pk,
+            'asset_type': self.asset_type.as_object(),
+            'creator': str(self.creator) if self.creator else None,
+            'added': self.added,
+            'remover': str(self.remover) if self.remover else None,
+            'removed': self.removed,
+        }
 
 
 class MissionAssetStatusValue(models.Model):

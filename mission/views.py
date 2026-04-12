@@ -48,8 +48,8 @@ class MissionDetailsView(View):
         for ma in mission_assets:
             ma_json = ma.as_json()
             ma_json['status'] = {
-                'name': ma.status,
-                'since': ma.status_since,
+                'name': getattr(ma, 'status'),
+                'since': getattr(ma, 'status_since'),
             }
             assets_json.append(ma_json)
 
@@ -492,7 +492,7 @@ class MissionAssetsView(View):
             asset_data = {
                 'id': mission_asset.asset.pk,
                 'name': mission_asset.asset.name,
-                'type_id': mission_asset.asset.asset_type.id,
+                'type_id': mission_asset.asset.asset_type.pk,
                 'type_name': mission_asset.asset.asset_type.name,
                 'icon_url': mission_asset.asset.icon_url(),
             }
@@ -706,7 +706,7 @@ class MissionExternalReferenceView(View):
             entry = MissionExternalReference(mission=mission_user.mission, created_by=request.user, name=name, code=code, url=url, notes=notes)
             entry.save()
             extref.replaced_at = timezone.now()
-            extref.replaced_by = entry
+            extref.replaced_by_id = entry.pk
             extref.save()
             timeline_record_external_reference_update(mission=mission_user.mission, user=mission_user.user, old_external_reference=extref, external_reference=entry)
             return HttpResponse("Done")
