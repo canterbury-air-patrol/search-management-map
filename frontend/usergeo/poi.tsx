@@ -1,9 +1,9 @@
 import L from 'leaflet'
 import '@canterbury-air-patrol/leaflet-dialog'
 
-import $ from 'jquery'
-
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
+
+import { smmDelete } from '../ajax'
 
 import { SMMRealtime } from '../smmmap'
 
@@ -19,7 +19,6 @@ class SMMPOI {
     this.coords = poi.geometry.coordinates
     this.data = poi.properties
     this.editCallback = this.editCallback.bind(this)
-    this.setXHR = this.setXHR.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
     this.createSearchCallback = this.createSearchCallback.bind(this)
     this.calculateTDVCallback = this.calculateTDVCallback.bind(this)
@@ -29,16 +28,8 @@ class SMMPOI {
     L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
   }
 
-  setXHR(xhr: XMLHttpRequest) {
-    xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
-  }
-
   deleteCallback() {
-    $.ajax({
-      url: `/data/usergeo/${this.data.pk}/`,
-      type: 'DELETE',
-      beforeSend: this.setXHR
-    })
+    smmDelete(`/data/usergeo/${this.data.pk}/`)
   }
 
   createSearchCallback() {

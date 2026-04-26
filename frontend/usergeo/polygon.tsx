@@ -1,6 +1,6 @@
 import L from 'leaflet'
 
-import $ from 'jquery'
+import { smmDelete } from '../ajax'
 
 import { SMMRealtime } from '../smmmap'
 import { SMMUserGeoLabelData, SMMUserGeoPolygonGeoJSON } from './types'
@@ -14,7 +14,6 @@ class SMMPolygon {
     this.data = polygon.properties
     this.coords = polygon.geometry.coordinates
     this.editCallback = this.editCallback.bind(this)
-    this.setXHR = this.setXHR.bind(this)
     this.deleteCallback = this.deleteCallback.bind(this)
     this.createSearchCallback = this.createSearchCallback.bind(this)
   }
@@ -30,16 +29,8 @@ class SMMPolygon {
     )
   }
 
-  setXHR(xhr: XMLHttpRequest) {
-    xhr.setRequestHeader('X-CSRFToken', this.parent.csrftoken)
-  }
-
   deleteCallback() {
-    $.ajax({
-      url: `/data/usergeo/${this.data.pk}/`,
-      type: 'DELETE',
-      beforeSend: this.setXHR
-    })
+    smmDelete(`/data/usergeo/${this.data.pk}/`)
   }
 
   createSearchCallback() {

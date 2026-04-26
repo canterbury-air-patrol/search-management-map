@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGetJSON, smmPost } from '../ajax'
+import { smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 import { OrganizationListRow } from './list'
 import { SMMOrganizationTopBar } from '../menu/topbar'
@@ -30,20 +30,11 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
     this.delete = this.delete.bind(this)
     this.updateSelectedRole = this.updateSelectedRole.bind(this)
     this.saveChanges = this.saveChanges.bind(this)
-    this.setXHR = this.setXHR.bind(this)
-  }
-
-  setXHR(xhr: JQuery.jqXHR) {
-    xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
   }
 
   delete() {
     const organizationMember = this.props.organization_member
-    $.ajax({
-      url: `/organization/${this.props.organizationId}/user/${organizationMember.user}/`,
-      type: 'DELETE',
-      beforeSend: this.setXHR
-    })
+    smmDelete(`/organization/${this.props.organizationId}/user/${organizationMember.user}/`)
   }
 
   updateSelectedRole(event: React.ChangeEvent<HTMLSelectElement>) {

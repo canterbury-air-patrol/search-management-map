@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGet, smmGetJSON, smmPost } from '../ajax'
+import { smmGet, smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
@@ -129,13 +129,7 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
 
   delete() {
     const extRef = this.props.ExternalReference
-    $.ajax({
-      url: `/mission/${extRef.mission}/externalreferences/${extRef.id}/`,
-      type: 'DELETE',
-      beforeSend: (xhr) => {
-        xhr.setRequestHeader('X-CSRFToken', this.props.csrftoken)
-      }
-    })
+    smmDelete(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`)
   }
 
   renderField(field: string, displayValue?: string) {
