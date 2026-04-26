@@ -103,8 +103,7 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
       `/mission/${this.props.mission}/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,
-        notes: this.state.notes,
-        csrfmiddlewaretoken: this.props.csrftoken
+        notes: this.state.notes
       },
       this.resetForm
     )

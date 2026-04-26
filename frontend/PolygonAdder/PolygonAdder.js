@@ -71,7 +71,6 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
   $(`#polygonadder-dialog-done-${RAND_NUM}`).on('click', function () {
     const data = [
       { name: 'label', value: $(`#polygonadder-dialog-name-${RAND_NUM}`).val() },
-      { name: 'csrfmiddlewaretoken', value: csrftoken },
       { name: 'points', value: markers.length }
     ]
     for (const i in markers) {

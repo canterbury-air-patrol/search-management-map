@@ -183,8 +183,7 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
       smmPost(`/assets/${this.props.asset}/command/`, {
         command_id: this.props.lastCommand.id,
         message: this.state.message,
-        type: this.state.type,
-        csrfmiddlewaretoken: this.props.csrftoken
+        type: this.state.type
       })
     }
   }
@@ -466,8 +465,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
       `/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,
-        notes: this.state.notes,
-        csrfmiddlewaretoken: this.props.csrftoken
+        notes: this.state.notes
       },
       this.resetForm
     )

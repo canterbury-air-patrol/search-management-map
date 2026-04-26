@@ -128,7 +128,7 @@ class OrganizationAdd extends React.Component<OrganizationAddProps, Organization
   }
 
   createOrganization() {
-    smmPost('/organization/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
+    smmPost('/organization/', { name: this.state.organizationName }, this.createOrgCallback)
   }
 
   render() {

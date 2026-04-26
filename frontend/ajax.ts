@@ -1,5 +1,7 @@
 import $ from 'jquery'
 
+import { cookieJar } from './cookies'
+
 const AJAX_TIMEOUT = 2500
 
 function smmGet(url: string, data?: object, success?: (data: unknown) => void, error?: () => void) {
@@ -27,6 +29,9 @@ function smmPost(url: string, data: object, success?: (data: unknown) => void, e
   return $.ajax({
     url,
     type: 'POST',
+    headers: {
+      'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
+    },
     data: data,
     timeout: AJAX_TIMEOUT,
     success: success,

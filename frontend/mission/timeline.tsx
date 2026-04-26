@@ -81,7 +81,6 @@ class MissionTimeLineEntryAdd extends React.Component<MissionTimeLineEntryAddPro
       timestamp = new Date()
     }
     smmPost(`/mission/${this.props.missionId}/timeline/`, {
-      csrfmiddlewaretoken: this.props.csrftoken,
       timestamp: timestamp.toISOString(),
       message: this.state.message,
       url: this.state.url

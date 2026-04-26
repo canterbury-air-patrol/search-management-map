@@ -5,7 +5,7 @@ import { smmGet, smmPost } from '../ajax'
 
 L.SMMAdmin = {}
 
-L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
+L.SMMAdmin.AssetCommand = function (map, missionId) {
   const contents = [
     '<div id="assetcommanddialog"></div>',
     '<div><button class="btn btn-primary" id="command_create">Set</button>',
@@ -39,7 +39,6 @@ L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
   })
   $('#command_create').on('click', function () {
     const data = [
-      { name: 'csrfmiddlewaretoken', value: csrftoken },
       { name: 'asset', value: $('#id_asset').val() },
       { name: 'reason', value: $('#id_reason').val() },
       { name: 'command', value: $('#id_command').val() }
@@ -76,7 +75,7 @@ L.Control.SMMAdmin = L.Control.extend({
   },
 
   onCommand: function () {
-    L.SMMAdmin.AssetCommand(this.map, this.options.missionId, this.options.csrftoken)
+    L.SMMAdmin.AssetCommand(this.map, this.options.missionId)
   },
 
   onCancel: function () {

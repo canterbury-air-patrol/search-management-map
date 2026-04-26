@@ -72,7 +72,6 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
   $(`#lineadder-dialog-done-${RAND_NUM}`).on('click', function () {
     const data = [
       { name: 'label', value: $(`#lineadder-dialog-name-${RAND_NUM}`).val() },
-      { name: 'csrfmiddlewaretoken', value: csrftoken },
       { name: 'points', value: markers.length }
     ]
     for (const i in markers) {
