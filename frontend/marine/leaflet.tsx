@@ -4,6 +4,7 @@ import L from 'leaflet'
 
 import { MarineVectors, MarineVectorsDisplay } from '@canterbury-air-patrol/marine-total-drift-vector'
 import { Button, ButtonGroup } from 'react-bootstrap'
+import { smmGet, smmPostBody } from '../ajax'
 
 interface CustomMarineVectorsProps {
   map: L.Map
@@ -65,24 +66,20 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   add() {
-    fetch(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': this.props.csrftoken
-      },
-      mode: 'same-origin',
-      body: new URLSearchParams(this.getData())
-    }).then((response) => {
-      if (response.ok) {
+    smmPostBody(
+      `/mission/${this.props.missionId}/sar/marine/vectors/create/`,
+      URLSearchParams(this.getData()),
+      () => {
         if (this.onMap) {
           this.props.map.removeLayer(this.onMap)
           this.onMap = undefined
         }
         this.props.dialog.remove()
-      } else {
-        console.error('Error fetching data:', response.statusText)
+      },
+      () => {
+        console.error('Error fetching data:')
       }
-    })
+    )
   }
 
   preview() {
@@ -90,16 +87,17 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       this.props.map.removeLayer(this.onMap)
       this.onMap = undefined
     }
-    fetch(`/mission/${this.props.missionId}/sar/marine/vectors/create/?${new URLSearchParams(this.getData()).toString()}`).then((response) => {
-      if (response.ok) {
-        response.json().then((data) => {
-          this.onMap = L.geoJSON(data, { color: 'yellow' })
-          this.onMap.addTo(this.props.map)
-        })
-      } else {
-        console.error('Error fetching data:', response.statusText)
+    smmGet(
+      `/mission/${this.props.missionId}/sar/marine/vectors/create/`,
+      this.getData(),
+      (data) => {
+        this.onMap = L.geoJSON(data, { color: 'yellow' })
+        this.onMap.addTo(this.props.map)
+      },
+      () => {
+        console.error('Error fetching data:')
       }
-    })
+    )
   }
 
   cancel() {
