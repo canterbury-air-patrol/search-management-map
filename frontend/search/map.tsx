@@ -6,7 +6,7 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 import { MissionAssetData } from '../asset/types'
 import { SMMSearchObjectDetailsData } from './types'
-import { smmGetJSON } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 
 class SMMSearch {
   parent: SMMSearches
@@ -89,7 +89,7 @@ class SMMSearch {
         value: $(`#queue_${this.search.pk}_select_asset`).val() as string
       })
     }
-    $.post(`/search/${this.search.pk}/queue/`, data, this.searchQueueDestroy)
+    smmPost(`/search/${this.search.pk}/queue/`, data, this.searchQueueDestroy)
   }
 
   searchQueueUpdateSelectType() {

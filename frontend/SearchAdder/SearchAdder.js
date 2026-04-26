@@ -2,7 +2,7 @@ import $ from 'jquery'
 
 import L from 'leaflet'
 
-import { smmGet, smmGetJSON } from '../ajax'
+import { smmGet, smmGetJSON, smmPost } from '../ajax'
 
 L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
@@ -148,7 +148,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
     if (onMap !== null) {
       onMap.remove()
     }
-    $.post(getUrl(), getData(true))
+    smmPost(getUrl(), getData(true))
     dialog.destroy()
   })
 

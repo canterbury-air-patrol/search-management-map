@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGet, smmGetJSON } from '../ajax'
+import { smmGet, smmGetJSON, smmPost } from '../ajax'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
@@ -180,7 +180,7 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
 
   submitResponse() {
     if (this.props.lastCommand !== undefined) {
-      $.post(`/assets/${this.props.asset}/command/`, {
+      smmPost(`/assets/${this.props.asset}/command/`, {
         command_id: this.props.lastCommand.id,
         message: this.state.message,
         type: this.state.type,
@@ -462,7 +462,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
   }
 
   setStatus() {
-    $.post(
+    smmPost(
       `/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,

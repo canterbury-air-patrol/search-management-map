@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGetJSON } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 
 import { OrganizationListRow } from './list'
 import { SMMOrganizationTopBar } from '../menu/topbar'
@@ -74,7 +74,7 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
 
   saveChanges() {
     const { user } = this.props.organization_member
-    $.post(`/organization/${this.props.organizationId}/user/${user}/`, { csrfmiddlewaretoken: this.props.csrftoken, role: this.state.selectedRole }, function () {})
+    smmPost(`/organization/${this.props.organizationId}/user/${user}/`, { csrfmiddlewaretoken: this.props.csrftoken, role: this.state.selectedRole })
   }
 
   render() {
@@ -243,7 +243,7 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
 
   addOrganizationMember() {
     const user = this.state.userList.find((user) => user.id === this.state.userId)
-    $.post(`/organization/${this.props.organizationId}/user/${user?.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgMemberCallback)
+    smmPost(`/organization/${this.props.organizationId}/user/${user?.username}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgMemberCallback)
   }
 
   render() {
@@ -370,7 +370,7 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
   }
 
   addOrganizationAsset() {
-    $.post(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgAssetCallback)
+    smmPost(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, { csrfmiddlewaretoken: this.props.csrftoken }, this.addOrgAssetCallback)
   }
 
   render() {

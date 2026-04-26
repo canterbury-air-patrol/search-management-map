@@ -5,7 +5,7 @@ import { Table, Button } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import { smmGetJSON } from '../../ajax'
+import { smmGetJSON, smmPost } from '../../ajax'
 import { SMMTopBar } from '../../menu/topbar'
 
 interface MissionAssetStatusValue {
@@ -99,7 +99,7 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
   }
 
   setStatus() {
-    $.post(
+    smmPost(
       `/mission/${this.props.mission}/assets/${this.props.asset}/status/`,
       {
         value_id: this.state.selectedValueId,

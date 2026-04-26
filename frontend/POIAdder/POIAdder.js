@@ -5,6 +5,8 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
 import { MappedMarker } from '../smmleaflet'
 
+import { smmPost } from '../ajax'
+
 L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const contents = [
@@ -33,9 +35,9 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
       csrfmiddlewaretoken: csrftoken
     }
     if (replaces === -1) {
-      $.post(`/mission/${missionId}/data/pois/create/`, data)
+      smmPost(`/mission/${missionId}/data/pois/create/`, data)
     } else {
-      $.post(`/data/pois/${replaces}/replace/`, data)
+      smmPost(`/data/pois/${replaces}/replace/`, data)
     }
     map.removeLayer(marker)
     markerDialog.destroy()

@@ -2,6 +2,8 @@ import $ from 'jquery'
 import L from 'leaflet'
 import { MappedMarker } from '../smmleaflet'
 
+import { smmPost } from '../ajax'
+
 L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const markers = []
@@ -80,9 +82,9 @@ L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, labe
     }
 
     if (replaces !== -1) {
-      $.post(`/data/userlines/${replaces}/replace/`, data)
+      smmPost(`/data/userlines/${replaces}/replace/`, data)
     } else {
-      $.post(`/mission/${missionId}/data/userlines/create/`, data)
+      smmPost(`/mission/${missionId}/data/userlines/create/`, data)
     }
     removeAllMarkers()
     map.removeLayer(line)
