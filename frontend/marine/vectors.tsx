@@ -1,7 +1,6 @@
-import $ from 'jquery'
-
 import { SMMRealtime } from '../smmmap'
 import { TotalDriftVectorData } from './types'
+import { smmGet } from '../ajax'
 
 class SMMMarineVector extends SMMRealtime {
   constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
@@ -38,7 +37,7 @@ class SMMMarineVector extends SMMRealtime {
           {
             label: 'Delete',
             onclick: function () {
-              $.get(`/sar/marine/vectors/${tdvID}/delete/`)
+              smmGet(`/sar/marine/vectors/${tdvID}/delete/`)
             },
             btnClass: 'btn-danger'
           }

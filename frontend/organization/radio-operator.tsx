@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { AssetCommandView, AssetMissionDetails, AssetUI } from '../asset/ui'
 import { MissionAssetStatus } from '../mission/asset/status'
@@ -64,7 +65,6 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -83,7 +83,7 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
   }
 
   async updateData() {
-    await $.getJSON(`/organization/${this.props.organizationId}/`, this.updateDataResponse)
+    await smmGetJSON(`/organization/${this.props.organizationId}/`, {}, this.updateDataResponse)
   }
 
   render() {

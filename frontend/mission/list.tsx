@@ -5,7 +5,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
+import { smmGet } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionData } from './types'
 
@@ -146,7 +146,6 @@ class MissionListPage extends React.Component<object, MissionListPageState> {
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -161,7 +160,7 @@ class MissionListPage extends React.Component<object, MissionListPageState> {
   }
 
   async updateData() {
-    await $.get('/mission/list/', this.updateDataResponse)
+    await smmGet('/mission/list/', {}, this.updateDataResponse)
   }
 
   updateMissions(missions: MissionData[]) {

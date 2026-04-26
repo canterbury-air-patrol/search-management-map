@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGet, smmGetJSON } from '../ajax'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
@@ -64,7 +65,7 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
     })
 
     if (this.state.tracking) {
-      $.get(`/data/assets/${this.props.asset}/position/add/`, data)
+      smmGet(`/data/assets/${this.props.asset}/position/add/`, data)
     }
   }
 
@@ -284,7 +285,7 @@ class AssetMissionDetails extends React.Component<AssetMissionDetailsProps, neve
           <td>
             <Button
               onClick={function () {
-                $.get(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
+                smmGet(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
               }}
             >
               Mark as Completed
@@ -319,7 +320,7 @@ class AssetMissionDetails extends React.Component<AssetMissionDetailsProps, neve
           <td key="begin">
             <Button
               onClick={function () {
-                $.get(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
+                smmGet(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
               }}
             >
               Begin Search
@@ -416,7 +417,6 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateStatusValues()
     this.timer = setInterval(() => this.updateStatusValues(), 10000)
   }
@@ -439,7 +439,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
   }
 
   async updateStatusValues() {
-    await $.get('/assets/status/values/', this.updateStatusValuesResponse)
+    await smmGet('/assets/status/values/', {}, this.updateStatusValuesResponse)
   }
 
   updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -556,7 +556,6 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -576,7 +575,7 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
   }
 
   async updateData() {
-    await $.getJSON(`/assets/${this.props.asset}/`, this.updateDataResponse)
+    await smmGetJSON(`/assets/${this.props.asset}/`, {}, this.updateDataResponse)
   }
 
   render() {

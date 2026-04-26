@@ -35,6 +35,7 @@ import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
 import { SMMMissionTopBar } from './menu/topbar.js'
 import { SMMUserPositions } from './user/map.js'
+import { smmGet } from './ajax'
 
 class SMMMap {
   map: L.Map
@@ -91,10 +92,12 @@ class SMMMap {
         minZoom: number
         maxZoom: number
         subdomains?: string
+        referrerPolicy?: string
       } = {
         attribution: layer.attribution,
         minZoom: layer.minZoom,
-        maxZoom: layer.maxZoom
+        maxZoom: layer.maxZoom,
+        referrerPolicy: 'strict-origin'
       }
       if (layer.subdomains !== '') {
         options.subdomains = layer.subdomains
@@ -122,7 +125,7 @@ class SMMMap {
     L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
 
-    $.get('/map/tile/layers/', this.mapLayersCallback)
+    smmGet('/map/tile/layers/', {}, this.mapLayersCallback)
 
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)

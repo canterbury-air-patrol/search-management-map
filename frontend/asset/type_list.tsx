@@ -5,7 +5,7 @@ import { Table } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { SMMTopBar } from '../menu/topbar'
 
@@ -68,7 +68,6 @@ class AssetTypeListPage extends React.Component<object, AssetTypeListPageState> 
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -79,7 +78,7 @@ class AssetTypeListPage extends React.Component<object, AssetTypeListPageState> 
   }
 
   async updateData() {
-    await $.getJSON('/assets/assettypes/', this.updateAssetTypes)
+    await smmGetJSON('/assets/assettypes/', {}, this.updateAssetTypes)
   }
 
   updateAssetTypes(data: { asset_types: AssetTypeData[] }) {

@@ -5,7 +5,7 @@ import { Table, Button } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
+import { smmGetJSON } from '../../ajax'
 import { SMMTopBar } from '../../menu/topbar'
 
 interface MissionAssetStatusValue {
@@ -52,7 +52,6 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateStatusValues()
     this.timer = setInterval(() => this.updateStatusValues(), 10000)
   }
@@ -75,7 +74,7 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
   }
 
   async updateStatusValues() {
-    await $.getJSON('/mission/asset/status/values/', this.updateStatusValuesResponse)
+    await smmGetJSON('/mission/asset/status/values/', {}, this.updateStatusValuesResponse)
   }
 
   updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -159,7 +158,6 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -178,7 +176,7 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {}, this.updateDataResponse)
   }
 
   render() {

@@ -5,7 +5,7 @@ import { Table } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { SMMTopBar } from '../menu/topbar'
 
@@ -77,7 +77,6 @@ class IconListPage extends React.Component<object, IconListPageState> {
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -88,7 +87,7 @@ class IconListPage extends React.Component<object, IconListPageState> {
   }
 
   async updateData() {
-    await $.getJSON('/icons/', this.updateIcons)
+    await smmGetJSON('/icons/', {}, this.updateIcons)
   }
 
   updateIcons(data: { icons: IconData[] }) {

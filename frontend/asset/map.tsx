@@ -11,6 +11,8 @@ import { ColorResult, CompactPicker } from 'react-color'
 import { cookieJar } from '../cookies'
 import { MissionAssetData, AssetPointTime } from './types'
 
+import { smmGetJSON } from '../ajax'
+
 interface AssetColorPickerProps {
   color: string
   updateColor: (color: string) => void
@@ -180,7 +182,7 @@ class SMMAssets extends SMMRealtime {
   }
 
   updateAssetNameMap() {
-    $.getJSON(`/mission/${this.missionId}/assets/?include_removed=true`, this.assetListCB)
+    smmGetJSON(`/mission/${this.missionId}/assets/?include_removed=true`, {}, this.assetListCB)
   }
 
   realtime() {

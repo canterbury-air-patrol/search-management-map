@@ -2,6 +2,8 @@ import $ from 'jquery'
 
 import L from 'leaflet'
 
+import { smmGet, smmGetJSON } from '../ajax'
+
 L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   let searchSelection = `<select class='form-control' id='SearchAdder-search-type-${RAND_NUM}'>`
@@ -21,7 +23,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   }
   searchSelection += '</select>'
   const assetSelection = `<select class="form-control" id="SearchAdder-asset-type-${RAND_NUM}"></select>`
-  $.getJSON('/assets/assettypes/', function (data) {
+  smmGetJSON('/assets/assettypes/', {}, function (data) {
     $.each(data, function (index, json) {
       for (const assetType of json) {
         $(`#SearchAdder-asset-type-${RAND_NUM}`).append(`<option value='${assetType.id}'>${assetType.name}</option>`)
@@ -133,7 +135,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
   let onMap = null
 
   $(`#SearchAdder-preview-${RAND_NUM}`).on('click', function () {
-    $.get(getUrl(), getData(), function (data) {
+    smmGet(getUrl(), getData(), function (data) {
       if (onMap !== null) {
         onMap.remove()
       }

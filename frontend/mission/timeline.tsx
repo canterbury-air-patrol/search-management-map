@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import DateTimePicker from 'react-datetime-picker'
 import 'react-datetime-picker/dist/DateTimePicker.css'
@@ -181,7 +182,6 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -200,7 +200,7 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.missionId}/timeline/`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.missionId}/timeline/`, {}, this.updateDataResponse)
   }
 
   updateTimeline(timelineEntries: TimeLineEntry[]) {
