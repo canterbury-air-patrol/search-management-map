@@ -77,12 +77,7 @@ class SMMSearch {
   }
 
   searchQueueSubmit() {
-    const data = [
-      {
-        name: 'csrfmiddlewaretoken',
-        value: this.parent.csrftoken
-      }
-    ]
+    const data = []
     if ($(`#queue_${this.search.pk}_select_type`).val() === 'asset') {
       data.push({
         name: 'asset',

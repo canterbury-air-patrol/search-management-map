@@ -107,7 +107,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
     }
   }
 
-  const getData = function (includeCSRF) {
+  const getData = function () {
     const data = [
       { name: 'sweep_width', value: $(`#SearchAdder-sweep-width-${RAND_NUM}`).val() },
       { name: 'asset_type_id', value: $(`#SearchAdder-asset-type-${RAND_NUM}`).val() },
@@ -125,9 +125,6 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
       case 'polygon':
         data.push({ name: 'poly_id', value: objectID })
         break
-    }
-    if (includeCSRF) {
-      data.push({ name: 'csrfmiddlewaretoken', value: csrftoken })
     }
     return data
   }
@@ -148,7 +145,7 @@ L.SearchAdder = function (map, csrftoken, objectType, objectID) {
     if (onMap !== null) {
       onMap.remove()
     }
-    smmPost(getUrl(), getData(true))
+    smmPost(getUrl(), getData())
     dialog.destroy()
   })
 

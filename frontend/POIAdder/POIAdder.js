@@ -31,8 +31,7 @@ L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
     const data = {
       lat: latLng.lat,
       lon: latLng.lng,
-      label: $(`#poi-dialog-label-${RAND_NUM}`).val(),
-      csrfmiddlewaretoken: csrftoken
+      label: $(`#poi-dialog-label-${RAND_NUM}`).val()
     }
     if (replaces === -1) {
       smmPost(`/mission/${missionId}/data/pois/create/`, data)
