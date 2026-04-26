@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom/client'
 import Collapsible from 'react-collapsible'
 import { Button } from 'react-bootstrap'
 
-import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
@@ -147,7 +147,6 @@ class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDe
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -175,7 +174,7 @@ class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDe
   }
 
   async updateData() {
-    await $.getJSON(`/search/${this.props.searchId}/`, this.updateDataResponse)
+    await smmGetJSON(`/search/${this.props.searchId}/`, {}, this.updateDataResponse)
   }
 
   render() {

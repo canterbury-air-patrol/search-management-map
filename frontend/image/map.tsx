@@ -1,11 +1,10 @@
 import L from 'leaflet'
 
-import $ from 'jquery'
-
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 import { SMMRealtime } from '../smmmap'
 import { SMMImageGeoJSON } from './types'
+import { smmGet } from '../ajax'
 
 abstract class SMMImage extends SMMRealtime {
   constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
@@ -84,7 +83,7 @@ abstract class SMMImage extends SMMRealtime {
             {
               label: 'Deprioritize',
               onclick: function () {
-                $.get(`/image/${imageID}/priority/unset/`)
+                smmGet(`/image/${imageID}/priority/unset/`)
               },
               btnClass: 'btn-light'
             }
@@ -96,7 +95,7 @@ abstract class SMMImage extends SMMRealtime {
             {
               label: 'Prioritize',
               onclick: function () {
-                $.get(`/image/${imageID}/priority/set/`)
+                smmGet(`/image/${imageID}/priority/set/`)
               },
               btnClass: 'btn-light'
             }

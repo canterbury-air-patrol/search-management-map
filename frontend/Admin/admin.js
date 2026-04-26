@@ -1,6 +1,8 @@
 import $ from 'jquery'
 import L from 'leaflet'
 
+import { smmGet } from '../ajax'
+
 L.SMMAdmin = {}
 
 L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
@@ -58,7 +60,7 @@ L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
       $('#assetcommanddialog').html(data)
     })
   })
-  $.get(`/mission/${missionId}/assets/command/set/`, {}, function (data) {
+  smmGet(`/mission/${missionId}/assets/command/set/`, {}, function (data) {
     $('#assetcommanddialog').html(data)
     $('#id_command').on('change', changeSelectedCommand)
   })

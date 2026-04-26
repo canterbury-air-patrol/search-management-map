@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
@@ -53,7 +53,6 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -79,7 +78,7 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
   }
 
   async updateData() {
-    await $.getJSON(`/data/usergeo/${this.props.userGeoId}/`, this.updateDataResponse)
+    await smmGetJSON(`/data/usergeo/${this.props.userGeoId}/`, {}, this.updateDataResponse)
   }
 
   render() {

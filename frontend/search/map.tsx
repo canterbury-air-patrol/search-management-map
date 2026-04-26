@@ -6,6 +6,7 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 import { MissionAssetData } from '../asset/types'
 import { SMMSearchObjectDetailsData } from './types'
+import { smmGetJSON } from '../ajax'
 
 class SMMSearch {
   parent: SMMSearches
@@ -108,7 +109,7 @@ class SMMSearch {
     ].join('')
     this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.parent.map).hideClose()
     $(`#queue_${this.search.pk}_select_asset`).hide()
-    $.getJSON(`/mission/${this.parent.missionId}/assets/`, this.searchQueueAssetListCallback)
+    smmGetJSON(`/mission/${this.parent.missionId}/assets/`, {}, this.searchQueueAssetListCallback)
     $(`#queue_${this.search.pk}_select_type`).on('change', this.searchQueueUpdateSelectType)
     $(`#queue_${this.search.pk}_queue`).on('click', this.searchQueueSubmit)
     $(`#queue_${this.search.pk}_cancel`).on('click', this.searchQueueDestroy)

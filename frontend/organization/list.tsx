@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { OrganizationData } from './types'
 
@@ -175,7 +176,6 @@ class OrganizationListPage extends React.Component<OrganizationListPageProps, Or
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -194,7 +194,7 @@ class OrganizationListPage extends React.Component<OrganizationListPageProps, Or
   }
 
   async updateData() {
-    await $.getJSON('/organization/', this.updateDataResponse)
+    await smmGetJSON('/organization/', {}, this.updateDataResponse)
   }
 
   render() {

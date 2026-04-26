@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGetJSON } from '../ajax'
 
 import { OrganizationListRow } from './list'
 import { SMMOrganizationTopBar } from '../menu/topbar'
@@ -205,7 +206,6 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -228,7 +228,7 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
   }
 
   async updateData() {
-    await $.getJSON(`/organization/${this.props.organizationId}/users/notmember/`, this.updateDataResponse)
+    await smmGetJSON(`/organization/${this.props.organizationId}/users/notmember/`, {}, this.updateDataResponse)
   }
 
   updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -334,7 +334,6 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -357,7 +356,7 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
   }
 
   async updateData() {
-    await $.getJSON('/assets/', this.updateDataResponse)
+    await smmGetJSON('/assets/', {}, this.updateDataResponse)
   }
 
   updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -433,7 +432,6 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -455,7 +453,7 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
   }
 
   async updateData() {
-    await $.getJSON(`/organization/${this.props.organizationId}/`, this.updateDataResponse)
+    await smmGetJSON(`/organization/${this.props.organizationId}/`, {}, this.updateDataResponse)
   }
 
   render() {

@@ -6,6 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
+import { smmGet, smmGetJSON } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
@@ -425,7 +426,6 @@ class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrgani
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -448,7 +448,7 @@ class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrgani
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.mission}/organizations/?not_included=True`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.mission}/organizations/?not_included=True`, {}, this.updateDataResponse)
   }
 
   updateSelectedOrg(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -649,7 +649,6 @@ class MissionDetailsUserAdd extends React.Component<MissionDetailsUserAddProps, 
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -672,7 +671,7 @@ class MissionDetailsUserAdd extends React.Component<MissionDetailsUserAddProps, 
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.mission}/users/?not_included=True`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.mission}/users/?not_included=True`, {}, this.updateDataResponse)
   }
 
   updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -726,7 +725,7 @@ class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps
   }
 
   remove() {
-    $.get(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/remove/`)
+    smmGet(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/remove/`)
   }
 
   render() {
@@ -823,7 +822,6 @@ class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -846,7 +844,7 @@ class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.mission}/assets/?not_included=True`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.mission}/assets/?not_included=True`, {}, this.updateDataResponse)
   }
 
   updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -911,7 +909,6 @@ class MissionDetailPage extends React.Component<MissionDetailsPageProps, Mission
   }
 
   componentDidMount() {
-    $.ajaxSetup({ timeout: 2500 })
     this.updateData()
     this.timer = setInterval(() => this.updateData(), 10000)
   }
@@ -926,7 +923,7 @@ class MissionDetailPage extends React.Component<MissionDetailsPageProps, Mission
   }
 
   async updateData() {
-    await $.getJSON(`/mission/${this.props.missionId}/details/`, this.updateDataResponse)
+    await smmGetJSON(`/mission/${this.props.missionId}/details/`, {}, this.updateDataResponse)
   }
 
   render() {
