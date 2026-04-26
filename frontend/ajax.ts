@@ -39,4 +39,17 @@ function smmPost(url: string, data: object, success?: (data: unknown) => void, e
   })
 }
 
-export { smmGet, smmGetJSON, smmPost }
+function smmDelete(url: string, success?: (data: never) => void, error?: () => void) {
+  $.ajax({
+    url: url,
+    type: 'DELETE',
+    headers: {
+      'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
+    },
+    timeout: AJAX_TIMEOUT,
+    success: success,
+    error: error
+  })
+}
+
+export { smmGet, smmGetJSON, smmPost, smmDelete }

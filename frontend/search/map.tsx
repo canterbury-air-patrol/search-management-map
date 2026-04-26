@@ -6,7 +6,7 @@ import $ from 'jquery'
 import { SMMRealtime } from '../smmmap'
 import { MissionAssetData } from '../asset/types'
 import { SMMSearchObjectDetailsData } from './types'
-import { smmGetJSON, smmPost } from '../ajax'
+import { smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 class SMMSearch {
   parent: SMMSearches
@@ -25,14 +25,7 @@ class SMMSearch {
   }
 
   deleteCallback() {
-    const { csrftoken } = this.parent
-    $.ajax({
-      url: `/search/${this.search.pk}/`,
-      method: 'DELETE',
-      beforeSend: function (xhr) {
-        xhr.setRequestHeader('X-CSRFToken', csrftoken)
-      }
-    })
+    smmDelete(`/search/${this.search.pk}/`)
   }
 
   createDetailsButton() {
