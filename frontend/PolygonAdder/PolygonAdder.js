@@ -1,6 +1,7 @@
 import $ from 'jquery'
 import L from 'leaflet'
 import { MappedMarker } from '../smmleaflet'
+import { smmPost } from '../ajax'
 
 L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
@@ -80,9 +81,9 @@ L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, l
     }
 
     if (replaces !== -1) {
-      $.post(`/data/userpolygons/${replaces}/replace/`, data)
+      smmPost(`/data/userpolygons/${replaces}/replace/`, data)
     } else {
-      $.post(`/mission/${missionId}/data/userpolygons/create/`, data)
+      smmPost(`/mission/${missionId}/data/userpolygons/create/`, data)
     }
     removeAllMarkers()
     map.removeLayer(polygon)

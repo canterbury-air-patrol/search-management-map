@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGetJSON } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { OrganizationData } from './types'
 
@@ -128,7 +128,7 @@ class OrganizationAdd extends React.Component<OrganizationAddProps, Organization
   }
 
   createOrganization() {
-    $.post('/organization/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
+    smmPost('/organization/', { name: this.state.organizationName, csrfmiddlewaretoken: this.props.csrftoken }, this.createOrgCallback)
   }
 
   render() {

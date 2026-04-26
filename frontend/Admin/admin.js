@@ -1,7 +1,7 @@
 import $ from 'jquery'
 import L from 'leaflet'
 
-import { smmGet } from '../ajax'
+import { smmGet, smmPost } from '../ajax'
 
 L.SMMAdmin = {}
 
@@ -49,7 +49,7 @@ L.SMMAdmin.AssetCommand = function (map, missionId, csrftoken) {
       data.push({ name: 'latitude', value: coords.lat })
       data.push({ name: 'longitude', value: coords.lng })
     }
-    $.post(`/mission/${missionId}/assets/command/set/`, data, function (data) {
+    smmPost(`/mission/${missionId}/assets/command/set/`, data, function (data) {
       if (data === 'Created') {
         if (gotoPoint != null) {
           map.removeLayer(gotoPoint)

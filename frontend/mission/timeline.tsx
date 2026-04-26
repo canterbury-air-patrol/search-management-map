@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGetJSON } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 
 import DateTimePicker from 'react-datetime-picker'
 import 'react-datetime-picker/dist/DateTimePicker.css'
@@ -80,7 +80,7 @@ class MissionTimeLineEntryAdd extends React.Component<MissionTimeLineEntryAddPro
     if (this.state.timeNow) {
       timestamp = new Date()
     }
-    $.post(`/mission/${this.props.missionId}/timeline/`, {
+    smmPost(`/mission/${this.props.missionId}/timeline/`, {
       csrfmiddlewaretoken: this.props.csrftoken,
       timestamp: timestamp.toISOString(),
       message: this.state.message,

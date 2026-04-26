@@ -6,7 +6,7 @@ import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import $ from 'jquery'
-import { smmGet, smmGetJSON } from '../ajax'
+import { smmGet, smmGetJSON, smmPost } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
@@ -124,7 +124,7 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
 
   update() {
     const extRef = this.props.ExternalReference
-    $.post(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, {
+    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, {
       csrfmiddlewaretoken: this.props.csrftoken,
       ...this.state.values
     })
@@ -226,7 +226,7 @@ class MissionDetailsExternalReferenceAdd extends React.Component<MissionDetailsE
 
   add() {
     if (this.state.name) {
-      $.post(
+      smmPost(
         `/mission/${this.props.mission}/externalreferences/`,
         {
           name: this.state.name,
@@ -310,19 +310,19 @@ class MissionDetailsOrganizationsRow extends React.Component<MissionDetailsOrgan
   }
 
   disableOrgAdd() {
-    $.post(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: false, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: false, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   enableOrgAdd() {
-    $.post(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: true, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: true, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   disableUserAdd() {
-    $.post(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: false, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: false, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   enableUserAdd() {
-    $.post(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: true, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: true, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   render() {
@@ -458,7 +458,7 @@ class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrgani
 
   add() {
     if (this.state.selectedOrg) {
-      $.post(`/mission/${this.props.mission}/organizations/`, { organization: this.state.selectedOrg, csrfmiddlewaretoken: this.props.csrftoken })
+      smmPost(`/mission/${this.props.mission}/organizations/`, { organization: this.state.selectedOrg, csrfmiddlewaretoken: this.props.csrftoken })
     }
   }
 
@@ -510,27 +510,27 @@ class MissionDetailsUserRow extends React.Component<MissionDetailsUserRowProps, 
   }
 
   removeAdmin() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: false, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: false, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   makeAdmin() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: true, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: true, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   disableOrgAdd() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: false, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: false, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   enableOrgAdd() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: true, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: true, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   disableUserAdd() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: false, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: false, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   enableUserAdd() {
-    $.post(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: true, csrfmiddlewaretoken: this.props.csrftoken })
+    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: true, csrfmiddlewaretoken: this.props.csrftoken })
   }
 
   render() {
@@ -681,7 +681,7 @@ class MissionDetailsUserAdd extends React.Component<MissionDetailsUserAddProps, 
 
   add() {
     if (this.state.selectedUser) {
-      $.post(`/mission/${this.props.mission}/users/`, { user: this.state.selectedUser, csrfmiddlewaretoken: this.props.csrftoken })
+      smmPost(`/mission/${this.props.mission}/users/`, { user: this.state.selectedUser, csrfmiddlewaretoken: this.props.csrftoken })
     }
   }
 
@@ -854,7 +854,7 @@ class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps
 
   add() {
     if (this.state.selectedAsset) {
-      $.post(`/mission/${this.props.mission}/assets/`, { asset: this.state.selectedAsset, csrfmiddlewaretoken: this.props.csrftoken })
+      smmPost(`/mission/${this.props.mission}/assets/`, { asset: this.state.selectedAsset, csrfmiddlewaretoken: this.props.csrftoken })
     }
   }
 
