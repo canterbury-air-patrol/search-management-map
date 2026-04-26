@@ -10,14 +10,12 @@ interface SMMRealtimeButtons {
 
 abstract class SMMRealtime {
   map: L.Map
-  csrftoken: string
   missionId: number | string
   interval: number
   color: string
 
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
     this.map = map
-    this.csrftoken = csrftoken
     this.missionId = missionId
     this.interval = interval
     this.color = color

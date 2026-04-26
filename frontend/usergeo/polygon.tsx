@@ -22,7 +22,6 @@ class SMMPolygon {
     L.PolygonAdder(
       this.parent.map,
       this.parent.missionId,
-      this.parent.csrftoken,
       this.coords[0].map((x) => L.latLng(x[1], x[0])),
       this.data.pk,
       this.data.label
@@ -34,7 +33,7 @@ class SMMPolygon {
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'polygon', this.data.pk)
+    L.SearchAdder(this.parent.map, 'polygon', this.data.pk)
   }
 
   createPopup(layer: L.Layer) {
@@ -84,8 +83,8 @@ class SMMPolygon {
 
 class SMMPolygons extends SMMRealtime {
   polygonObjects: { [key: number]: SMMPolygon }
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+    super(map, missionId, interval, color)
     this.polygonObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }

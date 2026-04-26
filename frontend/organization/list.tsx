@@ -5,7 +5,6 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { OrganizationData } from './types'
@@ -96,16 +95,12 @@ class OrganizationList extends React.Component<OrganizationListProps, never> {
   }
 }
 
-interface OrganizationAddProps {
-  csrftoken: string
-}
-
 interface OrganizationAddState {
   organizationName: string
 }
 
-class OrganizationAdd extends React.Component<OrganizationAddProps, OrganizationAddState> {
-  constructor(props: OrganizationAddProps) {
+class OrganizationAdd extends React.Component<never, OrganizationAddState> {
+  constructor(props: never) {
     super(props)
 
     this.state = {
@@ -155,17 +150,13 @@ class OrganizationAdd extends React.Component<OrganizationAddProps, Organization
   }
 }
 
-interface OrganizationListPageProps {
-  csrftoken: string
-}
-
 interface OrganizationListPageState {
   knownOrganizations: OrganizationData[]
 }
 
-class OrganizationListPage extends React.Component<OrganizationListPageProps, OrganizationListPageState> {
+class OrganizationListPage extends React.Component<never, OrganizationListPageState> {
   timer?: number
-  constructor(props: OrganizationListPageProps) {
+  constructor(props: never) {
     super(props)
 
     this.state = {
@@ -201,7 +192,7 @@ class OrganizationListPage extends React.Component<OrganizationListPageProps, Or
     return (
       <div>
         <OrganizationList organizations={this.state.knownOrganizations} showButtons={true} />
-        <OrganizationAdd csrftoken={this.props.csrftoken} />
+        <OrganizationAdd />
       </div>
     )
   }
@@ -210,12 +201,10 @@ class OrganizationListPage extends React.Component<OrganizationListPageProps, Or
 function createOrganizationList(elementId: string) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
   div.render(
     <>
       <SMMTopBar />
-      <OrganizationListPage csrftoken={csrftoken as string} />
+      <OrganizationListPage />
     </>
   )
 }

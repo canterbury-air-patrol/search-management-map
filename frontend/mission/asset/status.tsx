@@ -23,7 +23,6 @@ interface MissionAssetStatusData {
 interface MissionAssetStatusFormProps {
   asset: number
   mission: number
-  csrftoken: string
 }
 
 interface MissionAssetStatusFormState {
@@ -137,7 +136,6 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
 interface MissionAssetStatusProps {
   asset: number
   mission: number
-  csrftoken: string
 }
 
 interface MissionAssetStatusState {
@@ -197,7 +195,7 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
               <td>{this.state.statusData?.notes}</td>
               <td>{this.state.statusData?.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
             </tr>
-            <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} csrftoken={this.props.csrftoken} />
+            <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} />
           </tbody>
         </Table>
       </div>
@@ -208,12 +206,10 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
 function createMissionAssetStatus(elementId: string, asset: number, mission: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
   div.render(
     <>
       <SMMTopBar />
-      <MissionAssetStatus asset={asset} mission={mission} csrftoken={csrftoken as string} />
+      <MissionAssetStatus asset={asset} mission={mission} />
     </>
   )
 }

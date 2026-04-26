@@ -5,7 +5,6 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 import { OrganizationListRow } from './list'
@@ -14,7 +13,6 @@ import { OrganizationAssetData, OrganizationData, OrganizationMemberData } from 
 import { AssetData } from '../asset/types'
 
 interface OrganizationMemberRowProps {
-  csrftoken: string
   organizationId: number
   organization_member: OrganizationMemberData
   showButtons: boolean
@@ -134,20 +132,13 @@ class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, ne
 interface OrganizationMemberListProps {
   organizationId: number
   organization_members?: OrganizationMemberData[]
-  csrftoken: string
   showButtons: boolean
 }
 
 class OrganizationMemberList extends React.Component<OrganizationMemberListProps, never> {
   render() {
     const organizationMemberRows = this.props.organization_members?.map((organizationMember) => (
-      <OrganizationMemberRow
-        key={organizationMember.id}
-        organizationId={this.props.organizationId}
-        organization_member={organizationMember}
-        csrftoken={this.props.csrftoken}
-        showButtons={this.props.showButtons}
-      />
+      <OrganizationMemberRow key={organizationMember.id} organizationId={this.props.organizationId} organization_member={organizationMember} showButtons={this.props.showButtons} />
     ))
     return (
       <Table responsive>
@@ -172,7 +163,6 @@ class OrganizationMemberList extends React.Component<OrganizationMemberListProps
 
 interface OrganizationMemberAddProps {
   organizationId: number
-  csrftoken: string
 }
 
 interface OrganizationMemberAddState {
@@ -299,7 +289,6 @@ class OrganizationAssetList extends React.Component<OrganizationAssetListProps, 
 
 interface OrganizationAssetAddProps {
   organizationId: number
-  csrftoken: string
 }
 
 interface OrganizationAssetAddState {
@@ -395,7 +384,6 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
 
 interface OrganizationDetailsPageProps {
   organizationId: number
-  csrftoken: string
   updateRadioOperator: (show: boolean) => void
 }
 
@@ -468,15 +456,14 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
         key="org_members"
         organizationId={this.props.organizationId}
         organization_members={this.state.organizationDetails.members}
-        csrftoken={this.props.csrftoken}
         showButtons={this.state.organizationDetails.role === 'Admin'}
       />
     )
     if (this.state.organizationDetails.role === 'Admin') {
-      organizationSections.push(<OrganizationMemberAdd key="org_add_member" organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} />)
+      organizationSections.push(<OrganizationMemberAdd key="org_add_member" organizationId={this.props.organizationId} />)
     }
     organizationSections.push(<OrganizationAssetList key="org_assets" organization_assets={this.state.organizationDetails.assets} />)
-    organizationSections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} />)
+    organizationSections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={this.props.organizationId} />)
 
     return <div>{organizationSections}</div>
   }
@@ -484,7 +471,6 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
 
 interface OrganizationPageProps {
   organizationId: number
-  csrftoken: string
 }
 
 interface OrganizationPageState {
@@ -511,7 +497,7 @@ class OrganizationPage extends React.Component<OrganizationPageProps, Organizati
     return (
       <>
         <SMMOrganizationTopBar organizationId={this.props.organizationId} showRadioOperator={this.state.isRadioOperator} />
-        <OrganizationDetailsPage organizationId={this.props.organizationId} csrftoken={this.props.csrftoken} updateRadioOperator={this.updateRadioOperator} />
+        <OrganizationDetailsPage organizationId={this.props.organizationId} updateRadioOperator={this.updateRadioOperator} />
       </>
     )
   }
@@ -520,9 +506,7 @@ class OrganizationPage extends React.Component<OrganizationPageProps, Organizati
 function createOrganizationDetails(elementId: string, organizationId: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
-  div.render(<OrganizationPage organizationId={organizationId} csrftoken={csrftoken as string} />)
+  div.render(<OrganizationPage organizationId={organizationId} />)
 }
 
 // @ts-expect-error: globalThis has not definition

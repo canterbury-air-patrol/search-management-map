@@ -5,7 +5,6 @@ import { Table, Button } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGet, smmGetJSON, smmPost } from '../ajax'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
@@ -144,7 +143,6 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
 interface AssetCommandViewProps {
   asset: number
   lastCommand?: AssetCommandData
-  csrftoken: string
 }
 
 interface AssetCommandViewState {
@@ -386,7 +384,6 @@ class AssetMissionDetails extends React.Component<AssetMissionDetailsProps, neve
 
 interface AssetStatusProps {
   asset: number
-  csrftoken: string
   details?: AssetFullStatusData
 }
 
@@ -526,7 +523,6 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
 
 interface AssetUIProps {
   asset: number
-  csrftoken: string
 }
 
 interface AssetUIState {
@@ -579,7 +575,7 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
   render() {
     let missionStatus
     if (this.state.details?.mission_id !== undefined) {
-      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
+      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} />
     }
     return (
       <div>
@@ -587,10 +583,10 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
           {this.state.details?.name}
         </div>
         <AssetMissionDetails details={this.state.details} />
-        <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} csrftoken={this.props.csrftoken} />
+        <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} />
         {missionStatus}
         <AssetTrackAs asset={this.props.asset} />
-        <AssetStatus asset={this.props.asset} csrftoken={this.props.csrftoken} details={this.state.details} />
+        <AssetStatus asset={this.props.asset} details={this.state.details} />
       </div>
     )
   }
@@ -599,12 +595,10 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
 function createAssetUI(elementId: string, assetId: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
   div.render(
     <>
       <SMMTopBar />
-      <AssetUI asset={assetId} csrftoken={csrftoken as string} />
+      <AssetUI asset={assetId} />
     </>
   )
 }

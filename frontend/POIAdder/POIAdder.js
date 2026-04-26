@@ -7,7 +7,7 @@ import { MappedMarker } from '../smmleaflet'
 
 import { smmPost } from '../ajax'
 
-L.POIAdder = function (map, missionId, csrftoken, pos, replaces, label) {
+L.POIAdder = function (map, missionId, pos, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const contents = [
     '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
@@ -59,7 +59,7 @@ L.Control.POIAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.POIAdder(this.map, this.options.missionId, this.options.csrftoken, this.map.getCenter(), -1, '')
+    L.POIAdder(this.map, this.options.missionId, this.map.getCenter(), -1, '')
   },
 
   onAdd: function (map) {

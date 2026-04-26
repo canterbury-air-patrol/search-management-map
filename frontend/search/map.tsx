@@ -167,8 +167,8 @@ class SMMSearch {
 
 abstract class SMMSearches extends SMMRealtime {
   searchObjects: { [key: number]: SMMSearch }
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+    super(map, missionId, interval, color)
 
     this.searchObjects = {}
     this.createPopup = this.createPopup.bind(this)

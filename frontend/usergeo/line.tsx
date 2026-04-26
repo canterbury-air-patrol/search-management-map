@@ -21,7 +21,6 @@ class SMMLine {
     L.LineAdder(
       this.parent.map,
       this.parent.missionId,
-      this.parent.csrftoken,
       this.coords.map((x) => L.latLng(x[1], x[0])),
       this.data.pk,
       this.data.label
@@ -33,7 +32,7 @@ class SMMLine {
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'line', this.data.pk)
+    L.SearchAdder(this.parent.map, 'line', this.data.pk)
   }
 
   createPopup(layer: L.Layer) {
@@ -83,8 +82,8 @@ class SMMLine {
 
 class SMMLines extends SMMRealtime {
   lineObjects: { [key: number]: SMMLine }
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: hex) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: hex) {
+    super(map, missionId, interval, color)
     this.lineObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }
