@@ -2,6 +2,7 @@ import $ from 'jquery'
 import L from 'leaflet'
 
 import { MappedMarker } from '../smmleaflet'
+import { smmPostBody } from '../ajax'
 
 L.Control.ImageUploader = L.Control.extend({
   options: {
@@ -30,10 +31,7 @@ L.Control.ImageUploader = L.Control.extend({
     const file = $('#image_upload_file')
     formData.append('file', file[0].files[0])
 
-    fetch(`/mission/${this.options.missionId}/image/upload/`, {
-      method: 'POST',
-      body: formData
-    })
+    smmPostBody(`/mission/${this.options.missionId}/image/upload/`, formData)
 
     this.map.removeLayer(this.mappedMarker.getMarker())
     this.imageUploadDialog.destroy()

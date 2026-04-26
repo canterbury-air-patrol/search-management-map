@@ -39,6 +39,24 @@ function smmPost(url: string, data: object, success?: (data: unknown) => void, e
   })
 }
 
+function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (data: unknown) => void, error?: () => void) {
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
+    },
+    body: body,
+    timeout: AJAX_TIMEOUT
+  })
+    .then((response) => {
+      if (!response.ok) throw response
+      if (success) success(response.text())
+    })
+    .catch(() => {
+      if (error) error()
+    })
+}
+
 function smmDelete(url: string, success?: (data: never) => void, error?: () => void) {
   $.ajax({
     url: url,
@@ -52,4 +70,4 @@ function smmDelete(url: string, success?: (data: never) => void, error?: () => v
   })
 }
 
-export { smmGet, smmGetJSON, smmPost, smmDelete }
+export { smmGet, smmGetJSON, smmPost, smmPostBody, smmDelete }
