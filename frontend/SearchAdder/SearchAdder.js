@@ -4,7 +4,7 @@ import L from 'leaflet'
 
 import { smmGet, smmGetJSON, smmPost } from '../ajax'
 
-L.SearchAdder = function (map, csrftoken, objectType, objectID) {
+L.SearchAdder = function (map, objectType, objectID) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   let searchSelection = `<select class='form-control' id='SearchAdder-search-type-${RAND_NUM}'>`
   switch (objectType) {

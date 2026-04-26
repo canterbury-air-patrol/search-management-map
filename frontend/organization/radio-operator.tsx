@@ -5,7 +5,6 @@ import { Table } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGetJSON } from '../ajax'
 
 import { AssetCommandView, AssetMissionDetails, AssetUI } from '../asset/ui'
@@ -17,7 +16,7 @@ class RadioOperatorAsset extends AssetUI {
   render() {
     let missionStatus
     if (this.state.details && this.state.details.mission_id) {
-      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} csrftoken={this.props.csrftoken} />
+      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} />
     }
     return (
       <>
@@ -34,7 +33,7 @@ class RadioOperatorAsset extends AssetUI {
               <AssetMissionDetails details={this.state.details} />
             </td>
             <td>
-              <AssetCommandView asset={this.props.asset} lastCommand={this.state.lastCommand} csrftoken={this.props.csrftoken} />
+              <AssetCommandView asset={this.props.asset} lastCommand={this.state.lastCommand} />
               {missionStatus}
             </td>
           </tr>
@@ -46,7 +45,6 @@ class RadioOperatorAsset extends AssetUI {
 
 interface OrganizationRadioOperatorPageProps {
   organizationId: number
-  csrftoken: string
 }
 
 interface OrganizationRadioOperatorPageState {
@@ -87,7 +85,7 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
   }
 
   render() {
-    const assets = this.state.organizationAssets.map((asset) => <RadioOperatorAsset key={asset.id} asset={asset.asset.id} csrftoken={this.props.csrftoken} />)
+    const assets = this.state.organizationAssets.map((asset) => <RadioOperatorAsset key={asset.id} asset={asset.asset.id} />)
     return <Table responsive>{assets}</Table>
   }
 }
@@ -95,12 +93,10 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
 function createRadioOperator(elementId: string, organizationId: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
   div.render(
     <>
       <SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={true} />
-      <OrganizationRadioOperatorPage organizationId={organizationId} csrftoken={csrftoken as string} />
+      <OrganizationRadioOperatorPage organizationId={organizationId} />
     </>
   )
 }

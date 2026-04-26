@@ -23,7 +23,6 @@ L.Control.ImageUploader = L.Control.extend({
     const latLng = marker.getLatLng()
 
     const formData = new FormData()
-    formData.append('csrfmiddlewaretoken', this.options.csrftoken)
     const desc = $('#image_upload_description')
     formData.append('description', desc[0].val())
     formData.append('latitude', latLng.lat)

@@ -44,7 +44,6 @@ class SMMMap {
   layerControlAssets: L.Control.Layers
   layerControlUsers: L.Control.Layers
   missionId: number | string
-  csrftoken: string
   assets?: SMMAssets
   users?: SMMUserPositions
   POIs?: SMMPOIs
@@ -57,14 +56,13 @@ class SMMMap {
   importantImages?: SMMImageImportant
   marineVectors?: SMMMarineVector
 
-  constructor(mapElem: string | HTMLElement, missionId: number | string, csrftoken: string) {
+  constructor(mapElem: string | HTMLElement, missionId: number | string) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
     this.layerControlAssets = L.control.layers({}, {})
     this.layerControlUsers = L.control.layers({}, {})
     this.missionId = missionId
-    this.csrftoken = csrftoken
     this.overlayAdd = this.overlayAdd.bind(this)
     this.overlayAddAsset = this.overlayAddAsset.bind(this)
     this.overlayAddUser = this.overlayAddUser.bind(this)
@@ -137,17 +135,17 @@ class SMMMap {
     this.map.locate({ setView: true, maxZoom: 16 })
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
-      L.control.poiadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
-      L.control.polygonadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
-      L.control.lineadder({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
+      L.control.poiadder({ missionId: this.missionId }).addTo(this.map)
+      L.control.polygonadder({ missionId: this.missionId }).addTo(this.map)
+      L.control.lineadder({ missionId: this.missionId }).addTo(this.map)
       new LocateControl({
         setView: 'untilPan',
         keepCurrentZoomLevel: true,
         locateOptions: { enableHighAccuracy: true }
       }).addTo(this.map)
-      L.control.imageuploader({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
+      L.control.imageuploader({ missionId: this.missionId }).addTo(this.map)
     }
-    L.control.smmadmin({ missionId: this.missionId, csrftoken: this.csrftoken }).addTo(this.map)
+    L.control.smmadmin({ missionId: this.missionId }).addTo(this.map)
 
     const assetUpdateFreq = 3 * 1000
     const userUpdateFreq = 3 * 1000
@@ -160,36 +158,36 @@ class SMMMap {
     // Default leaflet path color
     const defaultColor = '#3388ff'
 
-    this.assets = new SMMAssets(this.map, this.csrftoken, this.missionId, assetUpdateFreq, 'red', this.overlayAddAsset)
+    this.assets = new SMMAssets(this.map, this.missionId, assetUpdateFreq, 'red', this.overlayAddAsset)
     this.overlayAdd('Assets', this.assets.realtime().addTo(this.map))
 
-    this.users = new SMMUserPositions(this.map, this.csrftoken, this.missionId, userUpdateFreq, 'red', this.overlayAddUser)
+    this.users = new SMMUserPositions(this.map, this.missionId, userUpdateFreq, 'red', this.overlayAddUser)
     this.overlayAdd('Users', this.users.realtime().addTo(this.map))
 
-    this.POIs = new SMMPOIs(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.POIs = new SMMPOIs(this.map, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('POIs', this.POIs.realtime().addTo(this.map))
 
-    this.polygons = new SMMPolygons(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.polygons = new SMMPolygons(this.map, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('Polygons', this.polygons.realtime().addTo(this.map))
 
-    this.lines = new SMMLines(this.map, this.csrftoken, this.missionId, userDataUpdateFreq, defaultColor)
+    this.lines = new SMMLines(this.map, this.missionId, userDataUpdateFreq, defaultColor)
     this.overlayAdd('Lines', this.lines.realtime().addTo(this.map))
 
-    this.notStartedSearches = new SMMSearchesNotStarted(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
-    this.inprogressSearches = new SMMSearchesInprogress(this.map, this.csrftoken, this.missionId, searchIncompleteUpdateFreq, 'orange')
-    this.completeSearches = new SMMSearchesComplete(this.map, this.csrftoken, this.missionId, searchCompleteUpdateFreq, defaultColor)
+    this.notStartedSearches = new SMMSearchesNotStarted(this.map, this.missionId, searchIncompleteUpdateFreq, 'orange')
+    this.inprogressSearches = new SMMSearchesInprogress(this.map, this.missionId, searchIncompleteUpdateFreq, 'orange')
+    this.completeSearches = new SMMSearchesComplete(this.map, this.missionId, searchCompleteUpdateFreq, defaultColor)
 
     this.overlayAdd('Pending Searches', this.notStartedSearches.realtime().addTo(this.map))
     this.overlayAdd('Inprogress Searches', this.inprogressSearches.realtime().addTo(this.map))
     this.overlayAdd('Completed Searches', this.completeSearches.realtime())
 
-    this.allImages = new SMMImageAll(this.map, this.csrftoken, this.missionId, imageAllUpdateFreq, defaultColor)
-    this.importantImages = new SMMImageImportant(this.map, this.csrftoken, this.missionId, imageAllUpdateFreq, defaultColor)
+    this.allImages = new SMMImageAll(this.map, this.missionId, imageAllUpdateFreq, defaultColor)
+    this.importantImages = new SMMImageImportant(this.map, this.missionId, imageAllUpdateFreq, defaultColor)
 
     this.overlayAdd('Images (all)', this.allImages.realtime())
     this.overlayAdd('Images (prioritized)', this.importantImages.realtime().addTo(this.map))
 
-    this.marineVectors = new SMMMarineVector(this.map, this.csrftoken, this.missionId, marineDataUpdateFreq, 'black')
+    this.marineVectors = new SMMMarineVector(this.map, this.missionId, marineDataUpdateFreq, 'black')
     this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
   }
 
@@ -225,9 +223,7 @@ function mapInit() {
   mapEl.setAttribute('style', 'flex: 1 1 auto;')
   wrapperEl.appendChild(mapEl)
 
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
-
-  return new SMMMap(mapEl, missionId, csrftoken as string)
+  return new SMMMap(mapEl, missionId)
 }
 
 mapInit()

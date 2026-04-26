@@ -150,8 +150,8 @@ class SMMAssets extends SMMRealtime {
   assetNameMap: { [key: number]: string }
   assetIconMap: { [key: number]: string }
   assetStatusMap: { [key: number]: { status: string; notes: string } }
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+    super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
     this.createPopup = this.createPopup.bind(this)

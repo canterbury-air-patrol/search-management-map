@@ -3,8 +3,8 @@ import { TotalDriftVectorData } from './types'
 import { smmGet } from '../ajax'
 
 class SMMMarineVector extends SMMRealtime {
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+    super(map, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
   }

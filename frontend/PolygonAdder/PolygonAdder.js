@@ -3,7 +3,7 @@ import L from 'leaflet'
 import { MappedMarker } from '../smmleaflet'
 import { smmPost } from '../ajax'
 
-L.PolygonAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
+L.PolygonAdder = function (map, missionId, currentPoints, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const markers = []
   const polygon = L.polygon(currentPoints, { color: 'yellow' }).addTo(map)
@@ -112,7 +112,7 @@ L.Control.PolygonAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.PolygonAdder(this.map, this.options.missionId, this.options.csrftoken, [this.map.getCenter()], -1, '')
+    L.PolygonAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
   },
 
   onAdd: function (map) {

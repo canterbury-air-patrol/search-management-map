@@ -25,7 +25,7 @@ class SMMPOI {
   }
 
   editCallback() {
-    L.POIAdder(this.parent.map, this.parent.missionId, this.parent.csrftoken, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
+    L.POIAdder(this.parent.map, this.parent.missionId, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
   }
 
   deleteCallback() {
@@ -33,11 +33,11 @@ class SMMPOI {
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.parent.map, this.parent.csrftoken, 'point', this.data.pk)
+    L.SearchAdder(this.parent.map, 'point', this.data.pk)
   }
 
   calculateTDVCallback() {
-    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.parent.csrftoken, this.data.label, L.latLng(this.coords[1], this.coords[0]), this.data.pk)
+    MarineVectorsLeaflet(this.parent.map, this.parent.missionId, this.data.label, L.latLng(this.coords[1], this.coords[0]), this.data.pk)
   }
 
   createPopup(layer: L.Layer) {
@@ -103,8 +103,8 @@ class SMMPOI {
 
 class SMMPOIs extends SMMRealtime {
   poiObjects: { [key: string]: SMMPOI }
-  constructor(map: L.Map, csrftoken: string, missionId: string | number, interval: number, color: string) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: string | number, interval: number, color: string) {
+    super(map, missionId, interval, color)
     this.poiObjects = {}
     this.createPopup = this.createPopup.bind(this)
   }

@@ -5,7 +5,6 @@ import { Table, Button } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGetJSON, smmPost } from '../ajax'
 
 import DateTimePicker from 'react-datetime-picker'
@@ -17,7 +16,6 @@ import { MissionData } from './types'
 
 interface MissionTimeLineEntryAddProps {
   missionId: number
-  csrftoken: string
 }
 
 interface MissionTimeLineEntryAddState {
@@ -157,7 +155,6 @@ class MissionTimelineEntry extends React.Component<MissionTimelineEntryProps, ne
 
 interface MissionTimeLineProps {
   missionId: number
-  csrftoken: string
 }
 
 interface MissionTimelineState {
@@ -234,7 +231,7 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
     if (this.state.missionData !== undefined) {
       missionData = <MissionHeader key="missionHeader" mission={this.state.missionData} />
       if (this.state.missionClosed !== null) {
-        timelineAdd = <MissionTimeLineEntryAdd missionId={this.props.missionId} csrftoken={this.props.csrftoken} />
+        timelineAdd = <MissionTimeLineEntryAdd missionId={this.props.missionId} />
       }
     }
 
@@ -266,12 +263,11 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
 
 export function createMissionTimeline(elementId: string, missionId: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMMissionTopBar missionId={missionId} />
-      <MissionTimeLine missionId={missionId} csrftoken={csrftoken as string} />
+      <MissionTimeLine missionId={missionId} />
     </>
   )
 }

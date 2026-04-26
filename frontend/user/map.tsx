@@ -113,8 +113,8 @@ class SMMUserPosition {
 class SMMUserPositions extends SMMRealtime {
   userObjects: { [key: string]: SMMUserPosition }
   overlayAdd: (name: string, overlay: L.Layer) => void
-  constructor(map: L.Map, csrftoken: string, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
-    super(map, csrftoken, missionId, interval, color)
+  constructor(map: L.Map, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+    super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
     this.createPopup = this.createPopup.bind(this)

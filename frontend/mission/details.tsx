@@ -5,7 +5,6 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import $ from 'jquery'
 import { smmGet, smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
@@ -59,7 +58,6 @@ const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
 
 interface MissionDetailsExternalReferencesRowProps {
   ExternalReference: MissionExternalReferenceData
-  csrftoken: string
 }
 
 interface MissionDetailsExternalReferencesRowState {
@@ -178,7 +176,6 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
 
 interface MissionDetailsExternalReferenceAddProps {
   mission: number
-  csrftoken: string
 }
 
 interface MissionDetailsExternalReferenceAddState {
@@ -255,13 +252,12 @@ class MissionDetailsExternalReferenceAdd extends React.Component<MissionDetailsE
 
 interface MissionDetailsExternalReferencesListProps {
   ExternalReferences: Array<MissionExternalReferenceData>
-  csrftoken: string
   mission: number
 }
 
 class MissionDetailsExternalReferencesList extends React.Component<MissionDetailsExternalReferencesListProps, never> {
   render() {
-    const rows = this.props.ExternalReferences.map((extRef) => <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} csrftoken={this.props.csrftoken} />)
+    const rows = this.props.ExternalReferences.map((extRef) => <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} />)
     return (
       <Table>
         <thead>
@@ -275,7 +271,7 @@ class MissionDetailsExternalReferencesList extends React.Component<MissionDetail
         </thead>
         <tbody>
           {rows}
-          <MissionDetailsExternalReferenceAdd mission={this.props.mission} csrftoken={this.props.csrftoken} />
+          <MissionDetailsExternalReferenceAdd mission={this.props.mission} />
         </tbody>
       </Table>
     )
@@ -286,7 +282,6 @@ interface MissionDetailsOrganizationsRowProps {
   mission: number
   missionOrg: MissionOrganizationData
   showButtons: boolean
-  csrftoken: string
 }
 
 class MissionDetailsOrganizationsRow extends React.Component<MissionDetailsOrganizationsRowProps, never> {
@@ -361,19 +356,12 @@ interface MissionDetailsOrganizationsListProps {
   missionOrganizations: Array<MissionOrganizationData>
   mission: number
   isAdmin: boolean
-  csrftoken: string
 }
 
 class MissionDetailsOrganizationsList extends React.Component<MissionDetailsOrganizationsListProps, never> {
   render() {
     const org_list = this.props.missionOrganizations.map((missionOrg) => (
-      <MissionDetailsOrganizationsRow
-        key={missionOrg.organization.id}
-        mission={this.props.mission}
-        missionOrg={missionOrg}
-        showButtons={this.props.isAdmin}
-        csrftoken={this.props.csrftoken}
-      />
+      <MissionDetailsOrganizationsRow key={missionOrg.organization.id} mission={this.props.mission} missionOrg={missionOrg} showButtons={this.props.isAdmin} />
     ))
     return (
       <Table>
@@ -391,7 +379,6 @@ class MissionDetailsOrganizationsList extends React.Component<MissionDetailsOrga
 
 interface MissionDetailsOrganizationAddProps {
   mission: number
-  csrftoken: string
 }
 
 interface MissionDetailsOrganizationAddState {
@@ -483,7 +470,6 @@ class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrgani
 interface MissionDetailsUserRowProps {
   mission: number
   missionUser: MissionUserData
-  csrftoken: string
   showButtons: boolean
 }
 
@@ -583,19 +569,12 @@ interface MissionDetailsUsersListProps {
   isAdmin: boolean
   me: string
   mission: number
-  csrftoken: string
 }
 
 class MissionDetailsUsersList extends React.Component<MissionDetailsUsersListProps, never> {
   render() {
     const user_list = this.props.missionUsers.map((missionUser) => (
-      <MissionDetailsUserRow
-        key={missionUser.id}
-        mission={this.props.mission}
-        missionUser={missionUser}
-        showButtons={this.props.isAdmin && this.props.me !== missionUser.user}
-        csrftoken={this.props.csrftoken}
-      />
+      <MissionDetailsUserRow key={missionUser.id} mission={this.props.mission} missionUser={missionUser} showButtons={this.props.isAdmin && this.props.me !== missionUser.user} />
     ))
 
     return (
@@ -614,7 +593,6 @@ class MissionDetailsUsersList extends React.Component<MissionDetailsUsersListPro
 
 interface MissionDetailsUserAddProps {
   mission: number
-  csrftoken: string
 }
 
 interface MissionDetailsUserAddState {
@@ -761,7 +739,6 @@ class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps
 
 interface MissionDetailsAssetListProps {
   missionAssets: Array<MissionAssetData>
-  csrftoken: string
 }
 
 class MissionDetailsAssetList extends React.Component<MissionDetailsAssetListProps, never> {
@@ -788,7 +765,6 @@ class MissionDetailsAssetList extends React.Component<MissionDetailsAssetListPro
 
 interface MissionDetailsAssetAddProps {
   mission: number
-  csrftoken: string
 }
 
 interface MissionDetailsAssetAddState {
@@ -878,7 +854,6 @@ class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps
 
 interface MissionDetailsPageProps {
   missionId: number
-  csrftoken: string
 }
 
 interface MissionDetailsPageState {
@@ -922,26 +897,21 @@ class MissionDetailPage extends React.Component<MissionDetailsPageProps, Mission
     } else {
       let orgAdd
       let userAdd
-      const assetAdd = <MissionDetailsAssetAdd mission={this.props.missionId} csrftoken={this.props.csrftoken} />
+      const assetAdd = <MissionDetailsAssetAdd mission={this.props.missionId} />
       if (this.state.missionDetails.can_add_organizations) {
-        orgAdd = <MissionDetailsOrganizationAdd mission={this.props.missionId} csrftoken={this.props.csrftoken} />
+        orgAdd = <MissionDetailsOrganizationAdd mission={this.props.missionId} />
       }
       if (this.state.missionDetails.can_add_users) {
-        userAdd = <MissionDetailsUserAdd mission={this.props.missionId} csrftoken={this.props.csrftoken} />
+        userAdd = <MissionDetailsUserAdd mission={this.props.missionId} />
       }
       return (
         <>
           <MissionDetails mission={this.state.missionDetails.mission} />
-          <MissionDetailsExternalReferencesList
-            mission={this.props.missionId}
-            ExternalReferences={this.state.missionDetails.external_references}
-            csrftoken={this.props.csrftoken}
-          />
+          <MissionDetailsExternalReferencesList mission={this.props.missionId} ExternalReferences={this.state.missionDetails.external_references} />
           <MissionDetailsOrganizationsList
             mission={this.props.missionId}
             missionOrganizations={this.state.missionDetails.mission_organizations}
             isAdmin={this.state.missionDetails.admin}
-            csrftoken={this.props.csrftoken}
           />
           {orgAdd}
           <MissionDetailsUsersList
@@ -949,10 +919,9 @@ class MissionDetailPage extends React.Component<MissionDetailsPageProps, Mission
             me={this.state.missionDetails.me}
             missionUsers={this.state.missionDetails.mission_users}
             isAdmin={this.state.missionDetails.admin}
-            csrftoken={this.props.csrftoken}
           />
           {userAdd}
-          <MissionDetailsAssetList missionAssets={this.state.missionDetails.mission_assets} csrftoken={this.props.csrftoken} />
+          <MissionDetailsAssetList missionAssets={this.state.missionDetails.mission_assets} />
           {assetAdd}
         </>
       )
@@ -962,12 +931,11 @@ class MissionDetailPage extends React.Component<MissionDetailsPageProps, Mission
 
 function createMissionDetails(elementId: string, missionId: number) {
   const div = ReactDOM.createRoot(document.getElementById(elementId)!)
-  const csrftoken = $('[name=csrfmiddlewaretoken]').val()
 
   div.render(
     <>
       <SMMMissionTopBar missionId={missionId} />
-      <MissionDetailPage missionId={missionId} csrftoken={csrftoken as string} />
+      <MissionDetailPage missionId={missionId} />
     </>
   )
 }

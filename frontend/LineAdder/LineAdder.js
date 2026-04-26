@@ -4,7 +4,7 @@ import { MappedMarker } from '../smmleaflet'
 
 import { smmPost } from '../ajax'
 
-L.LineAdder = function (map, missionId, csrftoken, currentPoints, replaces, label) {
+L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
   const markers = []
   const line = L.polyline(currentPoints, { color: 'yellow' }).addTo(map)
@@ -113,7 +113,7 @@ L.Control.LineAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.LineAdder(this.map, this.options.missionId, this.options.csrftoken, [this.map.getCenter()], -1, '')
+    L.LineAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
   },
 
   onAdd: function (map) {
