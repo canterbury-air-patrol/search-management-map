@@ -35,7 +35,7 @@ import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
 import { SMMMissionTopBar } from './menu/topbar.js'
 import { SMMUserPositions } from './user/map.js'
-import { smmGet } from './ajax'
+import { smmGetJSON } from './ajax'
 
 class SMMMap {
   map: L.Map
@@ -123,7 +123,7 @@ class SMMMap {
     L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
 
-    smmGet('/map/tile/layers/', {}, this.mapLayersCallback)
+    smmGetJSON('/map/tile/layers/', {}, this.mapLayersCallback)
 
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)

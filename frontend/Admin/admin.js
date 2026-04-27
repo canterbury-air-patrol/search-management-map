@@ -38,15 +38,15 @@ L.SMMAdmin.AssetCommand = function (map, missionId) {
     assetCommandDialog.destroy()
   })
   $('#command_create').on('click', function () {
-    const data = [
-      { name: 'asset', value: $('#id_asset').val() },
-      { name: 'reason', value: $('#id_reason').val() },
-      { name: 'command', value: $('#id_command').val() }
-    ]
+    const data = {
+      asset: $('#id_asset').val(),
+      reason: $('#id_reason').val(),
+      command: $('#id_command').val()
+    }
     if (gotoPoint != null) {
       const coords = gotoPoint.getLatLng()
-      data.push({ name: 'latitude', value: coords.lat })
-      data.push({ name: 'longitude', value: coords.lng })
+      data.latitude = coords.lat
+      data.longitude = coords.lng
     }
     smmPost(`/mission/${missionId}/assets/command/set/`, data, function (data) {
       if (data === 'Created') {

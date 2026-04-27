@@ -5,7 +5,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import { smmGet } from '../ajax'
+import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionData } from './types'
 
@@ -160,7 +160,7 @@ class MissionListPage extends React.Component<object, MissionListPageState> {
   }
 
   async updateData() {
-    await smmGet('/mission/list/', {}, this.updateDataResponse)
+    await smmGetJSON('/mission/list/', {}, this.updateDataResponse)
   }
 
   updateMissions(missions: MissionData[]) {

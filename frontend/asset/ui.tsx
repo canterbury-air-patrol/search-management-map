@@ -435,7 +435,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
   }
 
   async updateStatusValues() {
-    await smmGet('/assets/status/values/', {}, this.updateStatusValuesResponse)
+    await smmGetJSON('/assets/status/values/', {}, this.updateStatusValuesResponse)
   }
 
   updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
