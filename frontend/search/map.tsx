@@ -70,12 +70,9 @@ class SMMSearch {
   }
 
   searchQueueSubmit() {
-    const data = []
+    const data: { asset?: string } = {}
     if ($(`#queue_${this.search.pk}_select_type`).val() === 'asset') {
-      data.push({
-        name: 'asset',
-        value: $(`#queue_${this.search.pk}_select_asset`).val() as string
-      })
+      data.asset = $(`#queue_${this.search.pk}_select_asset`).val() as string
     }
     smmPost(`/search/${this.search.pk}/queue/`, data, this.searchQueueDestroy)
   }

@@ -2,7 +2,7 @@ import $ from 'jquery'
 
 import L from 'leaflet'
 
-import { smmGet, smmGetJSON, smmPost } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 
 L.SearchAdder = function (map, objectType, objectID) {
   const RAND_NUM = Math.floor(Math.random() * 16536)
@@ -108,22 +108,22 @@ L.SearchAdder = function (map, objectType, objectID) {
   }
 
   const getData = function () {
-    const data = [
-      { name: 'sweep_width', value: $(`#SearchAdder-sweep-width-${RAND_NUM}`).val() },
-      { name: 'asset_type_id', value: $(`#SearchAdder-asset-type-${RAND_NUM}`).val() },
-      { name: 'iterations', value: $(`#SearchAdder-iterations-${RAND_NUM}`).val() },
-      { name: 'first_bearing', value: $(`#SearchAdder-first-bearing-${RAND_NUM}`).val() },
-      { name: 'width', value: $(`#SearchAdder-width-${RAND_NUM}`).val() }
-    ]
+    const data = {
+      sweep_width: $(`#SearchAdder-sweep-width-${RAND_NUM}`).val(),
+      asset_type_id: $(`#SearchAdder-asset-type-${RAND_NUM}`).val(),
+      iterations: $(`#SearchAdder-iterations-${RAND_NUM}`).val(),
+      first_bearing: $(`#SearchAdder-first-bearing-${RAND_NUM}`).val(),
+      width: $(`#SearchAdder-width-${RAND_NUM}`).val()
+    }
     switch (objectType) {
       case 'point':
-        data.push({ name: 'poi_id', value: objectID })
+        data.poi_id = objectID
         break
       case 'line':
-        data.push({ name: 'line_id', value: objectID })
+        data.line_id = objectID
         break
       case 'polygon':
-        data.push({ name: 'poly_id', value: objectID })
+        data.poly_id = objectID
         break
     }
     return data
@@ -132,7 +132,7 @@ L.SearchAdder = function (map, objectType, objectID) {
   let onMap = null
 
   $(`#SearchAdder-preview-${RAND_NUM}`).on('click', function () {
-    smmGet(getUrl(), getData(), function (data) {
+    smmGetJSON(getUrl(), getData(), function (data) {
       if (onMap !== null) {
         onMap.remove()
       }

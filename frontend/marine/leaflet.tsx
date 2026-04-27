@@ -4,7 +4,7 @@ import L from 'leaflet'
 
 import { MarineVectors, MarineVectorsDisplay } from '@canterbury-air-patrol/marine-total-drift-vector'
 import { Button, ButtonGroup } from 'react-bootstrap'
-import { smmGet, smmPostBody } from '../ajax'
+import { smmGetJSON, smmPostBody } from '../ajax'
 
 interface CustomMarineVectorsProps {
   map: L.Map
@@ -86,7 +86,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       this.props.map.removeLayer(this.onMap)
       this.onMap = undefined
     }
-    smmGet(
+    smmGetJSON(
       `/mission/${this.props.missionId}/sar/marine/vectors/create/`,
       this.getData(),
       (data) => {

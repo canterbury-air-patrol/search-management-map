@@ -69,14 +69,14 @@ L.PolygonAdder = function (map, missionId, currentPoints, replaces, label) {
   })
 
   $(`#polygonadder-dialog-done-${RAND_NUM}`).on('click', function () {
-    const data = [
-      { name: 'label', value: $(`#polygonadder-dialog-name-${RAND_NUM}`).val() },
-      { name: 'points', value: markers.length }
-    ]
+    const data = {
+      label: $(`#polygonadder-dialog-name-${RAND_NUM}`).val(),
+      points: markers.length
+    }
     for (const i in markers) {
       const markerLatLng = markers[i].getMarker().getLatLng()
-      data.push({ name: `point${i}_lat`, value: markerLatLng.lat })
-      data.push({ name: `point${i}_lng`, value: markerLatLng.lng })
+      data[`point${i}_lat`] = markerLatLng.lat
+      data[`point${i}_lng`] = markerLatLng.lng
     }
 
     if (replaces !== -1) {
