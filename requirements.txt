@@ -18,6 +18,9 @@ haversine
 # uwsgi
 uwsgi
 
+# static file serving
+whitenoise
+
 # image support
 image
 
