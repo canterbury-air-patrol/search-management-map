@@ -37,6 +37,7 @@ def map_main_current(request):
     return render(request, 'map_main.html', {'mission': 'current'})
 
 
+@login_required
 def tile_layer_list(request):
     """
     List the tile layers that are currently active
