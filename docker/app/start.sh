@@ -9,7 +9,6 @@ source /code/venv/bin/activate
 ./manage.py makemigrations
 ./manage.py migrate
 
-sed -i 's/DEBUG =.*/DEBUG = True/' smm/local_settings.py
 sed -i 's/HOSTNAME/${HOSTNAME}/' smm/local_settings.py
 
 if [ "$1" == "test" ]
