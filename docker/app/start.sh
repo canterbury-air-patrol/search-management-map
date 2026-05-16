@@ -20,5 +20,5 @@ else
     then
         ./manage.py createsuperuser --noinput
     fi
-    ./manage.py runserver 0.0.0.0:8080
+    uwsgi --http 0.0.0.0:8080 --module smm.wsgi --master --processes 4
 fi
