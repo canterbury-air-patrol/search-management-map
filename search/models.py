@@ -294,18 +294,19 @@ class Search(GeoTime):
         """
         # calculate the points on the outside of a circle
         # that are sweep_width * 3 from the poi
-        # with angles: 30,60,90,120,150,180,210,240,270,300,330,360
-        # this order makes the points in clock-order
+        # with angles: 30,60,90,120,150,180,210,240,270,300,330,0
+        # (0 and 360 are equivalent; this order produces clock-wise points)
         sw = params.sweep_width() * 3
+        geo_id = params.from_geo().pk
         select_cols = ["geo"]
         query_params = []
         for deg in (30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 0):
             select_cols.append(f"ST_Project(geo, %s, radians(%s)) AS deg_{deg}")
             query_params.extend([sw, deg])
-        query_params.append(params.from_geo().pk)
+        query_params.append(geo_id)
         query = "SELECT " + ", ".join(select_cols) + " FROM data_geotimelabel WHERE id = %s"
         cursor = dbconn.cursor()
-        cursor.execute(query, query_params)
+        cursor.execute(query, query_params)  # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query
         reference_points = cursor.fetchone()
 
         # Create a SectorSector
@@ -356,19 +357,22 @@ class Search(GeoTime):
         a, and the fifth line ends (start direction +) 315 degrees, all sqrt(2) * i * sweep
         width (where i is the iteration number) from the reference point (a or b respectively).
         """
+        sweep_width = params.sweep_width()
+        first_bearing = params.first_bearing()
+        geo_id = params.from_geo().pk
         select_cols = ["p.geo", "p.first"]
         query_params = []
         for i in range(1, params.iterations() + 1):
-            dist = math.sqrt(2) * i * params.sweep_width()
+            dist = math.sqrt(2) * i * sweep_width
             for ref, bearing_offset in [("p.geo", 45), ("p.geo", 135), ("p.geo", 225), ("p.first", 315)]:
                 select_cols.append(f"ST_Project({ref}, %s, radians(%s))")
-                query_params.extend([dist, bearing_offset + params.first_bearing()])
+                query_params.extend([dist, bearing_offset + first_bearing])
 
-        query_params.extend([params.sweep_width(), params.first_bearing(), params.from_geo().pk])
+        query_params.extend([sweep_width, first_bearing, geo_id])
         query = "SELECT " + ", ".join(select_cols) + " FROM (SELECT geo, ST_Project(geo, %s, radians(%s)) AS first FROM data_geotimelabel WHERE id = %s) AS p"
 
         cursor = dbconn.cursor()
-        cursor.execute(query, query_params)
+        cursor.execute(query, query_params)  # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query
         points = [GEOSGeometry(p) for p in cursor.fetchone()]
 
         search = Search(
@@ -461,10 +465,11 @@ class Search(GeoTime):
                    ST_Project(point, %s, direction - PI()/2) AS B
             FROM linepoints
         """
+        geo_id = params.from_geo().pk
+        sweep_width = params.sweep_width()
+        width = params.width()
         cursor = dbconn.cursor()
-        cursor.execute(query, [params.from_geo().pk,
-                                params.sweep_width(), params.sweep_width(),
-                                params.width(), params.width()])
+        cursor.execute(query, [geo_id, sweep_width, sweep_width, width, width])  # nosemgrep: python.sqlalchemy.security.sqlalchemy-execute-raw-query
         db_points = dictfetchall(cursor)
 
         points = []
