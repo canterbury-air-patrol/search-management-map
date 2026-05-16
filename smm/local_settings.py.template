@@ -2,11 +2,13 @@
 # Make changes as required and make sure to save
 # it as local_settings.py
 
+import os
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8080']
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').split(',')
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
