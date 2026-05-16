@@ -19,5 +19,5 @@ else
     then
         ./manage.py createsuperuser --noinput
     fi
-    uwsgi --http 0.0.0.0:8080 --module smm.wsgi --master --processes 4
+    uwsgi --http 0.0.0.0:8080 --module smm.wsgi --master --processes 4 --die-on-term --lazy-apps
 fi
