@@ -15,3 +15,6 @@ images/thumbnail/
 node_modules/
 dist/
 .coverage
+htmlcov/
+htmlcov_assets/
+htmlcov_tmp/
