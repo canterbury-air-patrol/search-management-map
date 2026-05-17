@@ -6,11 +6,6 @@ pytz
 # Database
 psycopg[binary,pool]==3.3.4
 
-# Code checking
-pycodestyle
-pylint==4.0.*
-pylint-django==2.7.0
-
 # Numerical
 numpy
 haversine
@@ -23,6 +18,3 @@ whitenoise
 
 # image support
 image
-
-# coverage reporting
-coverage==7.14.0

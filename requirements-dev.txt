@@ -1,0 +1,9 @@
+-r requirements.txt
+
+# Code checking
+pycodestyle
+pylint==4.0.*
+pylint-django==2.7.0
+
+# coverage reporting
+coverage==7.14.0
