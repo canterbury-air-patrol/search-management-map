@@ -2,3 +2,9 @@ static/
 dist/
 node_modules/
 venv/
+map/static/
+smm/local_settings.py
+smm/secretkey.txt
+images/full/
+images/thumbnail/
+.git/
