@@ -2,7 +2,7 @@ version: '3'
 
 services:
   db:
-    image: postgis/postgis:15-3.3
+    image: postgis/postgis:18-3.6-alpine
     environment:
       - POSTGRES_PASSWORD=password
     healthcheck:
