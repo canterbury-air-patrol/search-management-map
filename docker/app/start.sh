@@ -6,9 +6,13 @@ cp smm/local_settings.py.template smm/local_settings.py
 
 source /code/venv/bin/activate
 
+if [ ! -f "smm/secretkey.txt" ]
+then
+    python3 -c 'import secrets; print(secrets.token_urlsafe(50))' > smm/secretkey.txt
+fi
+
 ./manage.py makemigrations
 ./manage.py migrate
-
 
 if [ "$1" == "test" ]
 then
