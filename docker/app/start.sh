@@ -6,7 +6,6 @@ cp smm/local_settings.py.template smm/local_settings.py
 
 source /code/venv/bin/activate
 
-./manage.py makemigrations
 ./manage.py migrate
 
 
