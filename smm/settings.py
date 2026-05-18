@@ -10,8 +10,7 @@ from smm.local_settings import *
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-with open(os.path.join(BASE_DIR, 'smm', 'secretkey.txt')) as f:
-    SECRET_KEY = f.read().strip()
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # Application definition
 

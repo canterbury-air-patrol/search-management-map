@@ -28,8 +28,7 @@ COPY search/ ./search/
 COPY timeline/ ./timeline/
 COPY --from=frontend /app/dist/ ./map/static/
 RUN cp smm/local_settings.py.template smm/local_settings.py && \
-    python3 -c 'import secrets; print(secrets.token_urlsafe(50))' > smm/secretkey.txt && \
-    /code/venv/bin/python manage.py collectstatic --no-input && \
+    DJANGO_SECRET_KEY=build-placeholder /code/venv/bin/python manage.py collectstatic --no-input && \
     mkdir -p images/full images/thumbnail
 
 # Stage 3: Runtime image
@@ -53,7 +52,6 @@ COPY search/ ./search/
 COPY timeline/ ./timeline/
 COPY setup-db.sh ./
 COPY docker/ ./docker/
-COPY --from=python-builder /code/smm/secretkey.txt ./smm/
 RUN mkdir -p images/full images/thumbnail
 
 ENTRYPOINT ["/code/docker/app/start.sh"]

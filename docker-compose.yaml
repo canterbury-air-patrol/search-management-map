@@ -21,6 +21,7 @@ services:
       - DB_USER=postgres
       - DB_NAME=postgres
       - DB_PASS=password
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - ALLOWED_HOSTS=localhost
       - CSRF_TRUSTED_ORIGINS=http://localhost:8080
       - DJANGO_SUPERUSER_USERNAME=admin
