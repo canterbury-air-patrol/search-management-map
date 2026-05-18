@@ -1,9 +1,13 @@
-static/
-dist/
+# Large build artifacts (keep context lean)
 node_modules/
 venv/
+static/
+dist/
 map/static/
-smm/local_settings.py
-smm/secretkey.txt
 images/full/
 images/thumbnail/
+
+# Local settings (Docker reads all config from environment variables)
+smm/local_settings.py
+smm/local_settings.py.template
+smm/secretkey.txt

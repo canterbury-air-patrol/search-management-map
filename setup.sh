@@ -34,6 +34,7 @@ then
 	echo "Created new secretkey.txt in smm/secretkey.txt"
 fi
 
+export DJANGO_SECRET_KEY=$(cat smm/secretkey.txt)
 ./manage.py collectstatic --no-input
 
 echo ""

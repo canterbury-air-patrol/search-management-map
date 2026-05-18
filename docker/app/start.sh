@@ -1,9 +1,5 @@
 #!/bin/bash -ex
 
-cp smm/local_settings.py.template smm/local_settings.py
-
-./setup-db.sh
-
 source /code/venv/bin/activate
 
 ./manage.py migrate

@@ -4,12 +4,38 @@ Django settings for smm project.
 
 import os
 
-# Import other settings
-from smm.local_settings import *
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+DEBUG = False
+
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
+
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://localhost:8080').split(',')
+
+LANGUAGE_CODE = 'en-us'
+
+TIME_ZONE = 'UTC'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'NAME': os.environ.get('DB_NAME', 'smm'),
+        'USER': os.environ.get('DB_USER', 'smm'),
+        'PASSWORD': os.environ.get('DB_PASS', ''),
+        'OPTIONS': {
+            'pool': True,
+        },
+    }
+}
+
+# Allow a local_settings.py to override any of the above for local development.
+try:
+    from smm.local_settings import *
+except ImportError:
+    pass
+
+# Always read from environment so this cannot be overridden by local_settings.
 SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
 # Application definition
