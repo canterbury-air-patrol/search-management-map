@@ -261,8 +261,8 @@ class SMMAssets extends SMMRealtime {
     return dl
   }
 
-  assetLayer(asset: { properties: { id: number } }, latlng: L.LatLng) {
-    const iconUrl = this.getAssetIcon(asset.properties.id)
+  assetLayer(asset: { properties: { asset: number } }, latlng: L.LatLng) {
+    const iconUrl = this.getAssetIcon(asset.properties.asset)
     if (iconUrl) {
       return L.marker(latlng, {
         icon: L.icon(
@@ -272,13 +272,13 @@ class SMMAssets extends SMMRealtime {
             iconAnchor: [25, 50]
           },
           {
-            title: this.assetNameMap[asset.properties.id]
+            title: this.assetNameMap[asset.properties.asset]
           }
         )
       })
     }
     return L.marker(latlng, {
-      title: this.assetNameMap[asset.properties.id]
+      title: this.assetNameMap[asset.properties.asset]
     })
   }
 
@@ -323,7 +323,7 @@ class SMMAssets extends SMMRealtime {
     if (asset.geometry.type === 'Point') {
       const c = asset.geometry.coordinates
       oldLayer.setLatLng([c[1], c[0]])
-      if (oldLayer._icon.title !== this.assetNameMap[assetId]) {
+      if (oldLayer._icon && oldLayer._icon.title !== this.assetNameMap[assetId]) {
         oldLayer._icon.title = this.assetNameMap[assetId]
       }
 
