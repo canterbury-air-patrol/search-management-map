@@ -17,7 +17,7 @@ class Icon(models.Model):
         """
         return f'/icons/{self.pk}.png'
 
-    def as_json(self):
+    def as_object(self):
         """
         Return this as an object
         """

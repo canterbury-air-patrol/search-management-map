@@ -86,7 +86,7 @@ class MissionUser(models.Model):
         """
         return self.permissions_admin or self.permissions_user_add
 
-    def as_json(self):
+    def as_object(self):
         """
         return this mission user as a json object
         """
@@ -125,7 +125,7 @@ class MissionAsset(models.Model):
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
 
-    def as_json(self):
+    def as_object(self):
         """
         return this mission asset as a json object
         """
@@ -244,7 +244,7 @@ class MissionAssetType(models.Model):
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
 
-    def as_json(self):
+    def as_object(self):
         """
         return this mission asset type as a json object
         """
@@ -342,7 +342,7 @@ class MissionExternalReference(models.Model):
     url = models.TextField(null=True, blank=True)
     notes = models.TextField(null=True, blank=True)
 
-    def as_json(self):
+    def as_object(self):
         """
         Convert this mission external reference to an object that is suitable for returning via JsonResponse
         """
@@ -398,7 +398,7 @@ class MissionOrganization(models.Model):
         """
         return self.permissions_user_add
 
-    def as_json(self):
+    def as_object(self):
         """
         return this mission organization as a json object
         """
