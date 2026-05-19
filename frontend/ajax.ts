@@ -49,7 +49,7 @@ function smmGet(url: string, data?: RequestData, success?: (data: unknown) => vo
 }
 
 function smmGetJSON(url: string, data?: RequestData, success?: (data: unknown) => void, error?: () => void) {
-  return request(appendQueryString(url, data), {}, (r) => r.json(), success, error)
+  return request(appendQueryString(url, data), { headers: { Accept: 'application/json' } }, (r) => r.json(), success, error)
 }
 
 function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: () => void) {
