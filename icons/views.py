@@ -11,7 +11,7 @@ from .models import Icon
 class IconIndex(View):
     def as_json(self, request):
         data = {
-            'icons': [icon.as_json() for icon in Icon.objects.all()],
+            'icons': [icon.as_object() for icon in Icon.objects.all()],
         }
         return JsonResponse(data)
 

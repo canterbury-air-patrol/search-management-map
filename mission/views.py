@@ -46,7 +46,7 @@ class MissionDetailsView(View):
         mission_assets = MissionAsset.objects.filter(mission=mission_user.mission).annotate(status=Subquery(latest_status_subquery), status_since=Subquery(latest_since_subquery))
         assets_json = []
         for ma in mission_assets:
-            ma_json = ma.as_json()
+            ma_json = ma.as_object()
             ma_json['status'] = {
                 'name': getattr(ma, 'status'),
                 'since': getattr(ma, 'status_since'),
@@ -59,11 +59,11 @@ class MissionDetailsView(View):
             'admin': mission_user.is_admin(),
             'can_add_organizations': mission_user.can_add_organization(),
             'can_add_users': mission_user.can_add_user(),
-            'mission_organizations': [mo.as_json() for mo in MissionOrganization.objects.filter(mission=mission_user.mission)],
+            'mission_organizations': [mo.as_object() for mo in MissionOrganization.objects.filter(mission=mission_user.mission)],
             'mission_assets': assets_json,
-            'mission_users': [mu.as_json() for mu in MissionUser.objects.filter(mission=mission_user.mission)],
-            'mission_asset_types': [mat.as_json() for mat in MissionAssetType.objects.filter(mission=mission_user.mission)],
-            'external_references': [xr.as_json() for xr in MissionExternalReference.objects.filter(mission=mission_user.mission, deleted_at__isnull=True, replaced_by__isnull=True)],
+            'mission_users': [mu.as_object() for mu in MissionUser.objects.filter(mission=mission_user.mission)],
+            'mission_asset_types': [mat.as_object() for mat in MissionAssetType.objects.filter(mission=mission_user.mission)],
+            'external_references': [xr.as_object() for xr in MissionExternalReference.objects.filter(mission=mission_user.mission, deleted_at__isnull=True, replaced_by__isnull=True)],
         }
         return JsonResponse(data)
 
@@ -235,7 +235,7 @@ class MissionOrganizationsView(View):
             return JsonResponse(data={
                 'organizations': orgs
             })
-        mission_orgs = [mo.as_json() for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)]
+        mission_orgs = [mo.as_object() for mo in MissionOrganization.objects.filter(mission=mission, removed__isnull=True)]
         return JsonResponse(data={
             'organizations': mission_orgs
         })
@@ -285,7 +285,7 @@ class MissionOrganizationView(View):
         """
         Mission Organization details, in json
         """
-        return JsonResponse(mission_organization.as_json())
+        return JsonResponse(mission_organization.as_object())
 
     def get(self, request, mission_user, organization):
         """
@@ -348,7 +348,7 @@ class MissionUsersView(View):
             return JsonResponse(data={
                 'users': users
             })
-        mission_users = [mu.as_json() for mu in MissionUser.objects.filter(mission=mission)]
+        mission_users = [mu.as_object() for mu in MissionUser.objects.filter(mission=mission)]
         return JsonResponse(data={
             'users': mission_users
         })
@@ -423,7 +423,7 @@ class MissionUserView(View):
         """
         Mission User details, in json
         """
-        return JsonResponse(target_mission_user.as_json())
+        return JsonResponse(target_mission_user.as_object())
 
     def get(self, request, mission_user, user):
         """
@@ -656,7 +656,7 @@ class MissionExternalReferencesView(View):
 
         data = {
             'mission': mission_user.mission.as_object(mission_user.is_admin()),
-            'external_references': [external_reference.as_json() for external_reference in external_references],
+            'external_references': [external_reference.as_object() for external_reference in external_references],
         }
         return JsonResponse(data)
 
