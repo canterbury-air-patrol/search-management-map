@@ -1,12 +1,13 @@
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
+
 import L from 'leaflet'
 import '@canterbury-air-patrol/leaflet-dialog'
 
-import $ from 'jquery'
-
 import { SMMRealtime } from '../smmmap'
-import { MissionAssetData } from '../asset/types'
 import { SMMSearchObjectDetailsData } from './types'
-import { smmGetJSON, smmPost, smmDelete } from '../ajax'
+import { smmDelete } from '../ajax'
+import { SearchQueueDialog } from './SearchQueueDialog'
 
 class SMMSearch {
   parent: SMMSearches
@@ -17,10 +18,7 @@ class SMMSearch {
     this.search = search
 
     this.deleteCallback = this.deleteCallback.bind(this)
-    this.searchQueueAssetListCallback = this.searchQueueAssetListCallback.bind(this)
-    this.searchQueueSubmit = this.searchQueueSubmit.bind(this)
     this.searchQueueDestroy = this.searchQueueDestroy.bind(this)
-    this.searchQueueUpdateSelectType = this.searchQueueUpdateSelectType.bind(this)
     this.searchQueueDialog = this.searchQueueDialog.bind(this)
   }
 
@@ -54,50 +52,26 @@ class SMMSearch {
     return dl
   }
 
-  searchQueueAssetListCallback(data: { assets: Array<MissionAssetData> }) {
-    if ('assets' in data) {
-      for (const asset of data.assets) {
-        if (asset.type_name === this.search.created_for) {
-          $(`#queue_${this.search.pk}_select_asset`).append(`<option value='${asset.id}'>${asset.name}</option>`)
-        }
-      }
-    }
-  }
-
   searchQueueDestroy() {
     this.QueueDialog.destroy()
     this.QueueDialog = undefined
   }
 
-  searchQueueSubmit() {
-    const data: { asset?: string } = {}
-    if ($(`#queue_${this.search.pk}_select_type`).val() === 'asset') {
-      data.asset = $(`#queue_${this.search.pk}_select_asset`).val() as string
-    }
-    smmPost(`/search/${this.search.pk}/queue/`, data, this.searchQueueDestroy)
-  }
-
-  searchQueueUpdateSelectType() {
-    if ($(`#queue_${this.search.pk}_select_type`).val() === 'type') {
-      $(`#queue_${this.search.pk}_select_asset`).hide()
-    } else {
-      $(`#queue_${this.search.pk}_select_asset`).show()
-    }
-  }
-
   searchQueueDialog() {
-    const contents = [
-      `<div>Queue for <select id='queue_${this.search.pk}_select_type'><option value='type'>Asset Type</option><option value='asset'>Specific Asset</option></select></div>`,
-      `<div><select id='queue_${this.search.pk}_select_asset'></select></div>`,
-      `<div><button class='btn btn-light' id='queue_${this.search.pk}_queue'>Queue</button></div>`,
-      `<div><button class='btn btn-danger' id='queue_${this.search.pk}_cancel'>Cancel</button>`
-    ].join('')
-    this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.parent.map).hideClose()
-    $(`#queue_${this.search.pk}_select_asset`).hide()
-    smmGetJSON(`/mission/${this.parent.missionId}/assets/`, {}, this.searchQueueAssetListCallback)
-    $(`#queue_${this.search.pk}_select_type`).on('change', this.searchQueueUpdateSelectType)
-    $(`#queue_${this.search.pk}_queue`).on('click', this.searchQueueSubmit)
-    $(`#queue_${this.search.pk}_cancel`).on('click', this.searchQueueDestroy)
+    const container = document.createElement('div')
+    this.QueueDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.parent.map).hideClose()
+    const root = ReactDOM.createRoot(container)
+    root.render(
+      <SearchQueueDialog
+        searchPk={this.search.pk}
+        missionId={this.parent.missionId}
+        createdFor={this.search.created_for as string}
+        onClose={() => {
+          root.unmount()
+          this.searchQueueDestroy()
+        }}
+      />
+    )
   }
 
   createPopup(layer: L.Layer) {
