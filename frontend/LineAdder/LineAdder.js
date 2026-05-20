@@ -47,13 +47,14 @@ L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
   }
 
   const addMarker = function (pos) {
-    const { mountEl } = addPointRow()
+    const { mountEl, pointIndex } = addPointRow()
     let currentPos = pos
     const root = ReactDOM.createRoot(mountEl)
     root.render(
       <LatLngMarkerInput
         map={map}
         initialPos={pos}
+        showLabels={pointIndex === 0}
         onChange={function (p) {
           currentPos = p
           updateLine()
