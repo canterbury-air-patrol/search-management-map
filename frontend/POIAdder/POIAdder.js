@@ -1,10 +1,11 @@
 import $ from 'jquery'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
-import { MappedMarker } from '../smmleaflet'
-
+import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPost } from '../ajax'
 
 L.POIAdder = function (map, missionId, pos, replaces, label) {
@@ -12,25 +13,28 @@ L.POIAdder = function (map, missionId, pos, replaces, label) {
   const contents = [
     '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
     `<textarea autofocus id="poi-dialog-label-${RAND_NUM}" rows=2>${label}</textarea></div>`,
-    '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Lat</span></div>',
-    `<input type="text" id="poi-dialog-lat-${RAND_NUM}" /></div>`,
-    '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Long</span></div>',
-    `<input type="text" id="poi-dialog-lon-${RAND_NUM}" /></div>`,
+    `<div id="poi-latlng-${RAND_NUM}"></div>`,
     `<div class="btn-group"><button class="btn btn-primary" id="poi-dialog-create-${RAND_NUM}">Create</button>`,
     `<button class="btn btn-danger" id="poi-dialog-cancel-${RAND_NUM}">Cancel</button></div>`
   ].join('')
   const markerDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
 
-  const mappedMarker = new MappedMarker($(`#poi-dialog-lat-${RAND_NUM}`), $(`#poi-dialog-lon-${RAND_NUM}`), pos)
-  mappedMarker.getMarker().addTo(map)
+  let currentPos = pos
+  const latlngRoot = ReactDOM.createRoot(document.getElementById(`poi-latlng-${RAND_NUM}`))
+  latlngRoot.render(
+    <LatLngMarkerInput
+      map={map}
+      initialPos={pos}
+      onChange={function (p) {
+        currentPos = p
+      }}
+    />
+  )
 
   function createOrReplace() {
-    const marker = mappedMarker.getMarker()
-    const latLng = marker.getLatLng()
-
     const data = {
-      lat: latLng.lat,
-      lon: latLng.lng,
+      lat: currentPos.lat,
+      lon: currentPos.lng,
       label: $(`#poi-dialog-label-${RAND_NUM}`).val()
     }
     if (replaces === -1) {
@@ -38,13 +42,13 @@ L.POIAdder = function (map, missionId, pos, replaces, label) {
     } else {
       smmPost(`/data/pois/${replaces}/replace/`, data)
     }
-    map.removeLayer(marker)
+    latlngRoot.unmount()
     markerDialog.destroy()
   }
 
   $(`#poi-dialog-create-${RAND_NUM}`).on('click', createOrReplace)
   $(`#poi-dialog-cancel-${RAND_NUM}`).on('click', function () {
-    map.removeLayer(mappedMarker.getMarker())
+    latlngRoot.unmount()
     markerDialog.destroy()
   })
 }
