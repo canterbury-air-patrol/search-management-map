@@ -1,7 +1,9 @@
 import $ from 'jquery'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
-import { MappedMarker } from '../smmleaflet'
 
+import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPost } from '../ajax'
 
 L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
@@ -27,25 +29,43 @@ L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
 
   let pointCount = 0
   const addPointRow = function () {
-    $(`#lineadder-points-${RAND_NUM}`).append(
-      `<div id="lineadder-points-${RAND_NUM}-${pointCount}"><input type="text" id = "lineadder-points-${RAND_NUM}-${pointCount}-lat" size="12" /><input type="text" id="lineadder-points-${RAND_NUM}-${pointCount}-lon" size="12" /></div>`
-    )
-    return pointCount++
+    const pointsEl = document.getElementById(`lineadder-points-${RAND_NUM}`)
+    const row = document.createElement('div')
+    row.id = `lineadder-points-${RAND_NUM}-${pointCount}`
+    const mountEl = document.createElement('div')
+    row.appendChild(mountEl)
+    pointsEl.appendChild(row)
+    return { mountEl, pointIndex: pointCount++ }
   }
 
   const updateLine = function () {
     const newPoints = []
     markers.forEach(function (m) {
-      newPoints.push(m.getMarker().getLatLng())
+      newPoints.push(m.getLatLng())
     })
     line.setLatLngs(newPoints)
   }
 
   const addMarker = function (pos) {
-    const pointRow = addPointRow()
-    const mappedMarker = new MappedMarker($(`#lineadder-points-${RAND_NUM}-${pointRow}-lat`), $(`#lineadder-points-${RAND_NUM}-${pointRow}-lon`), pos, updateLine)
-    mappedMarker.getMarker().addTo(map)
-    markers.push(mappedMarker)
+    const { mountEl } = addPointRow()
+    let currentPos = pos
+    const root = ReactDOM.createRoot(mountEl)
+    root.render(
+      <LatLngMarkerInput
+        map={map}
+        initialPos={pos}
+        onChange={function (p) {
+          currentPos = p
+          updateLine()
+        }}
+      />
+    )
+    markers.push({
+      root: root,
+      getLatLng: function () {
+        return currentPos
+      }
+    })
     updateLine()
   }
 
@@ -53,15 +73,15 @@ L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
 
   const removeAllMarkers = function () {
     markers.forEach(function (m) {
-      map.removeLayer(m.getMarker())
+      m.root.unmount()
     })
   }
 
   const removeMarker = function () {
     pointCount--
-    $(`#lineadder-points-${RAND_NUM}-${pointCount}`).remove()
-    const marker = markers.pop()
-    map.removeLayer(marker.getMarker())
+    document.getElementById(`lineadder-points-${RAND_NUM}-${pointCount}`).remove()
+    const handle = markers.pop()
+    handle.root.unmount()
     updateLine()
   }
 
@@ -75,7 +95,7 @@ L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
       points: markers.length
     }
     for (const i in markers) {
-      const markerLatLng = markers[i].getMarker().getLatLng()
+      const markerLatLng = markers[i].getLatLng()
       data[`point${i}_lat`] = markerLatLng.lat
       data[`point${i}_lng`] = markerLatLng.lng
     }
