@@ -1,7 +1,9 @@
 import $ from 'jquery'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
-import { MappedMarker } from '../smmleaflet'
+import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPostBody } from '../ajax'
 
 L.Control.ImageUploader = L.Control.extend({
@@ -14,25 +16,22 @@ L.Control.ImageUploader = L.Control.extend({
   },
 
   onCancel: function () {
-    this.map.removeLayer(this.mappedMarker.getMarker())
+    this.latlngRoot.unmount()
     this.imageUploadDialog.destroy()
   },
 
   onSubmit: function () {
-    const marker = this.mappedMarker.getMarker()
-    const latLng = marker.getLatLng()
+    const latLng = this.currentPos
 
     const formData = new FormData()
-    const desc = $('#image_upload_description')
-    formData.append('description', desc[0].val())
+    formData.append('description', document.getElementById('image_upload_description').value)
     formData.append('latitude', latLng.lat)
     formData.append('longitude', latLng.lng)
-    const file = $('#image_upload_file')
-    formData.append('file', file[0].files[0])
+    formData.append('file', document.getElementById('image_upload_file').files[0])
 
     smmPostBody(`/mission/${this.options.missionId}/image/upload/`, formData)
 
-    this.map.removeLayer(this.mappedMarker.getMarker())
+    this.latlngRoot.unmount()
     this.imageUploadDialog.destroy()
   },
 
@@ -48,12 +47,8 @@ L.Control.ImageUploader = L.Control.extend({
       '<td>Description:</td>',
       '<td><input name="description" id="image_upload_description" type="text" /></td>',
       '<tr>',
-      '<td>Latitude</td>',
-      '<td>Longitude</td>',
-      '</tr>',
       '<tr>',
-      '<td><input name="latitude" id="image_upload_lat" type="text" /></td>',
-      '<td><input name="longitude" id="image_upload_long" type="text" /></td>',
+      '<td colspan="2"><div id="image_upload_latlng"></div></td>',
       '</tr>',
       '</table>',
       '</form>',
@@ -63,8 +58,18 @@ L.Control.ImageUploader = L.Control.extend({
       '</div>'
     ].join('')
     this.imageUploadDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.map).hideClose()
-    this.mappedMarker = new MappedMarker($('#image_upload_lat'), $('#image_upload_long'), this.map.getCenter())
-    this.mappedMarker.getMarker().addTo(this.map)
+
+    this.currentPos = this.map.getCenter()
+    this.latlngRoot = ReactDOM.createRoot(document.getElementById('image_upload_latlng'))
+    this.latlngRoot.render(
+      <LatLngMarkerInput
+        map={this.map}
+        initialPos={this.map.getCenter()}
+        onChange={(p) => {
+          this.currentPos = p
+        }}
+      />
+    )
 
     $('#image_cancel').on('click', this.onCancel.bind(this))
     $('#image_upload').on('click', this.onSubmit.bind(this))
