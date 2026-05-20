@@ -16,7 +16,7 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
   const [selectedAssetId, setSelectedAssetId] = useState('')
 
   useEffect(() => {
-    smmGetJSON(`/mission/${missionId}/assets/`, (data) => {
+    smmGetJSON(`/mission/${missionId}/assets/`, {}, (data) => {
       const d = data as { assets: Array<MissionAssetData> }
       if ('assets' in d) {
         const filtered = d.assets.filter((a) => a.type_name === createdFor)

@@ -49,7 +49,7 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
   const previewRef = useRef<L.GeoJSON | null>(null)
 
   useEffect(() => {
-    smmGetJSON('/assets/assettypes/', function (data) {
+    smmGetJSON('/assets/assettypes/', {}, function (data) {
       const types: AssetType[] = []
       for (const group of data as AssetType[][]) {
         for (const assetType of group) {
