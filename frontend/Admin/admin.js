@@ -1,4 +1,3 @@
-import $ from 'jquery'
 import L from 'leaflet'
 
 import { smmGet, smmPost } from '../ajax'
@@ -14,34 +13,34 @@ L.SMMAdmin.AssetCommand = function (map, missionId) {
   const assetCommandDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
   let gotoPoint = null
   const changeSelectedCommand = function () {
-    const selectedCommand = $('#id_command').val()
+    const selectedCommand = document.getElementById('id_command').value
     if (selectedCommand === 'GOTO') {
-      $('#latitude').show()
-      $('#longitude').show()
+      document.getElementById('latitude').style.display = ''
+      document.getElementById('longitude').style.display = ''
       if (gotoPoint == null) {
         gotoPoint = L.marker(map.getCenter(), { draggable: true, autoPan: true }).addTo(map)
         gotoPoint.on('dragend', function () {})
       }
     } else {
-      $('#latitude').hide()
-      $('#longitude').hide()
+      document.getElementById('latitude').style.display = 'none'
+      document.getElementById('longitude').style.display = 'none'
       if (gotoPoint != null) {
         map.removeLayer(gotoPoint)
         gotoPoint = null
       }
     }
   }
-  $('#command_cancel').on('click', function () {
+  document.getElementById('command_cancel').addEventListener('click', function () {
     if (gotoPoint != null) {
       map.removeLayer(gotoPoint)
     }
     assetCommandDialog.destroy()
   })
-  $('#command_create').on('click', function () {
+  document.getElementById('command_create').addEventListener('click', function () {
     const data = {
-      asset: $('#id_asset').val(),
-      reason: $('#id_reason').val(),
-      command: $('#id_command').val()
+      asset: document.getElementById('id_asset').value,
+      reason: document.getElementById('id_reason').value,
+      command: document.getElementById('id_command').value
     }
     if (gotoPoint != null) {
       const coords = gotoPoint.getLatLng()
@@ -56,12 +55,12 @@ L.SMMAdmin.AssetCommand = function (map, missionId) {
         assetCommandDialog.destroy()
         return
       }
-      $('#assetcommanddialog').html(data)
+      document.getElementById('assetcommanddialog').innerHTML = data
     })
   })
-  smmGet(`/mission/${missionId}/assets/command/set/`, {}, function (data) {
-    $('#assetcommanddialog').html(data)
-    $('#id_command').on('change', changeSelectedCommand)
+  smmGet(`/mission/${missionId}/assets/command/set/`, function (data) {
+    document.getElementById('assetcommanddialog').innerHTML = data
+    document.getElementById('id_command').addEventListener('change', changeSelectedCommand)
   })
 }
 
@@ -88,8 +87,8 @@ L.Control.SMMAdmin = L.Control.extend({
       '<div><button class="btn btn-danger" id="admin_close">Close</button>'
     ].join('')
     this.AdminDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.map).hideClose()
-    $('#asset_command').on('click', this.onCommand.bind(this))
-    $('#admin_close').on('click', this.onCancel.bind(this))
+    document.getElementById('asset_command').addEventListener('click', this.onCommand.bind(this))
+    document.getElementById('admin_close').addEventListener('click', this.onCancel.bind(this))
   },
 
   onAdd: function (map) {
