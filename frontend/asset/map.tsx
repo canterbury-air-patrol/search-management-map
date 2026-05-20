@@ -1,7 +1,5 @@
 import L from 'leaflet'
 
-import $ from 'jquery'
-
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
@@ -135,12 +133,10 @@ class SMMAsset {
       assetUrl = `${assetUrl}&from=${this.lastUpdate}`
     }
 
-    $.ajax({
-      type: 'GET',
-      url: assetUrl,
-      success: this.updateNewRoute,
-      error: this.updateFailed
-    })
+    fetch(assetUrl)
+      .then((r) => r.json())
+      .then(this.updateNewRoute)
+      .catch(this.updateFailed)
   }
 }
 
@@ -215,11 +211,11 @@ class SMMAssets extends SMMRealtime {
       this.overlayAdd(`${this.assetNameMap[assetId]} <div id='assetNamePicker${assetId}' />`, assetObject.overlay())
     }
     const assetObject = this.assetObjects[assetId]
-    $(`#assetNamePicker${assetId}`).on('click', assetObject.colorPicker)
-    $(`#assetNamePicker${assetId}`).css('width', '15px')
-    $(`#assetNamePicker${assetId}`).css('height', '15px')
-    $(`#assetNamePicker${assetId}`).css('display', 'inline-block')
-    $(`#assetNamePicker${assetId}`).css('background-color', assetObject.color)
+    const pickerDiv = document.getElementById(`assetNamePicker${assetId}`)
+    if (pickerDiv) {
+      pickerDiv.addEventListener('click', assetObject.colorPicker)
+      Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: assetObject.color })
+    }
     return assetObject
   }
 
