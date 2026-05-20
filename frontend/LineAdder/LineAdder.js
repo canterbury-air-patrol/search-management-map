@@ -1,127 +1,26 @@
-import $ from 'jquery'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
-import { LatLngMarkerInput } from '../LatLngMarkerInput'
-import { smmPost } from '../ajax'
+import { LineAdderDialog } from './LineAdderDialog'
 
 L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
-  const RAND_NUM = Math.floor(Math.random() * 16536)
-  const markers = []
-  const line = L.polyline(currentPoints, { color: 'yellow' }).addTo(map)
-  const dialog = L.control.dialog()
-
-  const contents = [
-    '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
-    `<input type="text" id="lineadder-dialog-name-${RAND_NUM}" value="${label}"></input></div>`,
-    '<div class="btn-group">',
-    `<button class="btn btn-primary" id="lineadder-dialog-done-${RAND_NUM}">Done</button>`,
-    `<button class="btn btn-danger" id="lineadder-dialog-cancel-${RAND_NUM}">Cancel</button>`,
-    '</div>',
-    `<div id="lineadder-points-${RAND_NUM}"></div>`,
-    '<div class="btn-group">',
-    `<button class="btn btn-primary" id="lineadder-dialog-next-${RAND_NUM}">Next</button>`,
-    `<button class="btn btn-danger" id="lineadder-dialog-remove-${RAND_NUM}">Remove</button>`,
-    '</div>'
-  ].join('')
-  dialog.setContent(contents).addTo(map).hideClose()
-
-  let pointCount = 0
-  const addPointRow = function () {
-    const pointsEl = document.getElementById(`lineadder-points-${RAND_NUM}`)
-    const row = document.createElement('div')
-    row.id = `lineadder-points-${RAND_NUM}-${pointCount}`
-    const mountEl = document.createElement('div')
-    row.appendChild(mountEl)
-    pointsEl.appendChild(row)
-    return { mountEl, pointIndex: pointCount++ }
-  }
-
-  const updateLine = function () {
-    const newPoints = []
-    markers.forEach(function (m) {
-      newPoints.push(m.getLatLng())
-    })
-    line.setLatLngs(newPoints)
-  }
-
-  const addMarker = function (pos) {
-    const { mountEl, pointIndex } = addPointRow()
-    let currentPos = pos
-    const root = ReactDOM.createRoot(mountEl)
-    root.render(
-      <LatLngMarkerInput
-        map={map}
-        initialPos={pos}
-        showLabels={pointIndex === 0}
-        onChange={function (p) {
-          currentPos = p
-          updateLine()
-        }}
-      />
-    )
-    markers.push({
-      root: root,
-      getLatLng: function () {
-        return currentPos
-      }
-    })
-    updateLine()
-  }
-
-  currentPoints.forEach(addMarker)
-
-  const removeAllMarkers = function () {
-    markers.forEach(function (m) {
-      m.root.unmount()
-    })
-  }
-
-  const removeMarker = function () {
-    pointCount--
-    document.getElementById(`lineadder-points-${RAND_NUM}-${pointCount}`).remove()
-    const handle = markers.pop()
-    handle.root.unmount()
-    updateLine()
-  }
-
-  $(`#lineadder-dialog-next-${RAND_NUM}`).on('click', function () {
-    addMarker(map.getCenter())
-  })
-
-  $(`#lineadder-dialog-done-${RAND_NUM}`).on('click', function () {
-    const data = {
-      label: $(`#lineadder-dialog-name-${RAND_NUM}`).val(),
-      points: markers.length
-    }
-    for (const i in markers) {
-      const markerLatLng = markers[i].getLatLng()
-      data[`point${i}_lat`] = markerLatLng.lat
-      data[`point${i}_lng`] = markerLatLng.lng
-    }
-
-    if (replaces !== -1) {
-      smmPost(`/data/userlines/${replaces}/replace/`, data)
-    } else {
-      smmPost(`/mission/${missionId}/data/userlines/create/`, data)
-    }
-    removeAllMarkers()
-    map.removeLayer(line)
-    dialog.destroy()
-  })
-
-  $(`#lineadder-dialog-cancel-${RAND_NUM}`).on('click', function () {
-    removeAllMarkers()
-    map.removeLayer(line)
-    dialog.destroy()
-  })
-
-  $(`#lineadder-dialog-remove-${RAND_NUM}`).on('click', function () {
-    if (markers.length > 1) {
-      removeMarker()
-    }
-  })
+  const container = document.createElement('div')
+  const dialog = L.control.dialog().setContent(container).addTo(map).hideClose()
+  const root = ReactDOM.createRoot(container)
+  root.render(
+    <LineAdderDialog
+      map={map}
+      missionId={missionId}
+      initialPoints={currentPoints}
+      replaces={replaces}
+      initialLabel={label}
+      onClose={() => {
+        root.unmount()
+        dialog.destroy()
+      }}
+    />
+  )
 }
 
 L.Control.LineAdder = L.Control.extend({
