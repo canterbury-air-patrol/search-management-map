@@ -50,12 +50,7 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
 
   useEffect(() => {
     smmGetJSON('/assets/assettypes/', {}, function (data) {
-      const types: AssetType[] = []
-      for (const group of data as AssetType[][]) {
-        for (const assetType of group) {
-          types.push(assetType)
-        }
-      }
+      const types = (data as { asset_types: AssetType[] }).asset_types ?? []
       setAssetTypes(types)
       if (types.length > 0) setAssetTypeId(String(types[0].id))
     })
