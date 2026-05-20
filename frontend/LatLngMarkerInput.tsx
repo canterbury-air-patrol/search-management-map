@@ -5,10 +5,11 @@ import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
 interface Props {
   map: L.Map
   initialPos: L.LatLng
+  showLabels?: boolean
   onChange?: (pos: L.LatLng) => void
 }
 
-export function LatLngMarkerInput({ map, initialPos, onChange }: Props) {
+export function LatLngMarkerInput({ map, initialPos, showLabels = true, onChange }: Props) {
   const [latText, setLatText] = useState(degreesToDM(initialPos.lat, true))
   const [lngText, setLngText] = useState(degreesToDM(initialPos.lng, false))
   const markerRef = useRef<L.Marker | null>(null)
@@ -38,28 +39,26 @@ export function LatLngMarkerInput({ map, initialPos, onChange }: Props) {
   }
 
   return (
-    <>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Lat</span>
+    <div className="mb-2">
+      {showLabels && (
+        <div className="d-flex gap-2 mb-1">
+          <small className="flex-fill text-center">Lat</small>
+          <small className="flex-fill text-center">Long</small>
         </div>
+      )}
+      <div className="d-flex gap-2">
         <input
           type="text"
-          className="form-control"
+          className="form-control form-control-sm flex-fill"
           value={latText}
           onChange={(e) => {
             setLatText(e.target.value)
             syncMarker(e.target.value, lngText)
           }}
         />
-      </div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Long</span>
-        </div>
         <input
           type="text"
-          className="form-control"
+          className="form-control form-control-sm flex-fill"
           value={lngText}
           onChange={(e) => {
             setLngText(e.target.value)
@@ -67,6 +66,6 @@ export function LatLngMarkerInput({ map, initialPos, onChange }: Props) {
           }}
         />
       </div>
-    </>
+    </div>
   )
 }
