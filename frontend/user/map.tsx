@@ -1,7 +1,5 @@
 import L from 'leaflet'
 
-import $ from 'jquery'
-
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 import { AssetColorPicker } from '../asset/map'
@@ -101,12 +99,10 @@ class SMMUserPosition {
       userUrl = `${userUrl}&from=${this.lastUpdate}`
     }
 
-    $.ajax({
-      type: 'GET',
-      url: userUrl,
-      success: this.updateNewPosition,
-      error: this.updateError
-    })
+    fetch(userUrl)
+      .then((r) => r.json())
+      .then(this.updateNewPosition)
+      .catch(this.updateError)
   }
 }
 
@@ -153,11 +149,11 @@ class SMMUserPositions extends SMMRealtime {
       this.overlayAdd(`${userName} <div id='userNamePicker${userName}' />`, userObject.overlay())
     }
     const userObject = this.userObjects[userName]
-    $(`#userNamePicker${userName}`).on('click', userObject.colorPicker)
-    $(`#userNamePicker${userName}`).css('width', '15px')
-    $(`#userNamePicker${userName}`).css('height', '15px')
-    $(`#userNamePicker${userName}`).css('display', 'inline-block')
-    $(`#userNamePicker${userName}`).css('background-color', userObject.color)
+    const pickerDiv = document.getElementById(`userNamePicker${userName}`)
+    if (pickerDiv) {
+      pickerDiv.addEventListener('click', userObject.colorPicker)
+      Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: userObject.color })
+    }
     return userObject
   }
 
