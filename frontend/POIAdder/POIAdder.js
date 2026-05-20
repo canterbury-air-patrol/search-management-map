@@ -1,56 +1,27 @@
-import $ from 'jquery'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
-
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
-import { LatLngMarkerInput } from '../LatLngMarkerInput'
-import { smmPost } from '../ajax'
+import { POIAdderDialog } from './POIAdderDialog'
 
 L.POIAdder = function (map, missionId, pos, replaces, label) {
-  const RAND_NUM = Math.floor(Math.random() * 16536)
-  const contents = [
-    '<div class="input-group input-group-sm mb-3"><div class="input-group-prepend"><span class="input-group-text">Name</span></div>',
-    `<textarea autofocus id="poi-dialog-label-${RAND_NUM}" rows=2>${label}</textarea></div>`,
-    `<div id="poi-latlng-${RAND_NUM}"></div>`,
-    `<div class="btn-group"><button class="btn btn-primary" id="poi-dialog-create-${RAND_NUM}">Create</button>`,
-    `<button class="btn btn-danger" id="poi-dialog-cancel-${RAND_NUM}">Cancel</button></div>`
-  ].join('')
-  const markerDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-
-  let currentPos = pos
-  const latlngRoot = ReactDOM.createRoot(document.getElementById(`poi-latlng-${RAND_NUM}`))
-  latlngRoot.render(
-    <LatLngMarkerInput
+  const container = document.createElement('div')
+  const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
+  const root = ReactDOM.createRoot(container)
+  root.render(
+    <POIAdderDialog
       map={map}
+      missionId={missionId}
       initialPos={pos}
-      onChange={function (p) {
-        currentPos = p
+      replaces={replaces}
+      initialLabel={label}
+      onClose={() => {
+        root.unmount()
+        dialog.destroy()
       }}
     />
   )
-
-  function createOrReplace() {
-    const data = {
-      lat: currentPos.lat,
-      lon: currentPos.lng,
-      label: $(`#poi-dialog-label-${RAND_NUM}`).val()
-    }
-    if (replaces === -1) {
-      smmPost(`/mission/${missionId}/data/pois/create/`, data)
-    } else {
-      smmPost(`/data/pois/${replaces}/replace/`, data)
-    }
-    latlngRoot.unmount()
-    markerDialog.destroy()
-  }
-
-  $(`#poi-dialog-create-${RAND_NUM}`).on('click', createOrReplace)
-  $(`#poi-dialog-cancel-${RAND_NUM}`).on('click', function () {
-    latlngRoot.unmount()
-    markerDialog.destroy()
-  })
 }
 
 L.Control.POIAdder = L.Control.extend({
