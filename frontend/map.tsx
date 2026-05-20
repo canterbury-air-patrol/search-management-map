@@ -1,5 +1,3 @@
-import $ from 'jquery'
-
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
@@ -209,7 +207,7 @@ function mapInit() {
   wrapperEl.setAttribute('style', 'width:100%;height:100%;display:flex;flex-flow:column;')
   document.body.appendChild(wrapperEl)
 
-  const missionId = encodeURIComponent($('#missionId').val())
+  const missionId = encodeURIComponent((document.getElementById('missionId') as HTMLInputElement).value)
 
   if (missionId !== 'all' && missionId !== 'current') {
     const menuEl = document.createElement('div')
