@@ -58,7 +58,7 @@ L.SMMAdmin.AssetCommand = function (map, missionId) {
       document.getElementById('assetcommanddialog').innerHTML = data
     })
   })
-  smmGet(`/mission/${missionId}/assets/command/set/`, function (data) {
+  smmGet(`/mission/${missionId}/assets/command/set/`, {}, function (data) {
     document.getElementById('assetcommanddialog').innerHTML = data
     document.getElementById('id_command').addEventListener('change', changeSelectedCommand)
   })
