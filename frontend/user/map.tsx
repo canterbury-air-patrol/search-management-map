@@ -1,12 +1,12 @@
 import L from 'leaflet'
 
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
-import { AssetColorPicker } from '../asset/map'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { cookieJar } from '../cookies'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
+import { UserPopup } from './UserPopup'
+import { ColorPickerDialog } from '../asset/ColorPickerDialog'
 
 class SMMUserPosition {
   map: L.Map
@@ -14,6 +14,7 @@ class SMMUserPosition {
   userName: string
   color: string
   colorDialog?: L.Control.Dialog
+  popupRoot?: ReactDOM.Root
   lastUpdate?: string
   path: L.LatLng[]
   updating: boolean
@@ -52,22 +53,20 @@ class SMMUserPosition {
 
   colorPicker() {
     if (!this.colorDialog) {
-      const dialogContent = document.createElement('div')
-      const label = document.createElement('div')
-      label.textContent = `Color Picker for ${this.userName}`
-      dialogContent.appendChild(label)
-      const colorPickerDiv = document.createElement('div')
-      dialogContent.appendChild(colorPickerDiv)
-      const btn = document.createElement('button')
-      btn.className = 'btn btn-primary'
-      btn.onclick = this.closeColorPicker
-      btn.textContent = 'Done'
-      dialogContent.appendChild(btn)
-
-      this.colorDialog = L.control.dialog({ initOpen: true })
-      this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
-      const div = ReactDOM.createRoot(colorPickerDiv)
-      div.render(<AssetColorPicker color={this.color} updateColor={this.updateColor} />)
+      const container = document.createElement('div')
+      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
+      const root = ReactDOM.createRoot(container)
+      root.render(
+        <ColorPickerDialog
+          name={this.userName}
+          color={this.color}
+          onColorChange={this.updateColor}
+          onClose={() => {
+            root.unmount()
+            this.closeColorPicker()
+          }}
+        />
+      )
     } else {
       this.colorDialog.show()
     }
@@ -159,14 +158,12 @@ class SMMUserPositions extends SMMRealtime {
 
   createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {
     const userName = user.properties.user
-
-    this.createUser(userName)
-
-    const popupContent = document.createElement('div')
-
-    popupContent.appendChild(document.createTextNode(userName))
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
+    const userObject = this.createUser(userName)
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    userObject.popupRoot = root
+    root.render(<UserPopup userName={userName} />)
+    layer.bindPopup(container, { minWidth: 200 })
   }
 
   userLayer(user: SMMMissionUserPointTimeGeoJSON, latlng: L.LatLng) {
@@ -179,24 +176,6 @@ class SMMUserPositions extends SMMRealtime {
     this.createUser(userName).update()
   }
 
-  userDataToPopUp(data: Array<{ label: string; value: string }>) {
-    const dl = document.createElement('dl')
-    dl.className = 'row'
-
-    for (const d of data) {
-      const dt = document.createElement('dt')
-      dt.className = 'user-label col-sm-3'
-      dt.textContent = d.label
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = 'user-name col-sm-9'
-      dd.textContent = d.value
-      dl.appendChild(dd)
-    }
-
-    return dl
-  }
-
   userUpdate(user: SMMMissionUserPointTimeGeoJSON, oldLayer: L.Marker) {
     const userName = user.properties.user
     this.userPathUpdate(userName)
@@ -205,22 +184,10 @@ class SMMUserPositions extends SMMRealtime {
       return
     }
 
-    const coords = user.geometry.coordinates
-
-    const data = [
-      { label: 'User', value: userName },
-      { label: 'Lat', value: degreesToDM(coords[1], true) },
-      { label: 'Long', value: degreesToDM(coords[0], false) }
-    ]
-
+    const coords = user.geometry.coordinates as [number, number]
     const { alt } = user.properties
 
-    if (alt) {
-      data.push({ label: 'Altitude', value: alt.toString() })
-    }
-
-    const popupContent = this.userDataToPopUp(data)
-    oldLayer.setPopupContent(popupContent)
+    this.userObjects[userName]?.popupRoot?.render(<UserPopup userName={userName} coords={coords} alt={alt} />)
 
     if (user.geometry.type === 'Point') {
       const c = user.geometry.coordinates
