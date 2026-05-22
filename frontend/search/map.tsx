@@ -8,6 +8,7 @@ import { SMMRealtime } from '../smmmap'
 import { SMMSearchObjectDetailsData } from './types'
 import { smmDelete } from '../ajax'
 import { SearchQueueDialog } from './SearchQueueDialog'
+import { SearchPopup } from './SearchPopup'
 
 class SMMSearch {
   parent: SMMSearches
@@ -24,32 +25,6 @@ class SMMSearch {
 
   deleteCallback() {
     smmDelete(`/search/${this.search.pk}/`)
-  }
-
-  createDetailsButton() {
-    return {
-      label: 'Details',
-      href: `/search/${this.search.pk}/`,
-      btnClass: 'btn-light'
-    }
-  }
-
-  searchDataToPopUp(data: Array<{ css: string; label: string; value: string }>) {
-    const dl = document.createElement('dl')
-    dl.className = 'search-data row'
-
-    for (const d of data) {
-      const dt = document.createElement('dt')
-      dt.className = `search-${d.css}-label col-sm-6`
-      dt.textContent = d.label
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = `search-${d.css}-value col-sm-6`
-      dd.textContent = d.value
-      dl.appendChild(dd)
-    }
-
-    return dl
   }
 
   searchQueueDestroy() {
@@ -75,64 +50,18 @@ class SMMSearch {
   }
 
   createPopup(layer: L.Layer) {
-    const data = [
-      { css: 'type', label: 'Search Type', value: this.search.search_type },
-      { css: 'status', label: 'Status', value: this.parent.searchStatus(this.search) },
-      { css: 'sweep-width', label: 'Sweep Width', value: this.search.sweep_width + 'm' },
-      { css: 'asset-type', label: 'Asset Type', value: this.search.created_for as string }
-    ]
-
-    if (this.search.completed_by) {
-      data.push({
-        css: 'completed',
-        label: 'Completed By',
-        value: this.search.completed_by
-      })
-    } else if (this.search.inprogress_by) {
-      data.push({
-        css: 'inprogress',
-        label: 'Inprogress By',
-        value: this.search.inprogress_by
-      })
-    }
-    if (this.search.inprogress_at) {
-      data.push({
-        css: 'inprogress',
-        label: 'Search Started',
-        value: this.search.inprogress_at
-      })
-    }
-    if (this.search.completed_at) {
-      data.push({
-        css: 'completed',
-        label: 'Search Completed',
-        value: this.search.completed_at
-      })
-    }
-
-    const popupContent = document.createElement('div')
-    popupContent.appendChild(this.searchDataToPopUp(data))
-
-    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
-      const buttonData = []
-      if (!this.search.inprogress_at) {
-        buttonData.push({
-          label: 'Delete',
-          onclick: this.deleteCallback,
-          btnClass: 'btn-danger'
-        })
-      }
-      if (!this.search.queued_at && !this.search.inprogress_at) {
-        buttonData.push({
-          label: 'Queue',
-          onclick: this.searchQueueDialog,
-          btnClass: 'btn-light'
-        })
-      }
-      buttonData.push(this.createDetailsButton())
-      popupContent.appendChild(this.parent.createButtonGroup(buttonData))
-    }
-    layer.bindPopup(popupContent, { minWidth: 200 })
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    root.render(
+      <SearchPopup
+        search={this.search}
+        missionId={this.parent.missionId}
+        status={this.parent.searchStatus(this.search)}
+        onDelete={this.deleteCallback}
+        onQueueDialog={this.searchQueueDialog}
+      />
+    )
+    layer.bindPopup(container, { minWidth: 200 })
   }
 }
 
