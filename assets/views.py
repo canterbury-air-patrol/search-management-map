@@ -1,7 +1,7 @@
 """
 Views for assets
 """
-from django.http import HttpResponseNotAllowed, JsonResponse, HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponseNotAllowed, JsonResponse, HttpResponseForbidden
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from mission.decorators import mission_is_member, mission_asset_get
-from mission.models import AssetCommand
+from mission.models import AssetCommand, MissionAsset
 
 from organization.helpers import organization_user_is_asset_recorder
 
@@ -31,32 +31,48 @@ def assets_status_value_list(request):
     return JsonResponse({'values': [v.as_object() for v in AssetStatusValue.objects.all()]})
 
 
-@login_required
-@mission_is_member
-def asset_command_set(request, mission_user):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(mission_is_member, name='dispatch')
+class AssetCommandSetView(View):
     """
-    Set the command for a given asset.
+    JSON API for reading form data and setting an asset command for a mission.
     """
-    form = None
-    if request.method == 'POST':
+
+    def get(self, request, mission_user):
+        """
+        Return the available assets, command choices, and which commands require a position.
+        """
+        mission_assets = MissionAsset.objects.filter(
+            mission=mission_user.mission, removed__isnull=True
+        ).select_related('asset')
+        return JsonResponse({
+            'assets': [{'id': ma.asset.pk, 'name': ma.asset.name} for ma in mission_assets],
+            'commands': [{'value': v, 'label': l} for v, l in AssetCommand.COMMAND_CHOICES],
+            'requires_position': list(AssetCommand.REQUIRES_POSITION),
+        })
+
+    def post(self, request, mission_user):
+        """
+        Validate and create an AssetCommand; returns JSON status or field errors.
+        """
         form = AssetCommandForm(request.POST, mission=mission_user.mission)
-        if form.is_valid():
-            point = None
-            if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
-                latitude = request.POST.get('latitude')
-                longitude = request.POST.get('longitude')
-                try:
-                    point = Point(float(longitude), float(latitude))
-                except (ValueError, TypeError):
-                    return HttpResponseBadRequest('Invalid lat/long')
-            asset_command = AssetCommand(asset=form.cleaned_data['asset'], command=form.cleaned_data['command'], issued_by=request.user, reason=form.cleaned_data['reason'], position=point, mission=mission_user.mission)
-            asset_command.save()
-            return HttpResponse("Created")
-
-    if form is None:
-        form = AssetCommandForm(mission=mission_user.mission)
-
-    return render(request, 'asset-command-form.html', {'form': form})
+        if not form.is_valid():
+            return JsonResponse({'errors': form.errors})
+        point = None
+        if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
+            try:
+                point = Point(float(request.POST.get('longitude')), float(request.POST.get('latitude')))
+            except (ValueError, TypeError):
+                return JsonResponse({'errors': {'position': ['Invalid lat/long']}})
+        AssetCommand(
+            asset=form.cleaned_data['asset'],
+            command=form.cleaned_data['command'],
+            issued_by=request.user,
+            reason=form.cleaned_data['reason'],
+            position=point,
+            mission=mission_user.mission,
+        ).save()
+        return JsonResponse({'status': 'Created'})
 
 
 @method_decorator(login_required, name="dispatch")
