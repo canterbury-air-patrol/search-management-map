@@ -224,12 +224,12 @@ class SMMAssets extends SMMRealtime {
     return this.assetIconMap[assetId]
   }
 
-  createPopup(asset: { properties: { asset: number } }, layer: L.Layer) {
+  createPopup(asset: { properties: { asset: number }; geometry: { coordinates: [number, number] } }, layer: L.Layer) {
     const assetId = asset.properties.asset
     const container = document.createElement('div')
     const root = ReactDOM.createRoot(container)
     this.popupRoots[assetId] = root
-    root.render(<AssetPopup assetName={String(assetId)} coords={[0, 0]} />)
+    root.render(<AssetPopup assetName={String(assetId)} coords={asset.geometry.coordinates} />)
     layer.bindPopup(container, { minWidth: 200 })
     layer.on('remove', () => {
       root.unmount()
