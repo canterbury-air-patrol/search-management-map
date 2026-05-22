@@ -1,13 +1,6 @@
 import L from 'leaflet'
 import 'leaflet-realtime'
 
-interface SMMRealtimeButtons {
-  btnClass: string
-  label: string
-  onclick?: () => void
-  href?: string
-}
-
 abstract class SMMRealtime {
   map: L.Map
   missionId: number | string
@@ -39,30 +32,6 @@ abstract class SMMRealtime {
         }
       }
     )
-  }
-
-  createButtonGroup(data: Array<SMMRealtimeButtons>) {
-    const btngroup = document.createElement('div')
-    btngroup.className = 'btn-group'
-
-    for (const btnData of data) {
-      const btn = document.createElement('button')
-      btn.className = `btn ${btnData['btnClass']}`
-      if (btnData.onclick !== undefined) {
-        btn.onclick = btnData.onclick
-      }
-      btn.textContent = btnData.label
-      if (btnData.href !== undefined) {
-        const a = document.createElement('a')
-        a.href = btnData.href
-        a.appendChild(btn)
-        btngroup.appendChild(a)
-      } else {
-        btngroup.appendChild(btn)
-      }
-    }
-
-    return btngroup
   }
 }
 
