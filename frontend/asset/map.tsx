@@ -1,6 +1,5 @@
 import L from 'leaflet'
 
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
 import React from 'react'
@@ -10,6 +9,8 @@ import { cookieJar } from '../cookies'
 import { MissionAssetData, AssetPointTime } from './types'
 
 import { smmGetJSON } from '../ajax'
+import { AssetPopup } from './AssetPopup'
+import { ColorPickerDialog } from './ColorPickerDialog'
 
 interface AssetColorPickerProps {
   color: string
@@ -86,22 +87,20 @@ class SMMAsset {
 
   colorPicker() {
     if (!this.colorDialog) {
-      const dialogContent = document.createElement('div')
-      const label = document.createElement('div')
-      label.textContent = `Color Picker for ${this.assetName}`
-      dialogContent.appendChild(label)
-      const colorPickerDiv = document.createElement('div')
-      dialogContent.appendChild(colorPickerDiv)
-      const btn = document.createElement('button')
-      btn.className = 'btn btn-primary'
-      btn.onclick = this.closeColorPicker
-      btn.textContent = 'Done'
-      dialogContent.appendChild(btn)
-
-      this.colorDialog = L.control.dialog({ initOpen: true })
-      this.colorDialog.setContent(dialogContent).addTo(this.map).hideClose()
-      const div = ReactDOM.createRoot(colorPickerDiv)
-      div.render(<AssetColorPicker color={this.color} updateColor={this.updateColor} />)
+      const container = document.createElement('div')
+      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
+      const root = ReactDOM.createRoot(container)
+      root.render(
+        <ColorPickerDialog
+          name={this.assetName}
+          color={this.color}
+          onColorChange={this.updateColor}
+          onClose={() => {
+            root.unmount()
+            this.closeColorPicker()
+          }}
+        />
+      )
     } else {
       this.colorDialog.show()
     }
@@ -146,10 +145,12 @@ class SMMAssets extends SMMRealtime {
   assetNameMap: { [key: number]: string }
   assetIconMap: { [key: number]: string }
   assetStatusMap: { [key: number]: { status: string; notes: string } }
+  popupRoots: { [key: number]: ReactDOM.Root }
   constructor(map: L.Map, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
+    this.popupRoots = {}
     this.createPopup = this.createPopup.bind(this)
     this.assetUpdate = this.assetUpdate.bind(this)
     this.assetLayer = this.assetLayer.bind(this)
@@ -225,36 +226,15 @@ class SMMAssets extends SMMRealtime {
 
   createPopup(asset: { properties: { asset: number } }, layer: L.Layer) {
     const assetId = asset.properties.asset
-
-    this.createAsset(assetId)
-
-    const popupContent = document.createElement('div')
-
-    popupContent.appendChild(document.createTextNode(assetId.toString()))
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    this.popupRoots[assetId] = root
+    root.render(<AssetPopup assetName={String(assetId)} coords={[0, 0]} />)
+    layer.bindPopup(container, { minWidth: 200 })
   }
 
   assetPathUpdate(assetId: number) {
     this.createAsset(assetId)?.update()
-  }
-
-  assetDataToPopUp(data: Array<{ label: string; value: string }>) {
-    const dl = document.createElement('dl')
-    dl.className = 'row'
-
-    for (const d of data) {
-      const dt = document.createElement('dt')
-      dt.className = 'asset-label col-sm-3'
-      dt.textContent = d.label
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = 'asset-name col-sm-9'
-      dd.textContent = d.value
-      dl.appendChild(dd)
-    }
-
-    return dl
   }
 
   assetLayer(asset: { properties: { asset: number } }, latlng: L.LatLng) {
@@ -286,35 +266,18 @@ class SMMAssets extends SMMRealtime {
       return
     }
 
-    const coords = asset.geometry.coordinates
-
-    const data = [
-      { label: 'Asset', value: this.assetNameMap[assetId] },
-      { label: 'Lat', value: degreesToDM(coords[1], true) },
-      { label: 'Long', value: degreesToDM(coords[0], false) }
-    ]
-
+    const coords = asset.geometry.coordinates as [number, number]
     const { alt, heading, fix } = asset.properties
-
-    if (alt) {
-      data.push({ label: 'Altitude', value: alt.toString() })
-    }
-    if (heading) {
-      data.push({ label: 'Heading', value: heading.toString() })
-    }
-    if (fix) {
-      data.push({ label: 'Fix', value: fix })
-    }
-
-    if (assetId in this.assetStatusMap) {
-      data.push({ label: 'Status', value: this.assetStatusMap[assetId].status })
-      if (this.assetStatusMap[assetId].notes !== '') {
-        data.push({ label: 'Status Notes', value: this.assetStatusMap[assetId].notes })
-      }
-    }
-
-    const popupContent = this.assetDataToPopUp(data)
-    oldLayer.setPopupContent(popupContent)
+    this.popupRoots[assetId]?.render(
+      <AssetPopup
+        assetName={this.assetNameMap[assetId]}
+        coords={coords}
+        alt={alt}
+        heading={heading}
+        fix={fix}
+        status={assetId in this.assetStatusMap ? this.assetStatusMap[assetId] : undefined}
+      />
+    )
 
     if (asset.geometry.type === 'Point') {
       const c = asset.geometry.coordinates
