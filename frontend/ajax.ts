@@ -28,10 +28,21 @@ function appendQueryString(url: string, data?: RequestData): string {
   return `${url}${url.includes('?') ? '&' : '?'}${qs}`
 }
 
-function request<T>(url: string, options: RequestInit, parse: (r: Response) => Promise<T>, success?: (data: T) => void, error?: () => void): Promise<T> {
+function request<T>(url: string, options: RequestInit, parse: (r: Response) => Promise<T>, success?: (data: T) => void, error?: (data?: unknown) => void): Promise<T> {
+  let errorHandled = false
   return fetchWithTimeout(url, options)
-    .then((r) => {
-      if (!r.ok) throw r
+    .then(async (r): Promise<T> => {
+      if (!r.ok) {
+        errorHandled = true
+        let body: unknown
+        try {
+          body = await r.json()
+        } catch {
+          /* ignore parse failure */
+        }
+        error?.(body)
+        throw new Error(`HTTP ${r.status}`)
+      }
       return parse(r)
     })
     .then((data) => {
@@ -39,20 +50,20 @@ function request<T>(url: string, options: RequestInit, parse: (r: Response) => P
       return data
     })
     .catch((err) => {
-      error?.()
+      if (!errorHandled) error?.()
       throw err
     })
 }
 
-function smmGet(url: string, data?: RequestData, success?: (data: unknown) => void, error?: () => void) {
+function smmGet(url: string, data?: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
   return request(appendQueryString(url, data), {}, (r) => r.text(), success, error)
 }
 
-function smmGetJSON(url: string, data?: RequestData, success?: (data: unknown) => void, error?: () => void) {
+function smmGetJSON(url: string, data?: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
   return request(appendQueryString(url, data), { headers: { Accept: 'application/json' } }, (r) => r.json(), success, error)
 }
 
-function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: () => void) {
+function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
   return request(
     url,
     {
@@ -68,7 +79,7 @@ function smmPost(url: string, data: RequestData, success?: (data: unknown) => vo
   )
 }
 
-function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (data: unknown) => void, error?: () => void) {
+function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
   return request(
     url,
     {
@@ -84,7 +95,7 @@ function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (d
   )
 }
 
-function smmDelete(url: string, success?: (data: void) => void, error?: () => void) {
+function smmDelete(url: string, success?: (data: void) => void, error?: (data?: unknown) => void) {
   return request<void>(
     url,
     {

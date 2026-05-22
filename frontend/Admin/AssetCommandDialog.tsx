@@ -49,22 +49,15 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
     smmPost(
       `/mission/${missionId}/assets/command/set/`,
       data,
-      (result) => {
-        try {
-          const parsed = JSON.parse(result as string)
-          if (parsed.status === 'Created') {
-            onClose()
-            return
-          }
-          if (parsed.errors) {
-            const msgs = Object.entries(parsed.errors as Record<string, string[]>).flatMap(([f, es]) => es.map((e) => (f === '__all__' ? e : `${f}: ${e}`)))
-            setError(msgs.join('; ') || 'Failed to set command')
-          }
-        } catch {
+      () => onClose(),
+      (errData) => {
+        if (errData && typeof errData === 'object' && 'errors' in errData) {
+          const msgs = Object.entries((errData as { errors: Record<string, string[]> }).errors).flatMap(([f, es]) => es.map((e) => (f === '__all__' ? e : `${f}: ${e}`)))
+          setError(msgs.join('; ') || 'Failed to set command')
+        } else {
           setError('Failed to set command')
         }
-      },
-      () => setError('Failed to set command')
+      }
     )
   }
 

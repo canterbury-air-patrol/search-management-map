@@ -57,13 +57,13 @@ class AssetCommandSetView(View):
         """
         form = AssetCommandForm(request.POST, mission=mission_user.mission)
         if not form.is_valid():
-            return JsonResponse({'errors': form.errors})
+            return JsonResponse({'errors': form.errors}, status=400)
         point = None
         if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
             try:
                 point = Point(float(request.POST.get('longitude')), float(request.POST.get('latitude')))
             except (ValueError, TypeError):
-                return JsonResponse({'errors': {'position': ['Invalid lat/long']}})
+                return JsonResponse({'errors': {'position': ['Invalid lat/long']}}, status=400)
         AssetCommand(
             asset=form.cleaned_data['asset'],
             command=form.cleaned_data['command'],
