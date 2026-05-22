@@ -27,7 +27,7 @@ function PopupDataList({ items, dlClass }: { items: DataItem[]; dlClass: string 
 
 function PopupButtonGroup({ buttons }: { buttons: ButtonItem[] }) {
   return (
-    <div className="btn-group">
+    <div className="btn-group-vertical">
       {buttons.map(({ label, btnClass, onclick, href }) =>
         href ? (
           <a key={label} href={href}>
