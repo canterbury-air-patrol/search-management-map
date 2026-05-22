@@ -164,6 +164,10 @@ class SMMUserPositions extends SMMRealtime {
     userObject.popupRoot = root
     root.render(<UserPopup userName={userName} />)
     layer.bindPopup(container, { minWidth: 200 })
+    layer.on('remove', () => {
+      root.unmount()
+      userObject.popupRoot = undefined
+    })
   }
 
   userLayer(user: SMMMissionUserPointTimeGeoJSON, latlng: L.LatLng) {
