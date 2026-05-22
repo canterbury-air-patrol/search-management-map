@@ -57,6 +57,7 @@ class SMMPOI {
       />
     )
     layer.bindPopup(container)
+    layer.on('remove', () => root.unmount())
   }
 }
 

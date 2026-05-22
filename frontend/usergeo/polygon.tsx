@@ -53,6 +53,7 @@ class SMMPolygon {
       />
     )
     layer.bindPopup(container, { minWidth: 200 })
+    layer.on('remove', () => root.unmount())
   }
 }
 
