@@ -1,8 +1,11 @@
 import L from 'leaflet'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 
 import { SMMRealtime } from '../smmmap'
 import { SMMUserGeoLabelData, SMMUserGeoLineGeoJSON } from './types'
 import { smmDelete } from '../ajax'
+import { LinePopup } from './LinePopup'
 
 class SMMLine {
   parent: SMMLines
@@ -36,47 +39,19 @@ class SMMLine {
   }
 
   createPopup(layer: L.Layer) {
-    const popupContent = document.createElement('div')
-    const dl = document.createElement('dl')
-    dl.className = 'line row'
-    const dt = document.createElement('dt')
-    dt.className = 'line-label col-sm-3'
-    dt.textContent = 'Line'
-    dl.appendChild(dt)
-    const dd = document.createElement('dd')
-    dd.className = 'line-name col-sm-9'
-    dd.textContent = this.data.label
-    dl.appendChild(dd)
-    popupContent.appendChild(dl)
-
-    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
-      popupContent.appendChild(
-        this.parent.createButtonGroup([
-          {
-            label: 'Edit',
-            onclick: this.editCallback,
-            btnClass: 'btn-light'
-          },
-          {
-            label: 'Delete',
-            onclick: this.deleteCallback,
-            btnClass: 'btn-danger'
-          },
-          {
-            label: 'Create Search',
-            onclick: this.createSearchCallback,
-            btnClass: 'btn-light'
-          },
-          {
-            label: 'Details',
-            href: `/data/usergeo/${this.data.pk}/`,
-            btnClass: 'btn-light'
-          }
-        ])
-      )
-    }
-
-    layer.bindPopup(popupContent, { minWidth: 200 })
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    root.render(
+      <LinePopup
+        label={this.data.label}
+        pk={this.data.pk}
+        missionId={this.parent.missionId}
+        onEdit={this.editCallback}
+        onDelete={this.deleteCallback}
+        onCreateSearch={this.createSearchCallback}
+      />
+    )
+    layer.bindPopup(container, { minWidth: 200 })
   }
 }
 
