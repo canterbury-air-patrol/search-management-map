@@ -1,67 +1,21 @@
 import L from 'leaflet'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 
-import { smmGet, smmPost } from '../ajax'
+import { AdminMenuDialog } from './AdminMenuDialog'
+import { AssetCommandDialog } from './AssetCommandDialog'
 
 L.SMMAdmin = {}
 
 L.SMMAdmin.AssetCommand = function (map, missionId) {
-  const contents = [
-    '<div id="assetcommanddialog"></div>',
-    '<div><button class="btn btn-primary" id="command_create">Set</button>',
-    '<button class="btn btn-danger" id="command_cancel">Cancel</button></div>'
-  ].join('')
-  const assetCommandDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(map).hideClose()
-  let gotoPoint = null
-  const changeSelectedCommand = function () {
-    const selectedCommand = document.getElementById('id_command').value
-    if (selectedCommand === 'GOTO') {
-      document.getElementById('latitude').style.display = ''
-      document.getElementById('longitude').style.display = ''
-      if (gotoPoint == null) {
-        gotoPoint = L.marker(map.getCenter(), { draggable: true, autoPan: true }).addTo(map)
-        gotoPoint.on('dragend', function () {})
-      }
-    } else {
-      document.getElementById('latitude').style.display = 'none'
-      document.getElementById('longitude').style.display = 'none'
-      if (gotoPoint != null) {
-        map.removeLayer(gotoPoint)
-        gotoPoint = null
-      }
-    }
+  const container = document.createElement('div')
+  const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
+  const root = ReactDOM.createRoot(container)
+  const close = () => {
+    root.unmount()
+    dialog.destroy()
   }
-  document.getElementById('command_cancel').addEventListener('click', function () {
-    if (gotoPoint != null) {
-      map.removeLayer(gotoPoint)
-    }
-    assetCommandDialog.destroy()
-  })
-  document.getElementById('command_create').addEventListener('click', function () {
-    const data = {
-      asset: document.getElementById('id_asset').value,
-      reason: document.getElementById('id_reason').value,
-      command: document.getElementById('id_command').value
-    }
-    if (gotoPoint != null) {
-      const coords = gotoPoint.getLatLng()
-      data.latitude = coords.lat
-      data.longitude = coords.lng
-    }
-    smmPost(`/mission/${missionId}/assets/command/set/`, data, function (data) {
-      if (data === 'Created') {
-        if (gotoPoint != null) {
-          map.removeLayer(gotoPoint)
-        }
-        assetCommandDialog.destroy()
-        return
-      }
-      document.getElementById('assetcommanddialog').innerHTML = data
-    })
-  })
-  smmGet(`/mission/${missionId}/assets/command/set/`, {}, function (data) {
-    document.getElementById('assetcommanddialog').innerHTML = data
-    document.getElementById('id_command').addEventListener('change', changeSelectedCommand)
-  })
+  root.render(<AssetCommandDialog map={map} missionId={missionId} onClose={close} />)
 }
 
 L.Control.SMMAdmin = L.Control.extend({
@@ -77,18 +31,16 @@ L.Control.SMMAdmin = L.Control.extend({
     L.SMMAdmin.AssetCommand(this.map, this.options.missionId)
   },
 
-  onCancel: function () {
-    this.AdminDialog.destroy()
-  },
-
   onClick: function () {
-    const contents = [
-      '<div><button class="btn btn-light" id="asset_command">Set Asset Command</button></div>',
-      '<div><button class="btn btn-danger" id="admin_close">Close</button>'
-    ].join('')
-    this.AdminDialog = L.control.dialog({ initOpen: true }).setContent(contents).addTo(this.map).hideClose()
-    document.getElementById('asset_command').addEventListener('click', this.onCommand.bind(this))
-    document.getElementById('admin_close').addEventListener('click', this.onCancel.bind(this))
+    const container = document.createElement('div')
+    this.AdminDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
+    const root = ReactDOM.createRoot(container)
+    const close = () => {
+      root.unmount()
+      this.AdminDialog.destroy()
+      this.AdminDialog = undefined
+    }
+    root.render(<AdminMenuDialog onCommand={this.onCommand.bind(this)} onClose={close} />)
   },
 
   onAdd: function (map) {
