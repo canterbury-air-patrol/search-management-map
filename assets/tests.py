@@ -322,6 +322,7 @@ class AssetTestCase(TestCase):
             'longitude': 'East',
         })
         self.assertEqual(response.status_code, 400)
+        self.assertIn('errors', response.json())
 
     def test_asset_record_position_not_other(self):
         """
