@@ -1,6 +1,8 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
-import { smmGet, smmPost } from '../ajax'
+
+import { smmGetJSON, smmPost } from '../ajax'
+import { LatLngMarkerInput } from '../LatLngMarkerInput'
 
 interface Props {
   map: L.Map
@@ -9,68 +11,105 @@ interface Props {
 }
 
 export function AssetCommandDialog({ map, missionId, onClose }: Props) {
-  const formRef = useRef<HTMLDivElement>(null)
-  const markerRef = useRef<L.Marker | null>(null)
-
-  function handleCommandChange() {
-    const form = formRef.current
-    if (!form) return
-    const selectedCommand = (form.querySelector('#id_command') as HTMLSelectElement)?.value
-    if (selectedCommand === 'GOTO') {
-      const lat = form.querySelector('#latitude') as HTMLElement
-      const lng = form.querySelector('#longitude') as HTMLElement
-      if (lat) lat.style.display = ''
-      if (lng) lng.style.display = ''
-      if (!markerRef.current) {
-        markerRef.current = L.marker(map.getCenter(), { draggable: true, autoPan: true }).addTo(map)
-      }
-    } else {
-      const lat = form.querySelector('#latitude') as HTMLElement
-      const lng = form.querySelector('#longitude') as HTMLElement
-      if (lat) lat.style.display = 'none'
-      if (lng) lng.style.display = 'none'
-      if (markerRef.current) {
-        map.removeLayer(markerRef.current)
-        markerRef.current = null
-      }
-    }
-  }
-
-  function handleSet() {
-    const form = formRef.current
-    const data: Record<string, string | number> = {
-      asset: (form?.querySelector('#id_asset') as HTMLInputElement)?.value,
-      reason: (form?.querySelector('#id_reason') as HTMLInputElement)?.value,
-      command: (form?.querySelector('#id_command') as HTMLSelectElement)?.value
-    }
-    if (markerRef.current) {
-      const coords = markerRef.current.getLatLng()
-      data.latitude = coords.lat
-      data.longitude = coords.lng
-    }
-    smmPost(`/mission/${missionId}/assets/command/set/`, data, (result) => {
-      if (result === 'Created') {
-        onClose()
-        return
-      }
-      if (form) form.innerHTML = result as string
-    })
-  }
+  const [assets, setAssets] = useState<{ id: number; name: string }[]>([])
+  const [commands, setCommands] = useState<{ value: string; label: string }[]>([])
+  const [requiresPosition, setRequiresPosition] = useState<string[]>([])
+  const [assetId, setAssetId] = useState('')
+  const [command, setCommand] = useState('')
+  const [reason, setReason] = useState('')
+  const [error, setError] = useState('')
+  const gotoPos = useRef<L.LatLng>(map.getCenter())
 
   useEffect(() => {
-    smmGet(`/mission/${missionId}/assets/command/set/`, {}, (data) => {
-      if (!formRef.current) return
-      formRef.current.innerHTML = data as string
-      formRef.current.querySelector('#id_command')?.addEventListener('change', handleCommandChange)
+    smmGetJSON(`/mission/${missionId}/assets/command/set/`, {}, (data) => {
+      const d = data as { assets: { id: number; name: string }[]; commands: { value: string; label: string }[]; requires_position: string[] }
+      setAssets(d.assets)
+      setCommands(d.commands)
+      setRequiresPosition(d.requires_position)
+      if (d.assets.length > 0) setAssetId(String(d.assets[0].id))
+      if (d.commands.length > 0) setCommand(d.commands[0].value)
     })
-    return () => {
-      if (markerRef.current) map.removeLayer(markerRef.current)
-    }
   }, [])
+
+  function handleSet() {
+    if (!assetId) {
+      setError('Asset is required')
+      return
+    }
+    if (!reason.trim()) {
+      setError('Reason is required')
+      return
+    }
+    setError('')
+    const data: Record<string, string | number> = { asset: assetId, command, reason }
+    if (requiresPosition.includes(command)) {
+      data.latitude = gotoPos.current.lat
+      data.longitude = gotoPos.current.lng
+    }
+    smmPost(
+      `/mission/${missionId}/assets/command/set/`,
+      data,
+      (result) => {
+        try {
+          const parsed = JSON.parse(result as string)
+          if (parsed.status === 'Created') {
+            onClose()
+            return
+          }
+          if (parsed.errors) {
+            const msgs = Object.entries(parsed.errors as Record<string, string[]>).flatMap(([f, es]) => es.map((e) => (f === '__all__' ? e : `${f}: ${e}`)))
+            setError(msgs.join('; ') || 'Failed to set command')
+          }
+        } catch {
+          setError('Failed to set command')
+        }
+      },
+      () => setError('Failed to set command')
+    )
+  }
 
   return (
     <div>
-      <div ref={formRef} />
+      <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text">Asset</span>
+        </div>
+        <select className="form-control" value={assetId} onChange={(e) => setAssetId(e.target.value)}>
+          {assets.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text">Command</span>
+        </div>
+        <select className="form-control" value={command} onChange={(e) => setCommand(e.target.value)}>
+          {commands.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="input-group input-group-sm mb-3">
+        <div className="input-group-prepend">
+          <span className="input-group-text">Reason</span>
+        </div>
+        <input type="text" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} />
+      </div>
+      {requiresPosition.includes(command) && (
+        <LatLngMarkerInput
+          map={map}
+          initialPos={map.getCenter()}
+          onChange={(p) => {
+            gotoPos.current = p
+          }}
+        />
+      )}
+      {error && <div className="text-danger mb-2">{error}</div>}
       <div className="btn-group">
         <button className="btn btn-primary" onClick={handleSet}>
           Set
