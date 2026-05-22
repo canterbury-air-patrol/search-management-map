@@ -1,7 +1,7 @@
 import L from 'leaflet'
 import '@canterbury-air-patrol/leaflet-dialog'
-
-import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
 
 import { smmDelete } from '../ajax'
 
@@ -9,6 +9,7 @@ import { SMMRealtime } from '../smmmap'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
 import { SMMUserGeoLabelData, SMMUserGeoPOIGeoJSON } from './types'
+import { POIPopup } from './POIPopup'
 
 class SMMPOI {
   parent: SMMPOIs
@@ -41,63 +42,21 @@ class SMMPOI {
   }
 
   createPopup(layer: L.Layer) {
-    const popupContent = document.createElement('div')
-
-    const data = [
-      ['POI', this.data.label],
-      ['Lat', degreesToDM(this.coords[1], true)],
-      ['Long', degreesToDM(this.coords[0], false)]
-    ]
-
-    for (const d of data) {
-      const dl = document.createElement('dl')
-      dl.className = 'poi row'
-
-      const dt = document.createElement('dt')
-      dt.className = 'asset-label col-sm-2'
-      dt.textContent = d[0]
-      dl.appendChild(dt)
-      const dd = document.createElement('dd')
-      dd.className = 'asset-name col-sm-10'
-      dd.textContent = d[1]
-      dl.appendChild(dd)
-
-      popupContent.appendChild(dl)
-    }
-
-    if (this.parent.missionId !== 'current' && this.parent.missionId !== 'all') {
-      popupContent.appendChild(
-        this.parent.createButtonGroup([
-          {
-            label: 'Move',
-            onclick: this.editCallback,
-            btnClass: 'btn-light'
-          },
-          {
-            label: 'Delete',
-            onclick: this.deleteCallback,
-            btnClass: 'btn-danger'
-          },
-          {
-            label: 'Create Search',
-            onclick: this.createSearchCallback,
-            btnClass: 'btn-light'
-          },
-          {
-            label: 'Calculate TDV',
-            onclick: this.calculateTDVCallback,
-            btnClass: 'btn-light'
-          },
-          {
-            label: 'Details',
-            href: `/data/usergeo/${this.data.pk}/`,
-            btnClass: 'btn-light'
-          }
-        ])
-      )
-    }
-
-    layer.bindPopup(popupContent)
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    root.render(
+      <POIPopup
+        label={this.data.label}
+        coords={this.coords}
+        pk={this.data.pk}
+        missionId={this.parent.missionId}
+        onEdit={this.editCallback}
+        onDelete={this.deleteCallback}
+        onCreateSearch={this.createSearchCallback}
+        onCalculateTDV={this.calculateTDVCallback}
+      />
+    )
+    layer.bindPopup(container)
   }
 }
 
