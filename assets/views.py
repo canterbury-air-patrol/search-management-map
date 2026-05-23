@@ -13,7 +13,6 @@ from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import AssetCommand, MissionAsset
 
 from organization.decorators import asset_is_operator, asset_is_recorder
-from organization.models import OrganizationAsset, OrganizationMember
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
 from .models import AssetType, Asset, AssetStatusValue, AssetStatus
@@ -147,15 +146,7 @@ class AssetsView(View):
         """
         Return all this users assets as json
         """
-        assets = list(Asset.objects.filter(owner=request.user))
-        if request.GET.get('all', False):
-            org_members = OrganizationMember.objects.filter(user=request.user, role__in=['A', 'R', 'b'], removed__isnull=True)
-            for org_member in org_members:
-                org_assets = OrganizationAsset.objects.filter(organization=org_member.organization, removed__isnull=True)
-                for org_asset in org_assets:
-                    found = any(a.pk == org_asset.asset.pk for a in assets)
-                    if not found:
-                        assets.append(org_asset.asset)
+        assets = Asset.objects.filter(owner=request.user)
         return JsonResponse({'assets': [a.as_object() for a in assets]})
 
     def get(self, request):

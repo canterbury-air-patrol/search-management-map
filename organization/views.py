@@ -116,6 +116,28 @@ class OrganizationUserView(View):
         return HttpResponse('')
 
 
+@method_decorator(login_required, name='dispatch')
+class OrganizationAssetsView(View):
+    """
+    All assets visible to the current user via their org memberships.
+    """
+    def get(self, request):
+        """Return assets from all orgs where the user has a recorder/operator/admin role."""
+        org_members = OrganizationMember.objects.filter(
+            user=request.user, role__in=['A', 'R', 'b'], removed__isnull=True
+        )
+        seen = set()
+        assets = []
+        for org_member in org_members:
+            for org_asset in OrganizationAsset.objects.filter(
+                organization=org_member.organization, removed__isnull=True
+            ):
+                if org_asset.asset.pk not in seen:
+                    seen.add(org_asset.asset.pk)
+                    assets.append(org_asset.asset)
+        return JsonResponse({'assets': [a.as_object() for a in assets]})
+
+
 @login_required
 def organization_asset_list(request, organization_id):
     """
