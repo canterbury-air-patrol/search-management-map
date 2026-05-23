@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     re_path(r'^organization/$', views.OrganizationView.as_view()),
+    re_path(r'^organization/assets/$', views.OrganizationAssetsView.as_view(), name='organization_assets'),
     re_path(r'^organization/(?P<organization_id>\d+)/$', views.organization_details, name='organization_details'),
     re_path(r'^organization/(?P<organization_id>\d+)/user/(?P<username>.*)/$', views.OrganizationUserView.as_view(), name='organization_user_modify'),
     re_path(r'^organization/(?P<organization_id>\d+)/users/notmember/', views.organization_not_members, name='organization_not_members'),

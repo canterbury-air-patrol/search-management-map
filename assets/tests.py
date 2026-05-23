@@ -41,7 +41,7 @@ class AssetsHelpers:
         """
         if client is None:
             client = self.smm.client1
-        url = '/assets/?all=True' if all_assets else '/assets/'
+        url = '/organization/assets/' if all_assets else '/assets/'
         return client.get(url, HTTP_ACCEPT='application/json')
 
 
