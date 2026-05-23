@@ -141,7 +141,7 @@ class AssetDecoratorsTestCase(TestCase):
         self.assertEqual(resp3.status_code, 405)
 
     def test_asset_id_in_get_post_forbidden(self):
-        """Users without operator permission receive 403."""
+        """Users without operator permission receive 403; with permission, view is called."""
         asset = self._make_asset(owner=None)
 
         @asset_id_in_get_post
@@ -150,6 +150,9 @@ class AssetDecoratorsTestCase(TestCase):
 
         req = self.factory.get('/', data={'asset_id': asset.pk})
         req.user = self.smm.user1
+        with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=True):
+            resp = view(req)
+        self.assertEqual(resp.status_code, 200)
         with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=False):
             resp = view(req)
         self.assertEqual(resp.status_code, 403)
