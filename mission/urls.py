@@ -26,4 +26,5 @@ urlpatterns = [
     re_path(r'^mission/asset/status/values/$', views.MissionAssetStatusValuesView.as_view()),
     re_path(r'^$', views.mission_list, name='mission_list'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/command/set/$', views.AssetCommandSetView.as_view(), name='asset_command_set'),
+    re_path(r'^assets/(?P<asset_id>\d+)/command/$', views.AssetCommandView.as_view(), name='assets_command'),
 ]
