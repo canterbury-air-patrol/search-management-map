@@ -10,7 +10,7 @@ import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
 
-import { AssetCommandData, AssetFullStatusData, AssetStatusValueData } from './types'
+import { AssetCommandData, AssetFullStatusData, AssetMissionData, AssetStatusValueData } from './types'
 
 interface AssetTrackAsProps {
   asset: number
@@ -569,7 +569,11 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
   }
 
   async updateData() {
-    await smmGetJSON(`/assets/${this.props.asset}/`, {}, this.updateDataResponse)
+    const [assetData, missionData] = await Promise.all([
+      smmGetJSON(`/assets/${this.props.asset}/`) as Promise<AssetFullStatusData>,
+      (smmGetJSON(`/assets/${this.props.asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({} as AssetMissionData)),
+    ])
+    this.updateDataResponse({ ...assetData, ...missionData })
   }
 
   render() {

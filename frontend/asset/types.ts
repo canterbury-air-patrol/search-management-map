@@ -28,6 +28,14 @@ interface AssetFullStatusData {
   status?: AssetStatusData
 }
 
+interface AssetMissionData {
+  last_command?: AssetCommandData
+  mission_id?: number
+  mission_name?: string
+  current_search_id?: number
+  queued_search_id?: number
+}
+
 interface AssetCommandData {
   id?: number
   action?: string
@@ -88,4 +96,4 @@ interface AssetPointTime {
   fix?: number
 }
 
-export { AssetTypeData, AssetData, AssetFullStatusData, AssetCommandData, AssetStatusValueData, AssetStatusData, MissionAssetData, AssetPointTime }
+export { AssetTypeData, AssetData, AssetFullStatusData, AssetMissionData, AssetCommandData, AssetStatusValueData, AssetStatusData, MissionAssetData, AssetPointTime }
