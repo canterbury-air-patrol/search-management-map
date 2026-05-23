@@ -251,7 +251,6 @@ class AssetTestCase(TestCase):
         in response to reporting their position
         """
         asset = self.assets.create_asset()
-        asset_details_url = f'/assets/{asset.pk}/'
         asset_mission_url = f'/assets/{asset.pk}/mission/'
         asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'

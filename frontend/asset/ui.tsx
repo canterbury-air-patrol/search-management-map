@@ -571,7 +571,7 @@ class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
   async updateData() {
     const [assetData, missionData] = await Promise.all([
       smmGetJSON(`/assets/${this.props.asset}/`) as Promise<AssetFullStatusData>,
-      (smmGetJSON(`/assets/${this.props.asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({} as AssetMissionData)),
+      (smmGetJSON(`/assets/${this.props.asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({}) as AssetMissionData)
     ])
     this.updateDataResponse({ ...assetData, ...missionData })
   }
