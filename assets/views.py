@@ -1,7 +1,7 @@
 """
 Views for assets
 """
-from django.http import HttpResponseNotAllowed, JsonResponse, HttpResponseForbidden
+from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
@@ -12,8 +12,7 @@ from django.views import View
 from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import AssetCommand, MissionAsset
 
-from organization.decorators import asset_is_operator
-from organization.helpers import organization_user_is_asset_recorder
+from organization.decorators import asset_is_operator, asset_is_recorder
 from organization.models import OrganizationAsset, OrganizationMember
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
@@ -207,25 +206,23 @@ class AssetCommandView(View):
         return self.as_json(request, asset)
 
 
-@login_required
-def asset_status(request, asset_id):
+@method_decorator(login_required, name='dispatch')
+@method_decorator(asset_is_recorder, name='post')
+class AssetStatusView(View):
     """
-    Get or set the asset status for a given asset
+    Get or set the status for a given asset.
+    GET is open to any authenticated user; POST requires recorder permission.
     """
-    asset = get_object_or_404(Asset, pk=asset_id)
-
-    if request.method == 'GET':
+    def get(self, request, asset_id):
+        """Return the current status for the asset, or an empty object if none is set."""
+        asset = get_object_or_404(Asset, pk=asset_id)
         status = AssetStatus.current_for_asset(asset)
         return JsonResponse(status.as_object()) if status else JsonResponse({})
-    if request.method == 'POST':
-        if (
-            asset.owner != request.user and not organization_user_is_asset_recorder(request.user, asset)
-        ):
-            return HttpResponseForbidden()
+
+    def post(self, request, asset):
+        """Set a new status for the asset (recorder permission required)."""
         value_id = request.POST.get('value_id')
         status_value = get_object_or_404(AssetStatusValue, pk=value_id)
         notes = request.POST.get('notes')
         status = AssetStatus.objects.create(status=status_value, asset=asset, notes=notes)
         return JsonResponse(status.as_object())
-
-    return HttpResponseNotAllowed(['GET', 'POST'])
