@@ -2,6 +2,7 @@
 Mission Create/Management Views.
 """
 
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
@@ -26,7 +27,7 @@ from timeline.helpers import timeline_record_create, \
     timeline_record_mission_asset_add, timeline_record_mission_asset_remove, timeline_record_mission_asset_status
 
 from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue, AssetCommand
-from .forms import MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
+from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
 
 
@@ -721,3 +722,47 @@ class MissionExternalReferenceView(View):
         extref.save()
         timeline_record_external_reference_remove(mission=mission_user.mission, user=mission_user.user, external_reference=extref)
         return HttpResponse("Done")
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(mission_is_member, name='dispatch')
+class AssetCommandSetView(View):
+    """
+    JSON API for reading form data and setting an asset command for a mission.
+    """
+
+    def get(self, request, mission_user):
+        """
+        Return the available assets, command choices, and which commands require a position.
+        """
+        mission_assets = MissionAsset.objects.filter(
+            mission=mission_user.mission, removed__isnull=True
+        ).select_related('asset')
+        return JsonResponse({
+            'assets': [{'id': ma.asset.pk, 'name': ma.asset.name} for ma in mission_assets],
+            'commands': [{'value': v, 'label': l} for v, l in AssetCommand.COMMAND_CHOICES],
+            'requires_position': list(AssetCommand.REQUIRES_POSITION),
+        })
+
+    def post(self, request, mission_user):
+        """
+        Validate and create an AssetCommand; returns JSON status or field errors.
+        """
+        form = AssetCommandForm(request.POST, mission=mission_user.mission)
+        if not form.is_valid():
+            return JsonResponse({'errors': form.errors}, status=400)
+        point = None
+        if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
+            try:
+                point = Point(float(request.POST.get('longitude')), float(request.POST.get('latitude')))
+            except (ValueError, TypeError):
+                return JsonResponse({'errors': {'position': ['Invalid lat/long']}}, status=400)
+        AssetCommand(
+            asset=form.cleaned_data['asset'],
+            command=form.cleaned_data['command'],
+            issued_by=request.user,
+            reason=form.cleaned_data['reason'],
+            position=point,
+            mission=mission_user.mission,
+        ).save()
+        return JsonResponse({'status': 'Created'})
