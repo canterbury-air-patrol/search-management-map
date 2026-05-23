@@ -21,7 +21,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from assets.models import AssetType, Asset
-from assets.decorators import asset_id_in_get_post
+from organization.decorators import asset_id_in_get_post
 from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
