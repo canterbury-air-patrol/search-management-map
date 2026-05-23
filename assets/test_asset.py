@@ -81,6 +81,16 @@ class AssetTestCase(TestCase):
         data = asset.as_object()
         self.assertEqual(data['icon_url'], f'/icons/{icon.pk}.png')
 
+    def test_asset_icon_url_asset_type_icon(self):
+        """
+        Asset.icon_url() falls back to asset_type icon when asset has no icon of its own
+        """
+        icon = Icon.objects.create(name='type_icon', filename='type.png')
+        asset_type = AssetType.objects.create(name='icontype2', description='', icon=icon)
+        asset = Asset.objects.create(name='TypeIconAsset', asset_type=asset_type,
+                                     owner=self.smm.user1, icon=None)
+        self.assertEqual(asset.icon_url(), f'/icons/{icon.pk}.png')
+
     def test_asset_mine_list(self):
         """
         Check the my assets list correctly reflects only assets the current user owns
