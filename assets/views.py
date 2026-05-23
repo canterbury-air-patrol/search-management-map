@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from organization.decorators import asset_is_recorder
+from organization.decorators import asset_is_operator, asset_is_recorder
 from .models import AssetType, Asset, AssetStatusValue, AssetStatus
 
 
@@ -17,6 +17,30 @@ def assets_status_value_list(request):
     List all of the asset status values
     """
     return JsonResponse({'values': [v.as_object() for v in AssetStatusValue.objects.all()]})
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(asset_is_operator, name="dispatch")
+class AssetView(View):
+    """
+    View of a specific asset (pure asset data only)
+    """
+    def as_json(self, request, asset):
+        data = {
+            'asset_id': asset.pk,
+            'name': asset.name,
+            'asset_type': asset.asset_type.name,
+            'owner': str(asset.owner),
+        }
+        status = AssetStatus.current_for_asset(asset)
+        if status is not None:
+            data['status'] = status.as_object()
+        return JsonResponse(data)
+
+    def get(self, request, asset):
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, asset)
+        return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
 
 
 @method_decorator(login_required, name="dispatch")

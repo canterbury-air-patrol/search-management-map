@@ -185,7 +185,10 @@ class AssetTestCase(TestCase):
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/'
+        asset_mission_url = f'/assets/{asset.pk}/mission/'
         mission_asset = self.add_asset_to_mission(asset=asset)
+
+        # Pure asset data comes from the asset endpoint
         response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
@@ -193,31 +196,33 @@ class AssetTestCase(TestCase):
         self.assertEqual(json_data['name'], asset_name)
         self.assertEqual(json_data['asset_type'], asset_type.name)
         self.assertEqual(json_data['owner'], asset.owner.username)
+
+        # Mission/search context comes from the mission endpoint
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        json_data = response.json()
         self.assertEqual(json_data['mission_id'], mission_asset.mission.id)
         self.assertEqual(json_data['mission_name'], mission_asset.mission.mission_name)
 
         # Create a search and check this doesn't automatically queue it
         search_id = self.create_search(asset=asset, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
-        self.assertEqual(json_data['asset_id'], asset.id)
         self.assertTrue('current_search_id' not in json_data)
         self.assertTrue('queued_search_id' not in json_data)
         # Now check the search for the asset and check it is listed as queued
         self.queue_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
-        self.assertEqual(json_data['asset_id'], asset.id)
         self.assertTrue('current_search_id' not in json_data)
         self.assertEqual(json_data['queued_search_id'], search_id)
         # Start the search and check it moves from queued to current
         self.begin_search_for_asset(asset=asset, search_id=search_id, client=self.smm.client1)
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
-        self.assertEqual(json_data['asset_id'], asset.id)
         self.assertEqual(json_data['current_search_id'], search_id)
         self.assertTrue('queued_search_id' not in json_data)
 
@@ -247,11 +252,12 @@ class AssetTestCase(TestCase):
         """
         asset = self.assets.create_asset()
         asset_details_url = f'/assets/{asset.pk}/'
+        asset_mission_url = f'/assets/{asset.pk}/mission/'
         asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
         asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
 
-        # Check the initial case (no command)
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        # Check the initial case (no command) — last_command lives on the mission endpoint
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['last_command']), 0)
@@ -278,8 +284,8 @@ class AssetTestCase(TestCase):
             'reason': 'testing',
         })
         self.assertEqual(response.status_code, 200)
-        # Check this command is now showing
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        # Check this command is now showing on the mission endpoint
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'RON')
@@ -305,8 +311,8 @@ class AssetTestCase(TestCase):
             'longitude': 172.5,
         })
         self.assertEqual(response.status_code, 200)
-        # Check the GOTO is now showing
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
+        # Check the GOTO is now showing on the mission endpoint
+        response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(json_data['last_command']['action'], 'GOTO')

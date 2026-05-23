@@ -15,7 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from assets.models import Asset, AssetStatus
+from assets.models import Asset
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import asset_is_operator, get_organization_from_id
 from search.models import Search
@@ -728,19 +728,14 @@ class MissionExternalReferenceView(View):
 
 @method_decorator(login_required, name="dispatch")
 @method_decorator(asset_is_operator, name="dispatch")
-class AssetView(View):
+class AssetMissionView(View):
     """
-    View of a specific asset
+    Mission/search context for an asset: last command, active mission, and searches.
     """
-    def as_json(self, request, asset):
+    def get(self, request, asset):
         data = {
-            'asset_id': asset.pk,
-            'name': asset.name,
-            'asset_type': asset.asset_type.name,
-            'owner': str(asset.owner),
             'last_command': AssetCommand.last_command_for_asset_to_json(asset),
         }
-
         mission_asset = mission_asset_get(asset)
         if mission_asset is not None:
             data['mission_id'] = mission_asset.mission.pk
@@ -753,16 +748,7 @@ class AssetView(View):
             if queued_search is not None:
                 data['queued_search_id'] = queued_search.pk
 
-        status = AssetStatus.current_for_asset(asset)
-        if status is not None:
-            data['status'] = status.as_object()
-
         return JsonResponse(data)
-
-    def get(self, request, asset):
-        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
-            return self.as_json(request, asset)
-        return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
 
 
 @method_decorator(login_required, name='dispatch')
