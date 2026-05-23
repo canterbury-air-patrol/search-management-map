@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from assets.decorators import asset_is_owner
+from .decorators import asset_is_owner
 
 from .models import Organization, OrganizationMember, OrganizationAsset
 from .decorators import organization_is_admin, organization_assets_admin, organization_is_radio_operator, get_target_user

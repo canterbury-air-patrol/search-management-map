@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from smm.tests import SMMTestUsers
 
 from .models import Asset, AssetType
-from .decorators import (
+from organization.decorators import (
     asset_is_recorder,
     asset_is_operator,
     asset_is_owner,
@@ -53,7 +53,7 @@ class AssetDecoratorsTestCase(TestCase):
 
         req = self.factory.get('/')
         req.user = self.smm.user1
-        with patch('assets.decorators.organization_user_is_asset_recorder', return_value=True):
+        with patch('organization.decorators.organization_user_is_asset_recorder', return_value=True):
             resp = view(req, asset_id=asset.pk)
         self.assertEqual(resp.status_code, 200)
 
@@ -67,10 +67,10 @@ class AssetDecoratorsTestCase(TestCase):
 
         req = self.factory.get('/')
         req.user = self.smm.user1
-        with patch('assets.decorators.organization_user_is_asset_recorder', return_value=True):
+        with patch('organization.decorators.organization_user_is_asset_recorder', return_value=True):
             resp = view(req, asset_id=asset.pk)
         self.assertEqual(resp.status_code, 200)
-        with patch('assets.decorators.organization_user_is_asset_recorder', return_value=False):
+        with patch('organization.decorators.organization_user_is_asset_recorder', return_value=False):
             resp = view(req, asset_id=asset.pk)
         self.assertEqual(resp.status_code, 403)
 
@@ -85,12 +85,12 @@ class AssetDecoratorsTestCase(TestCase):
         req = self.factory.get('/')
         req.user = self.smm.user1
         # org operator allowed
-        with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=True):
+        with patch('organization.decorators.organization_user_is_asset_radio_operator', return_value=True):
             resp = view(req, asset_id=asset.pk)
         self.assertEqual(resp.status_code, 200)
 
         # forbidden when not owner and not org operator
-        with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=False):
+        with patch('organization.decorators.organization_user_is_asset_radio_operator', return_value=False):
             resp2 = view(req, asset_id=asset.pk)
         self.assertEqual(resp2.status_code, 403)
 
@@ -150,9 +150,9 @@ class AssetDecoratorsTestCase(TestCase):
 
         req = self.factory.get('/', data={'asset_id': asset.pk})
         req.user = self.smm.user1
-        with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=True):
+        with patch('organization.decorators.organization_user_is_asset_radio_operator', return_value=True):
             resp = view(req)
         self.assertEqual(resp.status_code, 200)
-        with patch('assets.decorators.organization_user_is_asset_radio_operator', return_value=False):
+        with patch('organization.decorators.organization_user_is_asset_radio_operator', return_value=False):
             resp = view(req)
         self.assertEqual(resp.status_code, 403)

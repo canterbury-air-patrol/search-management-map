@@ -15,7 +15,7 @@ from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset
-from assets.decorators import asset_is_operator
+from organization.decorators import asset_is_operator
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import get_organization_from_id
 from organization.models import Organization, OrganizationMember, OrganizationAsset

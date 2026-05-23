@@ -18,7 +18,7 @@ from organization.models import OrganizationAsset, OrganizationMember
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
 
-from .decorators import asset_is_operator
+from organization.decorators import asset_is_operator
 from .models import AssetType, Asset, AssetStatusValue, AssetStatus
 from .forms import AssetCommandForm
 
