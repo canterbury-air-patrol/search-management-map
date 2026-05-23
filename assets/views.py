@@ -10,13 +10,13 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from mission.decorators import mission_is_member, mission_asset_get
+from mission.forms import AssetCommandForm
 from mission.models import AssetCommand, MissionAsset
 
 from organization.decorators import asset_is_operator, asset_is_recorder
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
 from .models import AssetType, Asset, AssetStatusValue, AssetStatus
-from .forms import AssetCommandForm
 
 
 @login_required
