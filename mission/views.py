@@ -18,9 +18,9 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from assets.models import Asset
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import asset_is_operator, get_organization_from_id
+from organization.models import Organization, OrganizationMember, OrganizationAsset
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
-from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, \
     timeline_record_external_reference_add, timeline_record_external_reference_remove, timeline_record_external_reference_update, \
@@ -733,6 +733,9 @@ class AssetMissionView(View):
     Mission/search context for an asset: last command, active mission, and searches.
     """
     def get(self, request, asset):
+        """
+        Return mission/search context for this asset as JSON.
+        """
         data = {
             'last_command': AssetCommand.last_command_for_asset_to_json(asset),
         }

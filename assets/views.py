@@ -26,6 +26,9 @@ class AssetView(View):
     View of a specific asset (pure asset data only)
     """
     def as_json(self, request, asset):
+        """
+        Return asset identity and status as JSON.
+        """
         data = {
             'asset_id': asset.pk,
             'name': asset.name,
@@ -38,6 +41,9 @@ class AssetView(View):
         return JsonResponse(data)
 
     def get(self, request, asset):
+        """
+        Return asset details as JSON or render the asset UI page.
+        """
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
             return self.as_json(request, asset)
         return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
