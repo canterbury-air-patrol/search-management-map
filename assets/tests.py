@@ -324,6 +324,17 @@ class AssetTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('errors', response.json())
 
+    def test_asset_command_set_form_error(self):
+        """
+        POST to AssetCommandSetView with invalid form data returns 400 with errors
+        """
+        asset = self.assets.create_asset()
+        self.add_asset_to_mission(asset=asset)
+        asset_set_command_url = f'/mission/{self.mission.pk}/assets/command/set/'
+        response = self.smm.client1.post(asset_set_command_url, {})
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('errors', response.json())
+
     def test_asset_record_position_not_other(self):
         """
         Check only the owner of the asset can record the position
