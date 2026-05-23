@@ -7,9 +7,10 @@ import json
 from django.test import TestCase
 from django.core import serializers
 
+from icons.models import Icon
 from smm.tests import SMMTestUsers
 
-from .models import Asset
+from .models import Asset, AssetType
 from .tests import AssetsHelpers
 
 
@@ -67,6 +68,18 @@ class AssetTestCase(TestCase):
         data = json.loads(serialised)
         self.assertFalse('pk' in data[0])
         self.assertEqual(data[0]['fields']['name'], 'PCCR')
+
+    def test_asset_icon_url_asset_icon(self):
+        """
+        Asset.icon_url() returns the asset's own icon URL when the asset has an icon set
+        """
+        icon = Icon.objects.create(name='boat_icon', filename='boat.png')
+        asset_type = self.assets.create_asset_type(at_name='icontype')
+        asset = Asset.objects.create(name='IconAsset', asset_type=asset_type,
+                                     owner=self.smm.user1, icon=icon)
+        self.assertEqual(asset.icon_url(), f'/icons/{icon.pk}.png')
+        data = asset.as_object()
+        self.assertEqual(data['icon_url'], f'/icons/{icon.pk}.png')
 
     def test_asset_mine_list(self):
         """
