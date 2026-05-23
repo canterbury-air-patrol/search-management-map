@@ -58,7 +58,7 @@ class AssetDecoratorsTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
 
     def test_asset_is_recorder_forbidden(self):
-        """Users without recorder permission receive 403."""
+        """Users without recorder permission receive 403; with permission, view is called."""
         asset = self._make_asset(owner=None)
 
         @asset_is_recorder
@@ -67,6 +67,9 @@ class AssetDecoratorsTestCase(TestCase):
 
         req = self.factory.get('/')
         req.user = self.smm.user1
+        with patch('assets.decorators.organization_user_is_asset_recorder', return_value=True):
+            resp = view(req, asset_id=asset.pk)
+        self.assertEqual(resp.status_code, 200)
         with patch('assets.decorators.organization_user_is_asset_recorder', return_value=False):
             resp = view(req, asset_id=asset.pk)
         self.assertEqual(resp.status_code, 403)
