@@ -12,13 +12,11 @@ from django.views import View
 from mission.decorators import mission_is_member, mission_asset_get
 from mission.models import AssetCommand, MissionAsset
 
+from organization.decorators import asset_is_operator
 from organization.helpers import organization_user_is_asset_recorder
-
 from organization.models import OrganizationAsset, OrganizationMember
 from search.models import Search
 from search.view_helpers import check_searches_in_progress
-
-from organization.decorators import asset_is_operator
 from .models import AssetType, Asset, AssetStatusValue, AssetStatus
 from .forms import AssetCommandForm
 
