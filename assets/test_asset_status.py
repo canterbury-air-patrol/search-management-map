@@ -86,6 +86,13 @@ class AssetStatusTestCase(AssetStatusBase):
         status_asset1 = AssetStatus.current_for_asset(asset=self.asset1)
         self.assertEqual(status2.pk, status_asset1.pk)
 
+    def test_0050_asset_status_str(self):
+        """
+        Check the string representation of AssetStatus
+        """
+        status = self.create_asset_status(asset=self.asset1, status=self.status_value1)
+        self.assertEqual(str(status), f'{self.asset1.name} is {self.status_value1.name}')
+
     def test_0100_check_asset_has_status(self):
         """
         Check that an asset reports its status when there is one set
