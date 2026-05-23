@@ -766,3 +766,39 @@ class AssetCommandSetView(View):
             mission=mission_user.mission,
         ).save()
         return JsonResponse({'status': 'Created'})
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(asset_is_operator, name="dispatch")
+class AssetCommandView(View):
+    """
+    View the current asset command
+    """
+    def as_json(self, request, asset):
+        """
+        Return the current asset command as json
+        """
+        asset_command = AssetCommand.last_command_for_asset_to_json(asset)
+        return JsonResponse({'command': asset_command})
+
+    def get(self, request, asset):
+        """
+        Get the current asset command
+        """
+        return self.as_json(request, asset)
+
+    def post(self, request, asset):
+        """
+        Allow setting the asset command response
+        """
+        command_id = request.POST.get('command_id')
+        asset_command = get_object_or_404(AssetCommand, pk=command_id, asset=asset)
+        type_str = request.POST.get('type')
+        message = request.POST.get('message')
+        if asset_command.responded_at is None:
+            asset_command.responded_at = timezone.now()
+            asset_command.responded_by = request.user
+            asset_command.response_message = message
+            asset_command.response_type = type_str
+            asset_command.save()
+        return self.as_json(request, asset)
