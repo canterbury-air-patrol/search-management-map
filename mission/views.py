@@ -15,9 +15,11 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from assets.models import Asset
+from assets.models import Asset, AssetStatus
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import asset_is_operator, get_organization_from_id
+from search.models import Search
+from search.view_helpers import check_searches_in_progress
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, \
@@ -28,7 +30,7 @@ from timeline.helpers import timeline_record_create, \
 
 from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue, AssetCommand
 from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
-from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
+from .decorators import get_user_from_id, mission_asset_get, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
 
 
 @method_decorator(login_required, name="dispatch")
@@ -722,6 +724,45 @@ class MissionExternalReferenceView(View):
         extref.save()
         timeline_record_external_reference_remove(mission=mission_user.mission, user=mission_user.user, external_reference=extref)
         return HttpResponse("Done")
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(asset_is_operator, name="dispatch")
+class AssetView(View):
+    """
+    View of a specific asset
+    """
+    def as_json(self, request, asset):
+        data = {
+            'asset_id': asset.pk,
+            'name': asset.name,
+            'asset_type': asset.asset_type.name,
+            'owner': str(asset.owner),
+            'last_command': AssetCommand.last_command_for_asset_to_json(asset),
+        }
+
+        mission_asset = mission_asset_get(asset)
+        if mission_asset is not None:
+            data['mission_id'] = mission_asset.mission.pk
+            data['mission_name'] = mission_asset.mission.mission_name
+
+            current_search = check_searches_in_progress(mission_asset.mission, asset)
+            if current_search is not None:
+                data['current_search_id'] = current_search.pk
+            queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
+            if queued_search is not None:
+                data['queued_search_id'] = queued_search.pk
+
+        status = AssetStatus.current_for_asset(asset)
+        if status is not None:
+            data['status'] = status.as_object()
+
+        return JsonResponse(data)
+
+    def get(self, request, asset):
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            return self.as_json(request, asset)
+        return render(request, 'assets/ui.html', {'assetId': asset.pk, 'assetName': asset.name})
 
 
 @method_decorator(login_required, name='dispatch')
