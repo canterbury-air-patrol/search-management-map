@@ -126,7 +126,7 @@ interface SearchDetailsPageProps {
 
 interface SearchDetailsPageState {
   data?: SMMSearchObjectDetailsData
-  search?: object
+  search?: SearchPattern
   geometry?: {
     type: string
     coordinates: [number, number] | [number, number][] | [number, number][][]

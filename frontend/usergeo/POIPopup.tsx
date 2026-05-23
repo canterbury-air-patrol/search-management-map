@@ -16,8 +16,8 @@ interface Props {
 export function POIPopup({ label, coords, pk, missionId, onEdit, onDelete, onCreateSearch, onCalculateTDV }: Props) {
   const items = [
     { label: 'POI', value: label },
-    { label: 'Lat', value: degreesToDM(coords[1], true) },
-    { label: 'Long', value: degreesToDM(coords[0], false) }
+    { label: 'Lat', value: degreesToDM(coords[1], 'lat') },
+    { label: 'Long', value: degreesToDM(coords[0], 'lon') }
   ]
   const buttons: ButtonItem[] =
     missionId !== 'current' && missionId !== 'all'

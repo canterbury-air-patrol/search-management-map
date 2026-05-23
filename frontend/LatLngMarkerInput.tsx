@@ -10,8 +10,8 @@ interface Props {
 }
 
 export function LatLngMarkerInput({ map, initialPos, showLabels = true, onChange }: Props) {
-  const [latText, setLatText] = useState(degreesToDM(initialPos.lat, true))
-  const [lngText, setLngText] = useState(degreesToDM(initialPos.lng, false))
+  const [latText, setLatText] = useState(degreesToDM(initialPos.lat, 'lat'))
+  const [lngText, setLngText] = useState(degreesToDM(initialPos.lng, 'lon'))
   const markerRef = useRef<L.Marker | null>(null)
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export function LatLngMarkerInput({ map, initialPos, showLabels = true, onChange
     markerRef.current = marker
     marker.on('dragend', () => {
       const pos = marker.getLatLng()
-      setLatText(degreesToDM(pos.lat, true))
-      setLngText(degreesToDM(pos.lng, false))
+      setLatText(degreesToDM(pos.lat, 'lat'))
+      setLngText(degreesToDM(pos.lng, 'lon'))
       onChange?.(pos)
     })
     return () => {

@@ -41,8 +41,8 @@ class GeometryPoints extends React.Component<GeometryPointsProps, never> {
 
     const tableRows = points.map((point, index) => (
       <tr key={index}>
-        <td>{degreesToDM(point.lng, false)}</td>
-        <td>{degreesToDM(point.lat, true)}</td>
+        <td>{degreesToDM(point.lng, 'lon')}</td>
+        <td>{degreesToDM(point.lat, 'lat')}</td>
       </tr>
     ))
     return (

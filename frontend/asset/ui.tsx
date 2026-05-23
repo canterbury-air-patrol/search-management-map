@@ -122,8 +122,8 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
         </thead>
         <tbody>
           <tr>
-            <td>{degreesToDM(this.state.latitude, true)}</td>
-            <td>{degreesToDM(this.state.longitude, false)}</td>
+            <td>{degreesToDM(this.state.latitude, 'lat')}</td>
+            <td>{degreesToDM(this.state.longitude, 'lon')}</td>
             <td>{this.state.altitude}</td>
           </tr>
           <tr>
@@ -233,10 +233,10 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
       gotoRow.push(
         <tr key="goto_pos">
           <td>
-            <b>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, true) : ''}</b>
+            <b>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, 'lat') : ''}</b>
           </td>
           <td>
-            <b>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, false) : ''}</b>
+            <b>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, 'lon') : ''}</b>
           </td>
           <td></td>
         </tr>

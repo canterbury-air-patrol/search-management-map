@@ -14,8 +14,8 @@ interface Props {
 export function AssetPopup({ assetName, coords, alt, heading, fix, status }: Props) {
   const items = [
     { label: 'Asset', value: assetName },
-    { label: 'Lat', value: degreesToDM(coords[1], true) },
-    { label: 'Long', value: degreesToDM(coords[0], false) }
+    { label: 'Lat', value: degreesToDM(coords[1], 'lat') },
+    { label: 'Long', value: degreesToDM(coords[0], 'lon') }
   ]
   if (alt) {
     items.push({ label: 'Altitude', value: alt.toString() })
