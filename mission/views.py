@@ -15,9 +15,8 @@ from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from assets.models import Asset
-from organization.decorators import asset_is_operator
 from mission.helpers import get_my_assets_not_in_mission
-from organization.decorators import get_organization_from_id
+from organization.decorators import asset_is_operator, get_organization_from_id
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, \

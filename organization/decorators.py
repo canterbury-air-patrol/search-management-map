@@ -1,3 +1,5 @@
+from functools import wraps
+
 from django.contrib.auth import get_user_model
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
@@ -71,72 +73,70 @@ def get_target_user(view_func):
     return wrapper_get_target_user
 
 
+def user_can_operate_asset(user, asset):
+    return asset.owner == user or organization_user_is_asset_radio_operator(user, asset)
+
+
+def asset_permission_required(check_fn, error_message):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
+            if not check_fn(request.user, asset):
+                return HttpResponseForbidden(error_message)
+            kwargs.pop('asset_id')
+            return view_func(request, *args, asset=asset, **kwargs)
+        return wrapper
+    return decorator
+
+
 def asset_is_recorder(view_func):
     """
     Make sure the current user is allowed to record (positions) for this asset.
     """
-    def recorder_check(*args, **kwargs):
-        allowed = False
-        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
-        if asset.owner == args[0].user or organization_user_is_asset_recorder(args[0].user, asset):
-            allowed = True
-        if not allowed:
-            return HttpResponseForbidden("Not Authorized to record the position of this asset")
-        kwargs.pop('asset_id')
-        return view_func(*args, asset=asset, **kwargs)
-    return recorder_check
+    return asset_permission_required(
+        lambda user, asset: asset.owner == user or organization_user_is_asset_recorder(user, asset),
+        "Not Authorized to record the position of this asset",
+    )(view_func)
 
 
 def asset_is_operator(view_func):
     """
     Make sure the current user is allowed to act on behalf of this asset.
     """
-    def recorder_check(*args, **kwargs):
-        allowed = False
-        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
-        if asset.owner == args[0].user or organization_user_is_asset_radio_operator(args[0].user, asset):
-            allowed = True
-        if not allowed:
-            return HttpResponseForbidden("Not Authorized to record the position of this asset")
-        kwargs.pop('asset_id')
-        return view_func(*args, asset=asset, **kwargs)
-    return recorder_check
+    return asset_permission_required(
+        user_can_operate_asset,
+        "Not Authorized to act on behalf of this asset",
+    )(view_func)
 
 
 def asset_is_owner(view_func):
     """
     Make sure the current user is the owner of this asset.
     """
-    def asset_owner_check(*args, **kwargs):
-        asset = get_object_or_404(Asset, pk=kwargs['asset_id'])
-        if asset.owner != args[0].user:
-            return HttpResponseForbidden("Not Authorized, this is not your asset")
-        kwargs.pop('asset_id')
-        return view_func(*args, asset=asset, **kwargs)
-    return asset_owner_check
+    return asset_permission_required(
+        lambda user, asset: asset.owner == user,
+        "Not Authorized, this is not your asset",
+    )(view_func)
 
 
 def asset_id_in_get_post(view_func):
     """
     Make sure the asset_id in the GET/POST is a valid asset and this user can act as them.
     """
-    def asset_id_check(*args, **kwargs):
-        request = args[0]
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
         if request.method == 'GET':
             asset_id = request.GET.get('asset_id')
         elif request.method == 'POST':
             asset_id = request.POST.get('asset_id')
         else:
-            return HttpResponseNotAllowed("Only GET and POST are supported")
+            return HttpResponseNotAllowed(['GET', 'POST'])
         asset = get_object_or_404(Asset, pk=asset_id)
-        allowed = False
-        if asset.owner == request.user or organization_user_is_asset_radio_operator(args[0].user, asset):
-            allowed = True
-        if not allowed:
+        if not user_can_operate_asset(request.user, asset):
             return HttpResponseForbidden("Wrong User for Asset")
-
-        return view_func(*args, asset=asset, **kwargs)
-    return asset_id_check
+        return view_func(request, *args, asset=asset, **kwargs)
+    return wrapper
 
 
 def get_organization_from_id(view_func):

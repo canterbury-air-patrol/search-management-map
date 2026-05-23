@@ -7,15 +7,15 @@ from unittest.mock import patch
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
 
-from smm.tests import SMMTestUsers
-
-from .models import Asset, AssetType
 from organization.decorators import (
     asset_is_recorder,
     asset_is_operator,
     asset_is_owner,
     asset_id_in_get_post,
 )
+from smm.tests import SMMTestUsers
+
+from .models import Asset, AssetType
 
 
 class AssetDecoratorsTestCase(TestCase):
