@@ -7,6 +7,7 @@ from django.test import TestCase
 from smm.tests import SMMTestUsers
 
 from mission.models import Mission, MissionUser, MissionAsset
+from organization.models import Organization, OrganizationMember, OrganizationAsset
 
 from .models import AssetType, Asset
 
@@ -323,6 +324,24 @@ class AssetTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 400)
         self.assertIn('errors', response.json())
+
+    def test_assets_all_includes_org_assets(self):
+        """
+        GET /assets/?all=True returns assets belonging to the user's organization
+        that the user does not personally own
+        """
+        org = Organization.objects.create(name='TestOrg', creator=self.smm.user1)
+        OrganizationMember.objects.create(
+            organization=org, user=self.smm.user1, added_by=self.smm.user1, role='A'
+        )
+        org_asset = self.assets.create_asset(name='org_asset', owner=self.smm.user2)
+        OrganizationAsset.objects.create(
+            organization=org, asset=org_asset, added_by=self.smm.user1
+        )
+        response = self.assets.get_my_asset_list(all_assets=True)
+        self.assertEqual(response.status_code, 200)
+        names = [a['name'] for a in response.json()['assets']]
+        self.assertIn('org_asset', names)
 
     def test_asset_command_set_form_error(self):
         """
