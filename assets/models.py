@@ -165,6 +165,5 @@ class AssetStatus(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['asset']),
-            models.Index(fields=['since']),
+            models.Index(fields=['asset', '-since']),
         ]
