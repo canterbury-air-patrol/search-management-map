@@ -428,8 +428,11 @@ class MissionOrganization(models.Model):
         """
         Get all the missions a user is in because they are in an organization
         """
-        user_organizations = OrganizationMember.user_current(user)
-        return Mission.objects.filter(missionorganization__organization__in=[user_org.organization for user_org in user_organizations], missionorganization__removed__isnull=True)
+        org_ids = OrganizationMember.objects.filter(user=user, removed__isnull=True).values('organization')
+        return Mission.objects.filter(
+            missionorganization__organization__in=org_ids,
+            missionorganization__removed__isnull=True,
+        )
 
     class Meta:
         indexes = [
