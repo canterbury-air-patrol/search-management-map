@@ -66,7 +66,7 @@ class GeoTime(models.Model):
             # Filter out any deleted objects
             objects = objects.filter(Q(deleted_at__isnull=True) | Q(deleted_at__gt=current_at))
             objects = objects.filter(Q(replaced_at__isnull=True) | Q(replaced_at__gt=current_at))
-            objects = objects.filter(created_at__gt=current_at)
+            objects = objects.filter(created_at__lte=current_at)
         else:
             objects = objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True)
         return objects
@@ -87,7 +87,7 @@ class GeoTime(models.Model):
             # Filter out any deleted objects
             objects = objects.filter(Q(deleted_at__isnull=True) | Q(deleted_at__gt=current_at))
             objects = objects.filter(Q(replaced_at__isnull=True) | Q(replaced_at__gt=current_at))
-            objects = objects.filter(created_at__gt=current_at)
+            objects = objects.filter(created_at__lte=current_at)
         else:
             objects = objects.filter(deleted_at__isnull=True).filter(replaced_at__isnull=True)
         return objects
