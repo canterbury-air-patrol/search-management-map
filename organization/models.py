@@ -6,6 +6,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from assets.models import Asset
 
 
+_UNSET = object()
+
+
 class Organization(models.Model):
     name = models.CharField(default='', max_length=100)
     created = models.DateTimeField(default=timezone.now)
@@ -13,16 +16,19 @@ class Organization(models.Model):
     deleted = models.DateTimeField(null=True, blank=True)
     deleted_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='deleted_by%(app_label)s_%(class)s_related', null=True, blank=True)
 
-    def as_object(self, user=None):
+    def as_object(self, user=None, membership=_UNSET):
         """
         Convert the organization to an object that is suitable for returning via JsonResponse
+
+        Pass a pre-fetched OrganizationMember (or None) as membership to avoid a
+        per-org query when serializing many organizations for the same user.
         """
-        role = ''
-        try:
-            organization_member = OrganizationMember.objects.get(organization=self, user=user, removed__isnull=True)
-            role = organization_member.user_role_name()
-        except ObjectDoesNotExist:
-            role = ''
+        if membership is _UNSET:
+            try:
+                membership = OrganizationMember.objects.get(organization=self, user=user, removed__isnull=True)
+            except ObjectDoesNotExist:
+                membership = None
+        role = membership.user_role_name() if membership else ''
         return {
             'id': self.pk,
             'name': self.name,
