@@ -111,6 +111,11 @@ class MissionUser(models.Model):
         """
         return Mission.objects.filter(missionuser__user=user)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'user']),
+        ]
+
 
 class MissionAsset(models.Model):
     """
@@ -138,6 +143,11 @@ class MissionAsset(models.Model):
             'remover': str(self.remover) if self.remover else None,
             'removed': self.removed,
         }
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'asset', 'removed']),
+        ]
 
 
 class AssetCommand(models.Model):
@@ -321,8 +331,7 @@ class MissionAssetStatus(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['mission_asset']),
-            models.Index(fields=['since']),
+            models.Index(fields=['mission_asset', '-since']),
         ]
 
 
@@ -421,3 +430,8 @@ class MissionOrganization(models.Model):
         """
         user_organizations = OrganizationMember.user_current(user)
         return Mission.objects.filter(missionorganization__organization__in=[user_org.organization for user_org in user_organizations], missionorganization__removed__isnull=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['mission', 'organization', 'removed']),
+        ]
