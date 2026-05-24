@@ -43,6 +43,37 @@ class AssetsHelpers:
         url = '/organization/assets/' if all_assets else '/assets/'
         return client.get(url, HTTP_ACCEPT='application/json')
 
+    def check_asset_details(self, testcase, asset, client=None):
+        """
+        Assert the asset details API returns the expected core fields
+        """
+        if client is None:
+            client = self.smm.client1
+        response = client.get(f'/assets/{asset.pk}/', HTTP_ACCEPT='application/json')
+        testcase.assertEqual(response.status_code, 200)
+        json_data = response.json()
+        testcase.assertEqual(json_data['asset_id'], asset.id)
+        testcase.assertEqual(json_data['name'], asset.name)
+        testcase.assertEqual(json_data['asset_type'], asset.asset_type.name)
+        testcase.assertEqual(json_data['owner'], asset.owner.username)
+        return json_data
+
+    def report_position_continue(self, testcase, asset, client=None):
+        """
+        Report an asset position and assert the server responds with Continue
+        """
+        if client is None:
+            client = self.smm.client1
+        response = client.post(f'/data/assets/{asset.pk}/position/add/', {
+            'lat': -43.5,
+            'lng': 172.5,
+            'fix': 3,
+            'alt': 0,
+            'heading': 0,
+        })
+        testcase.assertEqual(response.status_code, 200)
+        testcase.assertEqual(response.content.decode('utf8'), 'Continue')
+
 
 class AssetTestCase(TestCase):
     """
@@ -114,13 +145,7 @@ class AssetTestCase(TestCase):
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
         asset_details_url = f'/assets/{asset.pk}/'
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
-        self.assertEqual(response.status_code, 200)
-        json_data = response.json()
-        self.assertEqual(json_data['asset_id'], asset.id)
-        self.assertEqual(json_data['name'], asset_name)
-        self.assertEqual(json_data['asset_type'], asset_type.name)
-        self.assertEqual(json_data['owner'], asset.owner.username)
+        json_data = self.assets.check_asset_details(self, asset)
         self.assertNotIn('mission_id', json_data)
         self.assertNotIn('mission_name', json_data)
         self.assertNotIn('current_search_id', json_data)
@@ -177,15 +202,7 @@ class AssetTestCase(TestCase):
         asset_report_position_url = f'/data/assets/{asset.pk}/position/add/'
 
         # Record the position as the asset owner
-        response = self.smm.client1.post(asset_report_position_url, {
-            'lat': -43.5,
-            'lng': 172.5,
-            'fix': 3,
-            'alt': 0,
-            'heading': 0,
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode('utf8'), 'Continue')
+        self.assets.report_position_continue(self, asset)
 
         # Attempt to record the position as a non-owner
         response = self.smm.client2.post(asset_report_position_url, {
