@@ -68,18 +68,11 @@ class MissionAssetTestCase(TestCase):
         asset_type = self.assets.create_asset_type()
         asset_name = 'test_asset'
         asset = self.assets.create_asset(name=asset_name, asset_type=asset_type)
-        asset_details_url = f'/assets/{asset.pk}/'
         asset_mission_url = f'/assets/{asset.pk}/mission/'
         mission_asset = self.add_asset_to_mission(asset=asset)
 
         # Pure asset data comes from the asset endpoint
-        response = self.smm.client1.get(asset_details_url, HTTP_ACCEPT='application/json')
-        self.assertEqual(response.status_code, 200)
-        json_data = response.json()
-        self.assertEqual(json_data['asset_id'], asset.id)
-        self.assertEqual(json_data['name'], asset_name)
-        self.assertEqual(json_data['asset_type'], asset_type.name)
-        self.assertEqual(json_data['owner'], asset.owner.username)
+        self.assets.check_asset_details(self, asset)
 
         # Mission/search context comes from the mission endpoint
         response = self.smm.client1.get(asset_mission_url, HTTP_ACCEPT='application/json')
@@ -127,15 +120,7 @@ class MissionAssetTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         json_data = response.json()
         self.assertEqual(len(json_data['last_command']), 0)
-        response = self.smm.client1.post(asset_report_position_url, {
-            'lat': -43.5,
-            'lng': 172.5,
-            'fix': 3,
-            'alt': 0,
-            'heading': 0,
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content.decode('utf8'), 'Continue')
+        self.assets.report_position_continue(self, asset)
 
         # Add the asset to the mission so it it is selectable
         self.add_asset_to_mission(asset=asset)
