@@ -117,6 +117,9 @@ class MissionUser(models.Model):
         ]
 
 
+_UNSET = object()
+
+
 class MissionAsset(models.Model):
     """
     An asset/mission association.
@@ -130,14 +133,21 @@ class MissionAsset(models.Model):
     remover = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='remover%(app_label)s_%(class)s_related', null=True, blank=True)
     removed = models.DateTimeField(null=True, blank=True)
 
-    def as_object(self):
+    def as_object(self, asset_status=_UNSET):
         """
         return this mission asset as a json object
+
+        Pass a pre-fetched AssetStatus (or None) as asset_status to avoid a
+        per-asset query when serializing many mission assets.
         """
+        if asset_status is _UNSET:
+            asset_obj = self.asset.as_object()
+        else:
+            asset_obj = self.asset.as_object(status=asset_status)
         return {
             'id': self.pk,
             'mission': self.mission.pk,
-            'asset': self.asset.as_object(),
+            'asset': asset_obj,
             'creator': str(self.creator) if self.creator else None,
             'added': self.added,
             'remover': str(self.remover) if self.remover else None,

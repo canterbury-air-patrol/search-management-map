@@ -9,13 +9,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
 from django.db import transaction
-from django.db.models import OuterRef, Subquery, Exists
+from django.db.models import OuterRef, Prefetch, Subquery, Exists
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
 
-from assets.models import Asset
+from assets.models import Asset, AssetStatus
 from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import asset_is_operator, get_organization_from_id
 from organization.models import Organization, OrganizationMember, OrganizationAsset
@@ -45,10 +45,27 @@ class MissionDetailsView(View):
         """
         latest_status_subquery = MissionAssetStatus.objects.filter(mission_asset=OuterRef('pk')).order_by('-since').values('status__name')[:1]
         latest_since_subquery = MissionAssetStatus.objects.filter(mission_asset=OuterRef('pk')).order_by('-since').values('since')[:1]
-        mission_assets = MissionAsset.objects.filter(mission=mission_user.mission).annotate(status=Subquery(latest_status_subquery), status_since=Subquery(latest_since_subquery))
+        mission_assets = (
+            MissionAsset.objects.filter(mission=mission_user.mission)
+            .annotate(
+                status=Subquery(latest_status_subquery),
+                status_since=Subquery(latest_since_subquery),
+            )
+            .prefetch_related(
+                Prefetch(
+                    'asset__assetstatus_set',
+                    queryset=AssetStatus.objects.select_related('status')
+                    .order_by('asset', '-since')
+                    .distinct('asset'),
+                    to_attr='prefetched_statuses',
+                )
+            )
+        )
         assets_json = []
         for ma in mission_assets:
-            ma_json = ma.as_object()
+            prefetched = getattr(ma.asset, 'prefetched_statuses', [])
+            asset_status = prefetched[0] if prefetched else None
+            ma_json = ma.as_object(asset_status=asset_status)
             ma_json['status'] = {
                 'name': getattr(ma, 'status'),
                 'since': getattr(ma, 'status_since'),
