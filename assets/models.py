@@ -65,10 +65,17 @@ class Asset(models.Model):
             return self.asset_type.icon.get_url()
         return None
 
-    def as_object(self):
+    _UNSET = object()
+
+    def as_object(self, status=_UNSET):
         """
         Convert this asset to an object that is suitable for returning via JsonResponse
+
+        Pass status=None to skip the status lookup entirely, or pass a pre-fetched
+        AssetStatus instance to avoid an extra query when listing many assets.
         """
+        if status is type(self)._UNSET:
+            status = AssetStatus.current_for_asset(self)
         data = {
             'id': self.pk,
             'name': self.name,
@@ -76,7 +83,7 @@ class Asset(models.Model):
             'type_name': self.asset_type.name,
             'owner': str(self.owner)
         }
-        if status := AssetStatus.current_for_asset(self):
+        if status:
             data['status'] = str(status.status)
             data['status_inop'] = status.status.inop
             data['status_since'] = status.since
