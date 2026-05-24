@@ -98,6 +98,12 @@ class OrganizationMember(models.Model):
         """
         return cls.objects.filter(user=user, removed__isnull=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'removed']),
+            models.Index(fields=['organization', 'user', 'removed']),
+        ]
+
 
 class OrganizationAsset(models.Model):
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name='organization_%(app_label)s_%(class)s_related')
