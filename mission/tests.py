@@ -89,7 +89,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.delete(f'/mission/{self.mission_pk}/assets/{asset.pk}/', follow=True)
+        return client.delete(f'/mission/{self.mission_pk}/assets/{asset.pk}/')
 
     def get_asset_list(self, client=None, include_removed=False):
         """
@@ -408,7 +408,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Remove the asset
         response = mission.remove_asset(self.asset, client=self.smm.client1)
-        self.assertEqual(response.redirect_chain[0][1], 302)
+        self.assertEqual(response.status_code, 200)
         mission_asset = MissionAsset.objects.get(mission=mission.get_object(), asset=self.asset)
         self.assertIsNotNone(mission_asset.removed)
         self.assertEqual(mission_asset.remover.username, self.smm.user1.username)
@@ -433,7 +433,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(assets_data['assets'][0]['type_name'], self.asset_type.name)
         # Remove the asset
         response = mission.remove_asset(self.asset, client=self.smm.client1)
-        self.assertEqual(response.redirect_chain[0][1], 302)
+        self.assertEqual(response.status_code, 200)
         response = mission.get_asset_list(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
