@@ -6,14 +6,14 @@
         <link rel="stylesheet" href="pretty.css">
         <script type="module" src="pretty.js"></script>
         <script>
-            $(window).on('pageshow', function(){
-                 $("#mission_create_btn").attr("disabled", false);
+            window.addEventListener('pageshow', function(){
+                document.getElementById('mission_create_btn').disabled = false;
             });
         </script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
     </head>
     <body style="height: 100%">
-        <form method="POST" onsubmit='$("#mission_create_btn").attr("disabled", true)'>
+        <form method="POST" onsubmit='document.getElementById("mission_create_btn").disabled = true'>
             {% csrf_token %}
             <table>
                 {{ form.as_table }}
