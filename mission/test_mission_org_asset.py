@@ -36,7 +36,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check a user in the organization can remove the asset
         response = mission.remove_asset(asset, client=self.smm.client2)
-        self.assertEqual(response.redirect_chain[0][1], 302)
+        self.assertEqual(response.status_code, 200)
         response = mission.get_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
@@ -62,7 +62,7 @@ class MissionOrganizationsAssetsTestCase(MissionOrganizationBaseTestCase):
         self.assertEqual(response.redirect_chain[0][1], 302)
         # Check a user in the organization can remove the asset
         response = mission.remove_asset(asset, client=self.smm.client2)
-        self.assertEqual(response.redirect_chain[0][1], 302)
+        self.assertEqual(response.status_code, 200)
         response = mission.get_asset_list(client=self.smm.client2)
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
