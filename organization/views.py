@@ -1,4 +1,4 @@
-from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse, HttpResponse
+from django.http import HttpResponseBadRequest, HttpResponseForbidden, JsonResponse, HttpResponse
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
@@ -140,23 +140,24 @@ def organization_asset_list(request, organization_id):
     return JsonResponse({'assets': [oa.as_object() for oa in organization_assets]})
 
 
-@login_required
-@organization_assets_admin
-@asset_is_owner
-def organization_asset_modify(request, organization_member, asset):
-    """
-    Modify the role/membership of an asset
-    """
-    if request.method == 'POST':
-        # Create/modify the membership
+@method_decorator(login_required, name="dispatch")
+@method_decorator(organization_assets_admin, name="dispatch")
+@method_decorator(asset_is_owner, name="dispatch")
+class OrganizationAssetView(View):
+    def post(self, request, organization_member, asset):
         try:
             oa = OrganizationAsset.objects.get(organization=organization_member.organization, asset=asset)
         except ObjectDoesNotExist:
             oa = OrganizationAsset(organization=organization_member.organization, asset=asset, added_by=request.user)
             oa.save()
         return JsonResponse(oa.as_object())
-    else:
-        return HttpResponseNotAllowed(['POST'])
+
+    def delete(self, request, organization_member, asset):
+        oa = get_object_or_404(OrganizationAsset, organization=organization_member.organization, asset=asset, removed__isnull=True)
+        oa.removed = timezone.now()
+        oa.removed_by = request.user
+        oa.save()
+        return HttpResponse('')
 
 
 @login_required
