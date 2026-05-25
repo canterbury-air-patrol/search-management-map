@@ -98,11 +98,22 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
 }
 
 interface OrganizationAssetRowProps {
+  organizationId: number
   organization_asset: OrganizationAssetData
   showButtons: boolean
 }
 
 class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, never> {
+  constructor(props: OrganizationAssetRowProps) {
+    super(props)
+    this.delete = this.delete.bind(this)
+  }
+
+  delete() {
+    const { organization_asset } = this.props
+    smmDelete(`/organization/${this.props.organizationId}/assets/${organization_asset.asset.id}/`)
+  }
+
   render() {
     const organizationAsset = this.props.organization_asset
     const dataFields = []
@@ -257,13 +268,14 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
 }
 
 interface OrganizationAssetListProps {
+  organizationId: number
   organization_assets?: OrganizationAssetData[]
 }
 
 class OrganizationAssetList extends React.Component<OrganizationAssetListProps, never> {
   render() {
     const organizationAssetRows = this.props.organization_assets?.map((organizationAsset) => (
-      <OrganizationAssetRow key={organizationAsset.id} organization_asset={organizationAsset} showButtons />
+      <OrganizationAssetRow key={organizationAsset.id} organizationId={this.props.organizationId} organization_asset={organizationAsset} showButtons />
     ))
     return (
       <Table responsive>
@@ -462,7 +474,7 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
     if (this.state.organizationDetails.role === 'Admin') {
       organizationSections.push(<OrganizationMemberAdd key="org_add_member" organizationId={this.props.organizationId} />)
     }
-    organizationSections.push(<OrganizationAssetList key="org_assets" organization_assets={this.state.organizationDetails.assets} />)
+    organizationSections.push(<OrganizationAssetList key="org_assets" organizationId={this.props.organizationId} organization_assets={this.state.organizationDetails.assets} />)
     organizationSections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={this.props.organizationId} />)
 
     return <div>{organizationSections}</div>
