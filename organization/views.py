@@ -57,28 +57,18 @@ class OrganizationView(View):
         return JsonResponse(organization.as_object(request.user))
 
 
-@login_required
-def organization_details(request, organization_id):
-    """
-    Dislay or provide the asset details
-    """
-    if request.method != 'GET':
-        return HttpResponseNotAllowed(['GET'])
-
-    organization = get_object_or_404(Organization, pk=organization_id)
-
-    # if json is requested, then send all the data this user is allowed to see
-    if "application/json" in request.META.get('HTTP_ACCEPT', ''):
-        organization_data = organization.as_object(request.user)
-
-        organization_assets = OrganizationAsset.objects.filter(organization=organization, removed__isnull=True)
-        organization_data['assets'] = [oa.as_object(org=False) for oa in organization_assets]
-        organization_members = OrganizationMember.objects.filter(organization=organization, removed__isnull=True)
-        organization_data['members'] = [om.as_object(org=False) for om in organization_members]
-
-        return JsonResponse(organization_data)
-
-    return render(request, 'organization/details.html', {'organization': organization})
+@method_decorator(login_required, name="dispatch")
+class OrganizationDetailView(View):
+    def get(self, request, organization_id):
+        organization = get_object_or_404(Organization, pk=organization_id)
+        if "application/json" in request.META.get('HTTP_ACCEPT', ''):
+            organization_data = organization.as_object(request.user)
+            organization_assets = OrganizationAsset.objects.filter(organization=organization, removed__isnull=True)
+            organization_data['assets'] = [oa.as_object(org=False) for oa in organization_assets]
+            organization_members = OrganizationMember.objects.filter(organization=organization, removed__isnull=True)
+            organization_data['members'] = [om.as_object(org=False) for om in organization_members]
+            return JsonResponse(organization_data)
+        return render(request, 'organization/details.html', {'organization': organization})
 
 
 @method_decorator(login_required, name="dispatch")
