@@ -573,28 +573,23 @@ def mission_asset_is_owner(mission_user, asset, user):
     return False
 
 
-@login_required
-@mission_is_member
-def mission_asset_remove(request, mission_user, asset_id):
-    """
-    Cease using an asset as part of this Mission
-    """
-    asset = get_object_or_404(Asset, pk=asset_id)
-    mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class MissionAssetView(View):
+    """Manage a single asset within a mission."""
 
-    if not mission_asset_is_owner(mission_user, asset, request.user):
-        return HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
-    mission_asset.remover = request.user
-    mission_asset.removed = timezone.now()
-    mission_asset.save()
-
-    timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=asset)
-
-    # Tell the asset
-    command = AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission)
-    command.save()
-
-    return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+    def delete(self, request, mission_user, asset_id):
+        """Remove an asset from the mission."""
+        asset = get_object_or_404(Asset, pk=asset_id)
+        mission_asset = get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
+        if not mission_asset_is_owner(mission_user, asset, request.user):
+            return HttpResponseForbidden('Only assets owners or a mission admin can remove assets')
+        mission_asset.remover = request.user
+        mission_asset.removed = timezone.now()
+        mission_asset.save()
+        timeline_record_mission_asset_remove(mission_user.mission, request.user, asset=asset)
+        AssetCommand(asset=mission_asset.asset, issued_by=mission_user.user, command='MC', reason='Removed from Mission', mission=mission_user.mission).save()
+        return HttpResponse('')
 
 
 @method_decorator(login_required, name="dispatch")

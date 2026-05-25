@@ -89,7 +89,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.get(f'/mission/{self.mission_pk}/assets/{asset.pk}/remove/', follow=True)
+        return client.delete(f'/mission/{self.mission_pk}/assets/{asset.pk}/', follow=True)
 
     def get_asset_list(self, client=None, include_removed=False):
         """

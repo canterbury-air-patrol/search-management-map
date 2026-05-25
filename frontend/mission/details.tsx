@@ -5,7 +5,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import { smmGet, smmGetJSON, smmPost, smmDelete } from '../ajax'
+import { smmGetJSON, smmPost, smmDelete } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
@@ -693,7 +693,7 @@ class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps
   }
 
   remove() {
-    smmGet(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/remove/`)
+    smmDelete(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/`)
   }
 
   render() {
