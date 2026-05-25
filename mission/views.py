@@ -172,26 +172,27 @@ def mission_list_data(request):
     return JsonResponse(data)
 
 
-@login_required
-def mission_new(request):
-    """
-    Create a new mission.
-    """
-    form = None
-    if request.method == 'POST':
+@method_decorator(login_required, name="dispatch")
+class MissionNewView(View):
+    """Create a new mission."""
+
+    def get(self, request):
+        """Render the mission creation form."""
+        return render(request, 'mission_create.html', {'form': MissionForm()})
+
+    def post(self, request):
+        """Handle mission creation form submission."""
         form = MissionForm(request.POST)
         if form.is_valid():
-            # Create the new mission
-            mission = Mission(mission_name=form.cleaned_data['mission_name'], mission_description=form.cleaned_data['mission_description'], creator=request.user)
+            mission = Mission(
+                mission_name=form.cleaned_data['mission_name'],
+                mission_description=form.cleaned_data['mission_description'],
+                creator=request.user,
+            )
             mission.save()
-            # Give the user who created this mission admin permissions
             MissionUser(mission=mission, user=request.user, permissions_admin=True, creator=request.user).save()
             return redirect(f'/mission/{mission.pk}/details/')
-
-    if form is None:
-        form = MissionForm()
-
-    return render(request, 'mission_create.html', {'form': form})
+        return render(request, 'mission_create.html', {'form': form})
 
 
 @method_decorator(login_required, name="dispatch")

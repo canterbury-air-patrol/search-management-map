@@ -21,7 +21,7 @@ urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/externalreferences/$', views.MissionExternalReferencesView.as_view(), name='mission_external_references'),
     re_path(r'^mission/(?P<mission_id>\d+)/externalreferences/(?P<ext_ref_id>\d+)/$', views.MissionExternalReferenceView.as_view(), name='mission_external_reference'),
     re_path(r'^mission/(?P<mission_id>\d+)/close/$', views.mission_close, name='mission_close'),
-    re_path(r'^mission/new/$', views.mission_new, name='mission_new'),
+    re_path(r'^mission/new/$', views.MissionNewView.as_view(), name='mission_new'),
     re_path(r'^mission/list/$', views.mission_list_data, name='mission_list_data'),
     re_path(r'^mission/asset/status/values/$', views.MissionAssetStatusValuesView.as_view()),
     re_path(r'^$', views.mission_list, name='mission_list'),
