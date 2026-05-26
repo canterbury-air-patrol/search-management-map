@@ -5,6 +5,7 @@ import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPost } from '../ajax'
 import { FormInputGroup } from '../components/FormInputGroup'
 import { DialogActions } from '../components/DialogActions'
+import { flattenPoints } from '../components/flattenPoints'
 
 interface Props {
   map: L.Map
@@ -50,11 +51,7 @@ export function PolygonAdderDialog({ map, missionId, initialPoints, replaces, in
   }
 
   function handleDone() {
-    const data: Record<string, string | number> = { label, points: positionsRef.current.length }
-    positionsRef.current.forEach((p, i) => {
-      data[`point${i}_lat`] = p.lat
-      data[`point${i}_lng`] = p.lng
-    })
+    const data = { label, ...flattenPoints(positionsRef.current) }
     if (replaces !== -1) {
       smmPost(`/data/userpolygons/${replaces}/replace/`, data)
     } else {
