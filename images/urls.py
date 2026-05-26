@@ -8,7 +8,7 @@ from django.urls import re_path
 from . import views
 
 urlpatterns = [
-    re_path(r'^mission/(?P<mission_id>\d+)/image/upload/$', views.image_upload, name='image_upload'),
+    re_path(r'^mission/(?P<mission_id>\d+)/image/upload/$', views.ImageUploadView.as_view(), name='image_upload'),
     re_path(r'^mission/(?P<mission_id>\d+)/image/list/all/$', views.images_list_all, name='images_list_all'),
     re_path(r'^mission/(?P<mission_id>\d+)/image/list/important/$', views.images_list_important, name='images_list_important'),
     re_path(r'^image/(?P<image_id>\d+)/full/$', views.image_get_full, name='image_get_full'),

@@ -3,9 +3,11 @@ Views for dealing with images uploaded by users
 
 """
 
-from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
+from django.utils.decorators import method_decorator
+from django.views import View
 
 from mission.decorators import mission_is_member, mission_is_member_no_variable
 from data.decorators import data_get_mission_id
@@ -18,26 +20,24 @@ from .view_helpers import upload_image_file
 from .models import GeoImage
 
 
-@mission_is_member
-def image_upload(request, mission_user):
-    """
-    All users (probably an asset) to upload an image with a location (and description)
-    """
-    if request.method == 'POST':
+@method_decorator(login_required, name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class ImageUploadView(View):
+    """Allow users (typically an asset) to upload an image with a location."""
+
+    def post(self, request, mission_user):
+        """Handle image upload."""
         form = UploadImageForm(request.POST, request.FILES)
         if form.is_valid():
             latitude = request.POST.get('latitude')
             longitude = request.POST.get('longitude')
-            point = None
             try:
                 point = Point(float(longitude), float(latitude))
             except (ValueError, TypeError):
                 return HttpResponseBadRequest('Invalid lat/long')
-
             upload_image_file(mission_user, form.cleaned_data['description'], point, request.FILES['file'])
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/map/')
-
-    return HttpResponseNotAllowed(['POST'])
+        return HttpResponseBadRequest()
 
 
 @login_required
