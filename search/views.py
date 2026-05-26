@@ -267,172 +267,128 @@ def search_completed_kml(request, mission_id, search_class):
     return to_kml(search_class, search_class.all_current(mission, started=True, finished=True))
 
 
-@login_required
-def sector_search_create(request):
-    """
-    Create a sector search
-    """
-    save = False
-    if request.method == 'POST':
-        poi_id = request.POST.get('poi_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        save = True
-    elif request.method == 'GET':
-        poi_id = request.GET.get('poi_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class SectorSearchCreateView(View):
+    """Create a sector search"""
 
-    poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview a sector search without saving"""
+        poi = get_object_or_404(GeoTimeLabel, pk=request.GET.get('poi_id'), geo_type='poi')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        params = SearchParams(poi, asset_type, request.user, request.GET.get('sweep_width'))
+        return to_geojson(Search, [Search.create_sector_search(params, save=False)])
 
-    search = Search.create_sector_search(SearchParams(poi, asset_type, request.user, sweep_width), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save a sector search"""
+        poi = get_object_or_404(GeoTimeLabel, pk=request.POST.get('poi_id'), geo_type='poi')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        params = SearchParams(poi, asset_type, request.user, request.POST.get('sweep_width'))
+        return to_geojson(Search, [Search.create_sector_search(params, save=True)])
 
 
-@login_required
-def expanding_box_search_create(request):
-    """
-    Create an expanding box search
-    """
-    save = False
-    if request.method == 'POST':
-        poi_id = request.POST.get('poi_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        iterations = request.POST.get('iterations')
-        first_bearing = request.POST.get('first_bearing')
-        save = True
-    elif request.method == 'GET':
-        poi_id = request.GET.get('poi_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-        iterations = request.GET.get('iterations')
-        first_bearing = request.GET.get('first_bearing')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class ExpandingBoxSearchCreateView(View):
+    """Create an expanding box search"""
 
-    poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview an expanding box search without saving"""
+        poi = get_object_or_404(GeoTimeLabel, pk=request.GET.get('poi_id'), geo_type='poi')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        sweep_width = float(request.GET.get('sweep_width'))
+        try:
+            first_bearing = int(request.GET.get('first_bearing'))
+        except TypeError:
+            first_bearing = 0
+        params = ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, request.GET.get('iterations'), first_bearing)
+        return to_geojson(Search, [Search.create_expanding_box_search(params, save=False)])
 
-    sweep_width = float(sweep_width)
-    try:
-        first_bearing = int(first_bearing)
-    except TypeError:
-        first_bearing = 0
-
-    search = Search.create_expanding_box_search(ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, iterations, first_bearing), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save an expanding box search"""
+        poi = get_object_or_404(GeoTimeLabel, pk=request.POST.get('poi_id'), geo_type='poi')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        sweep_width = float(request.POST.get('sweep_width'))
+        try:
+            first_bearing = int(request.POST.get('first_bearing'))
+        except TypeError:
+            first_bearing = 0
+        params = ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, request.POST.get('iterations'), first_bearing)
+        return to_geojson(Search, [Search.create_expanding_box_search(params, save=True)])
 
 
-@login_required
-def track_line_search_create(request):
-    """
-    Create a trackline search
-    """
-    save = False
-    if request.method == 'POST':
-        line_id = request.POST.get('line_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        save = True
-    elif request.method == 'GET':
-        line_id = request.GET.get('line_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class TrackLineSearchCreateView(View):
+    """Create a track line search"""
 
-    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview a track line search without saving"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.GET.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        params = SearchParams(line, asset_type, request.user, request.GET.get('sweep_width'))
+        return to_geojson(Search, [Search.create_track_line_search(params, save=False)])
 
-    search = Search.create_track_line_search(SearchParams(line, asset_type, request.user, sweep_width), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save a track line search"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.POST.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        params = SearchParams(line, asset_type, request.user, request.POST.get('sweep_width'))
+        return to_geojson(Search, [Search.create_track_line_search(params, save=True)])
 
 
-@login_required
-def shore_line_search_create(request):
-    """
-    Create a shore line search
-    """
-    save = False
-    if request.method == 'POST':
-        line_id = request.POST.get('line_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        save = True
-    elif request.method == 'GET':
-        line_id = request.GET.get('line_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class ShoreLineSearchCreateView(View):
+    """Create a shore line search"""
 
-    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview a shore line search without saving"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.GET.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        params = SearchParams(line, asset_type, request.user, request.GET.get('sweep_width'))
+        return to_geojson(Search, [Search.create_shore_line_search(params, save=False)])
 
-    search = Search.create_shore_line_search(SearchParams(line, asset_type, request.user, sweep_width), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save a shore line search"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.POST.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        params = SearchParams(line, asset_type, request.user, request.POST.get('sweep_width'))
+        return to_geojson(Search, [Search.create_shore_line_search(params, save=True)])
 
 
-@login_required
-def track_creeping_line_search_create(request):
-    """
-    Create a creeping line ahead search (from a line)
-    """
-    save = False
-    if request.method == 'POST':
-        line_id = request.POST.get('line_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        width = request.POST.get('width')
-        save = True
-    elif request.method == 'GET':
-        line_id = request.GET.get('line_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-        width = request.GET.get('width')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class TrackCreepingLineSearchCreateView(View):
+    """Create a track creeping line search"""
 
-    line = get_object_or_404(GeoTimeLabel, pk=line_id, geo_type='line')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview a track creeping line search without saving"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.GET.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        params = TrackLineCreepingSearchParams(line, asset_type, request.user, request.GET.get('sweep_width'), request.GET.get('width'))
+        return to_geojson(Search, [Search.create_track_line_creeping_search(params, save=False)])
 
-    search = Search.create_track_line_creeping_search(TrackLineCreepingSearchParams(line, asset_type, request.user, sweep_width, width), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save a track creeping line search"""
+        line = get_object_or_404(GeoTimeLabel, pk=request.POST.get('line_id'), geo_type='line')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        params = TrackLineCreepingSearchParams(line, asset_type, request.user, request.POST.get('sweep_width'), request.POST.get('width'))
+        return to_geojson(Search, [Search.create_track_line_creeping_search(params, save=True)])
 
 
-@login_required
-def polygon_creeping_line_search_create(request):
-    """
-    Create a creeping line ahead search (from a polygon)
-    """
-    save = False
-    if request.method == 'POST':
-        poly_id = request.POST.get('poly_id')
-        asset_type_id = request.POST.get('asset_type_id')
-        sweep_width = request.POST.get('sweep_width')
-        save = True
-    elif request.method == 'GET':
-        poly_id = request.GET.get('poly_id')
-        asset_type_id = request.GET.get('asset_type_id')
-        sweep_width = request.GET.get('sweep_width')
-    else:
-        return HttpResponseNotFound('Unknown Method')
+@method_decorator(login_required, name="dispatch")
+class PolygonCreepingLineSearchCreateView(View):
+    """Create a polygon creeping line search"""
 
-    poly = get_object_or_404(GeoTimeLabel, pk=poly_id, geo_type='polygon')
-    asset_type = get_object_or_404(AssetType, pk=asset_type_id)
+    def get(self, request):
+        """Preview a polygon creeping line search without saving"""
+        poly = get_object_or_404(GeoTimeLabel, pk=request.GET.get('poly_id'), geo_type='polygon')
+        asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
+        params = SearchParams(poly, asset_type, request.user, request.GET.get('sweep_width'))
+        return to_geojson(Search, [Search.create_polygon_creeping_line_search(params, save=False)])
 
-    search = Search.create_polygon_creeping_line_search(SearchParams(poly, asset_type, request.user, sweep_width), save=save)
-
-    return to_geojson(Search, [search])
+    def post(self, request):
+        """Create and save a polygon creeping line search"""
+        poly = get_object_or_404(GeoTimeLabel, pk=request.POST.get('poly_id'), geo_type='polygon')
+        asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
+        params = SearchParams(poly, asset_type, request.user, request.POST.get('sweep_width'))
+        return to_geojson(Search, [Search.create_polygon_creeping_line_search(params, save=True)])
 
 
 @method_decorator(login_required, name="dispatch")
