@@ -3,6 +3,8 @@ Views for dealing with images uploaded by users
 
 """
 
+import json
+
 from django.http import HttpResponseBadRequest, HttpResponseRedirect, FileResponse, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
@@ -104,31 +106,21 @@ def image_get_thumbnail(request, image):
     return FileResponse(open(f'images/thumbnail/{image.pk}.data', 'rb'), filename=f'thumbnail-{image.pk}.{image.original_format}')
 
 
-@login_required
-@image_from_id
-@data_get_mission_id(arg_name='image')
-@mission_is_member
-def image_priority_set(request, image, mission_user):
-    """
-    Set the priority flag on an image
-    """
-    image.priority = True
-    image.save()
-    timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
+@method_decorator(login_required, name="dispatch")
+@method_decorator(image_from_id, name="dispatch")
+@method_decorator(data_get_mission_id(arg_name='image'), name="dispatch")
+@method_decorator(mission_is_member, name="dispatch")
+class ImagePriorityView(View):
+    """Set or unset the priority flag on an image via PATCH."""
 
-    return HttpResponse("Done")
-
-
-@login_required
-@image_from_id
-@data_get_mission_id(arg_name='image')
-@mission_is_member
-def image_priority_unset(request, image, mission_user):
-    """
-    UnSet the priority flag on an image
-    """
-    image.priority = False
-    image.save()
-    timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
-
-    return HttpResponse("Done")
+    def patch(self, request, image, mission_user):
+        """Update image priority from JSON body {"priority": true/false}."""
+        try:
+            body = json.loads(request.body)
+            priority = bool(body.get('priority'))
+        except (ValueError, KeyError):
+            return HttpResponseBadRequest('Expected JSON body with {"priority": true/false}')
+        image.priority = priority
+        image.save()
+        timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
+        return HttpResponse("Done")

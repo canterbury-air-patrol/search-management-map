@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom/client'
 
 import { SMMRealtime } from '../smmmap'
 import { SMMImageGeoJSON } from './types'
-import { smmGet } from '../ajax'
+import { smmPatch } from '../ajax'
 import { ImagePopup } from './ImagePopup'
 
 abstract class SMMImage extends SMMRealtime {
@@ -50,8 +50,8 @@ abstract class SMMImage extends SMMRealtime {
         coords={image.geometry.coordinates}
         priority={image.properties.priority}
         missionId={this.missionId}
-        onPrioritize={() => smmGet(`/image/${imageID}/priority/set/`)}
-        onDeprioritize={() => smmGet(`/image/${imageID}/priority/unset/`)}
+        onPrioritize={() => smmPatch(`/image/${imageID}/priority/`, { priority: true })}
+        onDeprioritize={() => smmPatch(`/image/${imageID}/priority/`, { priority: false })}
       />
     )
     layer.bindPopup(container)
