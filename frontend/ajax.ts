@@ -95,6 +95,23 @@ function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (d
   )
 }
 
+function smmPatch(url: string, data: Record<string, unknown>, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
+  return request(
+    url,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
+      },
+      body: JSON.stringify(data)
+    },
+    (r) => r.text(),
+    success,
+    error
+  )
+}
+
 function smmDelete(url: string, success?: (data: void) => void, error?: (data?: unknown) => void) {
   return request<void>(
     url,
@@ -110,4 +127,4 @@ function smmDelete(url: string, success?: (data: void) => void, error?: (data?: 
   )
 }
 
-export { smmGet, smmGetJSON, smmPost, smmPostBody, smmDelete }
+export { smmGet, smmGetJSON, smmPost, smmPostBody, smmPatch, smmDelete }
