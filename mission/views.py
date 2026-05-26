@@ -404,34 +404,6 @@ class MissionUsersView(View):
         return render(request, 'mission_user_add.html', {'form': form})
 
 
-@login_required
-@mission_is_member
-@mission_can_add_user
-def mission_user_add(request, mission_user):
-    """
-    Add a User to a Mission
-    """
-    form = None
-    if request.method == 'POST':
-        form = MissionUserForm(request.POST)
-        if form.is_valid():
-            # Check if this user is already in this mission
-            try:
-                mission_user = MissionUser.objects.get(user=form.cleaned_data['user'], mission=mission_user.mission)
-                return HttpResponseForbidden("User is already in this Mission")
-            except ObjectDoesNotExist:
-                # Create the new mission<->user
-                mission_user = MissionUser(mission=mission_user.mission, user=form.cleaned_data['user'], creator=request.user)
-                mission_user.save()
-                timeline_record_mission_user_add(mission_user.mission, request.user, form.cleaned_data['user'])
-                return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
-
-    if form is None:
-        form = MissionUserForm()
-
-    return render(request, 'mission_user_add.html', {'form': form})
-
-
 @method_decorator(login_required, name="dispatch")
 @method_decorator(get_user_from_id, name="dispatch")
 @method_decorator(mission_is_member, name="dispatch")
