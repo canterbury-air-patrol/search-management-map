@@ -1,6 +1,6 @@
 import { SMMRealtime } from '../smmmap'
 import { TotalDriftVectorData } from './types'
-import { smmGet } from '../ajax'
+import { smmDelete } from '../ajax'
 
 class SMMMarineVector extends SMMRealtime {
   constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
@@ -37,7 +37,7 @@ class SMMMarineVector extends SMMRealtime {
           {
             label: 'Delete',
             onclick: function () {
-              smmGet(`/sar/marine/vectors/${tdvID}/delete/`)
+              smmDelete(`/sar/marine/vectors/${tdvID}/`)
             },
             btnClass: 'btn-danger'
           }
