@@ -1,6 +1,7 @@
 """
 Mission Create/Management Views.
 """
+import json
 
 from django.contrib.gis.geos import Point
 from django.core.exceptions import ObjectDoesNotExist
@@ -437,7 +438,7 @@ class MissionUserView(View):
         setattr(target_mission_user, f"permissions_{permission_type}", value)
         timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, permission_type, value)
 
-    def post(self, request, mission_user, user):
+    def patch(self, request, mission_user, user):
         """
         Update the permissions of a user
         """
@@ -445,20 +446,24 @@ class MissionUserView(View):
             return HttpResponseForbidden("Not an admin")
         if mission_user.user == user:
             return HttpResponseForbidden("Cannot modify yourself")
-        admin = request.POST.get('admin', None)
-        add_organization = request.POST.get('add_organization', None)
-        add_user = request.POST.get('add_user', None)
+        try:
+            body = json.loads(request.body)
+        except ValueError:
+            return HttpResponseBadRequest('Expected JSON body')
+        admin = body.get('admin', None)
+        add_organization = body.get('add_organization', None)
+        add_user = body.get('add_user', None)
 
         if admin is not None or add_organization is not None or add_user is not None:
             target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
             if admin is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'admin', admin.lower() == "true")
+                self._update_user_permissions(mission_user, target_mission_user, 'admin', bool(admin))
             if add_organization is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'organization_add', add_organization.lower() == "true")
+                self._update_user_permissions(mission_user, target_mission_user, 'organization_add', bool(add_organization))
             if add_user is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'user_add', add_user.lower() == "true")
+                self._update_user_permissions(mission_user, target_mission_user, 'user_add', bool(add_user))
             target_mission_user.save()
-        return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
+        return HttpResponse('')
 
 
 @method_decorator(login_required, name="dispatch")
