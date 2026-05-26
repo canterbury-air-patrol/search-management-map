@@ -41,7 +41,7 @@ class MissionTestWrapper:
             client = self.smm.client1
         if user is None:
             user = self.smm.user2
-        return client.post(f'/mission/{self.mission_pk}/users/add/', data={
+        return client.post(f'/mission/{self.mission_pk}/users/', data={
             'user': user.pk,
         })
 
