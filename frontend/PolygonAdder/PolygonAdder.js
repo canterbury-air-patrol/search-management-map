@@ -1,12 +1,12 @@
 import React from 'react'
 import L from 'leaflet'
 
-import { PolygonAdderDialog } from './PolygonAdderDialog'
+import { VectorAdderDialog } from '../components/VectorAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 L.PolygonAdder = function (map, missionId, currentPoints, replaces, label) {
   renderInLeafletDialog(map, (onClose) => (
-    <PolygonAdderDialog map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
+    <VectorAdderDialog type="polygon" map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
   ))
 }
 
