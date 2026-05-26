@@ -3,6 +3,8 @@ import L from 'leaflet'
 
 import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPost } from '../ajax'
+import { FormInputGroup } from '../components/FormInputGroup'
+import { DialogActions } from '../components/DialogActions'
 
 interface Props {
   map: L.Map
@@ -29,12 +31,9 @@ export function POIAdderDialog({ map, missionId, initialPos, replaces, initialLa
 
   return (
     <div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Name</span>
-        </div>
+      <FormInputGroup label="Name">
         <textarea autoFocus className="form-control" rows={2} value={label} onChange={(e) => setLabel(e.target.value)} />
-      </div>
+      </FormInputGroup>
       <LatLngMarkerInput
         map={map}
         initialPos={initialPos}
@@ -42,14 +41,14 @@ export function POIAdderDialog({ map, missionId, initialPos, replaces, initialLa
           posRef.current = p
         }}
       />
-      <div className="btn-group">
+      <DialogActions>
         <button className="btn btn-primary" onClick={createOrReplace}>
           Create
         </button>
         <button className="btn btn-danger" onClick={onClose}>
           Cancel
         </button>
-      </div>
+      </DialogActions>
     </div>
   )
 }
