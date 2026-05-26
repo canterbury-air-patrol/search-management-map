@@ -63,9 +63,7 @@ class MissionTestWrapper:
             client = self.smm.client1
         if user is None:
             user = self.smm.user2
-        return client.post(f'/mission/{self.mission_pk}/users/{user.pk}/', data={
-            'admin': True,
-        })
+        return client.patch(f'/mission/{self.mission_pk}/users/{user.pk}/', data='{"admin": true}', content_type='application/json')
 
     def close(self, client=None):
         """
@@ -261,7 +259,7 @@ class MissionTestCase(MissionBaseTestCase):
         mission_user = MissionUser.objects.get(mission=mission_obj, user=self.smm.user2)
         self.assertFalse(mission_user.is_admin())
         response = mission.make_admin(client=self.smm.client1, user=self.smm.user2)
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         mission_user = MissionUser.objects.get(mission=mission_obj, user=self.smm.user2)
         self.assertTrue(mission_user.is_admin())
 

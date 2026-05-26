@@ -5,7 +5,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import { smmGetJSON, smmPost, smmDelete } from '../ajax'
+import { smmGetJSON, smmPost, smmPatch, smmDelete } from '../ajax'
 
 import { SMMMissionTopBar } from '../menu/topbar'
 
@@ -486,27 +486,27 @@ class MissionDetailsUserRow extends React.Component<MissionDetailsUserRowProps, 
   }
 
   removeAdmin() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: false })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: false })
   }
 
   makeAdmin() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: true })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: true })
   }
 
   disableOrgAdd() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: false })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: false })
   }
 
   enableOrgAdd() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: true })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: true })
   }
 
   disableUserAdd() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: false })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: false })
   }
 
   enableUserAdd() {
-    smmPost(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: true })
+    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: true })
   }
 
   render() {
