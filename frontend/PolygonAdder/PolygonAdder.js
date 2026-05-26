@@ -1,26 +1,13 @@
 import React from 'react'
-import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
 import { PolygonAdderDialog } from './PolygonAdderDialog'
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 L.PolygonAdder = function (map, missionId, currentPoints, replaces, label) {
-  const container = document.createElement('div')
-  const dialog = L.control.dialog().setContent(container).addTo(map).hideClose()
-  const root = ReactDOM.createRoot(container)
-  root.render(
-    <PolygonAdderDialog
-      map={map}
-      missionId={missionId}
-      initialPoints={currentPoints}
-      replaces={replaces}
-      initialLabel={label}
-      onClose={() => {
-        root.unmount()
-        dialog.destroy()
-      }}
-    />
-  )
+  renderInLeafletDialog(map, (onClose) => (
+    <PolygonAdderDialog map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
+  ))
 }
 
 L.Control.PolygonAdder = L.Control.extend({

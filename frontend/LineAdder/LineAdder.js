@@ -1,26 +1,13 @@
 import React from 'react'
-import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
 import { LineAdderDialog } from './LineAdderDialog'
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
-  const container = document.createElement('div')
-  const dialog = L.control.dialog().setContent(container).addTo(map).hideClose()
-  const root = ReactDOM.createRoot(container)
-  root.render(
-    <LineAdderDialog
-      map={map}
-      missionId={missionId}
-      initialPoints={currentPoints}
-      replaces={replaces}
-      initialLabel={label}
-      onClose={() => {
-        root.unmount()
-        dialog.destroy()
-      }}
-    />
-  )
+  renderInLeafletDialog(map, (onClose) => (
+    <LineAdderDialog map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
+  ))
 }
 
 L.Control.LineAdder = L.Control.extend({
