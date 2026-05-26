@@ -1,27 +1,14 @@
 import React from 'react'
-import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
 import { POIAdderDialog } from './POIAdderDialog'
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 L.POIAdder = function (map, missionId, pos, replaces, label) {
-  const container = document.createElement('div')
-  const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
-  const root = ReactDOM.createRoot(container)
-  root.render(
-    <POIAdderDialog
-      map={map}
-      missionId={missionId}
-      initialPos={pos}
-      replaces={replaces}
-      initialLabel={label}
-      onClose={() => {
-        root.unmount()
-        dialog.destroy()
-      }}
-    />
-  )
+  renderInLeafletDialog(map, (onClose) => <POIAdderDialog map={map} missionId={missionId} initialPos={pos} replaces={replaces} initialLabel={label} onClose={onClose} />, {
+    initOpen: true
+  })
 }
 
 L.Control.POIAdder = L.Control.extend({
