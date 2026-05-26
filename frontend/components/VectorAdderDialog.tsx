@@ -3,12 +3,15 @@ import L from 'leaflet'
 
 import { LatLngMarkerInput } from '../LatLngMarkerInput'
 import { smmPost } from '../ajax'
-import { FormInputGroup } from '../components/FormInputGroup'
-import { DialogActions } from '../components/DialogActions'
-import { flattenPoints } from '../components/flattenPoints'
+import { FormInputGroup } from './FormInputGroup'
+import { DialogActions } from './DialogActions'
+import { flattenPoints } from './flattenPoints'
+
+const resourceMap = { line: 'userlines', polygon: 'userpolygons' } as const
 
 interface Props {
   map: L.Map
+  type: 'line' | 'polygon'
   missionId: number
   initialPoints: L.LatLng[]
   replaces: number
@@ -16,30 +19,31 @@ interface Props {
   onClose: () => void
 }
 
-export function PolygonAdderDialog({ map, missionId, initialPoints, replaces, initialLabel, onClose }: Props) {
+export function VectorAdderDialog({ map, type, missionId, initialPoints, replaces, initialLabel, onClose }: Props) {
   const [label, setLabel] = useState(initialLabel)
   const [positions, setPositions] = useState<L.LatLng[]>(initialPoints)
   const positionsRef = useRef<L.LatLng[]>([...initialPoints])
-  const polygonRef = useRef<L.Polygon | null>(null)
+  const shapeRef = useRef<L.Polyline | L.Polygon | null>(null)
 
   useEffect(() => {
-    const polygon = L.polygon(positionsRef.current, { color: 'yellow' }).addTo(map)
-    polygonRef.current = polygon
+    const shape = type === 'line' ? L.polyline(positionsRef.current, { color: 'yellow' }) : L.polygon(positionsRef.current, { color: 'yellow' })
+    shape.addTo(map)
+    shapeRef.current = shape
     return () => {
-      polygon.remove()
+      shape.remove()
     }
   }, [])
 
   function handlePositionChange(index: number, pos: L.LatLng) {
     positionsRef.current[index] = pos
-    polygonRef.current?.setLatLngs(positionsRef.current)
+    shapeRef.current?.setLatLngs(positionsRef.current)
   }
 
   function addPoint() {
     const next = [...positionsRef.current, map.getCenter()]
     positionsRef.current = next
     setPositions(next)
-    polygonRef.current?.setLatLngs(next)
+    shapeRef.current?.setLatLngs(next)
   }
 
   function removePoint() {
@@ -47,15 +51,16 @@ export function PolygonAdderDialog({ map, missionId, initialPoints, replaces, in
     const next = positionsRef.current.slice(0, -1)
     positionsRef.current = next
     setPositions(next)
-    polygonRef.current?.setLatLngs(next)
+    shapeRef.current?.setLatLngs(next)
   }
 
   function handleDone() {
+    const resource = resourceMap[type]
     const data = { label, ...flattenPoints(positionsRef.current) }
     if (replaces !== -1) {
-      smmPost(`/data/userpolygons/${replaces}/replace/`, data)
+      smmPost(`/data/${resource}/${replaces}/replace/`, data)
     } else {
-      smmPost(`/mission/${missionId}/data/userpolygons/create/`, data)
+      smmPost(`/mission/${missionId}/data/${resource}/create/`, data)
     }
     onClose()
   }

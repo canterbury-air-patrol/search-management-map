@@ -1,12 +1,12 @@
 import React from 'react'
 import L from 'leaflet'
 
-import { LineAdderDialog } from './LineAdderDialog'
+import { VectorAdderDialog } from '../components/VectorAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
   renderInLeafletDialog(map, (onClose) => (
-    <LineAdderDialog map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
+    <VectorAdderDialog type="line" map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
   ))
 }
 
