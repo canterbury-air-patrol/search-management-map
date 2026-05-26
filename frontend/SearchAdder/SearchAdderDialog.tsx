@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
 import { smmGetJSON, smmPost } from '../ajax'
+import { FormInputGroup } from '../components/FormInputGroup'
+import { DialogActions } from '../components/DialogActions'
 
 type SearchType = 'sector' | 'expanding-box' | 'track-line' | 'shore-line' | 'creeping-line'
 
@@ -96,10 +98,7 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
 
   return (
     <div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Search Type</span>
-        </div>
+      <FormInputGroup label="Search Type">
         <select className="form-control" value={searchType} onChange={(e) => setSearchType(e.target.value as SearchType)}>
           {objectType === 'point' && (
             <>
@@ -116,11 +115,8 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
           )}
           {objectType === 'polygon' && <option value="creeping-line">Creeping Line Ahead</option>}
         </select>
-      </div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Asset Type</span>
-        </div>
+      </FormInputGroup>
+      <FormInputGroup label="Asset Type">
         <select className="form-control" value={assetTypeId} onChange={(e) => setAssetTypeId(e.target.value)}>
           {assetTypes.map((at) => (
             <option key={at.id} value={at.id}>
@@ -128,38 +124,26 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
             </option>
           ))}
         </select>
-      </div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Sweep Width</span>
-        </div>
+      </FormInputGroup>
+      <FormInputGroup label="Sweep Width">
         <input className="form-control form-control-sm" type="number" value={sweepWidth} onChange={(e) => setSweepWidth(e.target.value)} />
-      </div>
+      </FormInputGroup>
       {showIterations && (
-        <div className="input-group input-group-sm mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Iterations</span>
-          </div>
+        <FormInputGroup label="Iterations">
           <input className="form-control form-control-sm" type="number" value={iterations} onChange={(e) => setIterations(e.target.value)} />
-        </div>
+        </FormInputGroup>
       )}
       {showIterations && (
-        <div className="input-group input-group-sm mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">First Bearing</span>
-          </div>
+        <FormInputGroup label="First Bearing">
           <input className="form-control form-control-sm" type="number" min={0} max={359} value={firstBearing} onChange={(e) => setFirstBearing(e.target.value)} />
-        </div>
+        </FormInputGroup>
       )}
       {showWidth && (
-        <div className="input-group input-group-sm mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Width (across line)</span>
-          </div>
+        <FormInputGroup label="Width (across line)">
           <input className="form-control form-control-sm" type="number" min={0} value={width} onChange={(e) => setWidth(e.target.value)} />
-        </div>
+        </FormInputGroup>
       )}
-      <div className="btn-group">
+      <DialogActions>
         <button className="btn btn-warning" onClick={handlePreview}>
           Preview
         </button>
@@ -169,7 +153,7 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
         <button className="btn btn-danger" onClick={handleCancel}>
           Cancel
         </button>
-      </div>
+      </DialogActions>
     </div>
   )
 }
