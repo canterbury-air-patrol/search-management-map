@@ -2,6 +2,12 @@ import React, { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
 import { smmGetJSON, smmPost } from '../ajax'
+
+interface CommandFormData {
+  assets: { id: number; name: string }[]
+  commands: { value: string; label: string }[]
+  requires_position: string[]
+}
 import { LatLngMarkerInput } from '../LatLngMarkerInput'
 
 interface Props {
@@ -21,13 +27,12 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
   const gotoPos = useRef<L.LatLng>(map.getCenter())
 
   useEffect(() => {
-    smmGetJSON(`/mission/${missionId}/assets/command/set/`, {}, (data) => {
-      const d = data as { assets: { id: number; name: string }[]; commands: { value: string; label: string }[]; requires_position: string[] }
-      setAssets(d.assets)
-      setCommands(d.commands)
-      setRequiresPosition(d.requires_position)
-      if (d.assets.length > 0) setAssetId(String(d.assets[0].id))
-      if (d.commands.length > 0) setCommand(d.commands[0].value)
+    smmGetJSON<CommandFormData>(`/mission/${missionId}/assets/command/set/`, {}).then((data) => {
+      setAssets(data.assets)
+      setCommands(data.commands)
+      setRequiresPosition(data.requires_position)
+      if (data.assets.length > 0) setAssetId(String(data.assets[0].id))
+      if (data.commands.length > 0) setCommand(data.commands[0].value)
     })
   }, [])
 
