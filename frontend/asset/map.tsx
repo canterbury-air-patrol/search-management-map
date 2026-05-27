@@ -155,7 +155,6 @@ class SMMAssets extends SMMRealtime {
     this.assetUpdate = this.assetUpdate.bind(this)
     this.assetLayer = this.assetLayer.bind(this)
     this.updateAssetNameMap = this.updateAssetNameMap.bind(this)
-    this.assetListCB = this.assetListCB.bind(this)
     this.assetNameMap = {}
     this.assetIconMap = {}
     this.assetStatusMap = {}
@@ -166,7 +165,8 @@ class SMMAssets extends SMMRealtime {
     return `/mission/${this.missionId}/data/assets/positions/latest/`
   }
 
-  assetListCB(data: { assets: Array<MissionAssetData> }) {
+  async updateAssetNameMap() {
+    const data = await smmGetJSON<{ assets: Array<MissionAssetData> }>(`/mission/${this.missionId}/assets/?include_removed=true`, {})
     for (const asset of data.assets) {
       this.assetNameMap[asset.id] = asset.name
       if (asset.status) {
@@ -176,10 +176,6 @@ class SMMAssets extends SMMRealtime {
         this.assetIconMap[asset.id] = asset.icon_url
       }
     }
-  }
-
-  updateAssetNameMap() {
-    smmGetJSON(`/mission/${this.missionId}/assets/?include_removed=true`, {}, this.assetListCB)
   }
 
   realtime() {

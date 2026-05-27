@@ -121,7 +121,7 @@ class SMMMap {
     L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
     L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
 
-    smmGetJSON('/map/tile/layers/', {}, this.mapLayersCallback)
+    smmGetJSON<Parameters<typeof this.mapLayersCallback>[0]>('/map/tile/layers/', {}).then(this.mapLayersCallback)
 
     this.layerControl.addTo(this.map)
     this.layerControlMaps.addTo(this.map)
