@@ -193,8 +193,6 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
 
     this.updateSelectedUser = this.updateSelectedUser.bind(this)
     this.addOrganizationMember = this.addOrganizationMember.bind(this)
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-    this.addOrgMemberCallback = this.addOrgMemberCallback.bind(this)
   }
 
   componentDidMount() {
@@ -207,20 +205,12 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
     this.timer = undefined
   }
 
-  updateDataResponse(data: { users: { id: number; username: string }[] }) {
-    this.setState(function (oldState) {
-      const newState: OrganizationMemberAddState = {
-        userList: data.users
-      }
-      if (oldState.userId === null && data.users.length > 0) {
-        newState.userId = data.users[0].id
-      }
-      return newState
-    })
-  }
-
   async updateData() {
-    await smmGetJSON(`/organization/${this.props.organizationId}/users/notmember/`, {}, this.updateDataResponse)
+    const data = await smmGetJSON<{ users: { id: number; username: string }[] }>(`/organization/${this.props.organizationId}/users/notmember/`, {})
+    this.setState((oldState) => ({
+      userList: data.users,
+      ...(oldState.userId === null && data.users.length > 0 ? { userId: data.users[0].id } : {})
+    }))
   }
 
   updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -229,13 +219,10 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
     this.setState({ userId: value })
   }
 
-  addOrgMemberCallback() {
-    this.setState({ userId: undefined })
-  }
-
-  addOrganizationMember() {
+  async addOrganizationMember() {
     const user = this.state.userList.find((user) => user.id === this.state.userId)
-    smmPost(`/organization/${this.props.organizationId}/user/${user?.username}/`, {}, this.addOrgMemberCallback)
+    await smmPost(`/organization/${this.props.organizationId}/user/${user?.username}/`, {})
+    this.setState({ userId: undefined })
   }
 
   render() {
@@ -321,8 +308,6 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
 
     this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
     this.addOrganizationAsset = this.addOrganizationAsset.bind(this)
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-    this.addOrgAssetCallback = this.addOrgAssetCallback.bind(this)
   }
 
   componentDidMount() {
@@ -335,20 +320,12 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
     this.timer = undefined
   }
 
-  updateDataResponse(data: { assets: AssetData[] }) {
-    this.setState(function (oldState) {
-      const newState: OrganizationAssetAddState = {
-        assetList: data.assets
-      }
-      if (oldState.assetId === null && data.assets.length > 0) {
-        newState.assetId = data.assets[0].id
-      }
-      return newState
-    })
-  }
-
   async updateData() {
-    await smmGetJSON('/assets/', {}, this.updateDataResponse)
+    const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
+    this.setState((oldState) => ({
+      assetList: data.assets,
+      ...(oldState.assetId === null && data.assets.length > 0 ? { assetId: data.assets[0].id } : {})
+    }))
   }
 
   updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -357,12 +334,9 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
     this.setState({ assetId: Number(value) })
   }
 
-  addOrgAssetCallback() {
+  async addOrganizationAsset() {
+    await smmPost(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, {})
     this.setState({ assetId: undefined })
-  }
-
-  addOrganizationAsset() {
-    smmPost(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, {}, this.addOrgAssetCallback)
   }
 
   render() {
@@ -418,8 +392,6 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
         role: ''
       }
     }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -432,19 +404,12 @@ class OrganizationDetailsPage extends React.Component<OrganizationDetailsPagePro
     this.timer = undefined
   }
 
-  updateDataResponse(data: OrganizationData) {
-    this.setState(function () {
-      return {
-        organizationDetails: data
-      }
-    })
-    if (this.props.updateRadioOperator) {
-      this.props.updateRadioOperator(data.role === 'Admin' || data.role == 'Radio Operator')
-    }
-  }
-
   async updateData() {
-    await smmGetJSON(`/organization/${this.props.organizationId}/`, {}, this.updateDataResponse)
+    const data = await smmGetJSON<OrganizationData>(`/organization/${this.props.organizationId}/`, {})
+    this.setState({ organizationDetails: data })
+    if (this.props.updateRadioOperator) {
+      this.props.updateRadioOperator(data.role === 'Admin' || data.role === 'Radio Operator')
+    }
   }
 
   render() {
