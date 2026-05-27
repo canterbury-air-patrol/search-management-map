@@ -16,20 +16,18 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
   const [selectedAssetId, setSelectedAssetId] = useState('')
 
   useEffect(() => {
-    smmGetJSON(`/mission/${missionId}/assets/`, {}, (data) => {
-      const d = data as { assets: Array<MissionAssetData> }
-      if ('assets' in d) {
-        const filtered = d.assets.filter((a) => a.type_name === createdFor)
-        setAssets(filtered)
-        if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))
-      }
+    smmGetJSON<{ assets: Array<MissionAssetData> }>(`/mission/${missionId}/assets/`, {}).then((d) => {
+      const filtered = d.assets.filter((a) => a.type_name === createdFor)
+      setAssets(filtered)
+      if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))
     })
   }, [])
 
-  function handleQueue() {
+  async function handleQueue() {
     const data: { asset?: string } = {}
     if (selectType === 'asset') data.asset = selectedAssetId
-    smmPost(`/search/${searchPk}/queue/`, data, onClose)
+    await smmPost(`/search/${searchPk}/queue/`, data)
+    onClose()
   }
 
   return (
