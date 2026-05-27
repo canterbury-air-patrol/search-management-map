@@ -51,8 +51,8 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
   const previewRef = useRef<L.GeoJSON | null>(null)
 
   useEffect(() => {
-    smmGetJSON('/assets/assettypes/', {}, function (data) {
-      const types = (data as { asset_types: AssetType[] }).asset_types ?? []
+    smmGetJSON<{ asset_types: AssetType[] }>('/assets/assettypes/', {}).then((data) => {
+      const types = data.asset_types ?? []
       setAssetTypes(types)
       if (types.length > 0) setAssetTypeId(String(types[0].id))
     })
@@ -75,11 +75,10 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
     return data
   }
 
-  function handlePreview() {
-    smmGetJSON(getUrl(searchType, objectType), getData(), function (data) {
-      previewRef.current?.remove()
-      previewRef.current = L.geoJSON(data as GeoJSON.GeoJsonObject, { color: 'yellow' }).addTo(map)
-    })
+  async function handlePreview() {
+    const data = await smmGetJSON<GeoJSON.GeoJsonObject>(getUrl(searchType, objectType), getData())
+    previewRef.current?.remove()
+    previewRef.current = L.geoJSON(data, { color: 'yellow' }).addTo(map)
   }
 
   function handleCreate() {
