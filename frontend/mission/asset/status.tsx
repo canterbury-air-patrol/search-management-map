@@ -43,7 +43,6 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
       notes: ''
     }
 
-    this.updateStatusValuesResponse = this.updateStatusValuesResponse.bind(this)
     this.updateSelectedStateValue = this.updateSelectedStateValue.bind(this)
     this.updateNotes = this.updateNotes.bind(this)
     this.resetForm = this.resetForm.bind(this)
@@ -60,20 +59,12 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
     this.timer = undefined
   }
 
-  updateStatusValuesResponse(data: { values: MissionAssetStatusValue[] }) {
-    this.setState(function (oldState) {
-      const newState: MissionAssetStatusFormState = {
-        statusValues: data.values
-      }
-      if (oldState.selectedValueId === null && data.values.length > 0) {
-        newState.selectedValueId = data.values[0].id
-      }
-      return newState
-    })
-  }
-
   async updateStatusValues() {
-    await smmGetJSON('/mission/asset/status/values/', {}, this.updateStatusValuesResponse)
+    const data = await smmGetJSON<{ values: MissionAssetStatusValue[] }>('/mission/asset/status/values/', {})
+    this.setState((oldState) => ({
+      statusValues: data.values,
+      ...(oldState.selectedValueId === null && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
+    }))
   }
 
   updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -97,15 +88,12 @@ class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps
     })
   }
 
-  setStatus() {
-    smmPost(
-      `/mission/${this.props.mission}/assets/${this.props.asset}/status/`,
-      {
-        value_id: this.state.selectedValueId,
-        notes: this.state.notes
-      },
-      this.resetForm
-    )
+  async setStatus() {
+    await smmPost(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {
+      value_id: this.state.selectedValueId,
+      notes: this.state.notes
+    })
+    this.resetForm()
   }
 
   render() {
@@ -151,7 +139,6 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
     this.state = {
       statusData: undefined
     }
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -164,16 +151,9 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
     this.timer = undefined
   }
 
-  updateDataResponse(data: { status: MissionAssetStatusData }) {
-    this.setState(function () {
-      return {
-        statusData: data.status
-      }
-    })
-  }
-
   async updateData() {
-    await smmGetJSON(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {}, this.updateDataResponse)
+    const data = await smmGetJSON<{ status: MissionAssetStatusData }>(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {})
+    this.setState({ statusData: data.status })
   }
 
   render() {
