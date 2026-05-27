@@ -55,12 +55,12 @@ function request<T>(url: string, options: RequestInit, parse: (r: Response) => P
     })
 }
 
-function smmGet(url: string, data?: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(appendQueryString(url, data), {}, (r) => r.text(), success, error)
+function smmGet(url: string, data?: RequestData, success?: (data: string) => void, error?: (data?: unknown) => void): Promise<string> {
+  return request<string>(appendQueryString(url, data), {}, (r) => r.text(), success, error)
 }
 
-function smmGetJSON(url: string, data?: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(appendQueryString(url, data), { headers: { Accept: 'application/json' } }, (r) => r.json(), success, error)
+function smmGetJSON<T = unknown>(url: string, data?: RequestData, success?: (data: T) => void, error?: (data?: unknown) => void): Promise<T> {
+  return request<T>(appendQueryString(url, data), { headers: { Accept: 'application/json' } }, (r) => r.json(), success, error)
 }
 
 function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
