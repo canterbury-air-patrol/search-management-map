@@ -109,7 +109,6 @@ class OrganizationAdd extends React.Component<never, OrganizationAddState> {
 
     this.updateOrganizationName = this.updateOrganizationName.bind(this)
     this.createOrganization = this.createOrganization.bind(this)
-    this.createOrgCallback = this.createOrgCallback.bind(this)
   }
 
   updateOrganizationName(event: React.ChangeEvent<HTMLInputElement>) {
@@ -118,12 +117,9 @@ class OrganizationAdd extends React.Component<never, OrganizationAddState> {
     this.setState({ organizationName: value })
   }
 
-  createOrgCallback() {
+  async createOrganization() {
+    await smmPost('/organization/', { name: this.state.organizationName })
     this.setState({ organizationName: '' })
-  }
-
-  createOrganization() {
-    smmPost('/organization/', { name: this.state.organizationName }, this.createOrgCallback)
   }
 
   render() {
@@ -162,8 +158,6 @@ class OrganizationListPage extends React.Component<never, OrganizationListPageSt
     this.state = {
       knownOrganizations: []
     }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -176,16 +170,9 @@ class OrganizationListPage extends React.Component<never, OrganizationListPageSt
     this.timer = undefined
   }
 
-  updateDataResponse(data: { organizations: OrganizationData[] }) {
-    this.setState(function () {
-      return {
-        knownOrganizations: data.organizations
-      }
-    })
-  }
-
   async updateData() {
-    await smmGetJSON('/organization/', {}, this.updateDataResponse)
+    const data = await smmGetJSON<{ organizations: OrganizationData[] }>('/organization/', {})
+    this.setState({ knownOrganizations: data.organizations })
   }
 
   render() {
