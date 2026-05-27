@@ -59,7 +59,6 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
     this.state = {
       organizationAssets: []
     }
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -72,16 +71,9 @@ class OrganizationRadioOperatorPage extends React.Component<OrganizationRadioOpe
     this.timer = undefined
   }
 
-  updateDataResponse(data: { assets: OrganizationAssetData[] }) {
-    this.setState(function () {
-      return {
-        organizationAssets: data.assets
-      }
-    })
-  }
-
   async updateData() {
-    await smmGetJSON(`/organization/${this.props.organizationId}/`, {}, this.updateDataResponse)
+    const data = await smmGetJSON<{ assets: OrganizationAssetData[] }>(`/organization/${this.props.organizationId}/`, {})
+    this.setState({ organizationAssets: data.assets })
   }
 
   render() {

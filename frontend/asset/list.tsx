@@ -83,8 +83,6 @@ class AssetListPage extends React.Component<object, AssetListPageState> {
     this.state = {
       knownAssets: []
     }
-
-    this.updateAssets = this.updateAssets.bind(this)
   }
 
   componentDidMount() {
@@ -98,15 +96,8 @@ class AssetListPage extends React.Component<object, AssetListPageState> {
   }
 
   async updateData() {
-    await smmGetJSON('/assets/', {}, this.updateAssets)
-  }
-
-  updateAssets(data: { assets: AssetData[] }) {
-    this.setState(function () {
-      return {
-        knownAssets: data.assets
-      }
-    })
+    const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
+    this.setState({ knownAssets: data.assets })
   }
 
   render() {
