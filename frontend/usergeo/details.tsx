@@ -48,8 +48,6 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
       data: undefined,
       geometry: undefined
     }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -62,23 +60,18 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
     this.timer = undefined
   }
 
-  updateDataResponse(data: {
-    features: {
-      properties: SMMUserGeoObjectData
-      geometry: {
-        type: string
-        coordinates: [number, number] | [number, number][] | [number, number][][]
-      }
-    }[]
-  }) {
-    this.setState({
-      data: data.features['0'].properties,
-      geometry: data.features['0'].geometry
-    })
-  }
-
   async updateData() {
-    await smmGetJSON(`/data/usergeo/${this.props.userGeoId}/`, {}, this.updateDataResponse)
+    type GeoResponse = {
+      features: {
+        properties: SMMUserGeoObjectData
+        geometry: { type: string; coordinates: [number, number] | [number, number][] | [number, number][][] }
+      }[]
+    }
+    const data = await smmGetJSON<GeoResponse>(`/data/usergeo/${this.props.userGeoId}/`, {})
+    this.setState({
+      data: data.features[0].properties,
+      geometry: data.features[0].geometry
+    })
   }
 
   render() {
