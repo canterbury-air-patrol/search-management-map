@@ -405,7 +405,6 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
       notes: ''
     }
 
-    this.updateStatusValuesResponse = this.updateStatusValuesResponse.bind(this)
     this.updateSelectedStateValue = this.updateSelectedStateValue.bind(this)
     this.updateNotes = this.updateNotes.bind(this)
     this.resetForm = this.resetForm.bind(this)
@@ -422,20 +421,12 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
     this.timer = undefined
   }
 
-  updateStatusValuesResponse(data: { values: AssetStatusValueData[] }) {
-    this.setState(function (oldState) {
-      const newState: AssetStatusState = {
-        statusValues: data.values
-      }
-      if (oldState.selectedValueId === null && data.values.length > 0) {
-        newState.selectedValueId = data.values[0].id
-      }
-      return newState
-    })
-  }
-
   async updateStatusValues() {
-    await smmGetJSON('/assets/status/values/', {}, this.updateStatusValuesResponse)
+    const data = await smmGetJSON<{ values: AssetStatusValueData[] }>('/assets/status/values/', {})
+    this.setState((oldState) => ({
+      statusValues: data.values,
+      ...(oldState.selectedValueId === null && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
+    }))
   }
 
   updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -457,15 +448,12 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
     })
   }
 
-  setStatus() {
-    smmPost(
-      `/assets/${this.props.asset}/status/`,
-      {
-        value_id: this.state.selectedValueId,
-        notes: this.state.notes
-      },
-      this.resetForm
-    )
+  async setStatus() {
+    await smmPost(`/assets/${this.props.asset}/status/`, {
+      value_id: this.state.selectedValueId,
+      notes: this.state.notes
+    })
+    this.resetForm()
   }
 
   render() {
