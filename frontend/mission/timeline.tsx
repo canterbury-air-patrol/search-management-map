@@ -174,7 +174,6 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
       missionData: undefined,
       missionClosed: false
     }
-    this.updateDataResponse = this.updateDataResponse.bind(this)
   }
 
   componentDidMount() {
@@ -187,16 +186,13 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
     this.timer = undefined
   }
 
-  updateDataResponse(data: { timeline: TimeLineEntry[]; mission: MissionData }) {
+  async updateData() {
+    const data = await smmGetJSON<{ timeline: TimeLineEntry[]; mission: MissionData }>(`/mission/${this.props.missionId}/timeline/`, {})
     this.updateTimeline(data.timeline)
     this.updateMission(data.mission)
     if (!this.state.missionClosed && data.mission.closed !== null) {
       this.setMissionClosed()
     }
-  }
-
-  async updateData() {
-    await smmGetJSON(`/mission/${this.props.missionId}/timeline/`, {}, this.updateDataResponse)
   }
 
   updateTimeline(timelineEntries: TimeLineEntry[]) {
