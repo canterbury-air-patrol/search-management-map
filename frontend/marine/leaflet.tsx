@@ -65,7 +65,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   async add() {
-    await smmPostBody(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, URLSearchParams(this.getData()))
+    await smmPostBody(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, new URLSearchParams(this.getData()))
     if (this.onMap) {
       this.props.map.removeLayer(this.onMap)
       this.onMap = undefined
