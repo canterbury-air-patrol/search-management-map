@@ -221,7 +221,8 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
 
   async addOrganizationMember() {
     const user = this.state.userList.find((user) => user.id === this.state.userId)
-    await smmPost(`/organization/${this.props.organizationId}/user/${user?.username}/`, {})
+    if (!user) return
+    await smmPost(`/organization/${this.props.organizationId}/user/${user.username}/`, {})
     this.setState({ userId: undefined })
   }
 
