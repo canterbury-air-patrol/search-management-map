@@ -209,7 +209,7 @@ class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, 
     const data = await smmGetJSON<{ users: { id: number; username: string }[] }>(`/organization/${this.props.organizationId}/users/notmember/`, {})
     this.setState((oldState) => ({
       userList: data.users,
-      ...(oldState.userId === null && data.users.length > 0 ? { userId: data.users[0].id } : {})
+      ...(oldState.userId === undefined && data.users.length > 0 ? { userId: data.users[0].id } : {})
     }))
   }
 
@@ -325,7 +325,7 @@ class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, Or
     const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
     this.setState((oldState) => ({
       assetList: data.assets,
-      ...(oldState.assetId === null && data.assets.length > 0 ? { assetId: data.assets[0].id } : {})
+      ...(oldState.assetId === undefined && data.assets.length > 0 ? { assetId: data.assets[0].id } : {})
     }))
   }
 
