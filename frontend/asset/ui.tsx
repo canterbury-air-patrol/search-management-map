@@ -21,11 +21,11 @@ interface AssetTrackAsState {
   longitude: number
   altitude: number | null
   tracking: boolean
+  errorMsg: string
 }
 
 class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState> {
   watchID: number
-  errorMsg: string
 
   constructor(props: AssetTrackAsProps) {
     super(props)
@@ -34,11 +34,11 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
       latitude: 0,
       longitude: 0,
       altitude: 0,
-      tracking: false
+      tracking: false,
+      errorMsg: ''
     }
 
     this.watchID = 0
-    this.errorMsg = ''
 
     this.enableTracking = this.enableTracking.bind(this)
     this.disableTracking = this.disableTracking.bind(this)
@@ -69,20 +69,22 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
   }
 
   positionErrorHandler(error: GeolocationPositionError) {
+    let errorMsg
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        this.errorMsg = 'No permision given to access location'
+        errorMsg = 'No permission given to access location'
         break
       case error.POSITION_UNAVAILABLE:
-        this.errorMsg = 'Unable to get the current position'
+        errorMsg = 'Unable to get the current position'
         break
       case error.TIMEOUT:
-        this.errorMsg = 'Timed out getting position'
+        errorMsg = 'Timed out getting position'
         break
       default:
-        this.errorMsg = `Unknown error: ${error.code}`
+        errorMsg = `Unknown error: ${error.code}`
         break
     }
+    this.setState({ errorMsg })
   }
 
   enableTracking() {
@@ -132,7 +134,7 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
             </td>
           </tr>
           <tr>
-            <td colSpan={3}>{this.errorMsg}</td>
+            <td colSpan={3}>{this.state.errorMsg}</td>
           </tr>
         </tbody>
       </Table>
