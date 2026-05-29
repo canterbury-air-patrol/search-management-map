@@ -5,13 +5,13 @@ import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import { POIAdderDialog } from './POIAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
-L.POIAdder = function (map, missionId, pos, replaces, label) {
+function POIAdder(map, missionId, pos, replaces, label) {
   renderInLeafletDialog(map, (onClose) => <POIAdderDialog map={map} missionId={missionId} initialPos={pos} replaces={replaces} initialLabel={label} onClose={onClose} />, {
     initOpen: true
   })
 }
 
-L.Control.POIAdder = L.Control.extend({
+const POIAdderControl = L.Control.extend({
   options: {
     position: 'topleft'
   },
@@ -21,7 +21,7 @@ L.Control.POIAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.POIAdder(this.map, this.options.missionId, this.map.getCenter(), -1, '')
+    POIAdder(this.map, this.options.missionId, this.map.getCenter(), -1, '')
   },
 
   onAdd: function (map) {
@@ -48,6 +48,8 @@ L.Control.POIAdder = L.Control.extend({
   onRemove: function () {}
 })
 
-L.control.poiadder = function (opts) {
-  return new L.Control.POIAdder(opts)
+function poiadder(opts) {
+  return new POIAdderControl(opts)
 }
+
+export { POIAdder, poiadder }

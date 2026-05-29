@@ -18,11 +18,10 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
 import { cookieJar } from './cookies'
 
 import './Admin/admin.js'
-import './POIAdder/POIAdder.js'
-import './PolygonAdder/PolygonAdder.js'
-import './LineAdder/LineAdder.js'
 import './ImageUploader/ImageUploader.js'
-import './SearchAdder/SearchAdder.js'
+import { poiadder } from './POIAdder/POIAdder.js'
+import { polygonadder } from './PolygonAdder/PolygonAdder.js'
+import { lineadder } from './LineAdder/LineAdder.js'
 
 import { SMMSearchesComplete, SMMSearchesInprogress, SMMSearchesNotStarted } from './search/map.js'
 import { SMMPOIs } from './usergeo/poi.js'
@@ -133,9 +132,9 @@ class SMMMap {
     this.map.locate({ setView: true, maxZoom: 16 })
 
     if (this.missionId !== 'current' && this.missionId !== 'all') {
-      L.control.poiadder({ missionId: this.missionId }).addTo(this.map)
-      L.control.polygonadder({ missionId: this.missionId }).addTo(this.map)
-      L.control.lineadder({ missionId: this.missionId }).addTo(this.map)
+      poiadder({ missionId: this.missionId }).addTo(this.map)
+      polygonadder({ missionId: this.missionId }).addTo(this.map)
+      lineadder({ missionId: this.missionId }).addTo(this.map)
       new LocateControl({
         setView: 'untilPan',
         keepCurrentZoomLevel: true,

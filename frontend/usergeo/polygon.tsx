@@ -1,6 +1,8 @@
 import L from 'leaflet'
 import React from 'react'
 
+import { PolygonAdder } from '../PolygonAdder/PolygonAdder.js'
+import { SearchAdder } from '../SearchAdder/SearchAdder.js'
 import { SMMUserGeoPolygonGeoJSON } from './types'
 import { PolygonPopup } from './PolygonPopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
@@ -14,7 +16,7 @@ class SMMPolygon extends SMMUserGeoLayer {
   }
 
   editCallback() {
-    L.PolygonAdder(
+    PolygonAdder(
       this.map,
       this.missionId,
       this.coords[0].map((x) => L.latLng(x[1], x[0])),
@@ -24,7 +26,7 @@ class SMMPolygon extends SMMUserGeoLayer {
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.map, 'polygon', this.data.pk)
+    SearchAdder(this.map, 'polygon', this.data.pk)
   }
 
   getPopupOptions(): L.PopupOptions {
