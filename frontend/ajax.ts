@@ -95,7 +95,7 @@ function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (d
   )
 }
 
-function smmPatch(url: string, data: Record<string, unknown>, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
+function smmPatch(url: string, data: Record<string, unknown>, success?: (data: string) => void, error?: (data?: unknown) => void) {
   return request(
     url,
     {
