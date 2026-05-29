@@ -4,6 +4,7 @@ import { SMMRealtime } from '../smmmap'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { cookieJar } from '../cookies'
+import { smmGetJSON } from '../ajax'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
 import { UserPopup } from './UserPopup'
 import { ColorPickerDialog } from '../asset/ColorPickerDialog'
@@ -93,15 +94,13 @@ class SMMUserPosition {
     }
     this.updating = true
 
-    let userUrl = `/mission/${this.missionId}/data/user/${this.userName}/position/history/?oldest=last`
+    const userUrl = `/mission/${this.missionId}/data/user/${this.userName}/position/history/`
+    const params: Record<string, string | undefined> = { oldest: 'last' }
     if (this.lastUpdate != null) {
-      userUrl = `${userUrl}&from=${this.lastUpdate}`
+      params.from = this.lastUpdate
     }
 
-    fetch(userUrl)
-      .then((r) => r.json())
-      .then(this.updateNewPosition)
-      .catch(this.updateError)
+    smmGetJSON<{ features: Array<SMMMissionUserPointTimeGeoJSON> }>(userUrl, params).then(this.updateNewPosition).catch(this.updateError)
   }
 }
 
