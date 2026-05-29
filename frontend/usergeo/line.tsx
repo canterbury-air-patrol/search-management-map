@@ -1,6 +1,8 @@
 import L from 'leaflet'
 import React from 'react'
 
+import { LineAdder } from '../LineAdder/LineAdder.js'
+import { SearchAdder } from '../SearchAdder/SearchAdder.js'
 import { SMMUserGeoLineGeoJSON } from './types'
 import { LinePopup } from './LinePopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
@@ -14,7 +16,7 @@ class SMMLine extends SMMUserGeoLayer {
   }
 
   editCallback() {
-    L.LineAdder(
+    LineAdder(
       this.map,
       this.missionId,
       this.coords.map((x) => L.latLng(x[1], x[0])),
@@ -24,7 +26,7 @@ class SMMLine extends SMMUserGeoLayer {
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.map, 'line', this.data.pk)
+    SearchAdder(this.map, 'line', this.data.pk)
   }
 
   getPopupOptions(): L.PopupOptions {

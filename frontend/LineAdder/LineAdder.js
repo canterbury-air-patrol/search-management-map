@@ -4,13 +4,13 @@ import L from 'leaflet'
 import { VectorAdderDialog } from '../components/VectorAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
-L.LineAdder = function (map, missionId, currentPoints, replaces, label) {
+function LineAdder(map, missionId, currentPoints, replaces, label) {
   renderInLeafletDialog(map, (onClose) => (
     <VectorAdderDialog type="line" map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
   ))
 }
 
-L.Control.LineAdder = L.Control.extend({
+const LineAdderControl = L.Control.extend({
   options: {
     position: 'topleft'
   },
@@ -20,7 +20,7 @@ L.Control.LineAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.LineAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
+    LineAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
   },
 
   onAdd: function (map) {
@@ -47,6 +47,8 @@ L.Control.LineAdder = L.Control.extend({
   onRemove: function () {}
 })
 
-L.control.lineadder = function (opts) {
-  return new L.Control.LineAdder(opts)
+function lineadder(opts) {
+  return new LineAdderControl(opts)
 }
+
+export { LineAdder, lineadder }

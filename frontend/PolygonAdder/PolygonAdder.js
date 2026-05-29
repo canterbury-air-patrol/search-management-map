@@ -4,13 +4,13 @@ import L from 'leaflet'
 import { VectorAdderDialog } from '../components/VectorAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
-L.PolygonAdder = function (map, missionId, currentPoints, replaces, label) {
+function PolygonAdder(map, missionId, currentPoints, replaces, label) {
   renderInLeafletDialog(map, (onClose) => (
     <VectorAdderDialog type="polygon" map={map} missionId={missionId} initialPoints={currentPoints} replaces={replaces} initialLabel={label} onClose={onClose} />
   ))
 }
 
-L.Control.PolygonAdder = L.Control.extend({
+const PolygonAdderControl = L.Control.extend({
   options: {
     position: 'topleft'
   },
@@ -20,7 +20,7 @@ L.Control.PolygonAdder = L.Control.extend({
   },
 
   onClick: function () {
-    L.PolygonAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
+    PolygonAdder(this.map, this.options.missionId, [this.map.getCenter()], -1, '')
   },
 
   onAdd: function (map) {
@@ -47,6 +47,8 @@ L.Control.PolygonAdder = L.Control.extend({
   onRemove: function () {}
 })
 
-L.control.polygonadder = function (opts) {
-  return new L.Control.PolygonAdder(opts)
+function polygonadder(opts) {
+  return new PolygonAdderControl(opts)
 }
+
+export { PolygonAdder, polygonadder }

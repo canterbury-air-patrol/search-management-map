@@ -1,8 +1,9 @@
 import L from 'leaflet'
-
 import React from 'react'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
+import { POIAdder } from '../POIAdder/POIAdder.js'
+import { SearchAdder } from '../SearchAdder/SearchAdder.js'
 import { SMMUserGeoPOIGeoJSON } from './types'
 import { POIPopup } from './POIPopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
@@ -17,11 +18,11 @@ class SMMPOI extends SMMUserGeoLayer {
   }
 
   editCallback() {
-    L.POIAdder(this.map, this.missionId, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
+    POIAdder(this.map, this.missionId, L.latLng(this.coords[1], this.coords[0]), this.data.pk, this.data.label)
   }
 
   createSearchCallback() {
-    L.SearchAdder(this.map, 'point', this.data.pk)
+    SearchAdder(this.map, 'point', this.data.pk)
   }
 
   calculateTDVCallback() {
