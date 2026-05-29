@@ -19,12 +19,22 @@ interface OrganizationMemberRowProps {
 }
 
 interface OrganizationMemberRowState {
-  selectedRole?: string
+  selectedRole: string
+}
+
+const ROLE_NAME_TO_CODE: Record<string, string> = {
+  Member: 'M',
+  'Radio Operator': 'R',
+  Admin: 'A',
+  'Asset Bridge/Recorder': 'b'
 }
 
 class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, OrganizationMemberRowState> {
   constructor(props: OrganizationMemberRowProps) {
     super(props)
+    this.state = {
+      selectedRole: ROLE_NAME_TO_CODE[props.organization_member.role] ?? 'M'
+    }
     this.delete = this.delete.bind(this)
     this.updateSelectedRole = this.updateSelectedRole.bind(this)
     this.saveChanges = this.saveChanges.bind(this)
@@ -42,21 +52,12 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
   }
 
   renderButtons() {
-    const currentRole = this.props.organization_member.role
     return (
-      <select onChange={this.updateSelectedRole}>
-        <option value="M" selected={currentRole === 'Member'}>
-          Member
-        </option>
-        <option value="R" selected={currentRole === 'Radio Operator'}>
-          Radio Operator
-        </option>
-        <option value="A" selected={currentRole === 'Admin'}>
-          Admin
-        </option>
-        <option value="b" selected={currentRole === 'Asset Bridge/Recorder'}>
-          Asset Bridge/Recorder
-        </option>
+      <select value={this.state.selectedRole} onChange={this.updateSelectedRole}>
+        <option value="M">Member</option>
+        <option value="R">Radio Operator</option>
+        <option value="A">Admin</option>
+        <option value="b">Asset Bridge/Recorder</option>
       </select>
     )
   }
