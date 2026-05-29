@@ -127,15 +127,13 @@ class SMMAsset {
     }
     this.updating = true
 
-    let assetUrl = `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/?oldest=last`
+    const assetUrl = `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/`
+    const params: Record<string, string | undefined> = { oldest: 'last' }
     if (this.lastUpdate) {
-      assetUrl = `${assetUrl}&from=${this.lastUpdate}`
+      params.from = this.lastUpdate
     }
 
-    fetch(assetUrl)
-      .then((r) => r.json())
-      .then(this.updateNewRoute)
-      .catch(this.updateFailed)
+    smmGetJSON<{ features: Array<{ geometry: { coordinates: Array<number> }; properties: AssetPointTime }> }>(assetUrl, params).then(this.updateNewRoute).catch(this.updateFailed)
   }
 }
 
