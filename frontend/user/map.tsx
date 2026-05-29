@@ -150,8 +150,11 @@ class SMMUserPositions extends SMMRealtime {
     const userObject = this.userObjects[userName]
     const pickerDiv = document.getElementById(`userNamePicker${userName}`)
     if (pickerDiv) {
-      pickerDiv.addEventListener('click', userObject.colorPicker)
       Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: userObject.color })
+      if (pickerDiv.dataset.smmListenerBound !== '1') {
+        pickerDiv.dataset.smmListenerBound = '1'
+        pickerDiv.addEventListener('click', userObject.colorPicker)
+      }
     }
     return userObject
   }
