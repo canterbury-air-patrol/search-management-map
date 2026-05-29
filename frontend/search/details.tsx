@@ -11,7 +11,7 @@ import { smmGetJSON } from '../ajax'
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
-import { ExpandingBoxSearch, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
+import { ExpandingBoxSearch, SearchPattern, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
 import { SearchRunner } from '@canterbury-air-patrol/sar-search-runner'
 import { SMMSearchObjectDetailsData } from './types'
 
