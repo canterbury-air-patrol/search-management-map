@@ -1,13 +1,16 @@
 import { cookieJar } from './cookies'
 
-const AJAX_TIMEOUT = 2500
+const DEFAULT_TIMEOUT_MS = 30000
 
 type RequestDataValue = string | number | boolean | null | undefined
 type RequestData = Record<string, RequestDataValue>
 
-function fetchWithTimeout(url: string, options: RequestInit = {}) {
+function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number | null = DEFAULT_TIMEOUT_MS) {
+  if (timeoutMs == null) {
+    return fetch(url, options)
+  }
   const controller = new AbortController()
-  const timeoutId = setTimeout(() => controller.abort(), AJAX_TIMEOUT)
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId))
 }
 
@@ -28,9 +31,16 @@ function appendQueryString(url: string, data?: RequestData): string {
   return `${url}${url.includes('?') ? '&' : '?'}${qs}`
 }
 
-function request<T>(url: string, options: RequestInit, parse: (r: Response) => Promise<T>, success?: (data: T) => void, error?: (data?: unknown) => void): Promise<T> {
+function request<T>(
+  url: string,
+  options: RequestInit,
+  parse: (r: Response) => Promise<T>,
+  success?: (data: T) => void,
+  error?: (data?: unknown) => void,
+  timeoutMs: number | null = DEFAULT_TIMEOUT_MS
+): Promise<T> {
   let errorHandled = false
-  return fetchWithTimeout(url, options)
+  return fetchWithTimeout(url, options, timeoutMs)
     .then(async (r): Promise<T> => {
       if (!r.ok) {
         errorHandled = true
@@ -91,7 +101,8 @@ function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (d
     },
     (r) => r.text(),
     success,
-    error
+    error,
+    null
   )
 }
 
