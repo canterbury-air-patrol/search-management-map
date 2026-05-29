@@ -30,9 +30,9 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
     this.saveChanges = this.saveChanges.bind(this)
   }
 
-  delete() {
+  async delete() {
     const organizationMember = this.props.organization_member
-    smmDelete(`/organization/${this.props.organizationId}/user/${organizationMember.user}/`)
+    await smmDelete(`/organization/${this.props.organizationId}/user/${organizationMember.user}/`)
   }
 
   updateSelectedRole(event: React.ChangeEvent<HTMLSelectElement>) {
@@ -109,9 +109,9 @@ class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, ne
     this.delete = this.delete.bind(this)
   }
 
-  delete() {
+  async delete() {
     const { organization_asset } = this.props
-    smmDelete(`/organization/${this.props.organizationId}/assets/${organization_asset.asset.id}/`)
+    await smmDelete(`/organization/${this.props.organizationId}/assets/${organization_asset.asset.id}/`)
   }
 
   render() {
