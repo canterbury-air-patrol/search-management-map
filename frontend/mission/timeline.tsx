@@ -226,7 +226,7 @@ export class MissionTimeLine extends React.Component<MissionTimeLineProps, Missi
     let timelineAdd = null
     if (this.state.missionData !== undefined) {
       missionData = <MissionHeader key="missionHeader" mission={this.state.missionData} />
-      if (this.state.missionClosed !== null) {
+      if (!this.state.missionClosed) {
         timelineAdd = <MissionTimeLineEntryAdd missionId={this.props.missionId} />
       }
     }
