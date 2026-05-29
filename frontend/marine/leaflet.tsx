@@ -65,12 +65,16 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   async add() {
-    await smmPostBody(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, new URLSearchParams(this.getData()))
-    if (this.onMap) {
-      this.props.map.removeLayer(this.onMap)
-      this.onMap = undefined
+    try {
+      await smmPostBody(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, new URLSearchParams(this.getData()))
+      if (this.onMap) {
+        this.props.map.removeLayer(this.onMap)
+        this.onMap = undefined
+      }
+      this.props.dialog.remove()
+    } catch (e) {
+      console.error('Failed to create marine vector:', e)
     }
-    this.props.dialog.remove()
   }
 
   async preview() {
@@ -78,9 +82,13 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       this.props.map.removeLayer(this.onMap)
       this.onMap = undefined
     }
-    const data = await smmGetJSON<GeoJSON.GeoJsonObject>(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, this.getData())
-    this.onMap = L.geoJSON(data, { color: 'yellow' })
-    this.onMap.addTo(this.props.map)
+    try {
+      const data = await smmGetJSON<GeoJSON.GeoJsonObject>(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, this.getData())
+      this.onMap = L.geoJSON(data, { color: 'yellow' })
+      this.onMap.addTo(this.props.map)
+    } catch (e) {
+      console.error('Failed to preview marine vector:', e)
+    }
   }
 
   cancel() {
