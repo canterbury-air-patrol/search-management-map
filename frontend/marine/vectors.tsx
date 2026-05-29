@@ -1,6 +1,11 @@
+import L from 'leaflet'
+import React from 'react'
+import * as ReactDOM from 'react-dom/client'
+
 import { SMMRealtime } from '../smmmap'
 import { TotalDriftVectorData } from './types'
 import { smmDelete } from '../ajax'
+import { MarineVectorPopup } from './MarineVectorPopup'
 
 class SMMMarineVector extends SMMRealtime {
   constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
@@ -16,36 +21,11 @@ class SMMMarineVector extends SMMRealtime {
   createPopup(tdv: { properties: TotalDriftVectorData }, layer: L.Layer) {
     const tdvID = tdv.properties.pk
 
-    const popupContent = document.createElement('div')
-    const dl = document.createElement('dl')
-    dl.className = 'row'
-    popupContent.appendChild(dl)
-
-    const dt = document.createElement('dt')
-    dt.className = 'image-label col-sm-2'
-    dt.textContent = 'Total Drift Vector'
-    dl.appendChild(dt)
-
-    const dd = document.createElement('dd')
-    dd.className = 'image-name col-sm-10'
-    dd.textContent = tdvID.toString()
-    dl.appendChild(dd)
-
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
-      popupContent.appendChild(
-        this.createButtonGroup([
-          {
-            label: 'Delete',
-            onclick: function () {
-              smmDelete(`/sar/marine/vectors/${tdvID}/`)
-            },
-            btnClass: 'btn-danger'
-          }
-        ])
-      )
-    }
-
-    layer.bindPopup(popupContent)
+    const container = document.createElement('div')
+    const root = ReactDOM.createRoot(container)
+    root.render(<MarineVectorPopup pk={tdvID} missionId={this.missionId} onDelete={() => smmDelete(`/sar/marine/vectors/${tdvID}/`)} />)
+    layer.bindPopup(container)
+    layer.on('remove', () => root.unmount())
   }
 }
 
