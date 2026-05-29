@@ -14,6 +14,7 @@ class SMMSearch {
   parent: SMMSearches
   search: SMMSearchObjectDetailsData
   QueueDialog?: L.Control.Dialog
+  popupRoot?: ReactDOM.Root
   constructor(parent: SMMSearches, search: SMMSearchObjectDetailsData) {
     this.parent = parent
     this.search = search
@@ -50,8 +51,10 @@ class SMMSearch {
   }
 
   createPopup(layer: L.Layer) {
+    this.popupRoot?.unmount()
     const container = document.createElement('div')
     const root = ReactDOM.createRoot(container)
+    this.popupRoot = root
     root.render(
       <SearchPopup
         search={this.search}
@@ -62,7 +65,12 @@ class SMMSearch {
       />
     )
     layer.bindPopup(container, { minWidth: 200 })
-    layer.on('remove', () => root.unmount())
+    layer.on('remove', () => {
+      root.unmount()
+      if (this.popupRoot === root) {
+        this.popupRoot = undefined
+      }
+    })
   }
 }
 

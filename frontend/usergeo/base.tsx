@@ -14,6 +14,7 @@ abstract class SMMUserGeoLayer {
   map: L.Map
   missionId: number | string
   data: SMMUserGeoLabelData
+  popupRoot?: ReactDOM.Root
 
   constructor(map: L.Map, missionId: number | string, data: SMMUserGeoLabelData) {
     this.map = map
@@ -37,11 +38,18 @@ abstract class SMMUserGeoLayer {
   }
 
   createPopup(layer: L.Layer) {
+    this.popupRoot?.unmount()
     const container = document.createElement('div')
     const root = ReactDOM.createRoot(container)
+    this.popupRoot = root
     root.render(this.renderPopup())
     layer.bindPopup(container, this.getPopupOptions())
-    layer.on('remove', () => root.unmount())
+    layer.on('remove', () => {
+      root.unmount()
+      if (this.popupRoot === root) {
+        this.popupRoot = undefined
+      }
+    })
   }
 }
 
