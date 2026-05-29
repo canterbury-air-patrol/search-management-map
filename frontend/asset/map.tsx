@@ -210,8 +210,11 @@ class SMMAssets extends SMMRealtime {
     const assetObject = this.assetObjects[assetId]
     const pickerDiv = document.getElementById(`assetNamePicker${assetId}`)
     if (pickerDiv) {
-      pickerDiv.addEventListener('click', assetObject.colorPicker)
       Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: assetObject.color })
+      if (pickerDiv.dataset.smmListenerBound !== '1') {
+        pickerDiv.dataset.smmListenerBound = '1'
+        pickerDiv.addEventListener('click', assetObject.colorPicker)
+      }
     }
     return assetObject
   }
