@@ -25,7 +25,7 @@ interface AssetTrackAsState {
 }
 
 class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState> {
-  watchID: number
+  watchID?: number
 
   constructor(props: AssetTrackAsProps) {
     super(props)
@@ -37,8 +37,6 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
       tracking: false,
       errorMsg: ''
     }
-
-    this.watchID = 0
 
     this.enableTracking = this.enableTracking.bind(this)
     this.disableTracking = this.disableTracking.bind(this)
@@ -88,28 +86,24 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
   }
 
   enableTracking() {
-    if (navigator.geolocation) {
-      const options = {
-        timeout: 60000,
-        enableHighAccuracy: true
-      }
-      this.watchID = navigator.geolocation.watchPosition(this.positionUpdate, this.positionErrorHandler, options)
+    if (!navigator.geolocation) {
+      this.setState({ errorMsg: 'Geolocation is not supported by this browser' })
+      return
     }
-
-    this.setState(function () {
-      return {
-        tracking: true
-      }
-    })
+    const options = {
+      timeout: 60000,
+      enableHighAccuracy: true
+    }
+    this.watchID = navigator.geolocation.watchPosition(this.positionUpdate, this.positionErrorHandler, options)
+    this.setState({ tracking: true })
   }
 
   disableTracking() {
-    navigator.geolocation.clearWatch(this.watchID)
-    this.setState(function () {
-      return {
-        tracking: false
-      }
-    })
+    if (this.watchID !== undefined) {
+      navigator.geolocation.clearWatch(this.watchID)
+      this.watchID = undefined
+    }
+    this.setState({ tracking: false })
   }
 
   render() {
