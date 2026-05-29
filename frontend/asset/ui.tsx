@@ -425,7 +425,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
     const data = await smmGetJSON<{ values: AssetStatusValueData[] }>('/assets/status/values/', {})
     this.setState((oldState) => ({
       statusValues: data.values,
-      ...(oldState.selectedValueId === null && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
+      ...(oldState.selectedValueId === undefined && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
     }))
   }
 
