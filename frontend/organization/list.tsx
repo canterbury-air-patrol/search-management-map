@@ -118,8 +118,12 @@ class OrganizationAdd extends React.Component<never, OrganizationAddState> {
   }
 
   async createOrganization() {
-    await smmPost('/organization/', { name: this.state.organizationName })
-    this.setState({ organizationName: '' })
+    try {
+      await smmPost('/organization/', { name: this.state.organizationName })
+      this.setState({ organizationName: '' })
+    } catch (e) {
+      console.error('Failed to create organization:', e)
+    }
   }
 
   render() {
@@ -171,8 +175,12 @@ class OrganizationListPage extends React.Component<never, OrganizationListPageSt
   }
 
   async updateData() {
-    const data = await smmGetJSON<{ organizations: OrganizationData[] }>('/organization/', {})
-    this.setState({ knownOrganizations: data.organizations })
+    try {
+      const data = await smmGetJSON<{ organizations: OrganizationData[] }>('/organization/', {})
+      this.setState({ knownOrganizations: data.organizations })
+    } catch (e) {
+      console.error('Failed to fetch organizations:', e)
+    }
   }
 
   render() {
