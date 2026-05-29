@@ -56,7 +56,11 @@ function request<T>(
       return parse(r)
     })
     .then((data) => {
-      success?.(data)
+      try {
+        success?.(data)
+      } catch (e) {
+        console.error('smm request success handler threw:', e)
+      }
       return data
     })
     .catch((err) => {
