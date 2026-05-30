@@ -45,15 +45,12 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
   }
 
   positionUpdate(position: GeolocationPosition) {
+    if (this.watchID === undefined) {
+      return
+    }
+
     const { latitude, longitude, altitude } = position.coords
     const newHeading = position.coords.heading
-
-    const data = {
-      lat: latitude,
-      lon: longitude,
-      alt: altitude,
-      heading: newHeading
-    }
 
     this.setState({
       latitude,
@@ -61,9 +58,12 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
       altitude
     })
 
-    if (this.state.tracking) {
-      smmGet(`/data/assets/${this.props.asset}/position/add/`, data)
-    }
+    smmGet(`/data/assets/${this.props.asset}/position/add/`, {
+      lat: latitude,
+      lon: longitude,
+      alt: altitude,
+      heading: newHeading
+    })
   }
 
   positionErrorHandler(error: GeolocationPositionError) {
