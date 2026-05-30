@@ -132,7 +132,7 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
 
   renderField(field: string, displayValue?: string) {
     return this.state.editFields[field] ? (
-      <input type="text" value={this.state.values[field]} onChange={(e) => this.handleChange(field, e)} />
+      <input type="text" value={this.state.values[field] ?? ''} onChange={(e) => this.handleChange(field, e)} />
     ) : (
       <span onClick={() => this.toggleEdit(field)}>{displayValue}</span>
     )
