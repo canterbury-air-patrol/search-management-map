@@ -30,8 +30,8 @@ function PopupButtonGroup({ buttons }: { buttons: ButtonItem[] }) {
     <div className="btn-group-vertical">
       {buttons.map(({ label, btnClass, onclick, href }) =>
         href ? (
-          <a key={label} href={href}>
-            <button className={`btn ${btnClass}`}>{label}</button>
+          <a key={label} href={href} role="button" className={`btn ${btnClass}`}>
+            {label}
           </a>
         ) : (
           <button key={label} className={`btn ${btnClass}`} onClick={onclick}>
