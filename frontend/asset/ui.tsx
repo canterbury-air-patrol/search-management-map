@@ -91,7 +91,8 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
       return
     }
     const options = {
-      timeout: 60000,
+      timeout: 15000,
+      maximumAge: 1000,
       enableHighAccuracy: true
     }
     this.watchID = navigator.geolocation.watchPosition(this.positionUpdate, this.positionErrorHandler, options)
