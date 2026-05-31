@@ -190,21 +190,21 @@ class SMMMap {
 
 function mapInit() {
   const wrapperEl = document.createElement('div')
-  wrapperEl.setAttribute('style', 'width:100%;height:100%;display:flex;flex-flow:column;')
+  wrapperEl.className = 'd-flex flex-column w-100 h-100'
   document.body.appendChild(wrapperEl)
 
   const missionId = encodeURIComponent((document.getElementById('missionId') as HTMLInputElement).value)
 
   if (missionId !== 'all' && missionId !== 'current') {
     const menuEl = document.createElement('div')
-    menuEl.setAttribute('style', 'flex: 0 1 auto;')
+    menuEl.className = 'flex-grow-0 flex-shrink-1'
     wrapperEl.appendChild(menuEl)
     const div = ReactDOM.createRoot(menuEl)
     div.render(<SMMMissionTopBar missionId={missionId} />)
   }
 
   const mapEl = document.createElement('div')
-  mapEl.setAttribute('style', 'flex: 1 1 auto;')
+  mapEl.className = 'flex-grow-1'
   wrapperEl.appendChild(mapEl)
 
   return new SMMMap(mapEl, missionId)
