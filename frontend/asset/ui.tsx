@@ -1,14 +1,14 @@
 import '../page-shell'
-import { formatLocalDateTime } from '../format'
-import { Table, Button } from 'react-bootstrap'
-
-import React from 'react'
+import { ChangeEvent, useEffect, useRef, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
-
-import { smmGet, smmGetJSON, smmPost } from '../ajax'
+import { Table, Button } from 'react-bootstrap'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
+
+import { formatLocalDateTime } from '../format'
+import { smmGet, smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
+import { usePolling } from '../hooks/usePolling'
 
 import { AssetCommandData, AssetFullStatusData, AssetMissionData, AssetStatusValueData } from './types'
 
@@ -16,127 +16,105 @@ interface AssetTrackAsProps {
   asset: number
 }
 
-interface AssetTrackAsState {
-  latitude: number
-  longitude: number
-  altitude: number | null
-  tracking: boolean
-  errorMsg: string
-}
+function AssetTrackAs({ asset }: AssetTrackAsProps) {
+  const [latitude, setLatitude] = useState(0)
+  const [longitude, setLongitude] = useState(0)
+  const [altitude, setAltitude] = useState<number | null>(0)
+  const [tracking, setTracking] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const watchID = useRef<number | undefined>(undefined)
 
-class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState> {
-  watchID?: number
+  function positionUpdate(position: GeolocationPosition) {
+    if (watchID.current === undefined) return
 
-  constructor(props: AssetTrackAsProps) {
-    super(props)
+    const coords = position.coords
+    setLatitude(coords.latitude)
+    setLongitude(coords.longitude)
+    setAltitude(coords.altitude)
 
-    this.state = {
-      latitude: 0,
-      longitude: 0,
-      altitude: 0,
-      tracking: false,
-      errorMsg: ''
-    }
-
-    this.enableTracking = this.enableTracking.bind(this)
-    this.disableTracking = this.disableTracking.bind(this)
-    this.positionUpdate = this.positionUpdate.bind(this)
-    this.positionErrorHandler = this.positionErrorHandler.bind(this)
-  }
-
-  positionUpdate(position: GeolocationPosition) {
-    if (this.watchID === undefined) {
-      return
-    }
-
-    const { latitude, longitude, altitude } = position.coords
-    const newHeading = position.coords.heading
-
-    this.setState({
-      latitude,
-      longitude,
-      altitude
-    })
-
-    smmGet(`/data/assets/${this.props.asset}/position/add/`, {
-      lat: latitude,
-      lon: longitude,
-      alt: altitude,
-      heading: newHeading
+    smmGet(`/data/assets/${asset}/position/add/`, {
+      lat: coords.latitude,
+      lon: coords.longitude,
+      alt: coords.altitude,
+      heading: coords.heading
     })
   }
 
-  positionErrorHandler(error: GeolocationPositionError) {
-    let errorMsg
+  function positionErrorHandler(error: GeolocationPositionError) {
     switch (error.code) {
       case error.PERMISSION_DENIED:
-        errorMsg = 'No permission given to access location'
+        setErrorMsg('No permission given to access location')
         break
       case error.POSITION_UNAVAILABLE:
-        errorMsg = 'Unable to get the current position'
+        setErrorMsg('Unable to get the current position')
         break
       case error.TIMEOUT:
-        errorMsg = 'Timed out getting position'
+        setErrorMsg('Timed out getting position')
         break
       default:
-        errorMsg = `Unknown error: ${error.code}`
-        break
+        setErrorMsg(`Unknown error: ${error.code}`)
     }
-    this.setState({ errorMsg })
   }
 
-  enableTracking() {
+  function enableTracking() {
     if (!navigator.geolocation) {
-      this.setState({ errorMsg: 'Geolocation is not supported by this browser' })
+      setErrorMsg('Geolocation is not supported by this browser')
       return
     }
-    const options = {
+    watchID.current = navigator.geolocation.watchPosition(positionUpdate, positionErrorHandler, {
       timeout: 15000,
       maximumAge: 1000,
       enableHighAccuracy: true
-    }
-    this.watchID = navigator.geolocation.watchPosition(this.positionUpdate, this.positionErrorHandler, options)
-    this.setState({ tracking: true, errorMsg: '' })
+    })
+    setTracking(true)
+    setErrorMsg('')
   }
 
-  disableTracking() {
-    if (this.watchID !== undefined) {
-      navigator.geolocation.clearWatch(this.watchID)
-      this.watchID = undefined
+  function disableTracking() {
+    if (watchID.current !== undefined) {
+      navigator.geolocation.clearWatch(watchID.current)
+      watchID.current = undefined
     }
-    this.setState({ tracking: false })
+    setTracking(false)
   }
 
-  render() {
-    return (
-      <Table responsive>
-        <thead>
+  useEffect(() => {
+    return () => {
+      if (watchID.current !== undefined) {
+        navigator.geolocation.clearWatch(watchID.current)
+        watchID.current = undefined
+      }
+    }
+  }, [])
+
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Latitude</td>
+          <td>Longitude</td>
+          <td>Altitude</td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{degreesToDM(latitude, 'lat')}</td>
+          <td>{degreesToDM(longitude, 'lon')}</td>
+          <td>{altitude}</td>
+        </tr>
+        <tr>
+          <td colSpan={3}>
+            <Button onClick={tracking ? disableTracking : enableTracking}>{tracking ? 'Disable Tracking' : 'Enable Tracking'}</Button>
+          </td>
+        </tr>
+        {errorMsg && (
           <tr>
-            <td>Latitude</td>
-            <td>Longitude</td>
-            <td>Altitude</td>
+            <td colSpan={3}>{errorMsg}</td>
           </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>{degreesToDM(this.state.latitude, 'lat')}</td>
-            <td>{degreesToDM(this.state.longitude, 'lon')}</td>
-            <td>{this.state.altitude}</td>
-          </tr>
-          <tr>
-            <td colSpan={3}>
-              <Button onClick={this.state.tracking ? this.disableTracking : this.enableTracking}>{this.state.tracking ? 'Disable Tracking' : 'Enable Tracking'}</Button>
-            </td>
-          </tr>
-          {this.state.errorMsg && (
-            <tr>
-              <td colSpan={3}>{this.state.errorMsg}</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
-    )
-  }
+        )}
+      </tbody>
+    </Table>
+  )
 }
 
 interface AssetCommandViewProps {
@@ -144,242 +122,197 @@ interface AssetCommandViewProps {
   lastCommand?: AssetCommandData
 }
 
-interface AssetCommandViewState {
-  message: string
-  type: string
-}
+function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
+  const [message, setMessage] = useState('')
+  const [type, setType] = useState('Accepted')
 
-class AssetCommandView extends React.Component<AssetCommandViewProps, AssetCommandViewState> {
-  constructor(props: AssetCommandViewProps) {
-    super(props)
-
-    this.state = {
-      message: '',
-      type: 'Accepted'
-    }
-
-    this.updateSelectedType = this.updateSelectedType.bind(this)
-    this.updateMessage = this.updateMessage.bind(this)
-    this.submitResponse = this.submitResponse.bind(this)
-  }
-
-  updateSelectedType(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-
-    this.setState({ type: value })
-  }
-
-  updateMessage(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-
-    this.setState({ message: value })
-  }
-
-  submitResponse() {
-    if (this.props.lastCommand !== undefined) {
-      smmPost(`/assets/${this.props.asset}/command/`, {
-        command_id: this.props.lastCommand.id,
-        message: this.state.message,
-        type: this.state.type
+  function submitResponse() {
+    if (lastCommand !== undefined) {
+      smmPost(`/assets/${asset}/command/`, {
+        command_id: lastCommand.id,
+        message,
+        type
       })
     }
   }
 
-  render() {
-    const responseData = []
-    const response = this.props.lastCommand?.response
-    if (response) {
-      if (response.set) {
-        responseData.push(
-          <tr key="response">
-            <td>
-              <i>{response.type}</i>
-            </td>
-            <td>At: {formatLocalDateTime(response.set)}</td>
-            <td>By: {response.by}</td>
-          </tr>
-        )
-        responseData.push(
-          <tr key="message">
-            <td>Message:</td>
-            <td colSpan={2}>{response.message}</td>
-          </tr>
-        )
-      } else {
-        responseData.push(
-          <tr key="response_form">
-            <td>
-              Response:
-              <br />
-              <select onChange={this.updateSelectedType} defaultValue={this.state.type}>
-                <option value="Accepted">Accept</option>
-                <option value="More Info">More Info</option>
-                <option value="Unable">Unable</option>
-              </select>
-            </td>
-            <td>
-              Message:
-              <br /> <input type="text" onChange={this.updateMessage}></input>
-            </td>
-            <td>
-              <Button onClick={this.submitResponse}>Respond</Button>
-            </td>
-          </tr>
-        )
-      }
-    }
-    const gotoRow = []
-    if (this.props.lastCommand?.latitude || this.props.lastCommand?.longitude) {
-      gotoRow.push(
-        <tr key="goto_pos">
+  const responseData = []
+  const response = lastCommand?.response
+  if (response) {
+    if (response.set) {
+      responseData.push(
+        <tr key="response">
           <td>
-            <b>{this.props.lastCommand.latitude ? degreesToDM(this.props.lastCommand.latitude, 'lat') : ''}</b>
+            <i>{response.type}</i>
+          </td>
+          <td>At: {formatLocalDateTime(response.set)}</td>
+          <td>By: {response.by}</td>
+        </tr>
+      )
+      responseData.push(
+        <tr key="message">
+          <td>Message:</td>
+          <td colSpan={2}>{response.message}</td>
+        </tr>
+      )
+    } else {
+      responseData.push(
+        <tr key="response_form">
+          <td>
+            Response:
+            <br />
+            <select onChange={(e) => setType(e.target.value)} defaultValue={type}>
+              <option value="Accepted">Accept</option>
+              <option value="More Info">More Info</option>
+              <option value="Unable">Unable</option>
+            </select>
           </td>
           <td>
-            <b>{this.props.lastCommand.longitude ? degreesToDM(this.props.lastCommand.longitude, 'lon') : ''}</b>
+            Message:
+            <br /> <input type="text" onChange={(e) => setMessage(e.target.value)}></input>
           </td>
-          <td></td>
+          <td>
+            <Button onClick={submitResponse}>Respond</Button>
+          </td>
         </tr>
       )
     }
+  }
 
-    return (
-      <Table responsive>
-        <thead>
-          <tr>
-            <td>
-              <b>{this.props.lastCommand?.action_txt}</b>
-            </td>
-            <td>Issued: {formatLocalDateTime(this.props.lastCommand?.issued)}</td>
-            <td>By: {this.props.lastCommand?.issued_by}</td>
-          </tr>
-          {gotoRow}
-          <tr>
-            <td>Message:</td>
-            <td colSpan={2}>{this.props.lastCommand?.reason}</td>
-          </tr>
-          {responseData}
-        </thead>
-      </Table>
+  const gotoRow = []
+  if (lastCommand?.latitude || lastCommand?.longitude) {
+    gotoRow.push(
+      <tr key="goto_pos">
+        <td>
+          <b>{lastCommand.latitude ? degreesToDM(lastCommand.latitude, 'lat') : ''}</b>
+        </td>
+        <td>
+          <b>{lastCommand.longitude ? degreesToDM(lastCommand.longitude, 'lon') : ''}</b>
+        </td>
+        <td></td>
+      </tr>
     )
   }
+
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>
+            <b>{lastCommand?.action_txt}</b>
+          </td>
+          <td>Issued: {formatLocalDateTime(lastCommand?.issued)}</td>
+          <td>By: {lastCommand?.issued_by}</td>
+        </tr>
+        {gotoRow}
+        <tr>
+          <td>Message:</td>
+          <td colSpan={2}>{lastCommand?.reason}</td>
+        </tr>
+        {responseData}
+      </thead>
+    </Table>
+  )
 }
 
 interface AssetMissionDetailsProps {
   details?: AssetFullStatusData
 }
 
-class AssetMissionDetails extends React.Component<AssetMissionDetailsProps, never> {
-  currentSearchRow(details: AssetFullStatusData) {
-    if (Number.isInteger(details.current_search_id)) {
-      return (
-        <tr key="current_search">
-          <td>Current Search</td>
-          <td>({details.current_search_id})</td>
-          <td>
-            <Button href={`/search/${details.current_search_id}/`}>Details</Button>
-          </td>
-          <td>
-            <Button
-              onClick={function () {
-                smmGet(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)
-              }}
-            >
-              Mark as Completed
-            </Button>
-          </td>
-        </tr>
-      )
-    } else {
-      return (
-        <tr key="current_search">
-          <td>Current Search</td>
-          <td>
-            <b>None</b>
-          </td>
-          <td></td>
-          <td></td>
-        </tr>
-      )
-    }
-  }
-
-  queuedSearchRow(details?: AssetFullStatusData) {
-    const data = [<td key="title">Queued Search</td>, <td key="id">{details?.queued_search_id}</td>]
-    if (details?.queued_search_id) {
-      data.push(
-        <td key="details">
-          <Button href={`/search/${details.queued_search_id}/`}>Details</Button>
-        </td>
-      )
-      if (details.current_search_id === undefined) {
-        data.push(
-          <td key="begin">
-            <Button
-              onClick={function () {
-                smmGet(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)
-              }}
-            >
-              Begin Search
-            </Button>
-          </td>
-        )
-      } else {
-        data.push(<td key="no_begin"></td>)
-      }
-      return <tr key={`queued_search_${details.queued_search_id}`}>{data}</tr>
-    } else {
-      return (
-        <tr key="queued_search_none">
-          <td>Queued Search</td>
-          <td>
-            <b>None</b>
-          </td>
-          <td></td>
-          <td></td>
-        </tr>
-      )
-    }
-  }
-
-  render() {
-    const { details } = this.props
-    const rows = []
-
-    if (details?.mission_id) {
-      rows.push(
-        <tr key="current_mission">
-          <td>Current Mission</td>
-          <td>{details.mission_name}</td>
-          <td>
-            <Button href={`/mission/${details.mission_id}/details/`}>Details</Button>
-          </td>
-          <td>
-            <Button href={`/mission/${details.mission_id}/map/`}>Map</Button>
-          </td>
-        </tr>
-      )
-      rows.push(this.currentSearchRow(details))
-      rows.push(this.queuedSearchRow(details))
-    } else {
-      rows.push(
-        <tr key="current_mission">
-          <td>Current Mission</td>
-          <td>
-            <b>None</b>
-          </td>
-          <td></td>
-          <td></td>
-        </tr>
-      )
-    }
-
+function CurrentSearchRow({ details }: { details: AssetFullStatusData }) {
+  if (Number.isInteger(details.current_search_id)) {
     return (
-      <Table responsive>
-        <tbody>{rows}</tbody>
-      </Table>
+      <tr key="current_search">
+        <td>Current Search</td>
+        <td>({details.current_search_id})</td>
+        <td>
+          <Button href={`/search/${details.current_search_id}/`}>Details</Button>
+        </td>
+        <td>
+          <Button onClick={() => smmGet(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)}>Mark as Completed</Button>
+        </td>
+      </tr>
     )
   }
+  return (
+    <tr key="current_search">
+      <td>Current Search</td>
+      <td>
+        <b>None</b>
+      </td>
+      <td></td>
+      <td></td>
+    </tr>
+  )
+}
+
+function QueuedSearchRow({ details }: { details: AssetFullStatusData }) {
+  const data = [<td key="title">Queued Search</td>, <td key="id">{details.queued_search_id}</td>]
+  if (details.queued_search_id) {
+    data.push(
+      <td key="details">
+        <Button href={`/search/${details.queued_search_id}/`}>Details</Button>
+      </td>
+    )
+    if (details.current_search_id === undefined) {
+      data.push(
+        <td key="begin">
+          <Button onClick={() => smmGet(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)}>Begin Search</Button>
+        </td>
+      )
+    } else {
+      data.push(<td key="no_begin"></td>)
+    }
+    return <tr key={`queued_search_${details.queued_search_id}`}>{data}</tr>
+  }
+  return (
+    <tr key="queued_search_none">
+      <td>Queued Search</td>
+      <td>
+        <b>None</b>
+      </td>
+      <td></td>
+      <td></td>
+    </tr>
+  )
+}
+
+function AssetMissionDetails({ details }: AssetMissionDetailsProps) {
+  const rows = []
+
+  if (details?.mission_id) {
+    rows.push(
+      <tr key="current_mission">
+        <td>Current Mission</td>
+        <td>{details.mission_name}</td>
+        <td>
+          <Button href={`/mission/${details.mission_id}/details/`}>Details</Button>
+        </td>
+        <td>
+          <Button href={`/mission/${details.mission_id}/map/`}>Map</Button>
+        </td>
+      </tr>
+    )
+    rows.push(<CurrentSearchRow key="current_search" details={details} />)
+    rows.push(<QueuedSearchRow key="queued_search" details={details} />)
+  } else {
+    rows.push(
+      <tr key="current_mission">
+        <td>Current Mission</td>
+        <td>
+          <b>None</b>
+        </td>
+        <td></td>
+        <td></td>
+      </tr>
+    )
+  }
+
+  return (
+    <Table responsive>
+      <tbody>{rows}</tbody>
+    </Table>
+  )
 }
 
 interface AssetStatusProps {
@@ -387,201 +320,120 @@ interface AssetStatusProps {
   details?: AssetFullStatusData
 }
 
-interface AssetStatusState {
-  statusValues: AssetStatusValueData[]
-  selectedValueId?: number
-  notes?: string
-}
+function AssetStatus({ asset, details }: AssetStatusProps) {
+  const [statusValues, setStatusValues] = useState<AssetStatusValueData[]>([])
+  const [selectedValueId, setSelectedValueId] = useState<number | undefined>(undefined)
+  const [notes, setNotes] = useState('')
 
-class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
-  timer?: number
-
-  constructor(props: AssetStatusProps) {
-    super(props)
-
-    this.state = {
-      statusValues: [],
-      selectedValueId: undefined,
-      notes: ''
-    }
-
-    this.updateSelectedStateValue = this.updateSelectedStateValue.bind(this)
-    this.updateNotes = this.updateNotes.bind(this)
-    this.resetForm = this.resetForm.bind(this)
-    this.setStatus = this.setStatus.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateStatusValues()
-    this.timer = setInterval(() => this.updateStatusValues(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateStatusValues() {
+  usePolling(async () => {
     const data = await smmGetJSON<{ values: AssetStatusValueData[] }>('/assets/status/values/', {})
-    this.setState((oldState) => ({
-      statusValues: data.values,
-      ...(oldState.selectedValueId === undefined && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
-    }))
-  }
+    setStatusValues(data.values)
+    setSelectedValueId((prev) => (prev === undefined && data.values.length > 0 ? data.values[0].id : prev))
+  }, 10000)
 
-  updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-
-    this.setState({ selectedValueId: Number(value) })
-  }
-
-  updateNotes(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    const { value } = event.target
-
-    this.setState({ notes: value })
-  }
-
-  resetForm() {
-    this.setState({
-      selectedValueId: undefined,
-      notes: ''
+  async function setStatus() {
+    await smmPost(`/assets/${asset}/status/`, {
+      value_id: selectedValueId,
+      notes
     })
+    setSelectedValueId(undefined)
+    setNotes('')
   }
 
-  async setStatus() {
-    await smmPost(`/assets/${this.props.asset}/status/`, {
-      value_id: this.state.selectedValueId,
-      notes: this.state.notes
-    })
-    this.resetForm()
-  }
-
-  render() {
-    const details = this.props.details
-
-    const rows = []
-    if (details?.status) {
-      rows.push(
-        <tr key="status_name">
-          <td>Status:</td>
-          <td>{details.status.status}</td>
-          <td>Since:</td>
-          <td>{formatLocalDateTime(details.status.since)}</td>
-        </tr>
-      )
-      rows.push(
-        <tr key="status_notes">
-          <td>Status Notes:</td>
-          <td colSpan={3}>{details.status.notes}</td>
-        </tr>
-      )
-    }
-    const statusValues = this.state.statusValues.map((v) => (
-      <option key={v.id} value={v.id}>
-        {v.name}
-      </option>
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          {rows}
-          <tr>
-            <td>Status:</td>
-            <td>
-              <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
-                {statusValues}
-              </select>
-            </td>
-            <td>
-              <Button onClick={this.setStatus}>Set Status</Button>
-            </td>
-          </tr>
-          <tr>
-            <td>Notes:</td>
-            <td colSpan={2}>
-              <textarea onChange={this.updateNotes} value={this.state.notes}></textarea>
-            </td>
-          </tr>
-          <tr></tr>
-        </thead>
-      </Table>
+  const rows = []
+  if (details?.status) {
+    rows.push(
+      <tr key="status_name">
+        <td>Status:</td>
+        <td>{details.status.status}</td>
+        <td>Since:</td>
+        <td>{formatLocalDateTime(details.status.since)}</td>
+      </tr>
+    )
+    rows.push(
+      <tr key="status_notes">
+        <td>Status Notes:</td>
+        <td colSpan={3}>{details.status.notes}</td>
+      </tr>
     )
   }
+  return (
+    <Table responsive>
+      <thead>
+        {rows}
+        <tr>
+          <td>Status:</td>
+          <td>
+            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} defaultValue={selectedValueId}>
+              {statusValues.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.name}
+                </option>
+              ))}
+            </select>
+          </td>
+          <td>
+            <Button onClick={setStatus}>Set Status</Button>
+          </td>
+        </tr>
+        <tr>
+          <td>Notes:</td>
+          <td colSpan={2}>
+            <textarea onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)} value={notes}></textarea>
+          </td>
+        </tr>
+        <tr></tr>
+      </thead>
+    </Table>
+  )
 }
 
 interface AssetUIProps {
   asset: number
 }
 
-interface AssetUIState {
-  lastCommand?: AssetCommandData
-  details?: AssetFullStatusData
+/** Polls /assets/<id>/ + /assets/<id>/mission/ every 10s and returns the
+ *  merged state plus the most-recent last_command. Used by both AssetUI
+ *  and the radio operator's compact RadioOperatorAsset. */
+export function useAssetData(asset: number) {
+  const [details, setDetails] = useState<AssetFullStatusData | undefined>(undefined)
+  const [lastCommand, setLastCommand] = useState<AssetCommandData | undefined>(undefined)
+
+  usePolling(async () => {
+    const [assetData, missionData] = await Promise.all([
+      smmGetJSON(`/assets/${asset}/`) as Promise<AssetFullStatusData>,
+      (smmGetJSON(`/assets/${asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({}) as AssetMissionData)
+    ])
+    const merged: AssetFullStatusData = { ...assetData, ...missionData }
+    setDetails(merged)
+    if (merged.last_command) {
+      setLastCommand(merged.last_command)
+    }
+  }, 10000)
+
+  return { details, lastCommand }
 }
 
-class AssetUI extends React.Component<AssetUIProps, AssetUIState> {
-  timer?: number
-  constructor(props: AssetUIProps) {
-    super(props)
+function AssetUI({ asset }: AssetUIProps) {
+  const { details, lastCommand } = useAssetData(asset)
 
-    this.state = {
-      lastCommand: undefined,
-      details: undefined
-    }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
+  let missionStatus
+  if (details?.mission_id !== undefined) {
+    missionStatus = <MissionAssetStatus mission={details.mission_id} asset={asset} />
   }
 
-  currentCommand(data: AssetCommandData) {
-    this.setState({
-      lastCommand: data
-    })
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  updateDataResponse(data: AssetFullStatusData) {
-    this.setState({
-      details: data
-    })
-    if (data.last_command) {
-      this.currentCommand(data.last_command)
-    }
-  }
-
-  async updateData() {
-    const [assetData, missionData] = await Promise.all([
-      smmGetJSON(`/assets/${this.props.asset}/`) as Promise<AssetFullStatusData>,
-      (smmGetJSON(`/assets/${this.props.asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({}) as AssetMissionData)
-    ])
-    this.updateDataResponse({ ...assetData, ...missionData })
-  }
-
-  render() {
-    let missionStatus
-    if (this.state.details?.mission_id !== undefined) {
-      missionStatus = <MissionAssetStatus mission={this.state.details.mission_id} asset={this.props.asset} />
-    }
-    return (
-      <div>
-        <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
-          {this.state.details?.name}
-        </div>
-        <AssetMissionDetails details={this.state.details} />
-        <AssetCommandView lastCommand={this.state.lastCommand} asset={this.props.asset} />
-        {missionStatus}
-        <AssetTrackAs asset={this.props.asset} />
-        <AssetStatus asset={this.props.asset} details={this.state.details} />
+  return (
+    <div>
+      <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
+        {details?.name}
       </div>
-    )
-  }
+      <AssetMissionDetails details={details} />
+      <AssetCommandView lastCommand={lastCommand} asset={asset} />
+      {missionStatus}
+      <AssetTrackAs asset={asset} />
+      <AssetStatus asset={asset} details={details} />
+    </div>
+  )
 }
 
 function createAssetUI(elementId: string, assetId: number) {
