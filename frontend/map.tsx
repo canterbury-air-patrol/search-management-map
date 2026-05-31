@@ -13,7 +13,7 @@ import { LocateControl } from 'leaflet.locatecontrol'
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
 import { cookieJar } from './cookies'
 
-import './Admin/admin.js'
+import './Admin/admin'
 import './ImageUploader/ImageUploader.js'
 import { poiadder } from './POIAdder/POIAdder.js'
 import { polygonadder } from './PolygonAdder/PolygonAdder.js'
