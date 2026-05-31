@@ -78,12 +78,12 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   async preview() {
-    if (this.onMap) {
-      this.props.map.removeLayer(this.onMap)
-      this.onMap = undefined
-    }
     try {
       const data = await smmGetJSON<GeoJSON.GeoJsonObject>(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, this.getData())
+      if (this.onMap) {
+        this.props.map.removeLayer(this.onMap)
+        this.onMap = undefined
+      }
       this.onMap = L.geoJSON(data, { color: 'yellow' })
       this.onMap.addTo(this.props.map)
     } catch (e) {
