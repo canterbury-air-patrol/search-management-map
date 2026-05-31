@@ -78,7 +78,7 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
   async function handlePreview() {
     const data = await smmGetJSON<GeoJSON.GeoJsonObject>(getUrl(searchType, objectType), getData())
     previewRef.current?.remove()
-    previewRef.current = L.geoJSON(data, { color: 'yellow' }).addTo(map)
+    previewRef.current = L.geoJSON(data, { style: { color: 'yellow' } }).addTo(map)
   }
 
   function handleCreate() {

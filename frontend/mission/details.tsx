@@ -60,10 +60,10 @@ interface MissionDetailsExternalReferencesRowProps {
   ExternalReference: MissionExternalReferenceData
 }
 
+type ExtRefField = 'name' | 'code' | 'url' | 'notes'
+
 interface MissionDetailsExternalReferencesRowState {
-  editFields: {
-    [name: string]: boolean
-  }
+  editFields: Partial<Record<ExtRefField, boolean>>
   values: {
     name: string
     code?: string
@@ -94,13 +94,13 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
     this.delete = this.delete.bind(this)
   }
 
-  toggleEdit(field: string) {
+  toggleEdit(field: ExtRefField) {
     this.setState((prevState) => ({
       editFields: { ...prevState.editFields, [field]: true }
     }))
   }
 
-  handleChange(field: string, event: React.ChangeEvent<HTMLInputElement>) {
+  handleChange(field: ExtRefField, event: React.ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
     this.setState((prevState) => ({
       values: { ...prevState.values, [field]: value }
@@ -130,7 +130,7 @@ class MissionDetailsExternalReferencesRow extends React.Component<MissionDetails
     smmDelete(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`)
   }
 
-  renderField(field: string, displayValue?: string) {
+  renderField(field: ExtRefField, displayValue?: string) {
     return this.state.editFields[field] ? (
       <input type="text" value={this.state.values[field] ?? ''} onChange={(e) => this.handleChange(field, e)} />
     ) : (
