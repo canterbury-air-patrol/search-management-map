@@ -187,21 +187,22 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
 
   render() {
     const responseData = []
-    if (this.props.lastCommand?.response !== undefined) {
-      if (this.props.lastCommand.response.set !== null) {
+    const response = this.props.lastCommand?.response
+    if (response) {
+      if (response.set) {
         responseData.push(
           <tr key="response">
             <td>
-              <i>{this.props.lastCommand.response.type}</i>
+              <i>{response.type}</i>
             </td>
-            <td>At: {this.props.lastCommand.response.set !== undefined ? new Date(this.props.lastCommand.response.set).toLocaleString() : ''}</td>
-            <td>By: {this.props.lastCommand.response.by}</td>
+            <td>At: {new Date(response.set).toLocaleString()}</td>
+            <td>By: {response.by}</td>
           </tr>
         )
         responseData.push(
           <tr key="message">
             <td>Message:</td>
-            <td colSpan={2}>{this.props.lastCommand.response.message}</td>
+            <td colSpan={2}>{response.message}</td>
           </tr>
         )
       } else {
