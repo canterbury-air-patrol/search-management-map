@@ -17,7 +17,7 @@ interface AssetData {
 
 interface AssetFullStatusData {
   asset_id: number
-  name: number
+  name: string
   asset_type: string
   owner: string
   last_command?: AssetCommandData
