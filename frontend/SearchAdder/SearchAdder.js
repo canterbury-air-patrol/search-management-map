@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { SearchAdderDialog } from './SearchAdderDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 

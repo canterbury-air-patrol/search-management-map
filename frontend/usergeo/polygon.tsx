@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import React from 'react'
 
 import { PolygonAdder } from '../PolygonAdder/PolygonAdder.js'
 import { SearchAdder } from '../SearchAdder/SearchAdder.js'

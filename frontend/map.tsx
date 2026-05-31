@@ -1,7 +1,6 @@
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
-import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import L, { LatLng } from 'leaflet'

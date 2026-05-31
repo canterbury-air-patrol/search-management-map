@@ -1,4 +1,3 @@
-import React from 'react'
 import { PopupDataList, PopupButtonGroup, ButtonItem } from '../popup'
 
 interface Props {

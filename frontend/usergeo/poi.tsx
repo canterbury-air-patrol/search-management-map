@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import React from 'react'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
 import { POIAdder } from '../POIAdder/POIAdder.js'

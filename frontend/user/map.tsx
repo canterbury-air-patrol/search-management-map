@@ -1,7 +1,6 @@
 import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
-import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { cookieJar } from '../cookies'
 import { smmGetJSON } from '../ajax'

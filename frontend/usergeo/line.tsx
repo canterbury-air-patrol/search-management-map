@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import React from 'react'
 
 import { LineAdder } from '../LineAdder/LineAdder.js'
 import { SearchAdder } from '../SearchAdder/SearchAdder.js'

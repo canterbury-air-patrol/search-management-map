@@ -1,4 +1,3 @@
-import React from 'react'
 import { AssetColorPicker } from './map'
 
 interface Props {
