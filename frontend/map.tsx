@@ -5,9 +5,7 @@ import * as ReactDOM from 'react-dom/client'
 
 import L, { LatLng } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIconShadow from 'leaflet/dist/images/marker-shadow.png'
+import './leaflet-setup'
 
 import 'leaflet-realtime'
 import '@canterbury-air-patrol/leaflet-dialog'
@@ -107,10 +105,6 @@ class SMMMap {
   }
 
   setupMap() {
-    L.Icon.Default.prototype.options.iconUrl = markerIcon
-    L.Icon.Default.prototype.options.iconRetinaUrl = markerIcon2x
-    L.Icon.Default.prototype.options.shadowUrl = markerIconShadow
-
     smmGetJSON<Parameters<typeof this.mapLayersCallback>[0]>('/map/tile/layers/', {}).then(this.mapLayersCallback)
 
     this.layerControl.addTo(this.map)
