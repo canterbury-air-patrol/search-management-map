@@ -1,5 +1,4 @@
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
+import './page-shell'
 import 'leaflet/dist/leaflet.css'
 import React from 'react'
 

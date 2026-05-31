@@ -1,6 +1,5 @@
+import '../page-shell'
 import { formatLocalDateTime } from '../format'
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
 
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'

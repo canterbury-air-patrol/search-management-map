@@ -1,6 +1,5 @@
+import '../page-shell'
 import { formatLocalDateTime } from '../format'
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'

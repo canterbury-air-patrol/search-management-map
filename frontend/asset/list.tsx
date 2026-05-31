@@ -1,5 +1,4 @@
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
+import '../page-shell'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import React from 'react'
