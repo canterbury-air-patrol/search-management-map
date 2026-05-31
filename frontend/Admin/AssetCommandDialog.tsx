@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
 import { smmGetJSON, smmPost } from '../ajax'
+import { LatLngMarkerInput } from '../LatLngMarkerInput'
+import { FormInputGroup } from '../components/FormInputGroup'
 
 interface CommandFormData {
   assets: { id: number; name: string }[]
   commands: { value: string; label: string }[]
   requires_position: string[]
 }
-import { LatLngMarkerInput } from '../LatLngMarkerInput'
 
 interface Props {
   map: L.Map
@@ -68,10 +69,7 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
 
   return (
     <div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Asset</span>
-        </div>
+      <FormInputGroup label="Asset">
         <select className="form-control" value={assetId} onChange={(e) => setAssetId(e.target.value)}>
           {assets.map((a) => (
             <option key={a.id} value={a.id}>
@@ -79,11 +77,8 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Command</span>
-        </div>
+      </FormInputGroup>
+      <FormInputGroup label="Command">
         <select className="form-control" value={command} onChange={(e) => setCommand(e.target.value)}>
           {commands.map((c) => (
             <option key={c.value} value={c.value}>
@@ -91,13 +86,10 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
             </option>
           ))}
         </select>
-      </div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Reason</span>
-        </div>
+      </FormInputGroup>
+      <FormInputGroup label="Reason">
         <input type="text" className="form-control" value={reason} onChange={(e) => setReason(e.target.value)} />
-      </div>
+      </FormInputGroup>
       {requiresPosition.includes(command) && (
         <LatLngMarkerInput
           map={map}

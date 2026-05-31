@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 
 import { MissionAssetData } from '../asset/types'
 import { smmGetJSON, smmPost } from '../ajax'
+import { FormInputGroup } from '../components/FormInputGroup'
 
 interface Props {
   searchPk: number
@@ -32,20 +33,14 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
 
   return (
     <div>
-      <div className="input-group input-group-sm mb-3">
-        <div className="input-group-prepend">
-          <span className="input-group-text">Queue for</span>
-        </div>
+      <FormInputGroup label="Queue for">
         <select className="form-control" value={selectType} onChange={(e) => setSelectType(e.target.value as 'type' | 'asset')}>
           <option value="type">Asset Type</option>
           <option value="asset">Specific Asset</option>
         </select>
-      </div>
+      </FormInputGroup>
       {selectType === 'asset' && (
-        <div className="input-group input-group-sm mb-3">
-          <div className="input-group-prepend">
-            <span className="input-group-text">Asset</span>
-          </div>
+        <FormInputGroup label="Asset">
           <select className="form-control" value={selectedAssetId} onChange={(e) => setSelectedAssetId(e.target.value)}>
             {assets.map((a) => (
               <option key={a.id} value={a.id}>
@@ -53,7 +48,7 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
               </option>
             ))}
           </select>
-        </div>
+        </FormInputGroup>
       )}
       <div className="btn-group">
         <button className="btn btn-light" onClick={handleQueue}>
