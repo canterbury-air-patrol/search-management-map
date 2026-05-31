@@ -1,5 +1,4 @@
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
+import './page-shell'
 
 import * as ReactDOM from 'react-dom/client'
 

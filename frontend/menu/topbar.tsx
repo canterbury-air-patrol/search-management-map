@@ -1,8 +1,6 @@
+import '../page-shell'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
-
-import 'bootstrap'
-import 'bootstrap/dist/css/bootstrap.css'
 
 import { Nav, Navbar, NavbarBrand } from 'react-bootstrap'
 
