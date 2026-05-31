@@ -22,6 +22,7 @@
     "bundle": true,
     "minify": true,
     "outdir": "dist",
+    "jsx": "automatic",
     "loader": {
         ".js": "jsx",
         ".png": "file",
