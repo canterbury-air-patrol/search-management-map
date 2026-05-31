@@ -8,13 +8,13 @@ import { smmGetJSON } from '../ajax'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
 import { UserPopup } from './UserPopup'
 import { ColorPickerDialog } from '../asset/ColorPickerDialog'
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 class SMMUserPosition {
   map: L.Map
   missionId: MissionId
   userName: string
   color: string
-  colorDialog?: L.Control.Dialog
   popupRoot?: ReactDOM.Root
   lastUpdate?: string
   path: L.LatLng[]
@@ -30,7 +30,6 @@ class SMMUserPosition {
     this.polyline = L.polyline([], { color: this.color })
     this.updateColor = this.updateColor.bind(this)
     this.colorPicker = this.colorPicker.bind(this)
-    this.closeColorPicker = this.closeColorPicker.bind(this)
     this.updateNewPosition = this.updateNewPosition.bind(this)
     this.updateError = this.updateError.bind(this)
   }
@@ -47,30 +46,10 @@ class SMMUserPosition {
     })
   }
 
-  closeColorPicker() {
-    this.colorDialog?.destroy()
-    this.colorDialog = undefined
-  }
-
   colorPicker() {
-    if (!this.colorDialog) {
-      const container = document.createElement('div')
-      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
-      const root = ReactDOM.createRoot(container)
-      root.render(
-        <ColorPickerDialog
-          name={this.userName}
-          color={this.color}
-          onColorChange={this.updateColor}
-          onClose={() => {
-            root.unmount()
-            this.closeColorPicker()
-          }}
-        />
-      )
-    } else {
-      this.colorDialog.show()
-    }
+    renderInLeafletDialog(this.map, (onClose) => <ColorPickerDialog name={this.userName} color={this.color} onColorChange={this.updateColor} onClose={onClose} />, {
+      initOpen: true
+    })
   }
 
   updateNewPosition(route: { features: Array<SMMMissionUserPointTimeGeoJSON> }) {
