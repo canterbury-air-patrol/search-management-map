@@ -595,7 +595,6 @@ function createAssetUI(elementId: string, assetId: number) {
   )
 }
 
-// @ts-expect-error: globalThis doesn't have a define
-globalThis.createAssetUI = createAssetUI
+window.createAssetUI = createAssetUI
 
 export { AssetCommandView, AssetMissionDetails, AssetUI }

@@ -99,5 +99,4 @@ function createAssetTypeList(elementId: string) {
   )
 }
 
-// @ts-expect-error: globalThis doesn't have a define
-globalThis.createAssetTypeList = createAssetTypeList
+window.createAssetTypeList = createAssetTypeList
