@@ -23,10 +23,10 @@ export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog
     rows.push({ css: 'inprogress', label: 'Inprogress By', value: search.inprogress_by })
   }
   if (search.inprogress_at) {
-    rows.push({ css: 'inprogress', label: 'Search Started', value: search.inprogress_at })
+    rows.push({ css: 'inprogress', label: 'Search Started', value: new Date(search.inprogress_at).toLocaleString() })
   }
   if (search.completed_at) {
-    rows.push({ css: 'completed', label: 'Search Completed', value: search.completed_at })
+    rows.push({ css: 'completed', label: 'Search Completed', value: new Date(search.completed_at).toLocaleString() })
   }
 
   const buttons: ButtonItem[] = []

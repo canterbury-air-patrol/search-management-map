@@ -106,10 +106,11 @@ class SMMSearchesNotStarted extends SMMSearches {
   searchStatus(search: SMMSearchObjectDetailsData) {
     let status = 'Unassigned'
     if (search.queued_at) {
+      const at = new Date(search.queued_at).toLocaleString()
       if (search.queued_for_asset) {
-        status = `Queued for ${search.queued_for_asset} at ${search.queued_at}`
+        status = `Queued for ${search.queued_for_asset} at ${at}`
       } else {
-        status = `Queued for ${search.created_for} at ${search.queued_at}`
+        status = `Queued for ${search.created_for} at ${at}`
       }
     }
 
