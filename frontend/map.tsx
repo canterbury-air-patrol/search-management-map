@@ -14,7 +14,7 @@ import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
 import { cookieJar } from './cookies'
 
 import './Admin/admin'
-import './ImageUploader/ImageUploader.js'
+import './ImageUploader/ImageUploader'
 import { poiadder } from './POIAdder/POIAdder'
 import { polygonadder } from './PolygonAdder/PolygonAdder'
 import { lineadder } from './LineAdder/LineAdder'

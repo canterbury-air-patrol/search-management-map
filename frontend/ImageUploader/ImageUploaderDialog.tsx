@@ -6,7 +6,7 @@ import { smmPostBody } from '../ajax'
 
 interface Props {
   map: L.Map
-  missionId: number
+  missionId: number | string
   onClose: () => void
 }
 
