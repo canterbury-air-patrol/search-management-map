@@ -93,5 +93,4 @@ function createUserGeoDetailsPage(elementId: string, missionId: number, userGeoI
 }
 export { UserGeoDetailsPage, createUserGeoDetailsPage }
 
-// @ts-expect-error: globalThis has no definition
-globalThis.createUserGeoDetailsPage = createUserGeoDetailsPage
+window.createUserGeoDetailsPage = createUserGeoDetailsPage

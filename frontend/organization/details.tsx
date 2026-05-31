@@ -488,5 +488,4 @@ function createOrganizationDetails(elementId: string, organizationId: number) {
   div.render(<OrganizationPage organizationId={organizationId} />)
 }
 
-// @ts-expect-error: globalThis has not definition
-globalThis.createOrganizationDetails = createOrganizationDetails
+window.createOrganizationDetails = createOrganizationDetails

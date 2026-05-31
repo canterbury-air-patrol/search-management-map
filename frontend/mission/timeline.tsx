@@ -268,5 +268,4 @@ export function createMissionTimeline(elementId: string, missionId: number) {
   )
 }
 
-// @ts-expect-error: globalThis has no definition
-globalThis.createMissionTimeline = createMissionTimeline
+window.createMissionTimeline = createMissionTimeline

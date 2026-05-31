@@ -120,5 +120,4 @@ function createIconList(elementId: string) {
   )
 }
 
-// @ts-expect-error: globalTime has no definition
-globalThis.createIconList = createIconList
+window.createIconList = createIconList

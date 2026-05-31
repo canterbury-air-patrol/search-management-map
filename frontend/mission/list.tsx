@@ -193,5 +193,4 @@ function createMissionList(elementId: string) {
 
 export { MissionListRow, MissionListPage }
 
-// @ts-expect-error: globalThis doesn't have a definition
-globalThis.createMissionList = createMissionList
+window.createMissionList = createMissionList

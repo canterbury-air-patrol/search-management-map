@@ -942,5 +942,4 @@ function createMissionDetails(elementId: string, missionId: number) {
 
 export { MissionDetailPage }
 
-// @ts-expect-error: globalThis has no definition
-globalThis.createMissionDetails = createMissionDetails
+window.createMissionDetails = createMissionDetails

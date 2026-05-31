@@ -196,5 +196,4 @@ function createMissionAssetStatus(elementId: string, asset: number, mission: num
 
 export { MissionAssetStatus }
 
-// @ts-expect-error: globalThis doesn't have a define
-globalThis.createMissionAssetStatus = createMissionAssetStatus
+window.createMissionAssetStatus = createMissionAssetStatus

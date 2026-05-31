@@ -191,5 +191,4 @@ function createOrganizationList(elementId: string) {
 
 export { OrganizationListRow }
 
-// @ts-expect-error: globalThis is not defined
-globalThis.createOrganizationList = createOrganizationList
+window.createOrganizationList = createOrganizationList

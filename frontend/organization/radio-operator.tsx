@@ -93,5 +93,4 @@ function createRadioOperator(elementId: string, organizationId: number) {
   )
 }
 
-// @ts-expect-error: globalThis has no definition
-globalThis.createRadioOperator = createRadioOperator
+window.createRadioOperator = createRadioOperator

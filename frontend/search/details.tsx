@@ -207,5 +207,4 @@ function createSearchDetailsPage(elementId: string, missionId: number, searchId:
 }
 export { SearchDetails, createSearchDetailsPage }
 
-// @ts-expect-error: globalThis has no definition
-globalThis.createSearchDetailsPage = createSearchDetailsPage
+window.createSearchDetailsPage = createSearchDetailsPage

@@ -49,8 +49,7 @@ function createSMMMissionTopBar(elementId: string, missionId: number) {
   div.render(<SMMMissionTopBar missionId={missionId} />)
 }
 
-// @ts-expect-error: globalThis doesn't have a define
-globalThis.createSMMMissionTopBar = createSMMMissionTopBar
+window.createSMMMissionTopBar = createSMMMissionTopBar
 
 interface SMMOrganizationTopBarProps {
   organizationId: number
@@ -91,7 +90,6 @@ function createSMMOrganizationTopBar(elementId: string, organizationId: number, 
   div.render(<SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={showRadioOperator} />)
 }
 
-// @ts-expect-error: globalThis doesn't have a define
-globalThis.createSMMOrganizationTopBar = createSMMOrganizationTopBar
+window.createSMMOrganizationTopBar = createSMMOrganizationTopBar
 
 export { SMMTopBar, SMMMissionTopBar, SMMOrganizationTopBar }
