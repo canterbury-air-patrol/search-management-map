@@ -15,14 +15,6 @@ interface OrganizationListRowProps {
 }
 
 class OrganizationListRow extends React.Component<OrganizationListRowProps, never> {
-  constructor(props: OrganizationListRowProps) {
-    super(props)
-
-    this.delete_organization = this.delete_organization.bind(this)
-  }
-
-  delete_organization() {}
-
   render() {
     const { organization } = this.props
     const dataFields = []
@@ -42,13 +34,6 @@ class OrganizationListRow extends React.Component<OrganizationListRowProps, neve
         buttons.push(
           <Button key="radio-operator" href={`/organization/${organization.id}/radio/operator/`}>
             Radio Operator
-          </Button>
-        )
-      }
-      if (organization.role === 'Admin') {
-        buttons.push(
-          <Button key="delete" className="btn-danger" onClick={this.delete_organization}>
-            Delete
           </Button>
         )
       }
