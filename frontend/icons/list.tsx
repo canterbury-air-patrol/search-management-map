@@ -1,12 +1,11 @@
 import '../page-shell'
+import { useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
 import { smmGetJSON } from '../ajax'
-
 import { SMMTopBar } from '../menu/topbar'
+import { usePolling } from '../hooks/usePolling'
 
 interface IconData {
   id: number
@@ -14,99 +13,53 @@ interface IconData {
   url: string
 }
 
-interface IconListRowProps {
-  icon: IconData
-}
-
-class IconListRow extends React.Component<IconListRowProps, never> {
-  render() {
-    const { icon } = this.props
-    const dataFields = []
-    dataFields.push(<td key="name">{icon.name}</td>)
-    dataFields.push(
+function IconListRow({ icon }: { icon: IconData }) {
+  return (
+    <tr key={icon.id}>
+      <td key="name">{icon.name}</td>
       <td key="img">
         <img src={icon.url} />
       </td>
-    )
-
-    return <tr key={icon.id}>{dataFields}</tr>
-  }
+    </tr>
+  )
 }
 
-interface IconListProps {
-  icons: IconData[]
+function IconList({ icons }: { icons: IconData[] }) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={5} align="center">
+            Icons
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Name</th>
+          <th>Image</th>
+        </tr>
+      </thead>
+      <tbody>
+        {icons.map((icon) => (
+          <IconListRow key={icon.id} icon={icon} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-class IconList extends React.Component<IconListProps, never> {
-  render() {
-    const iconRows = this.props.icons.map((icon) => <IconListRow key={icon.id} icon={icon} />)
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={5} align="center">
-              Icons
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Name</th>
-            <th>Image</th>
-          </tr>
-        </thead>
-        <tbody>{iconRows}</tbody>
-      </Table>
-    )
-  }
-}
+function IconListPage() {
+  const [icons, setIcons] = useState<IconData[]>([])
 
-interface IconListPageState {
-  knownIcons?: IconData[]
-}
+  usePolling(async () => {
+    const data = await smmGetJSON<{ icons: IconData[] }>('/icons/', {})
+    setIcons(data.icons)
+  }, 10000)
 
-class IconListPage extends React.Component<object, IconListPageState> {
-  timer?: number
-  constructor(props: object) {
-    super(props)
-
-    this.state = {
-      knownIcons: []
-    }
-
-    this.updateIcons = this.updateIcons.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
-    await smmGetJSON('/icons/', {}, this.updateIcons)
-  }
-
-  updateIcons(data: { icons: IconData[] }) {
-    this.setState(function () {
-      return {
-        knownIcons: data.icons
-      }
-    })
-  }
-
-  render() {
-    if (this.state.knownIcons) {
-      return (
-        <div>
-          <IconList icons={this.state.knownIcons} />
-        </div>
-      )
-    }
-    return <div></div>
-  }
+  return (
+    <div>
+      <IconList icons={icons} />
+    </div>
+  )
 }
 
 function createIconList(elementId: string) {
