@@ -48,7 +48,7 @@ class SMMUserPosition {
   }
 
   closeColorPicker() {
-    this.colorDialog.destroy()
+    this.colorDialog?.destroy()
     this.colorDialog = undefined
   }
 

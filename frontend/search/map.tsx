@@ -29,7 +29,7 @@ class SMMSearch {
   }
 
   searchQueueDestroy() {
-    this.QueueDialog.destroy()
+    this.QueueDialog?.destroy()
     this.QueueDialog = undefined
   }
 
