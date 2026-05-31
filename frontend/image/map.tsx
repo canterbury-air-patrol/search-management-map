@@ -55,7 +55,7 @@ abstract class SMMImage extends SMMRealtime {
       />
     )
     layer.bindPopup(container)
-    layer.on('remove', () => root.unmount())
+    layer.once('remove', () => root.unmount())
   }
 }
 

@@ -25,7 +25,7 @@ class SMMMarineVector extends SMMRealtime {
     const root = ReactDOM.createRoot(container)
     root.render(<MarineVectorPopup pk={tdvID} missionId={this.missionId} onDelete={() => smmDelete(`/sar/marine/vectors/${tdvID}/`)} />)
     layer.bindPopup(container)
-    layer.on('remove', () => root.unmount())
+    layer.once('remove', () => root.unmount())
   }
 }
 

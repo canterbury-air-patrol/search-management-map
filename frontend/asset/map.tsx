@@ -228,7 +228,7 @@ class SMMAssets extends SMMRealtime {
     this.popupRoots[assetId] = root
     root.render(<AssetPopup assetName={String(assetId)} coords={asset.geometry.coordinates} />)
     layer.bindPopup(container, { minWidth: 200 })
-    layer.on('remove', () => {
+    layer.once('remove', () => {
       root.unmount()
       delete this.popupRoots[assetId]
     })

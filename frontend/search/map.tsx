@@ -65,7 +65,7 @@ class SMMSearch {
       />
     )
     layer.bindPopup(container, { minWidth: 200 })
-    layer.on('remove', () => {
+    layer.once('remove', () => {
       root.unmount()
       if (this.popupRoot === root) {
         this.popupRoot = undefined
