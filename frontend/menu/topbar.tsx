@@ -25,7 +25,7 @@ class SMMTopBar extends React.Component<object, never> {
 }
 
 interface SMMMissionTopBarProps {
-  missionId: number
+  missionId: number | string
 }
 
 class SMMMissionTopBar extends React.Component<SMMMissionTopBarProps, never> {
