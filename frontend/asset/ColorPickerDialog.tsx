@@ -1,4 +1,4 @@
-import { AssetColorPicker } from './map'
+import { CompactPicker, ColorResult } from 'react-color'
 
 interface Props {
   name: string
@@ -11,7 +11,7 @@ export function ColorPickerDialog({ name, color, onColorChange, onClose }: Props
   return (
     <div>
       <div>Color Picker for {name}</div>
-      <AssetColorPicker color={color} updateColor={onColorChange} />
+      <CompactPicker color={color} onChangeComplete={(c: ColorResult) => onColorChange(c.hex)} />
       <button className="btn btn-primary" onClick={onClose}>
         Done
       </button>

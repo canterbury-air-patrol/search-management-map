@@ -3,42 +3,14 @@ import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
-import React from 'react'
 import * as ReactDOM from 'react-dom/client'
-import { ColorResult, CompactPicker } from 'react-color'
 import { cookieJar } from '../cookies'
 import { MissionAssetData, AssetPointTime } from './types'
 
 import { smmGetJSON } from '../ajax'
 import { AssetPopup } from './AssetPopup'
 import { ColorPickerDialog } from './ColorPickerDialog'
-
-interface AssetColorPickerProps {
-  color: string
-  updateColor: (color: string) => void
-}
-
-interface AssetColorPickerState {
-  color: string
-}
-
-class AssetColorPicker extends React.Component<AssetColorPickerProps, AssetColorPickerState> {
-  constructor(props: AssetColorPickerProps) {
-    super(props)
-    this.state = {
-      color: this.props.color
-    }
-  }
-
-  updateColor = (color: ColorResult) => {
-    this.props.updateColor(color.hex)
-    this.setState({ color: color.hex })
-  }
-
-  render() {
-    return <CompactPicker color={this.state.color} onChangeComplete={this.updateColor} />
-  }
-}
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 class SMMAsset {
   map: L.Map
@@ -46,7 +18,6 @@ class SMMAsset {
   assetId: number
   assetName: string
   color: string
-  colorDialog?: L.Control.Dialog
   lastUpdate?: string
   path: Array<L.LatLng>
   updating: boolean
@@ -56,7 +27,6 @@ class SMMAsset {
     this.assetId = assetId
     this.assetName = assetName
     this.color = color
-    this.colorDialog = undefined
     this.lastUpdate = undefined
     this.path = []
     this.updating = false
@@ -64,7 +34,6 @@ class SMMAsset {
     this.polyline = L.polyline([], { color: this.color })
     this.updateColor = this.updateColor.bind(this)
     this.colorPicker = this.colorPicker.bind(this)
-    this.closeColorPicker = this.closeColorPicker.bind(this)
     this.updateNewRoute = this.updateNewRoute.bind(this)
     this.updateFailed = this.updateFailed.bind(this)
   }
@@ -81,30 +50,10 @@ class SMMAsset {
     })
   }
 
-  closeColorPicker() {
-    this.colorDialog?.destroy()
-    this.colorDialog = undefined
-  }
-
   colorPicker() {
-    if (!this.colorDialog) {
-      const container = document.createElement('div')
-      this.colorDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
-      const root = ReactDOM.createRoot(container)
-      root.render(
-        <ColorPickerDialog
-          name={this.assetName}
-          color={this.color}
-          onColorChange={this.updateColor}
-          onClose={() => {
-            root.unmount()
-            this.closeColorPicker()
-          }}
-        />
-      )
-    } else {
-      this.colorDialog.show()
-    }
+    renderInLeafletDialog(this.map, (onClose) => <ColorPickerDialog name={this.assetName} color={this.color} onColorChange={this.updateColor} onClose={onClose} />, {
+      initOpen: true
+    })
   }
 
   updateNewRoute(route: { features: Array<{ geometry: { coordinates: Array<number> }; properties: AssetPointTime }> }) {
@@ -306,4 +255,4 @@ class SMMAssets extends SMMRealtime {
   }
 }
 
-export { SMMAssets, AssetColorPicker }
+export { SMMAssets }
