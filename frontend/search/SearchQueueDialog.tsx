@@ -21,7 +21,7 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
       setAssets(filtered)
       if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))
     })
-  }, [])
+  }, [missionId, createdFor])
 
   async function handleQueue() {
     const data: { asset?: string } = {}

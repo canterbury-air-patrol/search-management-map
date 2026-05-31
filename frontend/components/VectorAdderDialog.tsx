@@ -26,12 +26,15 @@ export function VectorAdderDialog({ map, type, missionId, initialPoints, replace
   const shapeRef = useRef<L.Polyline | L.Polygon | null>(null)
 
   useEffect(() => {
+    // Mount-only: the shape is updated in place via setLatLngs below;
+    // changing type or map mid-dialog isn't supported.
     const shape = type === 'line' ? L.polyline(positionsRef.current, { color: 'yellow' }) : L.polygon(positionsRef.current, { color: 'yellow' })
     shape.addTo(map)
     shapeRef.current = shape
     return () => {
       shape.remove()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function handlePositionChange(index: number, pos: L.LatLng) {
