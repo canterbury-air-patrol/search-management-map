@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import React from 'react'
 import { SMMSearchObjectDetailsData } from './types'
 import { PopupButtonGroup, ButtonItem } from '../popup'
@@ -23,10 +24,10 @@ export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog
     rows.push({ css: 'inprogress', label: 'Inprogress By', value: search.inprogress_by })
   }
   if (search.inprogress_at) {
-    rows.push({ css: 'inprogress', label: 'Search Started', value: new Date(search.inprogress_at).toLocaleString() })
+    rows.push({ css: 'inprogress', label: 'Search Started', value: formatLocalDateTime(search.inprogress_at) })
   }
   if (search.completed_at) {
-    rows.push({ css: 'completed', label: 'Search Completed', value: new Date(search.completed_at).toLocaleString() })
+    rows.push({ css: 'completed', label: 'Search Completed', value: formatLocalDateTime(search.completed_at) })
   }
 
   const buttons: ButtonItem[] = []

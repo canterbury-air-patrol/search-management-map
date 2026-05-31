@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
@@ -19,7 +20,7 @@ class OrganizationListRow extends React.Component<OrganizationListRowProps, neve
     const { organization } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{organization.name}</td>)
-    dataFields.push(<td key="created">{new Date(organization.created).toLocaleString()}</td>)
+    dataFields.push(<td key="created">{formatLocalDateTime(organization.created)}</td>)
     dataFields.push(<td key="creator">{organization.creator}</td>)
     dataFields.push(<td key="role">{organization.role}</td>)
 

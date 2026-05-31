@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
@@ -20,11 +21,11 @@ class MissionListRow extends React.Component<MissionListRowProps, never> {
     const { mission } = this.props
     const dataFields = []
     dataFields.push(<td key="name">{mission.name}</td>)
-    dataFields.push(<td key="opened">{new Date(mission.started).toLocaleString()}</td>)
+    dataFields.push(<td key="opened">{formatLocalDateTime(mission.started)}</td>)
     dataFields.push(<td key="creator">{mission.creator}</td>)
 
     if (this.props.showClosed) {
-      dataFields.push(<td key="closed">{mission.closed ? new Date(mission.closed).toLocaleString() : ''}</td>)
+      dataFields.push(<td key="closed">{formatLocalDateTime(mission.closed)}</td>)
       dataFields.push(<td key="closer">{mission.closed_by}</td>)
     }
 

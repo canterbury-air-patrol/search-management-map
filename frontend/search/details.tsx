@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 
@@ -44,7 +45,7 @@ class SearchDetails extends SMMObjectDetails {
       tableRows.push(
         <tr key="inprogress_at">
           <td>In Progress Since:</td>
-          <td>{new Date(data.inprogress_at).toLocaleString()}</td>
+          <td>{formatLocalDateTime(data.inprogress_at)}</td>
         </tr>
       )
       tableRows.push(
@@ -59,7 +60,7 @@ class SearchDetails extends SMMObjectDetails {
       tableRows.push(
         <tr key="queued_at">
           <td>Queued:</td>
-          <td>{new Date(data.queued_at).toLocaleString()}</td>
+          <td>{formatLocalDateTime(data.queued_at)}</td>
         </tr>
       )
       if (data.queued_for_asset !== null) {

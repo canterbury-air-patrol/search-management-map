@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
@@ -195,7 +196,7 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
             <td>
               <i>{response.type}</i>
             </td>
-            <td>At: {new Date(response.set).toLocaleString()}</td>
+            <td>At: {formatLocalDateTime(response.set)}</td>
             <td>By: {response.by}</td>
           </tr>
         )
@@ -250,7 +251,7 @@ class AssetCommandView extends React.Component<AssetCommandViewProps, AssetComma
             <td>
               <b>{this.props.lastCommand?.action_txt}</b>
             </td>
-            <td>Issued: {this.props.lastCommand?.issued === undefined ? '' : new Date(this.props.lastCommand.issued).toLocaleString()}</td>
+            <td>Issued: {formatLocalDateTime(this.props.lastCommand?.issued)}</td>
             <td>By: {this.props.lastCommand?.issued_by}</td>
           </tr>
           {gotoRow}
@@ -466,7 +467,7 @@ class AssetStatus extends React.Component<AssetStatusProps, AssetStatusState> {
           <td>Status:</td>
           <td>{details.status.status}</td>
           <td>Since:</td>
-          <td>{details.status.since === undefined ? '' : new Date(details.status.since).toLocaleString()}</td>
+          <td>{formatLocalDateTime(details.status.since)}</td>
         </tr>
       )
       rows.push(
