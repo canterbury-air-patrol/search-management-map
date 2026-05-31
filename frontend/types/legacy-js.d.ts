@@ -1,12 +1,3 @@
-/* Legacy untyped JS modules in this repo. Each will get proper typings when
- * converted to .tsx (see todo/frontend/refactor-convert-js-to-typescript.md). */
-declare module '*/POIAdder/POIAdder'
-declare module '*/PolygonAdder/PolygonAdder'
-declare module '*/LineAdder/LineAdder'
-declare module '*/SearchAdder/SearchAdder'
-declare module '*/ImageUploader/ImageUploader.js'
-declare module '*/Admin/admin.js'
-
 /* Untyped Canterbury Air Patrol vendor packages. The shapes below are
  * permissive: the implementations are React class components whose
  * state/methods we read but don't strictly type. Refine when a vendor
