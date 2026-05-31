@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
@@ -173,7 +174,7 @@ class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, Mi
               <td>{this.state.statusData?.status}</td>
               <td>{this.state.statusData?.status_description}</td>
               <td>{this.state.statusData?.notes}</td>
-              <td>{this.state.statusData?.since === undefined ? '' : new Date(this.state.statusData.since).toLocaleString()}</td>
+              <td>{formatLocalDateTime(this.state.statusData?.since)}</td>
             </tr>
             <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} />
           </tbody>

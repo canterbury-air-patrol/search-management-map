@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import * as ReactDOM from 'react-dom/client'
 
 import L from 'leaflet'
@@ -105,7 +106,7 @@ class SMMSearchesNotStarted extends SMMSearches {
   searchStatus(search: SMMSearchObjectDetailsData) {
     let status = 'Unassigned'
     if (search.queued_at) {
-      const at = new Date(search.queued_at).toLocaleString()
+      const at = formatLocalDateTime(search.queued_at)
       if (search.queued_for_asset) {
         status = `Queued for ${search.queued_for_asset} at ${at}`
       } else {

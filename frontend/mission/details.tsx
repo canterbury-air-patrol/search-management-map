@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
@@ -29,7 +30,7 @@ const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
         </tr>
         <tr>
           <td>Started</td>
-          <td>{new Date(mission.started).toLocaleString()}</td>
+          <td>{formatLocalDateTime(mission.started)}</td>
         </tr>
         <tr>
           <td>Creator</td>
@@ -42,7 +43,7 @@ const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
         {mission.closed && (
           <tr>
             <td>Closed</td>
-            <td>{new Date(mission.closed).toLocaleString()}</td>
+            <td>{formatLocalDateTime(mission.closed)}</td>
           </tr>
         )}
         {mission.closed_by && (
@@ -708,15 +709,15 @@ class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps
         <>
           {missionAsset.status.name}
           <br />
-          <small>{new Date(missionAsset.status.since).toLocaleString()}</small>
+          <small>{formatLocalDateTime(missionAsset.status.since)}</small>
         </>
       )
     }
     if (missionAsset.added) {
-      added = new Date(missionAsset.added).toLocaleString()
+      added = formatLocalDateTime(missionAsset.added)
     }
     if (missionAsset.removed) {
-      removed = new Date(missionAsset.removed).toLocaleString()
+      removed = formatLocalDateTime(missionAsset.removed)
     } else {
       buttons.push(
         <Button key="btnRemove" variant="danger" onClick={this.remove}>

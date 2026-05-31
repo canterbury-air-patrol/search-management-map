@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button } from 'react-bootstrap'
@@ -143,7 +144,7 @@ class MissionTimelineEntry extends React.Component<MissionTimelineEntryProps, ne
     const entry = this.props.timelineEntry
     return (
       <tr>
-        <td>{new Date(entry.timestamp).toLocaleString()}</td>
+        <td>{formatLocalDateTime(entry.timestamp)}</td>
         <td>{entry.creator}</td>
         <td>{entry.event_type}</td>
         <td>{entry.message}</td>

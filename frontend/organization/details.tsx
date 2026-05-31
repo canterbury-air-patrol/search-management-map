@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import 'bootstrap'
 import 'bootstrap/dist/css/bootstrap.css'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
@@ -71,7 +72,7 @@ class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, 
     const organizationMember = this.props.organization_member
     const dataFields = []
     dataFields.push(<td key="name">{organizationMember.user}</td>)
-    dataFields.push(<td key="created">{new Date(organizationMember.added).toLocaleString()}</td>)
+    dataFields.push(<td key="created">{formatLocalDateTime(organizationMember.added)}</td>)
     dataFields.push(<td key="creator">{organizationMember.added_by}</td>)
 
     if (this.props.showButtons) {
@@ -120,7 +121,7 @@ class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, ne
     const dataFields = []
     dataFields.push(<td key="name">{organizationAsset.asset.name}</td>)
     dataFields.push(<td key="status">{organizationAsset.asset.status}</td>)
-    dataFields.push(<td key="created">{new Date(organizationAsset.added).toLocaleString()}</td>)
+    dataFields.push(<td key="created">{formatLocalDateTime(organizationAsset.added)}</td>)
     dataFields.push(<td key="creator">{organizationAsset.added_by}</td>)
 
     if (this.props.showButtons) {

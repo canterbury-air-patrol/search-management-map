@@ -1,3 +1,4 @@
+import { formatLocalDateTime } from '../format'
 import { Table } from 'react-bootstrap'
 
 import React from 'react'
@@ -20,7 +21,7 @@ class SMMObjectDetails extends React.Component<SMMObjectDetailsProps, never> {
     tableRows.push(
       <tr key="created_at">
         <td>Created:</td>
-        <td>{new Date(data.created_at).toLocaleString()}</td>
+        <td>{formatLocalDateTime(data.created_at)}</td>
       </tr>
     )
     tableRows.push(
@@ -33,7 +34,7 @@ class SMMObjectDetails extends React.Component<SMMObjectDetailsProps, never> {
       tableRows.push(
         <tr key="deleted_at">
           <td>Deleted:</td>
-          <td>{new Date(data.deleted_at).toLocaleString()}</td>
+          <td>{formatLocalDateTime(data.deleted_at)}</td>
         </tr>
       )
       tableRows.push(
@@ -47,7 +48,7 @@ class SMMObjectDetails extends React.Component<SMMObjectDetailsProps, never> {
       tableRows.push(
         <tr key="replaced_at">
           <td>Replaced:</td>
-          <td>{new Date(data.replaced_at).toLocaleString()}</td>
+          <td>{formatLocalDateTime(data.replaced_at)}</td>
         </tr>
       )
       tableRows.push(
