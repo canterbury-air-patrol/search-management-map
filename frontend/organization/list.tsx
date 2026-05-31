@@ -84,8 +84,8 @@ interface OrganizationAddState {
   organizationName: string
 }
 
-class OrganizationAdd extends React.Component<never, OrganizationAddState> {
-  constructor(props: never) {
+class OrganizationAdd extends React.Component<object, OrganizationAddState> {
+  constructor(props: object) {
     super(props)
 
     this.state = {
@@ -139,9 +139,9 @@ interface OrganizationListPageState {
   knownOrganizations: OrganizationData[]
 }
 
-class OrganizationListPage extends React.Component<never, OrganizationListPageState> {
+class OrganizationListPage extends React.Component<object, OrganizationListPageState> {
   timer?: number
-  constructor(props: never) {
+  constructor(props: object) {
     super(props)
 
     this.state = {
