@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { useEffect, useState } from 'react'
 
 import { MissionAssetData } from '../asset/types'
@@ -6,7 +7,7 @@ import { FormInputGroup } from '../components/FormInputGroup'
 
 interface Props {
   searchPk: number
-  missionId: number | string
+  missionId: MissionId
   createdFor: string
   onClose: () => void
 }

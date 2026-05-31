@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { formatLocalDateTime } from '../format'
 import * as ReactDOM from 'react-dom/client'
 
@@ -76,7 +77,7 @@ class SMMSearch {
 
 abstract class SMMSearches extends SMMRealtime {
   searchObjects: { [key: number]: SMMSearch }
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
 
     this.searchObjects = {}

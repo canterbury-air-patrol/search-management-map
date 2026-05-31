@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
@@ -12,11 +13,11 @@ import { SMMUserGeoLabelData } from './types'
  */
 abstract class SMMUserGeoLayer {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   data: SMMUserGeoLabelData
   popupRoot?: ReactDOM.Root
 
-  constructor(map: L.Map, missionId: number | string, data: SMMUserGeoLabelData) {
+  constructor(map: L.Map, missionId: MissionId, data: SMMUserGeoLabelData) {
     this.map = map
     this.missionId = missionId
     this.data = data
@@ -60,7 +61,7 @@ abstract class SMMUserGeoLayer {
 abstract class SMMUserGeoCollection<TGeoJSON extends { properties: SMMUserGeoLabelData }, TLayer extends SMMUserGeoLayer> extends SMMRealtime {
   objects: { [key: number]: TLayer }
 
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
     this.objects = {}
     this.createPopup = this.createPopup.bind(this)

@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
@@ -41,7 +42,7 @@ class AssetColorPicker extends React.Component<AssetColorPickerProps, AssetColor
 
 class SMMAsset {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   assetId: number
   assetName: string
   color: string
@@ -50,7 +51,7 @@ class SMMAsset {
   path: Array<L.LatLng>
   updating: boolean
   polyline: L.Polyline
-  constructor(map: L.Map, missionId: number | string, assetId: number, assetName: string, color: string) {
+  constructor(map: L.Map, missionId: MissionId, assetId: number, assetName: string, color: string) {
     this.missionId = missionId
     this.assetId = assetId
     this.assetName = assetName
@@ -144,7 +145,7 @@ class SMMAssets extends SMMRealtime {
   assetIconMap: { [key: number]: string }
   assetStatusMap: { [key: number]: { status: string; notes: string } }
   popupRoots: { [key: number]: ReactDOM.Root }
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}

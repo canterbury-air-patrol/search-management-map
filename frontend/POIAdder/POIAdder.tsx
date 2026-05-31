@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 
@@ -6,10 +7,10 @@ import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 import { createIconControl } from '../components/iconControl'
 
 interface POIAdderControlOptions {
-  missionId: number | string
+  missionId: MissionId
 }
 
-function POIAdder(map: L.Map, missionId: number | string, pos: L.LatLng, replaces: number, label: string) {
+function POIAdder(map: L.Map, missionId: MissionId, pos: L.LatLng, replaces: number, label: string) {
   renderInLeafletDialog(map, (onClose) => <POIAdderDialog map={map} missionId={missionId} initialPos={pos} replaces={replaces} initialLabel={label} onClose={onClose} />, {
     initOpen: true
   })

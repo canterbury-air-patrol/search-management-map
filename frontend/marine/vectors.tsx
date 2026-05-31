@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import * as ReactDOM from 'react-dom/client'
 
@@ -7,7 +8,7 @@ import { smmDelete } from '../ajax'
 import { MarineVectorPopup } from './MarineVectorPopup'
 
 class SMMMarineVector extends SMMRealtime {
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)

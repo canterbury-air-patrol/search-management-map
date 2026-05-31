@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import * as ReactDOM from 'react-dom/client'
 
@@ -7,7 +8,7 @@ import { smmPatch } from '../ajax'
 import { ImagePopup } from './ImagePopup'
 
 abstract class SMMImage extends SMMRealtime {
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
 
     this.createPopup = this.createPopup.bind(this)
@@ -59,7 +60,7 @@ abstract class SMMImage extends SMMRealtime {
 }
 
 class SMMImageAll extends SMMImage {
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }
@@ -70,7 +71,7 @@ class SMMImageAll extends SMMImage {
 }
 
 class SMMImageImportant extends SMMImage {
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     super(map, missionId, interval, color)
     this.getUrl = this.getUrl.bind(this)
   }

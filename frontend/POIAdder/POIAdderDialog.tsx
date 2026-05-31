@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { useRef, useState } from 'react'
 import L from 'leaflet'
 
@@ -8,7 +9,7 @@ import { DialogActions } from '../components/DialogActions'
 
 interface Props {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   initialPos: L.LatLng
   replaces: number
   initialLabel: string

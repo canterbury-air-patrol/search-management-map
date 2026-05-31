@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import '../page-shell'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
@@ -23,7 +24,7 @@ class SMMTopBar extends React.Component<object, never> {
 }
 
 interface SMMMissionTopBarProps {
-  missionId: number | string
+  missionId: MissionId
 }
 
 class SMMMissionTopBar extends React.Component<SMMMissionTopBarProps, never> {

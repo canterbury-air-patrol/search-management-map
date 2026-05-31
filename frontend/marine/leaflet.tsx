@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
@@ -7,7 +8,7 @@ import { smmGetJSON, smmPost } from '../ajax'
 
 interface CustomMarineVectorsProps {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   posName: string
   pos: L.LatLng
   poiId: number
@@ -132,7 +133,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 }
 
-const MarineVectorsLeaflet = function (map: L.Map, missionId: number | string, posName: string, pos: L.LatLng, poiId: number) {
+const MarineVectorsLeaflet = function (map: L.Map, missionId: MissionId, posName: string, pos: L.LatLng, poiId: number) {
   const container = document.createElement('div')
   const dialog = L.control.dialog({ initOpen: true, size: [1000, 500] })
   ReactDOM.createRoot(container).render(<CustomMarineVectors map={map} missionId={missionId} posName={posName} pos={pos} poiId={Number(poiId)} dialog={dialog} />)

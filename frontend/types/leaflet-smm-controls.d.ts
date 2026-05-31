@@ -1,15 +1,14 @@
 /* Ambient types for the bespoke Leaflet controls registered in
- * frontend/Admin/admin.js and frontend/ImageUploader/ImageUploader.js.
- * Both will get real typings when those files are converted to TS
- * (see todo/frontend/refactor-convert-js-to-typescript.md). */
+ * frontend/Admin/admin.tsx and frontend/ImageUploader/ImageUploader.tsx. */
 import 'leaflet'
+import type { MissionId } from '../mission/MissionId'
 
 declare module 'leaflet' {
   interface SMMAdminOptions extends ControlOptions {
-    missionId: number | string
+    missionId: MissionId
   }
   interface ImageUploaderOptions extends ControlOptions {
-    missionId: number | string
+    missionId: MissionId
   }
 
   namespace control {

@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
@@ -10,7 +11,7 @@ import { ColorPickerDialog } from '../asset/ColorPickerDialog'
 
 class SMMUserPosition {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   userName: string
   color: string
   colorDialog?: L.Control.Dialog
@@ -19,7 +20,7 @@ class SMMUserPosition {
   path: L.LatLng[]
   updating: boolean
   polyline: L.Polyline
-  constructor(map: L.Map, missionId: number | string, userName: string, color: string) {
+  constructor(map: L.Map, missionId: MissionId, userName: string, color: string) {
     this.missionId = missionId
     this.userName = userName
     this.color = color
@@ -106,7 +107,7 @@ class SMMUserPosition {
 class SMMUserPositions extends SMMRealtime {
   userObjects: { [key: string]: SMMUserPosition }
   overlayAdd: (name: string, overlay: L.Layer) => void
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
