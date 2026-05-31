@@ -17,5 +17,5 @@ export function createMarineSACTable(elementId: string, missionId: number) {
   )
 }
 
-// @ts-expect-error: globalThis has no defintion
+// @ts-expect-error: globalThis has no definition
 globalThis.createMarineSACTable = createMarineSACTable
