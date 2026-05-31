@@ -81,7 +81,7 @@ class SMMAsset {
   }
 
   closeColorPicker() {
-    this.colorDialog.destroy()
+    this.colorDialog?.destroy()
     this.colorDialog = undefined
   }
 
@@ -240,23 +240,18 @@ class SMMAssets extends SMMRealtime {
 
   assetLayer(asset: { properties: { asset: number } }, latlng: L.LatLng) {
     const iconUrl = this.getAssetIcon(asset.properties.asset)
+    const title = this.assetNameMap[asset.properties.asset]
     if (iconUrl) {
       return L.marker(latlng, {
-        icon: L.icon(
-          {
-            iconUrl,
-            iconSize: [50, 50],
-            iconAnchor: [25, 50]
-          },
-          {
-            title: this.assetNameMap[asset.properties.asset]
-          }
-        )
+        title,
+        icon: L.icon({
+          iconUrl,
+          iconSize: [50, 50],
+          iconAnchor: [25, 50]
+        })
       })
     }
-    return L.marker(latlng, {
-      title: this.assetNameMap[asset.properties.asset]
-    })
+    return L.marker(latlng, { title })
   }
 
   assetUpdate(asset: { properties: { asset: number; alt?: number; heading?: number; fix?: string }; geometry: { type: string; coordinates: Array<number> } }, oldLayer: L.Marker) {
@@ -283,9 +278,13 @@ class SMMAssets extends SMMRealtime {
     if (asset.geometry.type === 'Point') {
       const c = asset.geometry.coordinates
       oldLayer.setLatLng([c[1], c[0]])
-      if (oldLayer._icon && oldLayer._icon.title !== this.assetNameMap[assetId]) {
-        oldLayer._icon.title = this.assetNameMap[assetId]
+
+      const newTitle = this.assetNameMap[assetId]
+      const iconEl = oldLayer.getElement()
+      if (iconEl && iconEl.title !== newTitle) {
+        iconEl.title = newTitle
       }
+      oldLayer.options.title = newTitle
 
       const currentIcon = oldLayer.getIcon()
       if (assetId in this.assetIconMap) {
@@ -295,8 +294,7 @@ class SMMAssets extends SMMRealtime {
             L.icon({
               iconUrl,
               iconSize: [50, 50],
-              iconAnchor: [25, 50],
-              title: this.assetNameMap[assetId]
+              iconAnchor: [25, 50]
             })
           )
         }
