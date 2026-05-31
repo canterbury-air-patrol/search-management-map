@@ -1,12 +1,12 @@
 import '../page-shell'
-import { formatLocalDateTime } from '../format'
+import { useState, ChangeEvent } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
+import { formatLocalDateTime } from '../format'
 import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
+import { usePolling } from '../hooks/usePolling'
 import { OrganizationData } from './types'
 
 interface OrganizationListRowProps {
@@ -14,38 +14,35 @@ interface OrganizationListRowProps {
   showButtons: boolean
 }
 
-class OrganizationListRow extends React.Component<OrganizationListRowProps, never> {
-  render() {
-    const { organization } = this.props
-    const dataFields = []
-    dataFields.push(<td key="name">{organization.name}</td>)
-    dataFields.push(<td key="created">{formatLocalDateTime(organization.created)}</td>)
-    dataFields.push(<td key="creator">{organization.creator}</td>)
-    dataFields.push(<td key="role">{organization.role}</td>)
+function OrganizationListRow({ organization, showButtons }: OrganizationListRowProps) {
+  const dataFields = [
+    <td key="name">{organization.name}</td>,
+    <td key="created">{formatLocalDateTime(organization.created)}</td>,
+    <td key="creator">{organization.creator}</td>,
+    <td key="role">{organization.role}</td>
+  ]
 
-    if (this.props.showButtons) {
-      const buttons = []
+  if (showButtons) {
+    const buttons = [
+      <Button key="details" href={`/organization/${organization.id}/`}>
+        Details
+      </Button>
+    ]
+    if (organization.role === 'Radio Operator' || organization.role === 'Admin') {
       buttons.push(
-        <Button key="details" href={`/organization/${organization.id}/`}>
-          Details
+        <Button key="radio-operator" href={`/organization/${organization.id}/radio/operator/`}>
+          Radio Operator
         </Button>
       )
-      if (organization.role === 'Radio Operator' || organization.role === 'Admin') {
-        buttons.push(
-          <Button key="radio-operator" href={`/organization/${organization.id}/radio/operator/`}>
-            Radio Operator
-          </Button>
-        )
-      }
-      dataFields.push(
-        <td key="buttons">
-          <ButtonGroup key="buttons">{buttons}</ButtonGroup>
-        </td>
-      )
     }
-
-    return <tr key={organization.id}>{dataFields}</tr>
+    dataFields.push(
+      <td key="buttons">
+        <ButtonGroup key="buttons">{buttons}</ButtonGroup>
+      </td>
+    )
   }
+
+  return <tr key={organization.id}>{dataFields}</tr>
 }
 
 interface OrganizationListProps {
@@ -53,129 +50,88 @@ interface OrganizationListProps {
   showButtons: boolean
 }
 
-class OrganizationList extends React.Component<OrganizationListProps, never> {
-  render() {
-    const organizationRows = this.props.organizations.map((organization) => (
-      <OrganizationListRow key={organization.id} organization={organization} showButtons={this.props.showButtons} />
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={4} align="center">
-              Current Organizations
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Organization Name</th>
-            <th>Created</th>
-            <th>By</th>
-            <th>My Role</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>{organizationRows}</tbody>
-      </Table>
-    )
-  }
+function OrganizationList({ organizations, showButtons }: OrganizationListProps) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={4} align="center">
+            Current Organizations
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Organization Name</th>
+          <th>Created</th>
+          <th>By</th>
+          <th>My Role</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {organizations.map((organization) => (
+          <OrganizationListRow key={organization.id} organization={organization} showButtons={showButtons} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-interface OrganizationAddState {
-  organizationName: string
-}
+function OrganizationAdd() {
+  const [organizationName, setOrganizationName] = useState('')
 
-class OrganizationAdd extends React.Component<object, OrganizationAddState> {
-  constructor(props: object) {
-    super(props)
-
-    this.state = {
-      organizationName: ''
-    }
-
-    this.updateOrganizationName = this.updateOrganizationName.bind(this)
-    this.createOrganization = this.createOrganization.bind(this)
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    setOrganizationName(event.target.value)
   }
 
-  updateOrganizationName(event: React.ChangeEvent<HTMLInputElement>) {
-    const { value } = event.target
-
-    this.setState({ organizationName: value })
-  }
-
-  async createOrganization() {
+  async function createOrganization() {
     try {
-      await smmPost('/organization/', { name: this.state.organizationName })
-      this.setState({ organizationName: '' })
+      await smmPost('/organization/', { name: organizationName })
+      setOrganizationName('')
     } catch (e) {
       console.error('Failed to create organization:', e)
     }
   }
 
-  render() {
-    return (
-      <Table responsive>
-        <thead>
-          <tr>
-            <td>Name</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <input type="text" onChange={this.updateOrganizationName} value={this.state.organizationName}></input>
-            </td>
-            <td>
-              <Button onClick={this.createOrganization}>Create</Button>
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-    )
-  }
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <input type="text" onChange={handleChange} value={organizationName}></input>
+          </td>
+          <td>
+            <Button onClick={createOrganization}>Create</Button>
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  )
 }
 
-interface OrganizationListPageState {
-  knownOrganizations: OrganizationData[]
-}
+function OrganizationListPage() {
+  const [organizations, setOrganizations] = useState<OrganizationData[]>([])
 
-class OrganizationListPage extends React.Component<object, OrganizationListPageState> {
-  timer?: number
-  constructor(props: object) {
-    super(props)
-
-    this.state = {
-      knownOrganizations: []
-    }
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
+  usePolling(async () => {
     try {
       const data = await smmGetJSON<{ organizations: OrganizationData[] }>('/organization/', {})
-      this.setState({ knownOrganizations: data.organizations })
+      setOrganizations(data.organizations)
     } catch (e) {
       console.error('Failed to fetch organizations:', e)
     }
-  }
+  }, 10000)
 
-  render() {
-    return (
-      <div>
-        <OrganizationList organizations={this.state.knownOrganizations} showButtons={true} />
-        <OrganizationAdd />
-      </div>
-    )
-  }
+  return (
+    <div>
+      <OrganizationList organizations={organizations} showButtons={true} />
+      <OrganizationAdd />
+    </div>
+  )
 }
 
 function createOrganizationList(elementId: string) {
