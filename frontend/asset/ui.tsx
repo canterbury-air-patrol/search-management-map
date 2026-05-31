@@ -96,7 +96,7 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
       enableHighAccuracy: true
     }
     this.watchID = navigator.geolocation.watchPosition(this.positionUpdate, this.positionErrorHandler, options)
-    this.setState({ tracking: true })
+    this.setState({ tracking: true, errorMsg: '' })
   }
 
   disableTracking() {
@@ -128,9 +128,11 @@ class AssetTrackAs extends React.Component<AssetTrackAsProps, AssetTrackAsState>
               <Button onClick={this.state.tracking ? this.disableTracking : this.enableTracking}>{this.state.tracking ? 'Disable Tracking' : 'Enable Tracking'}</Button>
             </td>
           </tr>
-          <tr>
-            <td colSpan={3}>{this.state.errorMsg}</td>
-          </tr>
+          {this.state.errorMsg && (
+            <tr>
+              <td colSpan={3}>{this.state.errorMsg}</td>
+            </tr>
+          )}
         </tbody>
       </Table>
     )
