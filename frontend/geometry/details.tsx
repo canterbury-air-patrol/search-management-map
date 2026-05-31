@@ -10,6 +10,13 @@ interface Point {
   alt?: number
 }
 
+/** A GeoJSON-style geometry tagged by its `type` field. Lets TypeScript
+ *  narrow `coordinates` automatically instead of probing array depth. */
+export type GeometryJSON =
+  | { type: 'Point'; coordinates: [number, number] }
+  | { type: 'LineString'; coordinates: [number, number][] }
+  | { type: 'Polygon'; coordinates: [number, number][][] }
+
 function coordinateToLatLng(point: number[]): Point {
   return {
     lat: point[1],
@@ -22,22 +29,24 @@ function mapCoordinates(points: number[][]): Point[] {
 }
 
 interface GeometryPointsProps {
-  points: [number, number] | [number, number][] | [number, number][][]
+  geometry: GeometryJSON
 }
 
 class GeometryPoints extends React.Component<GeometryPointsProps, never> {
-  pointsFromProps() {
-    if (!Array.isArray(this.props.points[0])) {
-      return [coordinateToLatLng(this.props.points as [number, number])]
-    } else if (Array.isArray(this.props.points[0][0])) {
-      return mapCoordinates((this.props.points as [number, number][][])[0])
-    } else {
-      return mapCoordinates(this.props.points as [number, number][])
+  pointsFromGeometry(): Point[] {
+    const { geometry } = this.props
+    switch (geometry.type) {
+      case 'Point':
+        return [coordinateToLatLng(geometry.coordinates)]
+      case 'LineString':
+        return mapCoordinates(geometry.coordinates)
+      case 'Polygon':
+        return mapCoordinates(geometry.coordinates[0])
     }
   }
 
   render() {
-    const points = this.pointsFromProps()
+    const points = this.pointsFromGeometry()
 
     const tableRows = points.map((point, index) => (
       <tr key={index}>

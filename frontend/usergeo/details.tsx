@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom/client'
 import { smmGetJSON } from '../ajax'
 
 import { SMMObjectDetails } from '../SMMObjects/details'
-import { GeometryPoints } from '../geometry/details'
+import { GeometryPoints, GeometryJSON } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
 
 interface SMMUserGeoObjectData {
@@ -32,10 +32,7 @@ interface UserGeoDetailsPageProps {
 
 interface UserGeoDetailsPageState {
   data?: SMMUserGeoObjectData
-  geometry?: {
-    type: string
-    coordinates: [number, number] | [number, number][] | [number, number][][]
-  }
+  geometry?: GeometryJSON
 }
 
 class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGeoDetailsPageState> {
@@ -63,7 +60,7 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
     type GeoResponse = {
       features: {
         properties: SMMUserGeoObjectData
-        geometry: { type: string; coordinates: [number, number] | [number, number][] | [number, number][][] }
+        geometry: GeometryJSON
       }[]
     }
     const data = await smmGetJSON<GeoResponse>(`/data/usergeo/${this.props.userGeoId}/`, {})
@@ -78,8 +75,8 @@ class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGe
     if (this.state.data) {
       parts.push(<UserGeoDetails key="details" data={this.state.data} />)
     }
-    if (this.state.geometry && this.state.geometry.coordinates) {
-      parts.push(<GeometryPoints key="points" points={this.state.geometry.coordinates} />)
+    if (this.state.geometry) {
+      parts.push(<GeometryPoints key="points" geometry={this.state.geometry} />)
       parts.push(<GeoJsonMap key="map" geometry={this.state.geometry} />)
     }
     return <div>{parts}</div>

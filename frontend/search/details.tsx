@@ -9,7 +9,7 @@ import { Button } from 'react-bootstrap'
 import { smmGetJSON } from '../ajax'
 
 import { SMMObjectDetails } from '../SMMObjects/details'
-import { GeometryPoints } from '../geometry/details'
+import { GeometryPoints, GeometryJSON } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
 import { ExpandingBoxSearch, SearchPattern, SectorSearch } from '@canterbury-air-patrol/sar-search-patterns'
 import { SearchRunner } from '@canterbury-air-patrol/sar-search-runner'
@@ -127,10 +127,7 @@ interface SearchDetailsPageProps {
 interface SearchDetailsPageState {
   data?: SMMSearchObjectDetailsData
   search?: SearchPattern
-  geometry?: {
-    type: string
-    coordinates: [number, number] | [number, number][] | [number, number][][]
-  }
+  geometry?: GeometryJSON
 }
 
 class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDetailsPageState> {
@@ -159,10 +156,7 @@ class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDe
   updateDataResponse(data: {
     features: {
       properties: SMMSearchObjectDetailsData
-      geometry: {
-        type: string
-        coordinates: [number, number] | [number, number][] | [number, number][][]
-      }
+      geometry: GeometryJSON
     }[]
   }) {
     const search = createSearch(data.features['0'].properties)
@@ -189,10 +183,10 @@ class SearchDetailsPage extends React.Component<SearchDetailsPageProps, SearchDe
         </Collapsible>
       )
     }
-    if (this.state.geometry && this.state.geometry.coordinates) {
+    if (this.state.geometry) {
       parts.push(
         <Collapsible key="points" trigger="Coordinates">
-          <GeometryPoints points={this.state.geometry.coordinates} />
+          <GeometryPoints geometry={this.state.geometry} />
         </Collapsible>
       )
       parts.push(<GeoJsonMap key="map" geometry={this.state.geometry} />)
