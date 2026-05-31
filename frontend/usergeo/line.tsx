@@ -1,7 +1,7 @@
 import L from 'leaflet'
 
-import { LineAdder } from '../LineAdder/LineAdder.js'
-import { SearchAdder } from '../SearchAdder/SearchAdder.js'
+import { LineAdder } from '../LineAdder/LineAdder'
+import { SearchAdder } from '../SearchAdder/SearchAdder'
 import { SMMUserGeoLineGeoJSON } from './types'
 import { LinePopup } from './LinePopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'

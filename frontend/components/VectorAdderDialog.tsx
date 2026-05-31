@@ -12,7 +12,7 @@ const resourceMap = { line: 'userlines', polygon: 'userpolygons' } as const
 interface Props {
   map: L.Map
   type: 'line' | 'polygon'
-  missionId: number
+  missionId: number | string
   initialPoints: L.LatLng[]
   replaces: number
   initialLabel: string

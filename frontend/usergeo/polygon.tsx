@@ -1,7 +1,7 @@
 import L from 'leaflet'
 
-import { PolygonAdder } from '../PolygonAdder/PolygonAdder.js'
-import { SearchAdder } from '../SearchAdder/SearchAdder.js'
+import { PolygonAdder } from '../PolygonAdder/PolygonAdder'
+import { SearchAdder } from '../SearchAdder/SearchAdder'
 import { SMMUserGeoPolygonGeoJSON } from './types'
 import { PolygonPopup } from './PolygonPopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
