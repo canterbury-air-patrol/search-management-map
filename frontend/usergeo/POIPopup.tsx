@@ -1,3 +1,4 @@
+import { MissionId, isSpecificMission } from '../mission/MissionId'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { PopupDataList, PopupButtonGroup, ButtonItem } from '../popup'
 
@@ -5,7 +6,7 @@ interface Props {
   label: string
   coords: [number, number]
   pk: number
-  missionId: number | string
+  missionId: MissionId
   onEdit: () => void
   onDelete: () => void
   onCreateSearch: () => void
@@ -18,16 +19,15 @@ export function POIPopup({ label, coords, pk, missionId, onEdit, onDelete, onCre
     { label: 'Lat', value: degreesToDM(coords[1], 'lat') },
     { label: 'Long', value: degreesToDM(coords[0], 'lon') }
   ]
-  const buttons: ButtonItem[] =
-    missionId !== 'current' && missionId !== 'all'
-      ? [
-          { label: 'Move', btnClass: 'btn-light', onclick: onEdit },
-          { label: 'Delete', btnClass: 'btn-danger', onclick: onDelete },
-          { label: 'Create Search', btnClass: 'btn-light', onclick: onCreateSearch },
-          { label: 'Calculate TDV', btnClass: 'btn-light', onclick: onCalculateTDV },
-          { label: 'Details', btnClass: 'btn-light', href: `/data/usergeo/${pk}/` }
-        ]
-      : []
+  const buttons: ButtonItem[] = isSpecificMission(missionId)
+    ? [
+        { label: 'Move', btnClass: 'btn-light', onclick: onEdit },
+        { label: 'Delete', btnClass: 'btn-danger', onclick: onDelete },
+        { label: 'Create Search', btnClass: 'btn-light', onclick: onCreateSearch },
+        { label: 'Calculate TDV', btnClass: 'btn-light', onclick: onCalculateTDV },
+        { label: 'Details', btnClass: 'btn-light', href: `/data/usergeo/${pk}/` }
+      ]
+    : []
   return (
     <div>
       <PopupDataList items={items} dlClass="poi row" />

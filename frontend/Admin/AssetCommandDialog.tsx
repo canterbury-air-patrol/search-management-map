@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
@@ -13,7 +14,7 @@ interface CommandFormData {
 
 interface Props {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   onClose: () => void
 }
 

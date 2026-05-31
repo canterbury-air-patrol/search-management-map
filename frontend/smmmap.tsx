@@ -1,13 +1,14 @@
+import { MissionId } from './mission/MissionId'
 import L from 'leaflet'
 import 'leaflet-realtime'
 
 abstract class SMMRealtime {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   interval: number
   color: string
 
-  constructor(map: L.Map, missionId: number | string, interval: number, color: string) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
     this.map = map
     this.missionId = missionId
     this.interval = interval

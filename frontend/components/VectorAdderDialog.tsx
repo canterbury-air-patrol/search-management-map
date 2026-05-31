@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 
@@ -12,7 +13,7 @@ const resourceMap = { line: 'userlines', polygon: 'userpolygons' } as const
 interface Props {
   map: L.Map
   type: 'line' | 'polygon'
-  missionId: number | string
+  missionId: MissionId
   initialPoints: L.LatLng[]
   replaces: number
   initialLabel: string

@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import * as ReactDOM from 'react-dom/client'
 
@@ -5,10 +6,10 @@ import { AdminMenuDialog } from './AdminMenuDialog'
 import { AssetCommandDialog } from './AssetCommandDialog'
 
 interface SMMAdminOptions extends L.ControlOptions {
-  missionId: number | string
+  missionId: MissionId
 }
 
-function openAssetCommand(map: L.Map, missionId: number | string) {
+function openAssetCommand(map: L.Map, missionId: MissionId) {
   const container = document.createElement('div')
   const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
   const root = ReactDOM.createRoot(container)

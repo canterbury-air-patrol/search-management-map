@@ -1,3 +1,4 @@
+import { MissionId, isSpecificMission } from '../mission/MissionId'
 import { formatLocalDateTime } from '../format'
 import React from 'react'
 import { SMMSearchObjectDetailsData } from './types'
@@ -5,7 +6,7 @@ import { PopupButtonGroup, ButtonItem } from '../popup'
 
 interface Props {
   search: SMMSearchObjectDetailsData
-  missionId: number | string
+  missionId: MissionId
   status: string
   onDelete: () => void
   onQueueDialog: () => void
@@ -31,7 +32,7 @@ export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog
   }
 
   const buttons: ButtonItem[] = []
-  if (missionId !== 'current' && missionId !== 'all') {
+  if (isSpecificMission(missionId)) {
     if (!search.inprogress_at) {
       buttons.push({ label: 'Delete', btnClass: 'btn-danger', onclick: onDelete })
     }

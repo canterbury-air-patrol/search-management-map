@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { LineAdder } from '../LineAdder/LineAdder'
@@ -9,7 +10,7 @@ import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
 class SMMLine extends SMMUserGeoLayer {
   coords: [number, number][]
 
-  constructor(map: L.Map, missionId: number | string, line: SMMUserGeoLineGeoJSON) {
+  constructor(map: L.Map, missionId: MissionId, line: SMMUserGeoLineGeoJSON) {
     super(map, missionId, line.properties)
     this.coords = line.geometry.coordinates
   }

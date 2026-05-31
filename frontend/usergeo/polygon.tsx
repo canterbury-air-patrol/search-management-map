@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { PolygonAdder } from '../PolygonAdder/PolygonAdder'
@@ -9,7 +10,7 @@ import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
 class SMMPolygon extends SMMUserGeoLayer {
   coords: [number, number][][]
 
-  constructor(map: L.Map, missionId: number | string, polygon: SMMUserGeoPolygonGeoJSON) {
+  constructor(map: L.Map, missionId: MissionId, polygon: SMMUserGeoPolygonGeoJSON) {
     super(map, missionId, polygon.properties)
     this.coords = polygon.geometry.coordinates
   }

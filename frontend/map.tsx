@@ -1,3 +1,4 @@
+import { MissionId, isSpecificMission } from './mission/MissionId'
 import './page-shell'
 
 import * as ReactDOM from 'react-dom/client'
@@ -36,7 +37,7 @@ class SMMMap {
   layerControlMaps: L.Control.Layers
   layerControlAssets: L.Control.Layers
   layerControlUsers: L.Control.Layers
-  missionId: number | string
+  missionId: MissionId
   assets?: SMMAssets
   users?: SMMUserPositions
   POIs?: SMMPOIs
@@ -49,7 +50,7 @@ class SMMMap {
   importantImages?: SMMImageImportant
   marineVectors?: SMMMarineVector
 
-  constructor(mapElem: string | HTMLElement, missionId: number | string) {
+  constructor(mapElem: string | HTMLElement, missionId: MissionId) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
@@ -118,7 +119,7 @@ class SMMMap {
 
     this.map.locate({ setView: true, maxZoom: 16 })
 
-    if (this.missionId !== 'current' && this.missionId !== 'all') {
+    if (isSpecificMission(this.missionId)) {
       poiadder({ missionId: this.missionId }).addTo(this.map)
       polygonadder({ missionId: this.missionId }).addTo(this.map)
       lineadder({ missionId: this.missionId }).addTo(this.map)
@@ -188,14 +189,21 @@ class SMMMap {
   }
 }
 
+function parseMissionId(raw: string): MissionId {
+  if (raw === 'current' || raw === 'all') return raw
+  const n = Number(raw)
+  if (Number.isFinite(n)) return n
+  throw new Error(`Invalid missionId: ${raw}`)
+}
+
 function mapInit() {
   const wrapperEl = document.createElement('div')
   wrapperEl.className = 'd-flex flex-column w-100 h-100'
   document.body.appendChild(wrapperEl)
 
-  const missionId = encodeURIComponent((document.getElementById('missionId') as HTMLInputElement).value)
+  const missionId = parseMissionId((document.getElementById('missionId') as HTMLInputElement).value)
 
-  if (missionId !== 'all' && missionId !== 'current') {
+  if (isSpecificMission(missionId)) {
     const menuEl = document.createElement('div')
     menuEl.className = 'flex-grow-0 flex-shrink-1'
     wrapperEl.appendChild(menuEl)

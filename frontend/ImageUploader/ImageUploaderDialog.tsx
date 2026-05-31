@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import { useRef } from 'react'
 import L from 'leaflet'
 
@@ -6,7 +7,7 @@ import { smmPostBody } from '../ajax'
 
 interface Props {
   map: L.Map
-  missionId: number | string
+  missionId: MissionId
   onClose: () => void
 }
 

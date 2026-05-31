@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import * as ReactDOM from 'react-dom/client'
 import L from 'leaflet'
 
@@ -5,10 +6,10 @@ import { ImageUploaderDialog } from './ImageUploaderDialog'
 import { createIconControl } from '../components/iconControl'
 
 interface ImageUploaderControlOptions {
-  missionId: number | string
+  missionId: MissionId
 }
 
-function openUploader(map: L.Map, missionId: number | string) {
+function openUploader(map: L.Map, missionId: MissionId) {
   const container = document.createElement('div')
   const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
   const root = ReactDOM.createRoot(container)

@@ -1,3 +1,4 @@
+import { MissionId, isSpecificMission } from '../mission/MissionId'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { PopupDataList, PopupButtonGroup } from '../popup'
 
@@ -6,7 +7,7 @@ interface Props {
   pk: number
   coords: [number, number]
   priority: boolean
-  missionId: number | string
+  missionId: MissionId
   onPrioritize: () => void
   onDeprioritize: () => void
 }
@@ -17,10 +18,9 @@ export function ImagePopup({ description, pk, coords, priority, missionId, onPri
     { label: 'Lat', value: degreesToDM(coords[1], 'lat') },
     { label: 'Long', value: degreesToDM(coords[0], 'lon') }
   ]
-  const buttons =
-    missionId !== 'current' && missionId !== 'all'
-      ? [priority ? { label: 'Deprioritize', btnClass: 'btn-light', onclick: onDeprioritize } : { label: 'Prioritize', btnClass: 'btn-light', onclick: onPrioritize }]
-      : []
+  const buttons = isSpecificMission(missionId)
+    ? [priority ? { label: 'Deprioritize', btnClass: 'btn-light', onclick: onDeprioritize } : { label: 'Prioritize', btnClass: 'btn-light', onclick: onPrioritize }]
+    : []
   return (
     <div>
       <PopupDataList items={items} dlClass="row" />

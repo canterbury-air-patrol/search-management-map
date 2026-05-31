@@ -1,3 +1,4 @@
+import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
@@ -10,7 +11,7 @@ import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'
 class SMMPOI extends SMMUserGeoLayer {
   coords: [number, number]
 
-  constructor(map: L.Map, missionId: number | string, poi: SMMUserGeoPOIGeoJSON) {
+  constructor(map: L.Map, missionId: MissionId, poi: SMMUserGeoPOIGeoJSON) {
     super(map, missionId, poi.properties)
     this.coords = poi.geometry.coordinates
     this.calculateTDVCallback = this.calculateTDVCallback.bind(this)
