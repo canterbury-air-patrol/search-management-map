@@ -1,12 +1,12 @@
 import '../page-shell'
-import { formatLocalDateTime } from '../format'
+import { useMemo, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
+import { formatLocalDateTime } from '../format'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
+import { usePolling } from '../hooks/usePolling'
 import { MissionData } from './types'
 
 interface MissionListRowProps {
@@ -15,170 +15,127 @@ interface MissionListRowProps {
   showButtons: boolean
 }
 
-class MissionListRow extends React.Component<MissionListRowProps, never> {
-  render() {
-    const { mission } = this.props
-    const dataFields = []
-    dataFields.push(<td key="name">{mission.name}</td>)
-    dataFields.push(<td key="opened">{formatLocalDateTime(mission.started)}</td>)
-    dataFields.push(<td key="creator">{mission.creator}</td>)
+function MissionListRow({ mission, showClosed, showButtons }: MissionListRowProps) {
+  const dataFields = [<td key="name">{mission.name}</td>, <td key="opened">{formatLocalDateTime(mission.started)}</td>, <td key="creator">{mission.creator}</td>]
 
-    if (this.props.showClosed) {
-      dataFields.push(<td key="closed">{formatLocalDateTime(mission.closed)}</td>)
-      dataFields.push(<td key="closer">{mission.closed_by}</td>)
-    }
+  if (showClosed) {
+    dataFields.push(<td key="closed">{formatLocalDateTime(mission.closed)}</td>)
+    dataFields.push(<td key="closer">{mission.closed_by}</td>)
+  }
 
-    if (this.props.showButtons) {
-      const buttons = [
-        <Button key="map" href={`/mission/${mission.id}/map/`}>
-          Map
-        </Button>,
-        <Button key="details" href={`/mission/${mission.id}/details/`}>
-          Details
-        </Button>,
-        <Button key="timeline" href={`/mission/${mission.id}/timeline/`}>
-          Timeline
+  if (showButtons) {
+    const buttons = [
+      <Button key="map" href={`/mission/${mission.id}/map/`}>
+        Map
+      </Button>,
+      <Button key="details" href={`/mission/${mission.id}/details/`}>
+        Details
+      </Button>,
+      <Button key="timeline" href={`/mission/${mission.id}/timeline/`}>
+        Timeline
+      </Button>
+    ]
+    if (!mission.closed && mission.admin) {
+      buttons.push(
+        <Button key="close" className="btn-danger" href={`/mission/${mission.id}/close/`}>
+          Close
         </Button>
-      ]
-      if (!mission.closed && mission.admin) {
-        buttons.push(
-          <Button key="close" className="btn-danger" href={`/mission/${mission.id}/close/`}>
-            Close
-          </Button>
-        )
-      }
-      dataFields.push(
-        <td key="buttons">
-          <ButtonGroup>{buttons}</ButtonGroup>
-        </td>
       )
     }
-    return <tr key={mission.id}>{dataFields}</tr>
-  }
-}
-
-interface ActiveMissionListProps {
-  missions: MissionData[]
-}
-
-class ActiveMissionList extends React.Component<ActiveMissionListProps, never> {
-  render() {
-    const missionRows = this.props.missions.map((mission) => <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} />)
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={4} align="center">
-              Active Missions
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Mission Name</th>
-            <th>Started</th>
-            <th>By</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>{missionRows}</tbody>
-      </Table>
+    dataFields.push(
+      <td key="buttons">
+        <ButtonGroup>{buttons}</ButtonGroup>
+      </td>
     )
   }
+  return <tr key={mission.id}>{dataFields}</tr>
 }
 
-class GeneralMissionButtons extends React.Component {
-  render() {
-    return (
-      <div>
-        <Button href="/mission/new/">Start New Mission</Button>&nbsp;
-        <Button href="/mission/current/map/">All Current Missions Map</Button>&nbsp;
-        <Button href="/mission/all/map/">All Missions Map</Button>&nbsp;
-      </div>
-    )
-  }
+function ActiveMissionList({ missions }: { missions: MissionData[] }) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={4} align="center">
+            Active Missions
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Mission Name</th>
+          <th>Started</th>
+          <th>By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {missions.map((mission) => (
+          <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-interface CompletedMissionListProps {
-  missions: MissionData[]
+function GeneralMissionButtons() {
+  return (
+    <div>
+      <Button href="/mission/new/">Start New Mission</Button>&nbsp;
+      <Button href="/mission/current/map/">All Current Missions Map</Button>&nbsp;
+      <Button href="/mission/all/map/">All Missions Map</Button>&nbsp;
+    </div>
+  )
 }
 
-class CompletedMissionList extends React.Component<CompletedMissionListProps, never> {
-  render() {
-    const missionRows = this.props.missions.map((mission) => <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={true} />)
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={6} align="center">
-              Completed Missions
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Mission Name</th>
-            <th>Started</th>
-            <th>By</th>
-            <th>Closed</th>
-            <th>By</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>{missionRows}</tbody>
-      </Table>
-    )
-  }
+function CompletedMissionList({ missions }: { missions: MissionData[] }) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={6} align="center">
+            Completed Missions
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Mission Name</th>
+          <th>Started</th>
+          <th>By</th>
+          <th>Closed</th>
+          <th>By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {missions.map((mission) => (
+          <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={true} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-interface MissionListPageState {
-  knownActiveMissions: MissionData[]
-  knownCompletedMissions: MissionData[]
-}
+function MissionListPage() {
+  const [missions, setMissions] = useState<MissionData[]>([])
 
-class MissionListPage extends React.Component<object, MissionListPageState> {
-  timer?: number
-
-  constructor(props: object) {
-    super(props)
-
-    this.state = {
-      knownActiveMissions: [],
-      knownCompletedMissions: []
-    }
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
+  usePolling(async () => {
     const data = await smmGetJSON<{ missions: MissionData[] }>('/mission/list/', {})
-    this.updateMissions(data.missions)
-  }
+    setMissions(data.missions)
+  }, 10000)
 
-  updateMissions(missions: MissionData[]) {
-    const activeMissions = missions.filter((mission) => !mission.closed)
-    const completeMissions = missions.filter((mission) => mission.closed)
-    this.setState(function () {
-      return {
-        knownActiveMissions: activeMissions,
-        knownCompletedMissions: completeMissions
-      }
-    })
-  }
+  const { active, closed } = useMemo(
+    () => ({
+      active: missions.filter((m) => !m.closed),
+      closed: missions.filter((m) => m.closed)
+    }),
+    [missions]
+  )
 
-  render() {
-    return (
-      <div>
-        <ActiveMissionList missions={this.state.knownActiveMissions} />
-        <GeneralMissionButtons />
-        <CompletedMissionList missions={this.state.knownCompletedMissions} />
-      </div>
-    )
-  }
+  return (
+    <div>
+      <ActiveMissionList missions={active} />
+      <GeneralMissionButtons />
+      <CompletedMissionList missions={closed} />
+    </div>
+  )
 }
 
 function createMissionList(elementId: string) {
