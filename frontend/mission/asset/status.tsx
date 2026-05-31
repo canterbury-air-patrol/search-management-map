@@ -1,12 +1,12 @@
 import '../../page-shell'
-import { formatLocalDateTime } from '../../format'
+import { ChangeEvent, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table, Button } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
+import { formatLocalDateTime } from '../../format'
 import { smmGetJSON, smmPost } from '../../ajax'
 import { SMMTopBar } from '../../menu/topbar'
+import { usePolling } from '../../hooks/usePolling'
 
 interface MissionAssetStatusValue {
   id: number
@@ -25,100 +25,46 @@ interface MissionAssetStatusFormProps {
   mission: number
 }
 
-interface MissionAssetStatusFormState {
-  statusValues: MissionAssetStatusValue[]
-  selectedValueId?: number
-  notes?: string
-}
+function MissionAssetStatusForm({ asset, mission }: MissionAssetStatusFormProps) {
+  const [statusValues, setStatusValues] = useState<MissionAssetStatusValue[]>([])
+  const [selectedValueId, setSelectedValueId] = useState<number | undefined>(undefined)
+  const [notes, setNotes] = useState('')
 
-class MissionAssetStatusForm extends React.Component<MissionAssetStatusFormProps, MissionAssetStatusFormState> {
-  timer?: number
-
-  constructor(props: MissionAssetStatusFormProps) {
-    super(props)
-
-    this.state = {
-      statusValues: [],
-      selectedValueId: undefined,
-      notes: ''
-    }
-
-    this.updateSelectedStateValue = this.updateSelectedStateValue.bind(this)
-    this.updateNotes = this.updateNotes.bind(this)
-    this.resetForm = this.resetForm.bind(this)
-    this.setStatus = this.setStatus.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateStatusValues()
-    this.timer = setInterval(() => this.updateStatusValues(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateStatusValues() {
+  usePolling(async () => {
     const data = await smmGetJSON<{ values: MissionAssetStatusValue[] }>('/mission/asset/status/values/', {})
-    this.setState((oldState) => ({
-      statusValues: data.values,
-      ...(oldState.selectedValueId === undefined && data.values.length > 0 ? { selectedValueId: data.values[0].id } : {})
-    }))
-  }
+    setStatusValues(data.values)
+    setSelectedValueId((prev) => (prev === undefined && data.values.length > 0 ? data.values[0].id : prev))
+  }, 10000)
 
-  updateSelectedStateValue(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { target } = event
-    const { value } = target
-
-    this.setState({ selectedValueId: Number(value) })
-  }
-
-  updateNotes(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    const { target } = event
-    const { value } = target
-
-    this.setState({ notes: value })
-  }
-
-  resetForm() {
-    this.setState({
-      selectedValueId: undefined,
-      notes: ''
+  async function setStatus() {
+    await smmPost(`/mission/${mission}/assets/${asset}/status/`, {
+      value_id: selectedValueId,
+      notes
     })
+    setSelectedValueId(undefined)
+    setNotes('')
   }
 
-  async setStatus() {
-    await smmPost(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {
-      value_id: this.state.selectedValueId,
-      notes: this.state.notes
-    })
-    this.resetForm()
-  }
-
-  render() {
-    const statusValues = this.state.statusValues.map((v) => (
-      <option key={v.id} value={v.id}>
-        {v.name}
-      </option>
-    ))
-    return (
-      <tr>
-        <td>
-          <select onChange={this.updateSelectedStateValue} defaultValue={this.state.selectedValueId}>
-            {statusValues}
-          </select>
-        </td>
-        <td></td>
-        <td>
-          <textarea onChange={this.updateNotes} value={this.state.notes}></textarea>
-        </td>
-        <td>
-          <Button onClick={this.setStatus}>Set Status</Button>
-        </td>
-      </tr>
-    )
-  }
+  return (
+    <tr>
+      <td>
+        <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} defaultValue={selectedValueId}>
+          {statusValues.map((v) => (
+            <option key={v.id} value={v.id}>
+              {v.name}
+            </option>
+          ))}
+        </select>
+      </td>
+      <td></td>
+      <td>
+        <textarea onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)} value={notes}></textarea>
+      </td>
+      <td>
+        <Button onClick={setStatus}>Set Status</Button>
+      </td>
+    </tr>
+  )
 }
 
 interface MissionAssetStatusProps {
@@ -126,61 +72,37 @@ interface MissionAssetStatusProps {
   mission: number
 }
 
-interface MissionAssetStatusState {
-  statusData?: MissionAssetStatusData
-}
+function MissionAssetStatus({ asset, mission }: MissionAssetStatusProps) {
+  const [statusData, setStatusData] = useState<MissionAssetStatusData | undefined>(undefined)
 
-class MissionAssetStatus extends React.Component<MissionAssetStatusFormProps, MissionAssetStatusState> {
-  timer?: number
+  usePolling(async () => {
+    const data = await smmGetJSON<{ status: MissionAssetStatusData }>(`/mission/${mission}/assets/${asset}/status/`, {})
+    setStatusData(data.status)
+  }, 10000)
 
-  constructor(props: MissionAssetStatusProps) {
-    super(props)
-
-    this.state = {
-      statusData: undefined
-    }
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
-    const data = await smmGetJSON<{ status: MissionAssetStatusData }>(`/mission/${this.props.mission}/assets/${this.props.asset}/status/`, {})
-    this.setState({ statusData: data.status })
-  }
-
-  render() {
-    return (
-      <div>
-        <Table>
-          <thead>
-            <tr>
-              <td>Mission Status</td>
-              <td>Description</td>
-              <td>Notes</td>
-              <td>Since</td>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{this.state.statusData?.status}</td>
-              <td>{this.state.statusData?.status_description}</td>
-              <td>{this.state.statusData?.notes}</td>
-              <td>{formatLocalDateTime(this.state.statusData?.since)}</td>
-            </tr>
-            <MissionAssetStatusForm asset={this.props.asset} mission={this.props.mission} />
-          </tbody>
-        </Table>
-      </div>
-    )
-  }
+  return (
+    <div>
+      <Table>
+        <thead>
+          <tr>
+            <td>Mission Status</td>
+            <td>Description</td>
+            <td>Notes</td>
+            <td>Since</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{statusData?.status}</td>
+            <td>{statusData?.status_description}</td>
+            <td>{statusData?.notes}</td>
+            <td>{formatLocalDateTime(statusData?.since)}</td>
+          </tr>
+          <MissionAssetStatusForm asset={asset} mission={mission} />
+        </tbody>
+      </Table>
+    </div>
+  )
 }
 
 function createMissionAssetStatus(elementId: string, asset: number, mission: number) {
