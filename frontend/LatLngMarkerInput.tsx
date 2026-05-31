@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import { degreesToDM, DMToDegrees } from '@canterbury-air-patrol/deg-converter'
 

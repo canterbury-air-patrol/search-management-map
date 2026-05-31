@@ -1,4 +1,3 @@
-import React from 'react'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 import { PopupDataList } from '../popup'
 

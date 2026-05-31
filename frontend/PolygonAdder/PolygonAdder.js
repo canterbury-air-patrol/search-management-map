@@ -1,4 +1,3 @@
-import React from 'react'
 import L from 'leaflet'
 
 import { VectorAdderDialog } from '../components/VectorAdderDialog'

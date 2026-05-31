@@ -1,5 +1,4 @@
 import L from 'leaflet'
-import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import { SMMRealtime } from '../smmmap'

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import L from 'leaflet'
 
 import { LatLngMarkerInput } from '../LatLngMarkerInput'

@@ -1,5 +1,3 @@
-import React from 'react'
-
 interface DataItem {
   label: string
   value: string
