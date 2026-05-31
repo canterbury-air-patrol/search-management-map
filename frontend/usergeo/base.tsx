@@ -44,7 +44,7 @@ abstract class SMMUserGeoLayer {
     this.popupRoot = root
     root.render(this.renderPopup())
     layer.bindPopup(container, this.getPopupOptions())
-    layer.on('remove', () => {
+    layer.once('remove', () => {
       root.unmount()
       if (this.popupRoot === root) {
         this.popupRoot = undefined
