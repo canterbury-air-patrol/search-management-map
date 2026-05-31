@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import React from 'react'
 import * as ReactDOM from 'react-dom/client'
 
-import L, { LatLng, Util } from 'leaflet'
+import L, { LatLng } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
@@ -72,9 +72,8 @@ class SMMMap {
     return name.replace(/[^a-zA-Z0-9]/g, '_')
   }
 
-  layerStateChanged(e: L.LayerEvent) {
-    const layer = this.layerControlMaps._getLayer(Util.stamp(e.target))
-    cookieJar.set(`layer_${this.convertCookieName(layer.name)}_on_map`, e.type === 'add')
+  layerStateChanged(e: L.LayersControlEvent) {
+    cookieJar.set(`layer_${this.convertCookieName(e.name)}_on_map`, e.type === 'overlayadd')
   }
 
   mapLayersCallback(data: {
@@ -82,13 +81,7 @@ class SMMMap {
   }) {
     let baseSelected = false
     for (const layer of data.layers) {
-      const options: {
-        attribution: string
-        minZoom: number
-        maxZoom: number
-        subdomains?: string
-        referrerPolicy?: string
-      } = {
+      const options: L.TileLayerOptions = {
         attribution: layer.attribution,
         minZoom: layer.minZoom,
         maxZoom: layer.maxZoom,
@@ -110,7 +103,6 @@ class SMMMap {
         if (layerEnabled === true) {
           tileLayer.addTo(this.map)
         }
-        tileLayer.on('add remove', this.layerStateChanged)
       }
     }
   }
@@ -126,6 +118,9 @@ class SMMMap {
     this.layerControlMaps.addTo(this.map)
     this.layerControlAssets.addTo(this.map)
     this.layerControlUsers.addTo(this.map)
+
+    this.map.on('overlayadd', this.layerStateChanged)
+    this.map.on('overlayremove', this.layerStateChanged)
 
     this.map.setView(new LatLng(0, 0), 16)
 
