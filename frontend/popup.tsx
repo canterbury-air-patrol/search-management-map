@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
+
 interface DataItem {
   label: string
-  value: string
+  value: ReactNode
 }
 
 interface ButtonItem {
