@@ -43,7 +43,7 @@ interface AssetCommandData {
   reason?: string
   issued?: string
   issued_by?: string
-  response: {
+  response?: {
     set?: string
     by?: string
     type?: string
