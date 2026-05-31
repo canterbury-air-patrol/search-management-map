@@ -4,9 +4,11 @@ import * as ReactDOM from 'react-dom/client'
 import { AdminMenuDialog } from './AdminMenuDialog'
 import { AssetCommandDialog } from './AssetCommandDialog'
 
-L.SMMAdmin = {}
+interface SMMAdminOptions extends L.ControlOptions {
+  missionId: number | string
+}
 
-L.SMMAdmin.AssetCommand = function (map, missionId) {
+function openAssetCommand(map: L.Map, missionId: number | string) {
   const container = document.createElement('div')
   const dialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(map).hideClose()
   const root = ReactDOM.createRoot(container)
@@ -17,39 +19,39 @@ L.SMMAdmin.AssetCommand = function (map, missionId) {
   root.render(<AssetCommandDialog map={map} missionId={missionId} onClose={close} />)
 }
 
-L.Control.SMMAdmin = L.Control.extend({
-  options: {
-    position: 'bottomleft'
-  },
+class SMMAdminControl extends L.Control {
+  options!: SMMAdminOptions
+  private map?: L.Map
+  private adminDialog?: L.Control.Dialog
 
-  initialize: function (options) {
-    L.Control.prototype.initialize.call(this, options)
-  },
+  constructor(options: SMMAdminOptions) {
+    super({ position: 'bottomleft', ...options })
+  }
 
-  onCommand: function () {
-    L.SMMAdmin.AssetCommand(this.map, this.options.missionId)
-  },
+  private onCommand = () => {
+    if (this.map) openAssetCommand(this.map, this.options.missionId)
+  }
 
-  onClick: function () {
+  private onClick = () => {
+    if (!this.map) return
     const container = document.createElement('div')
-    this.AdminDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
+    this.adminDialog = L.control.dialog({ initOpen: true }).setContent(container).addTo(this.map).hideClose()
     const root = ReactDOM.createRoot(container)
     const close = () => {
       root.unmount()
-      this.AdminDialog.destroy()
-      this.AdminDialog = undefined
+      this.adminDialog?.destroy()
+      this.adminDialog = undefined
     }
-    root.render(<AdminMenuDialog onCommand={this.onCommand.bind(this)} onClose={close} />)
-  },
+    root.render(<AdminMenuDialog onCommand={this.onCommand} onClose={close} />)
+  }
 
-  onAdd: function (map) {
-    const container = (this._container = L.DomUtil.create('div', 'SMMAdmin-container leaflet-bar'))
+  onAdd(map: L.Map): HTMLElement {
+    const container = L.DomUtil.create('div', 'SMMAdmin-container leaflet-bar')
     const link = L.DomUtil.create('a', '', container)
     link.href = '#'
     link.title = 'Admin'
 
     const adminImg = L.DomUtil.create('img', 'SMMAdmin-marker', link)
-
     adminImg.src = '/static/icons/administration.png'
     adminImg.alt = 'Admin'
 
@@ -58,14 +60,14 @@ L.Control.SMMAdmin = L.Control.extend({
     this.map = map
 
     L.DomEvent.on(link, 'click', L.DomEvent.stop)
-    L.DomEvent.on(link, 'click', this.onClick.bind(this))
+    L.DomEvent.on(link, 'click', this.onClick)
 
     return container
-  },
+  }
 
-  onRemove: function () {}
-})
+  onRemove(): void {}
+}
 
-L.control.smmadmin = function (opts) {
-  return new L.Control.SMMAdmin(opts)
+L.control.smmadmin = function (opts: SMMAdminOptions) {
+  return new SMMAdminControl(opts)
 }
