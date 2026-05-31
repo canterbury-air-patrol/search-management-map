@@ -15,6 +15,8 @@ export function LatLngMarkerInput({ map, initialPos, showLabels = true, onChange
   const markerRef = useRef<L.Marker | null>(null)
 
   useEffect(() => {
+    // Mount-only: the marker tracks user drags via setLatLng below, so we
+    // intentionally don't recreate it when initialPos/onChange change.
     const marker = L.marker(initialPos, { draggable: true, autoPan: true }).addTo(map)
     markerRef.current = marker
     marker.on('dragend', () => {
@@ -26,6 +28,7 @@ export function LatLngMarkerInput({ map, initialPos, showLabels = true, onChange
     return () => {
       marker.remove()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function syncMarker(lat: string, lng: string) {

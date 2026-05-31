@@ -4,7 +4,7 @@
   "main": "frontend/map.js",
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "check": "tsc --noEmit && eslint frontend/ && prettier -c frontend/",
+    "check": "tsc --noEmit && eslint --max-warnings 0 frontend/ && prettier -c frontend/",
     "build-only": "esbuild $(esbuild-config) && mkdir -p dist/icons && cp frontend/icons/*.png dist/icons/",
     "build": "esbuild $(esbuild-config) && mkdir -p dist/icons && cp frontend/icons/*.png dist/icons/ && cp -dpR dist/* map/static/",
     "test": "echo \"Error: no test specified\" && exit 1"

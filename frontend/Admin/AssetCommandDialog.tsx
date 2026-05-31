@@ -34,7 +34,7 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
       if (data.assets.length > 0) setAssetId(String(data.assets[0].id))
       if (data.commands.length > 0) setCommand(data.commands[0].value)
     })
-  }, [])
+  }, [missionId])
 
   function handleSet() {
     if (!assetId) {
