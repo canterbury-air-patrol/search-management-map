@@ -1,8 +1,8 @@
 import L from 'leaflet'
 
 import { MarineVectorsLeaflet } from '../marine/leaflet'
-import { POIAdder } from '../POIAdder/POIAdder.js'
-import { SearchAdder } from '../SearchAdder/SearchAdder.js'
+import { POIAdder } from '../POIAdder/POIAdder'
+import { SearchAdder } from '../SearchAdder/SearchAdder'
 import { SMMUserGeoPOIGeoJSON } from './types'
 import { POIPopup } from './POIPopup'
 import { SMMUserGeoLayer, SMMUserGeoCollection } from './base'

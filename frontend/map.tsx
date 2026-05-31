@@ -15,9 +15,9 @@ import { cookieJar } from './cookies'
 
 import './Admin/admin'
 import './ImageUploader/ImageUploader.js'
-import { poiadder } from './POIAdder/POIAdder.js'
-import { polygonadder } from './PolygonAdder/PolygonAdder.js'
-import { lineadder } from './LineAdder/LineAdder.js'
+import { poiadder } from './POIAdder/POIAdder'
+import { polygonadder } from './PolygonAdder/PolygonAdder'
+import { lineadder } from './LineAdder/LineAdder'
 
 import { SMMSearchesComplete, SMMSearchesInprogress, SMMSearchesNotStarted } from './search/map.js'
 import { SMMPOIs } from './usergeo/poi.js'

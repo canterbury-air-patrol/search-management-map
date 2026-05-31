@@ -8,7 +8,7 @@ import { DialogActions } from '../components/DialogActions'
 
 interface Props {
   map: L.Map
-  missionId: number
+  missionId: number | string
   initialPos: L.LatLng
   replaces: number
   initialLabel: string

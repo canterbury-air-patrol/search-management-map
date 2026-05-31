@@ -1,9 +1,9 @@
 /* Legacy untyped JS modules in this repo. Each will get proper typings when
  * converted to .tsx (see todo/frontend/refactor-convert-js-to-typescript.md). */
-declare module '*/POIAdder/POIAdder.js'
-declare module '*/PolygonAdder/PolygonAdder.js'
-declare module '*/LineAdder/LineAdder.js'
-declare module '*/SearchAdder/SearchAdder.js'
+declare module '*/POIAdder/POIAdder'
+declare module '*/PolygonAdder/PolygonAdder'
+declare module '*/LineAdder/LineAdder'
+declare module '*/SearchAdder/SearchAdder'
 declare module '*/ImageUploader/ImageUploader.js'
 declare module '*/Admin/admin.js'
 
