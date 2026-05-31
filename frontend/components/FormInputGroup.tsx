@@ -8,9 +8,7 @@ interface Props {
 export function FormInputGroup({ label, children }: Props) {
   return (
     <div className="input-group input-group-sm mb-3">
-      <div className="input-group-prepend">
-        <span className="input-group-text">{label}</span>
-      </div>
+      <span className="input-group-text">{label}</span>
       {children}
     </div>
   )
