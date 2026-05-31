@@ -4,7 +4,7 @@ import L from 'leaflet'
 
 import { MarineVectors, MarineVectorsDisplay } from '@canterbury-air-patrol/marine-total-drift-vector'
 import { Button, ButtonGroup } from 'react-bootstrap'
-import { smmGetJSON, smmPostBody } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 
 interface CustomMarineVectorsProps {
   map: L.Map
@@ -14,6 +14,9 @@ interface CustomMarineVectorsProps {
   poiId: number
   dialog: L.Control.Dialog
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type VendorVector = any
 
 class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   onMap?: L.GeoJSON
@@ -34,7 +37,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   getData() {
-    const data = {
+    const data: Record<string, string | number> = {
       from_lat: this.props.pos.lat,
       from_lng: this.props.pos.lng,
       poi_id: this.props.poiId,
@@ -44,7 +47,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       wind_total: this.state.windVectors.length
     }
 
-    this.state.currentVectors.forEach((currVector, idx: number) => {
+    this.state.currentVectors.forEach((currVector: VendorVector, idx: number) => {
       data['curr_' + idx + '_from'] = this.formatTime(currVector.timeFrom)
       data['curr_' + idx + '_to'] = this.formatTime(currVector.timeTo)
       data['curr_' + idx + '_speed'] = currVector.getVectorSpeed()
@@ -52,7 +55,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       data['curr_' + idx + '_distance'] = currVector.getVectorDistance()
     })
 
-    this.state.windVectors.forEach((windVector, idx: number) => {
+    this.state.windVectors.forEach((windVector: VendorVector, idx: number) => {
       data['wind_' + idx + '_from'] = this.formatTime(windVector.timeFrom)
       data['wind_' + idx + '_to'] = this.formatTime(windVector.timeTo)
       data['wind_' + idx + '_from_direction'] = windVector.direction
@@ -66,7 +69,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
 
   async add() {
     try {
-      await smmPostBody(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, new URLSearchParams(this.getData()))
+      await smmPost(`/mission/${this.props.missionId}/sar/marine/vectors/create/`, this.getData())
       if (this.onMap) {
         this.props.map.removeLayer(this.onMap)
         this.onMap = undefined
@@ -84,7 +87,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
         this.props.map.removeLayer(this.onMap)
         this.onMap = undefined
       }
-      this.onMap = L.geoJSON(data, { color: 'yellow' })
+      this.onMap = L.geoJSON(data, { style: { color: 'yellow' } })
       this.onMap.addTo(this.props.map)
     } catch (e) {
       console.error('Failed to preview marine vector:', e)
@@ -130,7 +133,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 }
 
-const MarineVectorsLeaflet = function (map: L.Map, missionId: number, posName, pos, poiId: number) {
+const MarineVectorsLeaflet = function (map: L.Map, missionId: number, posName: string, pos: L.LatLng, poiId: number) {
   const container = document.createElement('div')
   const dialog = L.control.dialog({ initOpen: true, size: [1000, 500] })
   ReactDOM.createRoot(container).render(<CustomMarineVectors map={map} missionId={missionId} posName={posName} pos={pos} poiId={Number(poiId)} dialog={dialog} />)
