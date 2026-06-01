@@ -1,7 +1,5 @@
 import { Table } from 'react-bootstrap'
 
-import React from 'react'
-
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 interface Point {
@@ -32,40 +30,37 @@ interface GeometryPointsProps {
   geometry: GeometryJSON
 }
 
-class GeometryPoints extends React.Component<GeometryPointsProps, never> {
-  pointsFromGeometry(): Point[] {
-    const { geometry } = this.props
-    switch (geometry.type) {
-      case 'Point':
-        return [coordinateToLatLng(geometry.coordinates)]
-      case 'LineString':
-        return mapCoordinates(geometry.coordinates)
-      case 'Polygon':
-        return mapCoordinates(geometry.coordinates[0])
-    }
+function pointsFromGeometry(geometry: GeometryJSON): Point[] {
+  switch (geometry.type) {
+    case 'Point':
+      return [coordinateToLatLng(geometry.coordinates)]
+    case 'LineString':
+      return mapCoordinates(geometry.coordinates)
+    case 'Polygon':
+      return mapCoordinates(geometry.coordinates[0])
   }
+}
 
-  render() {
-    const points = this.pointsFromGeometry()
-
-    const tableRows = points.map((point, index) => (
-      <tr key={index}>
-        <td>{degreesToDM(point.lng, 'lon')}</td>
-        <td>{degreesToDM(point.lat, 'lat')}</td>
-      </tr>
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr>
-            <td>Longitude</td>
-            <td>Latitude</td>
+function GeometryPoints({ geometry }: GeometryPointsProps) {
+  const points = pointsFromGeometry(geometry)
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Longitude</td>
+          <td>Latitude</td>
+        </tr>
+      </thead>
+      <tbody>
+        {points.map((point, index) => (
+          <tr key={index}>
+            <td>{degreesToDM(point.lng, 'lon')}</td>
+            <td>{degreesToDM(point.lat, 'lat')}</td>
           </tr>
-        </thead>
-        <tbody>{tableRows}</tbody>
-      </Table>
-    )
-  }
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
 export { GeometryPoints, mapCoordinates, coordinateToLatLng }
