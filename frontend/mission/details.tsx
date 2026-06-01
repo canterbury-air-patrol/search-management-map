@@ -1,25 +1,18 @@
 import '../page-shell'
-import { formatLocalDateTime } from '../format'
+import { ChangeEvent, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
+import { formatLocalDateTime } from '../format'
 import { smmGetJSON, smmPost, smmPatch, smmDelete } from '../ajax'
-
 import { SMMMissionTopBar } from '../menu/topbar'
+import { usePolling } from '../hooks/usePolling'
 
 import { MissionAssetData, MissionData, MissionDetailsData, MissionExternalReferenceData, MissionOrganizationData, MissionUserData } from './types'
 import { OrganizationData } from '../organization/types'
 import { AssetData } from '../asset/types'
 
-interface MissionDetailsProps {
-  mission: MissionData
-}
-
-const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
-  const { mission } = props
-
+function MissionDetails({ mission }: { mission: MissionData }) {
   return (
     <Table>
       <tbody>
@@ -56,198 +49,124 @@ const MissionDetails: React.FC<MissionDetailsProps> = (props) => {
   )
 }
 
+type ExtRefField = 'name' | 'code' | 'url' | 'notes'
+
 interface MissionDetailsExternalReferencesRowProps {
   ExternalReference: MissionExternalReferenceData
 }
 
-type ExtRefField = 'name' | 'code' | 'url' | 'notes'
+function MissionDetailsExternalReferencesRow({ ExternalReference: extRef }: MissionDetailsExternalReferencesRowProps) {
+  const [editFields, setEditFields] = useState<Partial<Record<ExtRefField, boolean>>>({})
+  const [values, setValues] = useState({
+    name: extRef.name,
+    code: extRef.code,
+    url: extRef.url,
+    notes: extRef.notes
+  })
 
-interface MissionDetailsExternalReferencesRowState {
-  editFields: Partial<Record<ExtRefField, boolean>>
-  values: {
-    name: string
-    code?: string
-    url?: string
-    notes?: string
-  }
-}
-
-class MissionDetailsExternalReferencesRow extends React.Component<MissionDetailsExternalReferencesRowProps, MissionDetailsExternalReferencesRowState> {
-  constructor(props: MissionDetailsExternalReferencesRowProps) {
-    super(props)
-
-    const extRef = this.props.ExternalReference
-
-    this.state = {
-      editFields: {},
-      values: {
-        name: extRef.name,
-        code: extRef.code,
-        url: extRef.url,
-        notes: extRef.notes
-      }
-    }
-
-    this.toggleEdit = this.toggleEdit.bind(this)
-    this.update = this.update.bind(this)
-    this.resetEditing = this.resetEditing.bind(this)
-    this.delete = this.delete.bind(this)
+  function toggleEdit(field: ExtRefField) {
+    setEditFields((prev) => ({ ...prev, [field]: true }))
   }
 
-  toggleEdit(field: ExtRefField) {
-    this.setState((prevState) => ({
-      editFields: { ...prevState.editFields, [field]: true }
-    }))
-  }
-
-  handleChange(field: ExtRefField, event: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(field: ExtRefField, event: ChangeEvent<HTMLInputElement>) {
     const { value } = event.target
-    this.setState((prevState) => ({
-      values: { ...prevState.values, [field]: value }
-    }))
+    setValues((prev) => ({ ...prev, [field]: value }))
   }
 
-  resetEditing() {
-    const extRef = this.props.ExternalReference
-    this.setState({
-      editFields: {},
-      values: {
-        name: extRef.name,
-        code: extRef.code,
-        url: extRef.url,
-        notes: extRef.notes
-      }
+  function resetEditing() {
+    setEditFields({})
+    setValues({
+      name: extRef.name,
+      code: extRef.code,
+      url: extRef.url,
+      notes: extRef.notes
     })
   }
 
-  update() {
-    const extRef = this.props.ExternalReference
-    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, this.state.values)
+  function update() {
+    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, values)
   }
 
-  delete() {
-    const extRef = this.props.ExternalReference
+  function deleteRow() {
     smmDelete(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`)
   }
 
-  renderField(field: ExtRefField, displayValue?: string) {
-    return this.state.editFields[field] ? (
-      <input type="text" value={this.state.values[field] ?? ''} onChange={(e) => this.handleChange(field, e)} />
+  function renderField(field: ExtRefField, displayValue?: string) {
+    return editFields[field] ? (
+      <input type="text" value={values[field] ?? ''} onChange={(e) => handleChange(field, e)} />
     ) : (
-      <span onClick={() => this.toggleEdit(field)}>{displayValue}</span>
+      <span onClick={() => toggleEdit(field)}>{displayValue}</span>
     )
   }
 
-  render() {
-    const extRef = this.props.ExternalReference
-    const editing = Object.keys(this.state.editFields).length > 0
-    const buttons = []
-    if (editing) {
-      buttons.push(
-        <Button onClick={this.update} key="update">
+  const editing = Object.keys(editFields).length > 0
+  const buttons = editing
+    ? [
+        <Button onClick={update} key="update">
           Update
-        </Button>
-      )
-      buttons.push(
-        <Button onClick={this.resetEditing} key="cancel" variant="danger">
+        </Button>,
+        <Button onClick={resetEditing} key="cancel" variant="danger">
           Cancel
         </Button>
-      )
-    } else {
-      buttons.push(
-        <Button onClick={this.delete} key="delete" variant="danger">
+      ]
+    : [
+        <Button onClick={deleteRow} key="delete" variant="danger">
           Delete
         </Button>
-      )
-    }
-    return (
-      <tr>
-        <td>{this.renderField('name', extRef.name)}</td>
-        <td>{this.renderField('code', extRef.code)}</td>
-        <td>{this.renderField('url', extRef.url)}</td>
-        <td>{this.renderField('notes', extRef.notes)}</td>
-        <td>
-          <ButtonGroup>{buttons}</ButtonGroup>
-        </td>
-      </tr>
-    )
-  }
+      ]
+
+  return (
+    <tr>
+      <td>{renderField('name', extRef.name)}</td>
+      <td>{renderField('code', extRef.code)}</td>
+      <td>{renderField('url', extRef.url)}</td>
+      <td>{renderField('notes', extRef.notes)}</td>
+      <td>
+        <ButtonGroup>{buttons}</ButtonGroup>
+      </td>
+    </tr>
+  )
 }
 
 interface MissionDetailsExternalReferenceAddProps {
   mission: number
 }
 
-interface MissionDetailsExternalReferenceAddState {
-  [field: string]: string
-}
+function MissionDetailsExternalReferenceAdd({ mission }: MissionDetailsExternalReferenceAddProps) {
+  const [name, setName] = useState('')
+  const [code, setCode] = useState('')
+  const [url, setUrl] = useState('')
+  const [notes, setNotes] = useState('')
 
-class MissionDetailsExternalReferenceAdd extends React.Component<MissionDetailsExternalReferenceAddProps, MissionDetailsExternalReferenceAddState> {
-  constructor(props: MissionDetailsExternalReferenceAddProps) {
-    super(props)
-
-    this.state = {
-      name: '',
-      code: '',
-      url: '',
-      notes: ''
-    }
-
-    this.add = this.add.bind(this)
-    this.addSuccess = this.addSuccess.bind(this)
-    this.handleChange = this.handleChange.bind(this)
-  }
-
-  handleChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const { name, value } = event.target
-    this.setState({ [name]: value })
-  }
-
-  addSuccess() {
-    this.setState({
-      name: '',
-      code: '',
-      url: '',
-      notes: ''
+  function add() {
+    if (!name) return
+    smmPost(`/mission/${mission}/externalreferences/`, { name, code, url, notes }, () => {
+      setName('')
+      setCode('')
+      setUrl('')
+      setNotes('')
     })
   }
 
-  add() {
-    if (this.state.name) {
-      smmPost(
-        `/mission/${this.props.mission}/externalreferences/`,
-        {
-          name: this.state.name,
-          code: this.state.code,
-          url: this.state.url,
-          notes: this.state.notes
-        },
-        this.addSuccess
-      )
-    }
-  }
-
-  render() {
-    return (
-      <tr>
-        <td>
-          <input type="text" name="name" onChange={this.handleChange} value={this.state.name} />
-        </td>
-        <td>
-          <input type="text" name="code" onChange={this.handleChange} value={this.state.code} />
-        </td>
-        <td>
-          <input type="text" name="url" onChange={this.handleChange} value={this.state.url} />
-        </td>
-        <td>
-          <input type="text" name="notes" onChange={this.handleChange} value={this.state.notes} />
-        </td>
-        <td>
-          <Button onClick={this.add}>Add</Button>
-        </td>
-      </tr>
-    )
-  }
+  return (
+    <tr>
+      <td>
+        <input type="text" name="name" onChange={(e) => setName(e.target.value)} value={name} />
+      </td>
+      <td>
+        <input type="text" name="code" onChange={(e) => setCode(e.target.value)} value={code} />
+      </td>
+      <td>
+        <input type="text" name="url" onChange={(e) => setUrl(e.target.value)} value={url} />
+      </td>
+      <td>
+        <input type="text" name="notes" onChange={(e) => setNotes(e.target.value)} value={notes} />
+      </td>
+      <td>
+        <Button onClick={add}>Add</Button>
+      </td>
+    </tr>
+  )
 }
 
 interface MissionDetailsExternalReferencesListProps {
@@ -255,27 +174,26 @@ interface MissionDetailsExternalReferencesListProps {
   mission: number
 }
 
-class MissionDetailsExternalReferencesList extends React.Component<MissionDetailsExternalReferencesListProps, never> {
-  render() {
-    const rows = this.props.ExternalReferences.map((extRef) => <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} />)
-    return (
-      <Table>
-        <thead>
-          <tr>
-            <td>Name</td>
-            <td>Code</td>
-            <td>URL</td>
-            <td>Notes</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          {rows}
-          <MissionDetailsExternalReferenceAdd mission={this.props.mission} />
-        </tbody>
-      </Table>
-    )
-  }
+function MissionDetailsExternalReferencesList({ ExternalReferences, mission }: MissionDetailsExternalReferencesListProps) {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Code</td>
+          <td>URL</td>
+          <td>Notes</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        {ExternalReferences.map((extRef) => (
+          <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} />
+        ))}
+        <MissionDetailsExternalReferenceAdd mission={mission} />
+      </tbody>
+    </Table>
+  )
 }
 
 interface MissionDetailsOrganizationsRowProps {
@@ -284,72 +202,50 @@ interface MissionDetailsOrganizationsRowProps {
   showButtons: boolean
 }
 
-class MissionDetailsOrganizationsRow extends React.Component<MissionDetailsOrganizationsRowProps, never> {
-  constructor(props: MissionDetailsOrganizationsRowProps) {
-    super(props)
-
-    this.disableOrgAdd = this.disableOrgAdd.bind(this)
-    this.enableOrgAdd = this.enableOrgAdd.bind(this)
-    this.disableUserAdd = this.disableUserAdd.bind(this)
-    this.enableUserAdd = this.enableUserAdd.bind(this)
+function MissionDetailsOrganizationsRow({ mission, missionOrg, showButtons }: MissionDetailsOrganizationsRowProps) {
+  const orgId = missionOrg.organization.id
+  function postFlag(payload: Record<string, boolean>) {
+    smmPost(`/mission/${mission}/organizations/${orgId}/`, payload)
   }
 
-  disableOrgAdd() {
-    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: false })
-  }
-
-  enableOrgAdd() {
-    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_organization: true })
-  }
-
-  disableUserAdd() {
-    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: false })
-  }
-
-  enableUserAdd() {
-    smmPost(`/mission/${this.props.mission}/organizations/${this.props.missionOrg.organization.id}/`, { add_user: true })
-  }
-
-  render() {
-    const { missionOrg } = this.props
-    const button_group = []
-    if (this.props.showButtons) {
-      const buttons = []
-      if (missionOrg.permissions.add_organization) {
-        buttons.push(
-          <Button key="btnAddOrgDisable" onClick={this.disableOrgAdd} variant="danger">
-            Disable Adding Organizations
-          </Button>
-        )
-      } else {
-        buttons.push(
-          <Button key="btnAddOrgEnable" onClick={this.enableOrgAdd}>
-            Enable Adding Organizations
-          </Button>
-        )
-      }
-      if (missionOrg.permissions.add_user) {
-        buttons.push(
-          <Button key="btnAddUserDisable" onClick={this.disableUserAdd} variant="danger">
-            Disable Adding Users
-          </Button>
-        )
-      } else {
-        buttons.push(
-          <Button key="btnAddUserEnable" onClick={this.enableUserAdd}>
-            Enable Adding Users
-          </Button>
-        )
-      }
-      button_group.push(<ButtonGroup key="btnActions">{buttons}</ButtonGroup>)
+  let buttonGroup
+  if (showButtons) {
+    const buttons = []
+    if (missionOrg.permissions.add_organization) {
+      buttons.push(
+        <Button key="btnAddOrgDisable" onClick={() => postFlag({ add_organization: false })} variant="danger">
+          Disable Adding Organizations
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button key="btnAddOrgEnable" onClick={() => postFlag({ add_organization: true })}>
+          Enable Adding Organizations
+        </Button>
+      )
     }
-    return (
-      <tr>
-        <td>{missionOrg.organization.name}</td>
-        <td>{button_group}</td>
-      </tr>
-    )
+    if (missionOrg.permissions.add_user) {
+      buttons.push(
+        <Button key="btnAddUserDisable" onClick={() => postFlag({ add_user: false })} variant="danger">
+          Disable Adding Users
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button key="btnAddUserEnable" onClick={() => postFlag({ add_user: true })}>
+          Enable Adding Users
+        </Button>
+      )
+    }
+    buttonGroup = <ButtonGroup key="btnActions">{buttons}</ButtonGroup>
   }
+
+  return (
+    <tr>
+      <td>{missionOrg.organization.name}</td>
+      <td>{buttonGroup}</td>
+    </tr>
+  )
 }
 
 interface MissionDetailsOrganizationsListProps {
@@ -358,113 +254,63 @@ interface MissionDetailsOrganizationsListProps {
   isAdmin: boolean
 }
 
-class MissionDetailsOrganizationsList extends React.Component<MissionDetailsOrganizationsListProps, never> {
-  render() {
-    const org_list = this.props.missionOrganizations.map((missionOrg) => (
-      <MissionDetailsOrganizationsRow key={missionOrg.organization.id} mission={this.props.mission} missionOrg={missionOrg} showButtons={this.props.isAdmin} />
-    ))
-    return (
+function MissionDetailsOrganizationsList({ missionOrganizations, mission, isAdmin }: MissionDetailsOrganizationsListProps) {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <td>Organization</td>
+          <td>Options</td>
+        </tr>
+      </thead>
+      <tbody>
+        {missionOrganizations.map((missionOrg) => (
+          <MissionDetailsOrganizationsRow key={missionOrg.organization.id} mission={mission} missionOrg={missionOrg} showButtons={isAdmin} />
+        ))}
+      </tbody>
+    </Table>
+  )
+}
+
+function MissionDetailsOrganizationAdd({ mission }: { mission: number }) {
+  const [orgs, setOrgs] = useState<OrganizationData[]>([])
+  const [selectedOrg, setSelectedOrg] = useState<number | undefined>(undefined)
+
+  usePolling(async () => {
+    const data = await smmGetJSON<{ organizations: OrganizationData[] }>(`/mission/${mission}/organizations/?not_included=True`, {})
+    setOrgs(data.organizations)
+    setSelectedOrg((prev) => (prev === undefined && data.organizations.length > 0 ? data.organizations[0].id : prev))
+  }, 10000)
+
+  function add() {
+    if (selectedOrg) {
+      smmPost(`/mission/${mission}/organizations/`, { organization: selectedOrg })
+    }
+  }
+
+  return (
+    <form>
       <Table>
-        <thead>
+        <tbody>
           <tr>
-            <td>Organization</td>
-            <td>Options</td>
+            <td>Organization:</td>
+            <td>
+              <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedOrg(Number(e.target.value))} value={selectedOrg}>
+                {orgs.map((org) => (
+                  <option key={org.id} value={org.id}>
+                    {org.name}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <Button onClick={add}>Add</Button>
+            </td>
           </tr>
-        </thead>
-        <tbody>{org_list}</tbody>
+        </tbody>
       </Table>
-    )
-  }
-}
-
-interface MissionDetailsOrganizationAddProps {
-  mission: number
-}
-
-interface MissionDetailsOrganizationAddState {
-  selectedOrg?: number
-  orgs: Array<OrganizationData>
-}
-
-class MissionDetailsOrganizationAdd extends React.Component<MissionDetailsOrganizationAddProps, MissionDetailsOrganizationAddState> {
-  timer?: number
-
-  constructor(props: MissionDetailsOrganizationAddProps) {
-    super(props)
-
-    this.state = {
-      selectedOrg: undefined,
-      orgs: []
-    }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-    this.updateSelectedOrg = this.updateSelectedOrg.bind(this)
-    this.add = this.add.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  updateDataResponse(data: { organizations: Array<OrganizationData> }) {
-    this.setState((oldState) => {
-      const newState: MissionDetailsOrganizationAddState = {
-        orgs: data.organizations
-      }
-      if (oldState.selectedOrg === undefined && data.organizations.length > 0) {
-        newState.selectedOrg = data.organizations[0].id
-      }
-      return newState
-    })
-  }
-
-  async updateData() {
-    await smmGetJSON(`/mission/${this.props.mission}/organizations/?not_included=True`, {}, this.updateDataResponse)
-  }
-
-  updateSelectedOrg(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-    this.setState({ selectedOrg: Number(value) })
-  }
-
-  add() {
-    if (this.state.selectedOrg) {
-      smmPost(`/mission/${this.props.mission}/organizations/`, { organization: this.state.selectedOrg })
-    }
-  }
-
-  render() {
-    const org_list = this.state.orgs.map((org) => (
-      <option key={org.id} value={org.id}>
-        {org.name}
-      </option>
-    ))
-    return (
-      <form>
-        <Table>
-          <tbody>
-            <tr>
-              <td>Organization:</td>
-              <td>
-                <select onChange={this.updateSelectedOrg} value={this.state.selectedOrg}>
-                  {org_list}
-                </select>
-              </td>
-              <td>
-                <Button onClick={this.add}>Add</Button>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-      </form>
-    )
-  }
+    </form>
+  )
 }
 
 interface MissionDetailsUserRowProps {
@@ -473,95 +319,63 @@ interface MissionDetailsUserRowProps {
   showButtons: boolean
 }
 
-class MissionDetailsUserRow extends React.Component<MissionDetailsUserRowProps, never> {
-  constructor(props: MissionDetailsUserRowProps) {
-    super(props)
-
-    this.removeAdmin = this.removeAdmin.bind(this)
-    this.makeAdmin = this.makeAdmin.bind(this)
-    this.disableOrgAdd = this.disableOrgAdd.bind(this)
-    this.enableOrgAdd = this.enableOrgAdd.bind(this)
-    this.disableUserAdd = this.disableUserAdd.bind(this)
-    this.enableUserAdd = this.enableUserAdd.bind(this)
+function MissionDetailsUserRow({ mission, missionUser, showButtons }: MissionDetailsUserRowProps) {
+  const userId = missionUser.user_id
+  function patch(payload: Record<string, boolean>) {
+    smmPatch(`/mission/${mission}/users/${userId}/`, payload)
   }
 
-  removeAdmin() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: false })
-  }
-
-  makeAdmin() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { admin: true })
-  }
-
-  disableOrgAdd() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: false })
-  }
-
-  enableOrgAdd() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_organization: true })
-  }
-
-  disableUserAdd() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: false })
-  }
-
-  enableUserAdd() {
-    smmPatch(`/mission/${this.props.mission}/users/${this.props.missionUser.user_id}/`, { add_user: true })
-  }
-
-  render() {
-    const { missionUser } = this.props
-    const button_group = []
-    if (this.props.showButtons) {
-      const buttons = []
-      if (missionUser.permissions.admin) {
-        buttons.push(
-          <Button key="btnAdminDisable" variant="danger" onClick={this.removeAdmin}>
-            Remove Admin
-          </Button>
-        )
-      } else {
-        buttons.push(
-          <Button key="btnAdminEnable" onClick={this.makeAdmin}>
-            Make Admin
-          </Button>
-        )
-      }
-      if (missionUser.permissions.add_organization) {
-        buttons.push(
-          <Button key="btnAddOrgDisable" variant="danger" onClick={this.disableOrgAdd}>
-            Disable Adding Organizations
-          </Button>
-        )
-      } else {
-        buttons.push(
-          <Button key="btnAddOrgEnable" onClick={this.enableOrgAdd}>
-            Enable Adding Organizations
-          </Button>
-        )
-      }
-      if (missionUser.permissions.add_user) {
-        buttons.push(
-          <Button key="btnAddUserDisable" variant="danger" onClick={this.disableUserAdd}>
-            Disable Adding Users
-          </Button>
-        )
-      } else {
-        buttons.push(
-          <Button key="btnAddUserEnable" onClick={this.enableUserAdd}>
-            Enable Adding Users
-          </Button>
-        )
-      }
-      button_group.push(<ButtonGroup key="btnActions">{buttons}</ButtonGroup>)
+  let buttonGroup
+  if (showButtons) {
+    const buttons = []
+    if (missionUser.permissions.admin) {
+      buttons.push(
+        <Button key="btnAdminDisable" variant="danger" onClick={() => patch({ admin: false })}>
+          Remove Admin
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button key="btnAdminEnable" onClick={() => patch({ admin: true })}>
+          Make Admin
+        </Button>
+      )
     }
-    return (
-      <tr>
-        <td>{missionUser.user}</td>
-        <td>{button_group}</td>
-      </tr>
-    )
+    if (missionUser.permissions.add_organization) {
+      buttons.push(
+        <Button key="btnAddOrgDisable" variant="danger" onClick={() => patch({ add_organization: false })}>
+          Disable Adding Organizations
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button key="btnAddOrgEnable" onClick={() => patch({ add_organization: true })}>
+          Enable Adding Organizations
+        </Button>
+      )
+    }
+    if (missionUser.permissions.add_user) {
+      buttons.push(
+        <Button key="btnAddUserDisable" variant="danger" onClick={() => patch({ add_user: false })}>
+          Disable Adding Users
+        </Button>
+      )
+    } else {
+      buttons.push(
+        <Button key="btnAddUserEnable" onClick={() => patch({ add_user: true })}>
+          Enable Adding Users
+        </Button>
+      )
+    }
+    buttonGroup = <ButtonGroup key="btnActions">{buttons}</ButtonGroup>
   }
+
+  return (
+    <tr>
+      <td>{missionUser.user}</td>
+      <td>{buttonGroup}</td>
+    </tr>
+  )
 }
 
 interface MissionDetailsUsersListProps {
@@ -571,362 +385,194 @@ interface MissionDetailsUsersListProps {
   mission: number
 }
 
-class MissionDetailsUsersList extends React.Component<MissionDetailsUsersListProps, never> {
-  render() {
-    const user_list = this.props.missionUsers.map((missionUser) => (
-      <MissionDetailsUserRow key={missionUser.id} mission={this.props.mission} missionUser={missionUser} showButtons={this.props.isAdmin && this.props.me !== missionUser.user} />
-    ))
+function MissionDetailsUsersList({ missionUsers, isAdmin, me, mission }: MissionDetailsUsersListProps) {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <td>User</td>
+          <td>Options</td>
+        </tr>
+      </thead>
+      <tbody>
+        {missionUsers.map((missionUser) => (
+          <MissionDetailsUserRow key={missionUser.id} mission={mission} missionUser={missionUser} showButtons={isAdmin && me !== missionUser.user} />
+        ))}
+      </tbody>
+    </Table>
+  )
+}
 
-    return (
+function MissionDetailsUserAdd({ mission }: { mission: number }) {
+  const [users, setUsers] = useState<Array<{ id: number; username: string }>>([])
+  const [selectedUser, setSelectedUser] = useState<number | undefined>(undefined)
+
+  usePolling(async () => {
+    const data = await smmGetJSON<{ users: Array<{ id: number; username: string }> }>(`/mission/${mission}/users/?not_included=True`, {})
+    setUsers(data.users)
+    setSelectedUser((prev) => (prev === undefined && data.users.length > 0 ? data.users[0].id : prev))
+  }, 10000)
+
+  function add() {
+    if (selectedUser) {
+      smmPost(`/mission/${mission}/users/`, { user: selectedUser })
+    }
+  }
+
+  return (
+    <form>
       <Table>
-        <thead>
+        <tbody>
           <tr>
-            <td>User</td>
-            <td>Options</td>
+            <td>User:</td>
+            <td>
+              <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedUser(Number(e.target.value))} value={selectedUser}>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.username}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <Button onClick={add}>Add</Button>
+            </td>
           </tr>
-        </thead>
-        <tbody>{user_list}</tbody>
+        </tbody>
       </Table>
+    </form>
+  )
+}
+
+function MissionDetailsAssetRow({ missionAsset }: { missionAsset: MissionAssetData }) {
+  function remove() {
+    smmDelete(`/mission/${missionAsset.mission}/assets/${missionAsset.asset.id}/`)
+  }
+
+  const buttons = []
+  let status
+  let added
+  let removed
+
+  if (missionAsset.status && missionAsset.status.since) {
+    status = (
+      <>
+        {missionAsset.status.name}
+        <br />
+        <small>{formatLocalDateTime(missionAsset.status.since)}</small>
+      </>
     )
   }
-}
-
-interface MissionDetailsUserAddProps {
-  mission: number
-}
-
-interface MissionDetailsUserAddState {
-  selectedUser?: number
-  users: Array<{ id: number; username: string }>
-}
-
-class MissionDetailsUserAdd extends React.Component<MissionDetailsUserAddProps, MissionDetailsUserAddState> {
-  timer?: number
-
-  constructor(props: MissionDetailsUserAddProps) {
-    super(props)
-
-    this.state = {
-      selectedUser: undefined,
-      users: []
-    }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-    this.updateSelectedUser = this.updateSelectedUser.bind(this)
-    this.add = this.add.bind(this)
+  if (missionAsset.added) {
+    added = formatLocalDateTime(missionAsset.added)
   }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  updateDataResponse(data: { users: Array<{ id: number; username: string }> }) {
-    this.setState((oldState) => {
-      const newState: MissionDetailsUserAddState = {
-        users: data.users
-      }
-      if (oldState.selectedUser === undefined && data.users.length > 0) {
-        newState.selectedUser = data.users[0].id
-      }
-      return newState
-    })
-  }
-
-  async updateData() {
-    await smmGetJSON(`/mission/${this.props.mission}/users/?not_included=True`, {}, this.updateDataResponse)
-  }
-
-  updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-    this.setState({ selectedUser: Number(value) })
-  }
-
-  add() {
-    if (this.state.selectedUser) {
-      smmPost(`/mission/${this.props.mission}/users/`, { user: this.state.selectedUser })
-    }
-  }
-
-  render() {
-    const user_list = this.state.users.map((user) => (
-      <option key={user.id} value={user.id}>
-        {user.username}
-      </option>
-    ))
-    return (
-      <form>
-        <Table>
-          <tbody>
-            <tr>
-              <td>User:</td>
-              <td>
-                <select onChange={this.updateSelectedUser} value={this.state.selectedUser}>
-                  {user_list}
-                </select>
-              </td>
-              <td>
-                <Button onClick={this.add}>Add</Button>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-      </form>
+  if (missionAsset.removed) {
+    removed = formatLocalDateTime(missionAsset.removed)
+  } else {
+    buttons.push(
+      <Button key="btnRemove" variant="danger" onClick={remove}>
+        Remove
+      </Button>
     )
   }
+  return (
+    <tr>
+      <td>{missionAsset.asset.name}</td>
+      <td>{missionAsset.asset.type_name}</td>
+      <td>{status}</td>
+      <td>{added}</td>
+      <td>{removed}</td>
+      <td>{buttons}</td>
+    </tr>
+  )
 }
 
-interface MissionDetailsAssetRowProps {
-  missionAsset: MissionAssetData
+function MissionDetailsAssetList({ missionAssets }: { missionAssets: Array<MissionAssetData> }) {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <td>Asset</td>
+          <td>Asset Type</td>
+          <td>Status</td>
+          <td>Added</td>
+          <td>Removed</td>
+          <td>Options</td>
+        </tr>
+      </thead>
+      <tbody>
+        {missionAssets.map((missionAsset) => (
+          <MissionDetailsAssetRow key={missionAsset.id} missionAsset={missionAsset} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-class MissionDetailsAssetRow extends React.Component<MissionDetailsAssetRowProps, never> {
-  constructor(props: MissionDetailsAssetRowProps) {
-    super(props)
+function MissionDetailsAssetAdd({ mission }: { mission: number }) {
+  const [assets, setAssets] = useState<AssetData[]>([])
+  const [selectedAsset, setSelectedAsset] = useState<number | undefined>(undefined)
 
-    this.remove = this.remove.bind(this)
+  usePolling(async () => {
+    const data = await smmGetJSON<{ assets: AssetData[] }>(`/mission/${mission}/assets/?not_included=True`, {})
+    setAssets(data.assets)
+    setSelectedAsset((prev) => (prev === undefined && data.assets.length > 0 ? data.assets[0].id : prev))
+  }, 10000)
+
+  function add() {
+    if (selectedAsset) {
+      smmPost(`/mission/${mission}/assets/`, { asset: selectedAsset })
+    }
   }
 
-  remove() {
-    smmDelete(`/mission/${this.props.missionAsset.mission}/assets/${this.props.missionAsset.asset.id}/`)
-  }
-
-  render() {
-    const { missionAsset } = this.props
-    const buttons = []
-    let status
-    let added
-    let removed
-
-    if (missionAsset.status && missionAsset.status.since) {
-      status = (
-        <>
-          {missionAsset.status.name}
-          <br />
-          <small>{formatLocalDateTime(missionAsset.status.since)}</small>
-        </>
-      )
-    }
-    if (missionAsset.added) {
-      added = formatLocalDateTime(missionAsset.added)
-    }
-    if (missionAsset.removed) {
-      removed = formatLocalDateTime(missionAsset.removed)
-    } else {
-      buttons.push(
-        <Button key="btnRemove" variant="danger" onClick={this.remove}>
-          Remove
-        </Button>
-      )
-    }
-    return (
-      <tr>
-        <td>{missionAsset.asset.name}</td>
-        <td>{missionAsset.asset.type_name}</td>
-        <td>{status}</td>
-        <td>{added}</td>
-        <td>{removed}</td>
-        <td>{buttons}</td>
-      </tr>
-    )
-  }
-}
-
-interface MissionDetailsAssetListProps {
-  missionAssets: Array<MissionAssetData>
-}
-
-class MissionDetailsAssetList extends React.Component<MissionDetailsAssetListProps, never> {
-  render() {
-    const asset_list = this.props.missionAssets.map((missionAsset) => <MissionDetailsAssetRow key={missionAsset.id} missionAsset={missionAsset} />)
-
-    return (
+  return (
+    <form>
       <Table>
-        <thead>
+        <tbody>
           <tr>
-            <td>Asset</td>
-            <td>Asset Type</td>
-            <td>Status</td>
-            <td>Added</td>
-            <td>Removed</td>
-            <td>Options</td>
+            <td>Asset:</td>
+            <td>
+              <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedAsset(Number(e.target.value))} value={selectedAsset}>
+                {assets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.name}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              <Button onClick={add}>Add</Button>
+            </td>
           </tr>
-        </thead>
-        <tbody>{asset_list}</tbody>
+        </tbody>
       </Table>
-    )
-  }
+    </form>
+  )
 }
 
-interface MissionDetailsAssetAddProps {
-  mission: number
-}
+function MissionDetailPage({ missionId }: { missionId: number }) {
+  const [missionDetails, setMissionDetails] = useState<MissionDetailsData | undefined>(undefined)
 
-interface MissionDetailsAssetAddState {
-  selectedAsset?: number
-  assets: Array<AssetData>
-}
+  usePolling(async () => {
+    await smmGetJSON(`/mission/${missionId}/details/`, {}, setMissionDetails)
+  }, 10000)
 
-class MissionDetailsAssetAdd extends React.Component<MissionDetailsAssetAddProps, MissionDetailsAssetAddState> {
-  timer?: number
-  constructor(props: MissionDetailsAssetAddProps) {
-    super(props)
-
-    this.state = {
-      selectedAsset: undefined,
-      assets: []
-    }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-    this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
-    this.add = this.add.bind(this)
+  if (missionDetails === undefined) {
+    return <>Loading ...</>
   }
 
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  updateDataResponse(data: { assets: Array<AssetData> }) {
-    this.setState((oldState) => {
-      const newState: MissionDetailsAssetAddState = {
-        assets: data.assets
-      }
-      if (oldState.selectedAsset === undefined && data.assets.length > 0) {
-        newState.selectedAsset = data.assets[0].id
-      }
-      return newState
-    })
-  }
-
-  async updateData() {
-    await smmGetJSON(`/mission/${this.props.mission}/assets/?not_included=True`, {}, this.updateDataResponse)
-  }
-
-  updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-    this.setState({ selectedAsset: Number(value) })
-  }
-
-  add() {
-    if (this.state.selectedAsset) {
-      smmPost(`/mission/${this.props.mission}/assets/`, { asset: this.state.selectedAsset })
-    }
-  }
-
-  render() {
-    const asset_list = this.state.assets.map((asset) => (
-      <option key={asset.id} value={asset.id}>
-        {asset.name}
-      </option>
-    ))
-    return (
-      <form>
-        <Table>
-          <tbody>
-            <tr>
-              <td>Asset:</td>
-              <td>
-                <select onChange={this.updateSelectedAsset} value={this.state.selectedAsset}>
-                  {asset_list}
-                </select>
-              </td>
-              <td>
-                <Button onClick={this.add}>Add</Button>
-              </td>
-            </tr>
-          </tbody>
-        </Table>
-      </form>
-    )
-  }
-}
-
-interface MissionDetailsPageProps {
-  missionId: number
-}
-
-interface MissionDetailsPageState {
-  missionDetails?: MissionDetailsData
-}
-
-class MissionDetailPage extends React.Component<MissionDetailsPageProps, MissionDetailsPageState> {
-  timer?: number
-
-  constructor(props: MissionDetailsPageProps) {
-    super(props)
-
-    this.state = {
-      missionDetails: undefined
-    }
-
-    this.updateDataResponse = this.updateDataResponse.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  updateDataResponse(data: MissionDetailsData) {
-    this.setState({ missionDetails: data })
-  }
-
-  async updateData() {
-    await smmGetJSON(`/mission/${this.props.missionId}/details/`, {}, this.updateDataResponse)
-  }
-
-  render() {
-    if (this.state.missionDetails === undefined) {
-      return <>Loading ...</>
-    } else {
-      let orgAdd
-      let userAdd
-      const assetAdd = <MissionDetailsAssetAdd mission={this.props.missionId} />
-      if (this.state.missionDetails.can_add_organizations) {
-        orgAdd = <MissionDetailsOrganizationAdd mission={this.props.missionId} />
-      }
-      if (this.state.missionDetails.can_add_users) {
-        userAdd = <MissionDetailsUserAdd mission={this.props.missionId} />
-      }
-      return (
-        <>
-          <MissionDetails mission={this.state.missionDetails.mission} />
-          <MissionDetailsExternalReferencesList mission={this.props.missionId} ExternalReferences={this.state.missionDetails.external_references} />
-          <MissionDetailsOrganizationsList
-            mission={this.props.missionId}
-            missionOrganizations={this.state.missionDetails.mission_organizations}
-            isAdmin={this.state.missionDetails.admin}
-          />
-          {orgAdd}
-          <MissionDetailsUsersList
-            mission={this.props.missionId}
-            me={this.state.missionDetails.me}
-            missionUsers={this.state.missionDetails.mission_users}
-            isAdmin={this.state.missionDetails.admin}
-          />
-          {userAdd}
-          <MissionDetailsAssetList missionAssets={this.state.missionDetails.mission_assets} />
-          {assetAdd}
-        </>
-      )
-    }
-  }
+  return (
+    <>
+      <MissionDetails mission={missionDetails.mission} />
+      <MissionDetailsExternalReferencesList mission={missionId} ExternalReferences={missionDetails.external_references} />
+      <MissionDetailsOrganizationsList mission={missionId} missionOrganizations={missionDetails.mission_organizations} isAdmin={missionDetails.admin} />
+      {missionDetails.can_add_organizations && <MissionDetailsOrganizationAdd mission={missionId} />}
+      <MissionDetailsUsersList mission={missionId} me={missionDetails.me} missionUsers={missionDetails.mission_users} isAdmin={missionDetails.admin} />
+      {missionDetails.can_add_users && <MissionDetailsUserAdd mission={missionId} />}
+      <MissionDetailsAssetList missionAssets={missionDetails.mission_assets} />
+      <MissionDetailsAssetAdd mission={missionId} />
+    </>
+  )
 }
 
 function createMissionDetails(elementId: string, missionId: number) {
