@@ -14,6 +14,14 @@ function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: num
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId))
 }
 
+function csrfHeaders(extra?: Record<string, string>): Record<string, string> {
+  const token = cookieJar.get<string | undefined>('csrftoken')
+  if (!token) {
+    console.error('smm: csrftoken cookie is missing - request may fail with HTTP 403')
+  }
+  return { 'X-CSRFToken': token ?? '', ...extra }
+}
+
 function buildSearchParams(data?: RequestData): URLSearchParams {
   const params = new URLSearchParams()
   if (!data) return params
@@ -78,68 +86,19 @@ function smmGetJSON<T = unknown>(url: string, data?: RequestData, success?: (dat
 }
 
 function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(
-    url,
-    {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
-      },
-      body: buildSearchParams(data)
-    },
-    (r) => r.text(),
-    success,
-    error
-  )
+  return request(url, { method: 'POST', headers: csrfHeaders(), body: buildSearchParams(data) }, (r) => r.text(), success, error)
 }
 
 function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(
-    url,
-    {
-      method: 'POST',
-      headers: {
-        'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
-      },
-      body
-    },
-    (r) => r.text(),
-    success,
-    error,
-    null
-  )
+  return request(url, { method: 'POST', headers: csrfHeaders(), body }, (r) => r.text(), success, error, null)
 }
 
 function smmPatch(url: string, data: Record<string, unknown>, success?: (data: string) => void, error?: (data?: unknown) => void) {
-  return request(
-    url,
-    {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
-      },
-      body: JSON.stringify(data)
-    },
-    (r) => r.text(),
-    success,
-    error
-  )
+  return request(url, { method: 'PATCH', headers: csrfHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify(data) }, (r) => r.text(), success, error)
 }
 
 function smmDelete(url: string, success?: (data: void) => void, error?: (data?: unknown) => void) {
-  return request<void>(
-    url,
-    {
-      method: 'DELETE',
-      headers: {
-        'X-CSRFToken': cookieJar.get('csrftoken') ?? ''
-      }
-    },
-    async () => {},
-    success,
-    error
-  )
+  return request<void>(url, { method: 'DELETE', headers: csrfHeaders() }, async () => {}, success, error)
 }
 
 export { smmGet, smmGetJSON, smmPost, smmPostBody, smmPatch, smmDelete }
