@@ -1,26 +1,15 @@
 import '../page-shell'
-import { formatLocalDateTime } from '../format'
+import { ChangeEvent, useState } from 'react'
+import * as ReactDOM from 'react-dom/client'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
-import React from 'react'
-import * as ReactDOM from 'react-dom/client'
-
+import { formatLocalDateTime } from '../format'
 import { smmGetJSON, smmPost, smmDelete } from '../ajax'
-
 import { OrganizationListRow } from './list'
 import { SMMOrganizationTopBar } from '../menu/topbar'
+import { usePolling } from '../hooks/usePolling'
 import { OrganizationAssetData, OrganizationData, OrganizationMemberData } from './types'
 import { AssetData } from '../asset/types'
-
-interface OrganizationMemberRowProps {
-  organizationId: number
-  organization_member: OrganizationMemberData
-  showButtons: boolean
-}
-
-interface OrganizationMemberRowState {
-  selectedRole: string
-}
 
 const ROLE_NAME_TO_CODE: Record<string, string> = {
   Member: 'M',
@@ -29,73 +18,51 @@ const ROLE_NAME_TO_CODE: Record<string, string> = {
   'Asset Bridge/Recorder': 'b'
 }
 
-class OrganizationMemberRow extends React.Component<OrganizationMemberRowProps, OrganizationMemberRowState> {
-  constructor(props: OrganizationMemberRowProps) {
-    super(props)
-    this.state = {
-      selectedRole: ROLE_NAME_TO_CODE[props.organization_member.role] ?? 'M'
-    }
-    this.delete = this.delete.bind(this)
-    this.updateSelectedRole = this.updateSelectedRole.bind(this)
-    this.saveChanges = this.saveChanges.bind(this)
+interface OrganizationMemberRowProps {
+  organizationId: number
+  organization_member: OrganizationMemberData
+  showButtons: boolean
+}
+
+function OrganizationMemberRow({ organizationId, organization_member, showButtons }: OrganizationMemberRowProps) {
+  const [selectedRole, setSelectedRole] = useState(ROLE_NAME_TO_CODE[organization_member.role] ?? 'M')
+
+  async function deleteRow() {
+    await smmDelete(`/organization/${organizationId}/user/${organization_member.user}/`)
   }
 
-  async delete() {
-    const organizationMember = this.props.organization_member
-    await smmDelete(`/organization/${this.props.organizationId}/user/${organizationMember.user}/`)
+  function saveChanges() {
+    smmPost(`/organization/${organizationId}/user/${organization_member.user}/`, { role: selectedRole })
   }
 
-  updateSelectedRole(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
+  const dataFields = [
+    <td key="name">{organization_member.user}</td>,
+    <td key="created">{formatLocalDateTime(organization_member.added)}</td>,
+    <td key="creator">{organization_member.added_by}</td>
+  ]
 
-    this.setState({ selectedRole: value })
-  }
-
-  renderButtons() {
-    return (
-      <select value={this.state.selectedRole} onChange={this.updateSelectedRole}>
-        <option value="M">Member</option>
-        <option value="R">Radio Operator</option>
-        <option value="A">Admin</option>
-        <option value="b">Asset Bridge/Recorder</option>
-      </select>
+  if (showButtons) {
+    dataFields.push(
+      <td key="buttons">
+        <ButtonGroup key="buttons">
+          <select value={selectedRole} onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedRole(e.target.value)}>
+            <option value="M">Member</option>
+            <option value="R">Radio Operator</option>
+            <option value="A">Admin</option>
+            <option value="b">Asset Bridge/Recorder</option>
+          </select>
+          <Button key="save" onClick={saveChanges}>
+            Save
+          </Button>
+          <Button key="delete" className="btn-danger" onClick={deleteRow}>
+            Delete
+          </Button>
+        </ButtonGroup>
+      </td>
     )
   }
 
-  saveChanges() {
-    const { user } = this.props.organization_member
-    smmPost(`/organization/${this.props.organizationId}/user/${user}/`, { role: this.state.selectedRole })
-  }
-
-  render() {
-    const organizationMember = this.props.organization_member
-    const dataFields = []
-    dataFields.push(<td key="name">{organizationMember.user}</td>)
-    dataFields.push(<td key="created">{formatLocalDateTime(organizationMember.added)}</td>)
-    dataFields.push(<td key="creator">{organizationMember.added_by}</td>)
-
-    if (this.props.showButtons) {
-      const buttons = []
-      buttons.push(this.renderButtons())
-      buttons.push(
-        <Button key="save" onClick={this.saveChanges}>
-          Save
-        </Button>
-      )
-      buttons.push(
-        <Button key="delete" className="btn-danger" onClick={this.delete}>
-          Delete
-        </Button>
-      )
-      dataFields.push(
-        <td key="buttons">
-          <ButtonGroup key="buttons">{buttons}</ButtonGroup>
-        </td>
-      )
-    }
-
-    return <tr key={organizationMember.id}>{dataFields}</tr>
-  }
+  return <tr key={organization_member.id}>{dataFields}</tr>
 }
 
 interface OrganizationAssetRowProps {
@@ -104,41 +71,31 @@ interface OrganizationAssetRowProps {
   showButtons: boolean
 }
 
-class OrganizationAssetRow extends React.Component<OrganizationAssetRowProps, never> {
-  constructor(props: OrganizationAssetRowProps) {
-    super(props)
-    this.delete = this.delete.bind(this)
+function OrganizationAssetRow({ organizationId, organization_asset, showButtons }: OrganizationAssetRowProps) {
+  async function deleteRow() {
+    await smmDelete(`/organization/${organizationId}/assets/${organization_asset.asset.id}/`)
   }
 
-  async delete() {
-    const { organization_asset } = this.props
-    await smmDelete(`/organization/${this.props.organizationId}/assets/${organization_asset.asset.id}/`)
+  const dataFields = [
+    <td key="name">{organization_asset.asset.name}</td>,
+    <td key="status">{organization_asset.asset.status}</td>,
+    <td key="created">{formatLocalDateTime(organization_asset.added)}</td>,
+    <td key="creator">{organization_asset.added_by}</td>
+  ]
+
+  if (showButtons) {
+    dataFields.push(
+      <td key="buttons">
+        <ButtonGroup key="buttons">
+          <Button key="delete" className="btn-danger" onClick={deleteRow}>
+            Delete
+          </Button>
+        </ButtonGroup>
+      </td>
+    )
   }
 
-  render() {
-    const organizationAsset = this.props.organization_asset
-    const dataFields = []
-    dataFields.push(<td key="name">{organizationAsset.asset.name}</td>)
-    dataFields.push(<td key="status">{organizationAsset.asset.status}</td>)
-    dataFields.push(<td key="created">{formatLocalDateTime(organizationAsset.added)}</td>)
-    dataFields.push(<td key="creator">{organizationAsset.added_by}</td>)
-
-    if (this.props.showButtons) {
-      const buttons = []
-      buttons.push(
-        <Button key="delete" className="btn-danger" onClick={this.delete}>
-          Delete
-        </Button>
-      )
-      dataFields.push(
-        <td key="buttons">
-          <ButtonGroup key="buttons">{buttons}</ButtonGroup>
-        </td>
-      )
-    }
-
-    return <tr key={organizationAsset.id}>{dataFields}</tr>
-  }
+  return <tr key={organization_asset.id}>{dataFields}</tr>
 }
 
 interface OrganizationMemberListProps {
@@ -147,113 +104,74 @@ interface OrganizationMemberListProps {
   showButtons: boolean
 }
 
-class OrganizationMemberList extends React.Component<OrganizationMemberListProps, never> {
-  render() {
-    const organizationMemberRows = this.props.organization_members?.map((organizationMember) => (
-      <OrganizationMemberRow key={organizationMember.id} organizationId={this.props.organizationId} organization_member={organizationMember} showButtons={this.props.showButtons} />
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={4} align="center">
-              Members
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Member</th>
-            <th>Added</th>
-            <th>By</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>{organizationMemberRows}</tbody>
-      </Table>
-    )
-  }
+function OrganizationMemberList({ organizationId, organization_members, showButtons }: OrganizationMemberListProps) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={4} align="center">
+            Members
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Member</th>
+          <th>Added</th>
+          <th>By</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {organization_members?.map((member) => (
+          <OrganizationMemberRow key={member.id} organizationId={organizationId} organization_member={member} showButtons={showButtons} />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-interface OrganizationMemberAddProps {
-  organizationId: number
-}
+function OrganizationMemberAdd({ organizationId }: { organizationId: number }) {
+  const [userList, setUserList] = useState<{ id: number; username: string }[]>([])
+  const [userId, setUserId] = useState<number | undefined>(undefined)
 
-interface OrganizationMemberAddState {
-  userList: { id: number; username: string }[]
-  userId?: number
-}
+  usePolling(async () => {
+    const data = await smmGetJSON<{ users: { id: number; username: string }[] }>(`/organization/${organizationId}/users/notmember/`, {})
+    setUserList(data.users)
+    setUserId((prev) => (prev === undefined && data.users.length > 0 ? data.users[0].id : prev))
+  }, 10000)
 
-class OrganizationMemberAdd extends React.Component<OrganizationMemberAddProps, OrganizationMemberAddState> {
-  timer?: number
-  constructor(props: OrganizationMemberAddProps) {
-    super(props)
-
-    this.state = {
-      userList: [],
-      userId: undefined
-    }
-
-    this.updateSelectedUser = this.updateSelectedUser.bind(this)
-    this.addOrganizationMember = this.addOrganizationMember.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
-    const data = await smmGetJSON<{ users: { id: number; username: string }[] }>(`/organization/${this.props.organizationId}/users/notmember/`, {})
-    this.setState((oldState) => ({
-      userList: data.users,
-      ...(oldState.userId === undefined && data.users.length > 0 ? { userId: data.users[0].id } : {})
-    }))
-  }
-
-  updateSelectedUser(event: React.ChangeEvent<HTMLSelectElement>) {
-    const value = Number(event.target.value)
-
-    this.setState({ userId: value })
-  }
-
-  async addOrganizationMember() {
-    const user = this.state.userList.find((user) => user.id === this.state.userId)
+  async function addOrganizationMember() {
+    const user = userList.find((u) => u.id === userId)
     if (!user) return
-    await smmPost(`/organization/${this.props.organizationId}/user/${user.username}/`, {})
-    this.setState({ userId: undefined })
+    await smmPost(`/organization/${organizationId}/user/${user.username}/`, {})
+    setUserId(undefined)
   }
 
-  render() {
-    const possibleMembers = this.state.userList.map((user) => (
-      <option key={user.id} value={user.id}>
-        {user.username}
-      </option>
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr>
-            <td>Member</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <select onChange={this.updateSelectedUser}>{possibleMembers}</select>
-            </td>
-            <td>
-              <Button onClick={this.addOrganizationMember}>Add</Button>
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-    )
-  }
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Member</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setUserId(Number(e.target.value))}>
+              {userList.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.username}
+                </option>
+              ))}
+            </select>
+          </td>
+          <td>
+            <Button onClick={addOrganizationMember}>Add</Button>
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  )
 }
 
 interface OrganizationAssetListProps {
@@ -261,113 +179,73 @@ interface OrganizationAssetListProps {
   organization_assets?: OrganizationAssetData[]
 }
 
-class OrganizationAssetList extends React.Component<OrganizationAssetListProps, never> {
-  render() {
-    const organizationAssetRows = this.props.organization_assets?.map((organizationAsset) => (
-      <OrganizationAssetRow key={organizationAsset.id} organizationId={this.props.organizationId} organization_asset={organizationAsset} showButtons />
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr key="heading">
-            <th colSpan={5} align="center">
-              Assets
-            </th>
-          </tr>
-          <tr key="labels">
-            <th>Asset Name</th>
-            <th>Status</th>
-            <th>Added</th>
-            <th>By</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>{organizationAssetRows}</tbody>
-      </Table>
-    )
-  }
+function OrganizationAssetList({ organizationId, organization_assets }: OrganizationAssetListProps) {
+  return (
+    <Table responsive>
+      <thead>
+        <tr key="heading">
+          <th colSpan={5} align="center">
+            Assets
+          </th>
+        </tr>
+        <tr key="labels">
+          <th>Asset Name</th>
+          <th>Status</th>
+          <th>Added</th>
+          <th>By</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {organization_assets?.map((asset) => (
+          <OrganizationAssetRow key={asset.id} organizationId={organizationId} organization_asset={asset} showButtons />
+        ))}
+      </tbody>
+    </Table>
+  )
 }
 
-interface OrganizationAssetAddProps {
-  organizationId: number
-}
+function OrganizationAssetAdd({ organizationId }: { organizationId: number }) {
+  const [assetList, setAssetList] = useState<AssetData[]>([])
+  const [assetId, setAssetId] = useState<number | undefined>(undefined)
 
-interface OrganizationAssetAddState {
-  assetList: AssetData[]
-  assetId?: number
-}
-
-class OrganizationAssetAdd extends React.Component<OrganizationAssetAddProps, OrganizationAssetAddState> {
-  timer?: number
-
-  constructor(props: OrganizationAssetAddProps) {
-    super(props)
-
-    this.state = {
-      assetList: [],
-      assetId: undefined
-    }
-
-    this.updateSelectedAsset = this.updateSelectedAsset.bind(this)
-    this.addOrganizationAsset = this.addOrganizationAsset.bind(this)
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
+  usePolling(async () => {
     const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
-    this.setState((oldState) => ({
-      assetList: data.assets,
-      ...(oldState.assetId === undefined && data.assets.length > 0 ? { assetId: data.assets[0].id } : {})
-    }))
+    setAssetList(data.assets)
+    setAssetId((prev) => (prev === undefined && data.assets.length > 0 ? data.assets[0].id : prev))
+  }, 10000)
+
+  async function addOrganizationAsset() {
+    await smmPost(`/organization/${organizationId}/assets/${assetId}/`, {})
+    setAssetId(undefined)
   }
 
-  updateSelectedAsset(event: React.ChangeEvent<HTMLSelectElement>) {
-    const { value } = event.target
-
-    this.setState({ assetId: Number(value) })
-  }
-
-  async addOrganizationAsset() {
-    await smmPost(`/organization/${this.props.organizationId}/assets/${this.state.assetId}/`, {})
-    this.setState({ assetId: undefined })
-  }
-
-  render() {
-    const possibleAssets = this.state.assetList.map((asset) => (
-      <option key={asset.id} value={asset.id}>
-        {asset.name}
-      </option>
-    ))
-    return (
-      <Table responsive>
-        <thead>
-          <tr>
-            <td>Asset</td>
-            <td></td>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <select onChange={this.updateSelectedAsset}>{possibleAssets}</select>
-            </td>
-            <td>
-              <Button onClick={this.addOrganizationAsset}>Add</Button>
-            </td>
-          </tr>
-        </tbody>
-      </Table>
-    )
-  }
+  return (
+    <Table responsive>
+      <thead>
+        <tr>
+          <td>Asset</td>
+          <td></td>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setAssetId(Number(e.target.value))}>
+              {assetList.map((asset) => (
+                <option key={asset.id} value={asset.id}>
+                  {asset.name}
+                </option>
+              ))}
+            </select>
+          </td>
+          <td>
+            <Button onClick={addOrganizationAsset}>Add</Button>
+          </td>
+        </tr>
+      </tbody>
+    </Table>
+  )
 }
 
 interface OrganizationDetailsPageProps {
@@ -375,111 +253,61 @@ interface OrganizationDetailsPageProps {
   updateRadioOperator: (show: boolean) => void
 }
 
-interface OrganizationDetailsPageState {
-  organizationDetails: OrganizationData
+function OrganizationDetailsPage({ organizationId, updateRadioOperator }: OrganizationDetailsPageProps) {
+  const [organizationDetails, setOrganizationDetails] = useState<OrganizationData>({
+    id: organizationId,
+    name: '',
+    created: '',
+    creator: '',
+    role: ''
+  })
+
+  usePolling(async () => {
+    const data = await smmGetJSON<OrganizationData>(`/organization/${organizationId}/`, {})
+    setOrganizationDetails(data)
+    updateRadioOperator(data.role === 'Admin' || data.role === 'Radio Operator')
+  }, 10000)
+
+  const sections = [
+    <Table responsive key="details">
+      <thead>
+        <tr>
+          <th>Organization Name</th>
+          <th>Created</th>
+          <th>Creator</th>
+          <th>Your Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <OrganizationListRow organization={organizationDetails} showButtons={false} />
+      </tbody>
+    </Table>,
+    <OrganizationMemberList
+      key="org_members"
+      organizationId={organizationId}
+      organization_members={organizationDetails.members}
+      showButtons={organizationDetails.role === 'Admin'}
+    />
+  ]
+
+  if (organizationDetails.role === 'Admin') {
+    sections.push(<OrganizationMemberAdd key="org_add_member" organizationId={organizationId} />)
+  }
+  sections.push(<OrganizationAssetList key="org_assets" organizationId={organizationId} organization_assets={organizationDetails.assets} />)
+  sections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={organizationId} />)
+
+  return <div>{sections}</div>
 }
 
-class OrganizationDetailsPage extends React.Component<OrganizationDetailsPageProps, OrganizationDetailsPageState> {
-  timer?: number
+function OrganizationPage({ organizationId }: { organizationId: number }) {
+  const [isRadioOperator, setIsRadioOperator] = useState(false)
 
-  constructor(props: OrganizationDetailsPageProps) {
-    super(props)
-
-    this.state = {
-      organizationDetails: {
-        id: this.props.organizationId,
-        name: '',
-        created: '',
-        creator: '',
-        role: ''
-      }
-    }
-  }
-
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
-    const data = await smmGetJSON<OrganizationData>(`/organization/${this.props.organizationId}/`, {})
-    this.setState({ organizationDetails: data })
-    if (this.props.updateRadioOperator) {
-      this.props.updateRadioOperator(data.role === 'Admin' || data.role === 'Radio Operator')
-    }
-  }
-
-  render() {
-    const organizationSections = [
-      <Table responsive key="details">
-        <thead>
-          <tr>
-            <th>Organization Name</th>
-            <th>Created</th>
-            <th>Creator</th>
-            <th>Your Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          <OrganizationListRow organization={this.state.organizationDetails} showButtons={false} />
-        </tbody>
-      </Table>
-    ]
-    organizationSections.push(
-      <OrganizationMemberList
-        key="org_members"
-        organizationId={this.props.organizationId}
-        organization_members={this.state.organizationDetails.members}
-        showButtons={this.state.organizationDetails.role === 'Admin'}
-      />
-    )
-    if (this.state.organizationDetails.role === 'Admin') {
-      organizationSections.push(<OrganizationMemberAdd key="org_add_member" organizationId={this.props.organizationId} />)
-    }
-    organizationSections.push(<OrganizationAssetList key="org_assets" organizationId={this.props.organizationId} organization_assets={this.state.organizationDetails.assets} />)
-    organizationSections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={this.props.organizationId} />)
-
-    return <div>{organizationSections}</div>
-  }
-}
-
-interface OrganizationPageProps {
-  organizationId: number
-}
-
-interface OrganizationPageState {
-  isRadioOperator: boolean
-}
-
-class OrganizationPage extends React.Component<OrganizationPageProps, OrganizationPageState> {
-  constructor(props: OrganizationPageProps) {
-    super(props)
-    this.updateRadioOperator = this.updateRadioOperator.bind(this)
-
-    this.state = {
-      isRadioOperator: false
-    }
-  }
-
-  updateRadioOperator(radioOperator: boolean) {
-    this.setState({
-      isRadioOperator: radioOperator
-    })
-  }
-
-  render() {
-    return (
-      <>
-        <SMMOrganizationTopBar organizationId={this.props.organizationId} showRadioOperator={this.state.isRadioOperator} />
-        <OrganizationDetailsPage organizationId={this.props.organizationId} updateRadioOperator={this.updateRadioOperator} />
-      </>
-    )
-  }
+  return (
+    <>
+      <SMMOrganizationTopBar organizationId={organizationId} showRadioOperator={isRadioOperator} />
+      <OrganizationDetailsPage organizationId={organizationId} updateRadioOperator={setIsRadioOperator} />
+    </>
+  )
 }
 
 function createOrganizationDetails(elementId: string, organizationId: number) {
