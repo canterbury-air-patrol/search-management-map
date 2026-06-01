@@ -186,17 +186,7 @@ class SMMAssets extends SMMRealtime {
   assetLayer(asset: { properties: { asset: number } }, latlng: L.LatLng) {
     const iconUrl = this.getAssetIcon(asset.properties.asset)
     const title = this.assetNameMap[asset.properties.asset]
-    if (iconUrl) {
-      return L.marker(latlng, {
-        title,
-        icon: L.icon({
-          iconUrl,
-          iconSize: [50, 50],
-          iconAnchor: [25, 50]
-        })
-      })
-    }
-    return L.marker(latlng, { title })
+    return L.marker(latlng, iconUrl ? { title, icon: customAssetIcon(iconUrl) } : { title })
   }
 
   assetUpdate(asset: { properties: { asset: number; alt?: number; heading?: number; fix?: string }; geometry: { type: string; coordinates: Array<number> } }, oldLayer: L.Marker) {
@@ -231,23 +221,21 @@ class SMMAssets extends SMMRealtime {
       }
       oldLayer.options.title = newTitle
 
-      const currentIcon = oldLayer.getIcon()
-      if (assetId in this.assetIconMap) {
-        const iconUrl = this.assetIconMap[assetId]
-        if (currentIcon.options.iconUrl !== iconUrl) {
-          oldLayer.setIcon(
-            L.icon({
-              iconUrl,
-              iconSize: [50, 50],
-              iconAnchor: [25, 50]
-            })
-          )
-        }
+      const desiredIconUrl = this.assetIconMap[assetId] // undefined when the asset has no custom icon
+      const currentIconUrl = oldLayer.getIcon().options.iconUrl
+      if (desiredIconUrl !== currentIconUrl) {
+        oldLayer.setIcon(desiredIconUrl ? customAssetIcon(desiredIconUrl) : new L.Icon.Default())
       }
 
       return oldLayer
     }
   }
+}
+
+/** Constant icon dimensions for assets that ship a custom icon_url.
+ *  Centralising here means assetLayer/assetUpdate can't drift. */
+function customAssetIcon(iconUrl: string): L.Icon {
+  return L.icon({ iconUrl, iconSize: [50, 50], iconAnchor: [25, 50] })
 }
 
 export { SMMAssets }
