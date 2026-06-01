@@ -9,12 +9,14 @@ import { SMMMissionUserPointTimeGeoJSON } from './types'
 import { UserPopup } from './UserPopup'
 import { ColorPickerDialog } from '../asset/ColorPickerDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
+import { buildSwatchLabel } from '../components/swatchLabel'
 
 class SMMUserPosition {
   map: L.Map
   missionId: MissionId
   userName: string
   color: string
+  swatch?: HTMLElement
   popupRoot?: ReactDOM.Root
   lastUpdate?: string
   path: L.LatLng[]
@@ -41,9 +43,8 @@ class SMMUserPosition {
   updateColor(color: string) {
     cookieJar.set(`user_${this.userName}_track_color`, color)
     this.color = color
-    this.polyline.setStyle({
-      color: this.color
-    })
+    this.polyline.setStyle({ color: this.color })
+    if (this.swatch) this.swatch.style.backgroundColor = color
   }
 
   colorPicker() {
@@ -85,8 +86,8 @@ class SMMUserPosition {
 
 class SMMUserPositions extends SMMRealtime {
   userObjects: { [key: string]: SMMUserPosition }
-  overlayAdd: (name: string, overlay: L.Layer) => void
-  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+  overlayAdd: (name: string | HTMLElement, overlay: L.Layer) => void
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string | HTMLElement, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.userObjects = {}
@@ -119,22 +120,12 @@ class SMMUserPositions extends SMMRealtime {
 
   createUser(userName: string) {
     if (!(userName in this.userObjects)) {
-      /* Create an overlay for this object */
       const color = cookieJar.get(`user_${userName}_track_color`)
       const userObject = new SMMUserPosition(this.map, this.missionId, userName, color !== undefined ? color : this.color)
       this.userObjects[userName] = userObject
-      this.overlayAdd(`${userName} <div id='userNamePicker${userName}' />`, userObject.overlay())
+      this.overlayAdd(buildSwatchLabel(userName, userObject), userObject.overlay())
     }
-    const userObject = this.userObjects[userName]
-    const pickerDiv = document.getElementById(`userNamePicker${userName}`)
-    if (pickerDiv) {
-      Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: userObject.color })
-      if (pickerDiv.dataset.smmListenerBound !== '1') {
-        pickerDiv.dataset.smmListenerBound = '1'
-        pickerDiv.addEventListener('click', userObject.colorPicker)
-      }
-    }
-    return userObject
+    return this.userObjects[userName]
   }
 
   createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {

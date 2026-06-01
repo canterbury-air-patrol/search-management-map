@@ -11,6 +11,7 @@ import { smmGetJSON } from '../ajax'
 import { AssetPopup } from './AssetPopup'
 import { ColorPickerDialog } from './ColorPickerDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
+import { buildSwatchLabel } from '../components/swatchLabel'
 
 class SMMAsset {
   map: L.Map
@@ -18,6 +19,7 @@ class SMMAsset {
   assetId: number
   assetName: string
   color: string
+  swatch?: HTMLElement
   lastUpdate?: string
   path: Array<L.LatLng>
   updating: boolean
@@ -45,9 +47,8 @@ class SMMAsset {
   updateColor(color: string) {
     cookieJar.set(`asset_${this.assetId}_track_color`, color)
     this.color = color
-    this.polyline.setStyle({
-      color: this.color
-    })
+    this.polyline.setStyle({ color: this.color })
+    if (this.swatch) this.swatch.style.backgroundColor = color
   }
 
   colorPicker() {
@@ -88,13 +89,13 @@ class SMMAsset {
 }
 
 class SMMAssets extends SMMRealtime {
-  overlayAdd: (name: string, overlay: L.Layer) => void
+  overlayAdd: (name: string | HTMLElement, overlay: L.Layer) => void
   assetObjects: { [key: number]: SMMAsset }
   assetNameMap: { [key: number]: string }
   assetIconMap: { [key: number]: string }
   assetStatusMap: { [key: number]: { status: string; notes: string } }
   popupRoots: { [key: number]: ReactDOM.Root }
-  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string, overlay: L.Layer) => void) {
+  constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string | HTMLElement, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
@@ -149,22 +150,12 @@ class SMMAssets extends SMMRealtime {
       return null
     }
     if (!(assetId in this.assetObjects)) {
-      /* Create an overlay for this object */
       const color = cookieJar.get(`asset_${assetId}_track_color`)
       const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], color !== undefined ? color : this.color)
       this.assetObjects[assetId] = assetObject
-      this.overlayAdd(`${this.assetNameMap[assetId]} <div id='assetNamePicker${assetId}' />`, assetObject.overlay())
+      this.overlayAdd(buildSwatchLabel(this.assetNameMap[assetId], assetObject), assetObject.overlay())
     }
-    const assetObject = this.assetObjects[assetId]
-    const pickerDiv = document.getElementById(`assetNamePicker${assetId}`)
-    if (pickerDiv) {
-      Object.assign(pickerDiv.style, { width: '15px', height: '15px', display: 'inline-block', backgroundColor: assetObject.color })
-      if (pickerDiv.dataset.smmListenerBound !== '1') {
-        pickerDiv.dataset.smmListenerBound = '1'
-        pickerDiv.addEventListener('click', assetObject.colorPicker)
-      }
-    }
-    return assetObject
+    return this.assetObjects[assetId]
   }
 
   getAssetIcon(assetId: number) {
