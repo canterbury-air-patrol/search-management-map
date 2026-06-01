@@ -116,15 +116,19 @@ class SMMAssets extends SMMRealtime {
 
   async updateAssetNameMap() {
     const data = await smmGetJSON<{ assets: Array<MissionAssetData> }>(`/mission/${this.missionId}/assets/?include_removed=true`, {})
+    // Rebuild the maps from scratch so an asset that drops its icon /
+    // status / name on the server doesn't carry a stale entry forever.
+    const names: { [key: number]: string } = {}
+    const icons: { [key: number]: string } = {}
+    const statuses: { [key: number]: { status: string; notes: string } } = {}
     for (const asset of data.assets) {
-      this.assetNameMap[asset.id] = asset.name
-      if (asset.status) {
-        this.assetStatusMap[asset.id] = asset.status
-      }
-      if (asset.icon_url) {
-        this.assetIconMap[asset.id] = asset.icon_url
-      }
+      names[asset.id] = asset.name
+      if (asset.status) statuses[asset.id] = asset.status
+      if (asset.icon_url) icons[asset.id] = asset.icon_url
     }
+    this.assetNameMap = names
+    this.assetIconMap = icons
+    this.assetStatusMap = statuses
   }
 
   realtime() {
