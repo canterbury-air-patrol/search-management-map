@@ -14,29 +14,16 @@ abstract class SMMImage extends SMMRealtime {
     this.createPopup = this.createPopup.bind(this)
   }
 
-  realtime() {
-    return L.realtime(
-      {
-        url: this.getUrl(),
-        type: 'json'
-      },
-      {
-        interval: this.interval,
-        color: this.color,
-        onEachFeature: this.createPopup,
-        getFeatureId: function (feature: SMMImageGeoJSON) {
-          return feature.properties.pk
-        },
-        pointToLayer: function (feature: SMMImageGeoJSON, latlng: L.LatLng) {
-          return L.marker(latlng, {
-            icon: L.icon({
-              iconUrl: '/static/icons/image-x-generic.png',
-              iconSize: [24, 24]
-            })
+  protected featureOptions() {
+    return {
+      pointToLayer: (_feature: SMMImageGeoJSON, latlng: L.LatLng) =>
+        L.marker(latlng, {
+          icon: L.icon({
+            iconUrl: '/static/icons/image-x-generic.png',
+            iconSize: [24, 24]
           })
-        }
-      }
-    )
+        })
+    }
   }
 
   createPopup(image: SMMImageGeoJSON, layer: L.Layer) {

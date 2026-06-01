@@ -100,22 +100,12 @@ class SMMUserPositions extends SMMRealtime {
     return `/mission/${this.missionId}/data/users/positions/latest/`
   }
 
-  realtime() {
-    return L.realtime(
-      {
-        url: this.getUrl(),
-        type: 'json'
-      },
-      {
-        interval: this.interval,
-        onEachFeature: this.createPopup,
-        updateFeature: this.userUpdate,
-        getFeatureId: function (feature: SMMMissionUserPointTimeGeoJSON) {
-          return feature.properties.user
-        },
-        pointToLayer: this.userLayer
-      }
-    )
+  protected featureOptions() {
+    return {
+      updateFeature: this.userUpdate,
+      getFeatureId: (feature: SMMMissionUserPointTimeGeoJSON) => feature.properties.user,
+      pointToLayer: this.userLayer
+    }
   }
 
   createUser(userName: string) {
