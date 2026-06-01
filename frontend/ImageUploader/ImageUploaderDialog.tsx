@@ -3,7 +3,7 @@ import { useRef } from 'react'
 import L from 'leaflet'
 
 import { LatLngMarkerInput } from '../LatLngMarkerInput'
-import { smmPostBody } from '../ajax'
+import { smmPost } from '../ajax'
 
 interface Props {
   map: L.Map
@@ -24,7 +24,7 @@ export function ImageUploaderDialog({ map, missionId, onClose }: Props) {
     if (fileRef.current?.files?.[0]) {
       formData.append('file', fileRef.current.files[0])
     }
-    smmPostBody(`/mission/${missionId}/image/upload/`, formData)
+    smmPost(`/mission/${missionId}/image/upload/`, formData)
     onClose()
   }
 

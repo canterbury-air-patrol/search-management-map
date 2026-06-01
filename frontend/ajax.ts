@@ -85,12 +85,14 @@ function smmGetJSON<T = unknown>(url: string, data?: RequestData, success?: (dat
   return request<T>(appendQueryString(url, data), { headers: { Accept: 'application/json' } }, (r) => r.json(), success, error)
 }
 
-function smmPost(url: string, data: RequestData, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(url, { method: 'POST', headers: csrfHeaders(), body: buildSearchParams(data) }, (r) => r.text(), success, error)
-}
-
-function smmPostBody(url: string, body: FormData | URLSearchParams, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
-  return request(url, { method: 'POST', headers: csrfHeaders(), body }, (r) => r.text(), success, error, null)
+/** POST helper. Pass a flat object for an x-www-form-urlencoded body
+ *  (subject to the default request timeout), or a FormData / URLSearchParams
+ *  to use it as the body verbatim (no timeout - typical for uploads). */
+function smmPost(url: string, data: RequestData | FormData | URLSearchParams, success?: (data: unknown) => void, error?: (data?: unknown) => void) {
+  const isRaw = data instanceof FormData || data instanceof URLSearchParams
+  const body = isRaw ? data : buildSearchParams(data)
+  const timeoutMs = data instanceof FormData ? null : DEFAULT_TIMEOUT_MS
+  return request(url, { method: 'POST', headers: csrfHeaders(), body }, (r) => r.text(), success, error, timeoutMs)
 }
 
 function smmPatch(url: string, data: Record<string, unknown>, success?: (data: string) => void, error?: (data?: unknown) => void) {
@@ -101,4 +103,4 @@ function smmDelete(url: string, success?: (data: void) => void, error?: (data?: 
   return request<void>(url, { method: 'DELETE', headers: csrfHeaders() }, async () => {}, success, error)
 }
 
-export { smmGet, smmGetJSON, smmPost, smmPostBody, smmPatch, smmDelete }
+export { smmGet, smmGetJSON, smmPost, smmPatch, smmDelete }
