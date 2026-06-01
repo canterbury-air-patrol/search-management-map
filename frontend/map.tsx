@@ -176,15 +176,15 @@ class SMMMap {
     this.overlayAdd('Marine - Total Drift Vectors', this.marineVectors.realtime())
   }
 
-  overlayAdd(name: string, layer: L.Layer) {
+  overlayAdd(name: string | HTMLElement, layer: L.Layer) {
     this.layerControl.addOverlay(layer, name)
   }
 
-  overlayAddAsset(name: string, layer: L.Layer) {
+  overlayAddAsset(name: string | HTMLElement, layer: L.Layer) {
     this.layerControlAssets.addOverlay(layer, name)
   }
 
-  overlayAddUser(name: string, layer: L.Layer) {
+  overlayAddUser(name: string | HTMLElement, layer: L.Layer) {
     this.layerControlUsers.addOverlay(layer, name)
   }
 }
