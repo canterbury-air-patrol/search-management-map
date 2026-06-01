@@ -5,7 +5,7 @@ import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
 import * as ReactDOM from 'react-dom/client'
 import { cookieJar } from '../cookies'
-import { MissionAssetData, AssetPointTime } from './types'
+import { MissionAssetSummary, AssetPointTime } from './types'
 
 import { smmGetJSON } from '../ajax'
 import { AssetPopup } from './AssetPopup'
@@ -115,7 +115,7 @@ class SMMAssets extends SMMRealtime {
   }
 
   async updateAssetNameMap() {
-    const data = await smmGetJSON<{ assets: Array<MissionAssetData> }>(`/mission/${this.missionId}/assets/?include_removed=true`, {})
+    const data = await smmGetJSON<{ assets: Array<MissionAssetSummary> }>(`/mission/${this.missionId}/assets/?include_removed=true`, {})
     // Rebuild the maps from scratch so an asset that drops its icon /
     // status / name on the server doesn't carry a stale entry forever.
     const names: { [key: number]: string } = {}

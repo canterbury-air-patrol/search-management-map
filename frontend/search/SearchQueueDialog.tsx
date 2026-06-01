@@ -1,7 +1,7 @@
 import { MissionId } from '../mission/MissionId'
 import { useEffect, useState } from 'react'
 
-import { MissionAssetData } from '../asset/types'
+import { MissionAssetSummary } from '../asset/types'
 import { smmGetJSON, smmPost } from '../ajax'
 import { FormInputGroup } from '../components/FormInputGroup'
 
@@ -18,7 +18,7 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
   const [selectedAssetId, setSelectedAssetId] = useState('')
 
   useEffect(() => {
-    smmGetJSON<{ assets: Array<MissionAssetData> }>(`/mission/${missionId}/assets/`, {}).then((d) => {
+    smmGetJSON<{ assets: Array<MissionAssetSummary> }>(`/mission/${missionId}/assets/`, {}).then((d) => {
       const filtered = d.assets.filter((a) => a.type_name === createdFor)
       setAssets(filtered)
       if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))

@@ -8,7 +8,7 @@ import { smmGetJSON, smmPost, smmPatch, smmDelete } from '../ajax'
 import { SMMMissionTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
 
-import { MissionAssetData, MissionData, MissionDetailsData, MissionExternalReferenceData, MissionOrganizationData, MissionUserData } from './types'
+import { MissionAssetRecord, MissionData, MissionDetailsData, MissionExternalReferenceData, MissionOrganizationData, MissionUserData } from './types'
 import { OrganizationData } from '../organization/types'
 import { AssetData } from '../asset/types'
 
@@ -444,7 +444,7 @@ function MissionDetailsUserAdd({ mission }: { mission: number }) {
   )
 }
 
-function MissionDetailsAssetRow({ missionAsset }: { missionAsset: MissionAssetData }) {
+function MissionDetailsAssetRow({ missionAsset }: { missionAsset: MissionAssetRecord }) {
   function remove() {
     smmDelete(`/mission/${missionAsset.mission}/assets/${missionAsset.asset.id}/`)
   }
@@ -487,7 +487,7 @@ function MissionDetailsAssetRow({ missionAsset }: { missionAsset: MissionAssetDa
   )
 }
 
-function MissionDetailsAssetList({ missionAssets }: { missionAssets: Array<MissionAssetData> }) {
+function MissionDetailsAssetList({ missionAssets }: { missionAssets: Array<MissionAssetRecord> }) {
   return (
     <Table>
       <thead>
