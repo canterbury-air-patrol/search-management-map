@@ -1,13 +1,12 @@
 import '../page-shell'
-
-import React from 'react'
+import { useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
 
 import { smmGetJSON } from '../ajax'
-
 import { SMMObjectDetails } from '../SMMObjects/details'
 import { GeometryPoints, GeometryJSON } from '../geometry/details'
 import { GeoJsonMap } from '../geomap'
+import { usePolling } from '../hooks/usePolling'
 
 interface SMMUserGeoObjectData {
   label: string
@@ -15,72 +14,45 @@ interface SMMUserGeoObjectData {
   created_by: string
 }
 
-class UserGeoDetails extends SMMObjectDetails {
-  renderModelSpecificData(tableRows: React.JSX.Element[], data: SMMUserGeoObjectData) {
-    tableRows.push(
+function UserGeoDetails({ data }: { data: SMMUserGeoObjectData }) {
+  return (
+    <SMMObjectDetails data={data}>
       <tr key="label">
         <td>Label:</td>
         <td>{data.label}</td>
       </tr>
-    )
-  }
+    </SMMObjectDetails>
+  )
 }
 
 interface UserGeoDetailsPageProps {
   userGeoId: number
 }
 
-interface UserGeoDetailsPageState {
-  data?: SMMUserGeoObjectData
-  geometry?: GeometryJSON
-}
+function UserGeoDetailsPage({ userGeoId }: UserGeoDetailsPageProps) {
+  const [data, setData] = useState<SMMUserGeoObjectData | undefined>(undefined)
+  const [geometry, setGeometry] = useState<GeometryJSON | undefined>(undefined)
 
-class UserGeoDetailsPage extends React.Component<UserGeoDetailsPageProps, UserGeoDetailsPageState> {
-  timer?: number
-  constructor(props: UserGeoDetailsPageProps) {
-    super(props)
-
-    this.state = {
-      data: undefined,
-      geometry: undefined
+  usePolling(async () => {
+    type Response = {
+      features: { properties: SMMUserGeoObjectData; geometry: GeometryJSON }[]
     }
-  }
+    const resp = await smmGetJSON<Response>(`/data/usergeo/${userGeoId}/`, {})
+    setData(resp.features[0].properties)
+    setGeometry(resp.features[0].geometry)
+  }, 10000)
 
-  componentDidMount() {
-    this.updateData()
-    this.timer = setInterval(() => this.updateData(), 10000)
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer)
-    this.timer = undefined
-  }
-
-  async updateData() {
-    type GeoResponse = {
-      features: {
-        properties: SMMUserGeoObjectData
-        geometry: GeometryJSON
-      }[]
-    }
-    const data = await smmGetJSON<GeoResponse>(`/data/usergeo/${this.props.userGeoId}/`, {})
-    this.setState({
-      data: data.features[0].properties,
-      geometry: data.features[0].geometry
-    })
-  }
-
-  render() {
-    const parts = []
-    if (this.state.data) {
-      parts.push(<UserGeoDetails key="details" data={this.state.data} />)
-    }
-    if (this.state.geometry) {
-      parts.push(<GeometryPoints key="points" geometry={this.state.geometry} />)
-      parts.push(<GeoJsonMap key="map" geometry={this.state.geometry} />)
-    }
-    return <div>{parts}</div>
-  }
+  return (
+    <div>
+      {data && <UserGeoDetails key="details" data={data} />}
+      {geometry && (
+        <>
+          <GeometryPoints key="points" geometry={geometry} />
+          <GeoJsonMap key="map" geometry={geometry} />
+        </>
+      )}
+    </div>
+  )
 }
 
 function createUserGeoDetailsPage(elementId: string, missionId: number, userGeoId: number) {
