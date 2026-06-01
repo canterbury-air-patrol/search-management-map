@@ -91,9 +91,9 @@ function AssetTrackAs({ asset }: AssetTrackAsProps) {
     <Table responsive>
       <thead>
         <tr>
-          <td>Latitude</td>
-          <td>Longitude</td>
-          <td>Altitude</td>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Altitude</th>
         </tr>
       </thead>
       <tbody>
@@ -196,7 +196,7 @@ function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
 
   return (
     <Table responsive>
-      <thead>
+      <tbody>
         <tr>
           <td>
             <b>{lastCommand?.action_txt}</b>
@@ -210,7 +210,7 @@ function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
           <td colSpan={2}>{lastCommand?.reason}</td>
         </tr>
         {responseData}
-      </thead>
+      </tbody>
     </Table>
   )
 }
@@ -359,7 +359,7 @@ function AssetStatus({ asset, details }: AssetStatusProps) {
   }
   return (
     <Table responsive>
-      <thead>
+      <tbody>
         {rows}
         <tr>
           <td>Status:</td>
@@ -382,8 +382,7 @@ function AssetStatus({ asset, details }: AssetStatusProps) {
             <textarea onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotes(e.target.value)} value={notes}></textarea>
           </td>
         </tr>
-        <tr></tr>
-      </thead>
+      </tbody>
     </Table>
   )
 }
