@@ -26,7 +26,12 @@ interface MissionUserData {
   }
 }
 
-interface MissionAssetData {
+/** Mission membership record for a single asset, returned as part of
+ *  /mission/<id>/details/. Carries the full nested AssetData plus the
+ *  added/removed timestamps. Distinct from asset/types:MissionAssetSummary
+ *  which is the flat per-asset summary returned by
+ *  /mission/<id>/assets/. */
+interface MissionAssetRecord {
   id: number
   mission: number
   asset: AssetData
@@ -44,16 +49,6 @@ interface MissionAssetStatusValueData {
   id: number
   name: string
   description: string
-}
-
-interface MissionAssetStatusData {
-  id: number
-  asset: string
-  asset_id: number
-  status: string
-  status_description: string
-  since: string
-  notes: string
 }
 
 interface MissionOrganizationData {
@@ -83,18 +78,9 @@ interface MissionDetailsData {
   can_add_organizations: boolean
   can_add_users: boolean
   mission_organizations: Array<MissionOrganizationData>
-  mission_assets: Array<MissionAssetData>
+  mission_assets: Array<MissionAssetRecord>
   mission_users: Array<MissionUserData>
   external_references: Array<MissionExternalReferenceData>
 }
 
-export {
-  MissionData,
-  MissionUserData,
-  MissionAssetData,
-  MissionAssetStatusValueData,
-  MissionAssetStatusData,
-  MissionOrganizationData,
-  MissionExternalReferenceData,
-  MissionDetailsData
-}
+export { MissionData, MissionUserData, MissionAssetRecord, MissionAssetStatusValueData, MissionOrganizationData, MissionExternalReferenceData, MissionDetailsData }

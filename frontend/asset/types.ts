@@ -80,7 +80,11 @@ interface MissionAssetStatusData {
   notes: string
 }
 
-interface MissionAssetData {
+/** Per-asset summary returned by /mission/<id>/assets/. Flat shape: the
+ *  asset fields are spread at the top level. Distinct from
+ *  mission/types:MissionAssetRecord, which carries the full nested
+ *  AssetData plus the per-mission membership metadata. */
+interface MissionAssetSummary {
   id: number
   name: string
   type_id: number
@@ -96,4 +100,15 @@ interface AssetPointTime {
   fix?: number
 }
 
-export { AssetTypeData, AssetData, AssetFullStatusData, AssetMissionData, AssetCommandData, AssetStatusValueData, AssetStatusData, MissionAssetData, AssetPointTime }
+export {
+  AssetTypeData,
+  AssetData,
+  AssetFullStatusData,
+  AssetMissionData,
+  AssetCommandData,
+  AssetStatusValueData,
+  AssetStatusData,
+  MissionAssetSummary,
+  MissionAssetStatusData,
+  AssetPointTime
+}
