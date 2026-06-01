@@ -131,22 +131,12 @@ class SMMAssets extends SMMRealtime {
     this.assetStatusMap = statuses
   }
 
-  realtime() {
-    return L.realtime(
-      {
-        url: this.getUrl(),
-        type: 'json'
-      },
-      {
-        interval: this.interval,
-        onEachFeature: this.createPopup,
-        updateFeature: this.assetUpdate,
-        getFeatureId: function (feature: { properties: { asset: number } }) {
-          return feature.properties.asset
-        },
-        pointToLayer: this.assetLayer
-      }
-    )
+  protected featureOptions() {
+    return {
+      updateFeature: this.assetUpdate,
+      getFeatureId: (feature: { properties: { asset: number } }) => feature.properties.asset,
+      pointToLayer: this.assetLayer
+    }
   }
 
   createAsset(assetId: number) {

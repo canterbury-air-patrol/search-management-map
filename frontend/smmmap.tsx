@@ -18,19 +18,23 @@ abstract class SMMRealtime {
   abstract getUrl(): string
   abstract createPopup(feature: { properties: object }, layer: L.Layer): void
 
-  realtime() {
+  /** Override to supply leaflet-realtime options on top of the base
+   *  ({ interval, color, onEachFeature, getFeatureId }). Typical extras
+   *  are updateFeature, pointToLayer, or a feature-specific
+   *  getFeatureId. */
+  protected featureOptions(): L.RealtimeOptions {
+    return {}
+  }
+
+  realtime(): L.Realtime {
     return L.realtime(
-      {
-        url: this.getUrl(),
-        type: 'json'
-      },
+      { url: this.getUrl(), type: 'json' },
       {
         interval: this.interval,
         color: this.color,
         onEachFeature: this.createPopup,
-        getFeatureId: function (feature: { properties: { pk: number } }) {
-          return feature.properties.pk
-        }
+        getFeatureId: (feature: { properties: { pk: number } }) => feature.properties.pk,
+        ...this.featureOptions()
       }
     )
   }
