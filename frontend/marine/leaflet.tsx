@@ -33,7 +33,11 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   }
 
   formatTime(time: Date) {
-    return `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`
+    // Backend stores these on TimeField (HH:MM:SS). Pad each component so
+    // 9:5:3 doesn't slip through; convert_time on the server still treats
+    // the value as a time-of-day, not a full ISO timestamp.
+    const pad = (n: number) => String(n).padStart(2, '0')
+    return `${pad(time.getHours())}:${pad(time.getMinutes())}:${pad(time.getSeconds())}`
   }
 
   getData() {
