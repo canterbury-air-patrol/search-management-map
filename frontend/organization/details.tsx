@@ -20,26 +20,22 @@ const ROLE_NAME_TO_CODE: Record<string, string> = {
 
 interface OrganizationMemberRowProps {
   organizationId: number
-  organization_member: OrganizationMemberData
+  member: OrganizationMemberData
   showButtons: boolean
 }
 
-function OrganizationMemberRow({ organizationId, organization_member, showButtons }: OrganizationMemberRowProps) {
-  const [selectedRole, setSelectedRole] = useState(ROLE_NAME_TO_CODE[organization_member.role] ?? 'M')
+function OrganizationMemberRow({ organizationId, member, showButtons }: OrganizationMemberRowProps) {
+  const [selectedRole, setSelectedRole] = useState(ROLE_NAME_TO_CODE[member.role] ?? 'M')
 
   async function deleteRow() {
-    await smmDelete(`/organization/${organizationId}/user/${organization_member.user}/`)
+    await smmDelete(`/organization/${organizationId}/user/${member.user}/`)
   }
 
   function saveChanges() {
-    smmPost(`/organization/${organizationId}/user/${organization_member.user}/`, { role: selectedRole })
+    smmPost(`/organization/${organizationId}/user/${member.user}/`, { role: selectedRole })
   }
 
-  const dataFields = [
-    <td key="name">{organization_member.user}</td>,
-    <td key="created">{formatLocalDateTime(organization_member.added)}</td>,
-    <td key="creator">{organization_member.added_by}</td>
-  ]
+  const dataFields = [<td key="name">{member.user}</td>, <td key="created">{formatLocalDateTime(member.added)}</td>, <td key="creator">{member.added_by}</td>]
 
   if (showButtons) {
     dataFields.push(
@@ -62,25 +58,25 @@ function OrganizationMemberRow({ organizationId, organization_member, showButton
     )
   }
 
-  return <tr key={organization_member.id}>{dataFields}</tr>
+  return <tr key={member.id}>{dataFields}</tr>
 }
 
 interface OrganizationAssetRowProps {
   organizationId: number
-  organization_asset: OrganizationAssetData
+  asset: OrganizationAssetData
   showButtons: boolean
 }
 
-function OrganizationAssetRow({ organizationId, organization_asset, showButtons }: OrganizationAssetRowProps) {
+function OrganizationAssetRow({ organizationId, asset, showButtons }: OrganizationAssetRowProps) {
   async function deleteRow() {
-    await smmDelete(`/organization/${organizationId}/assets/${organization_asset.asset.id}/`)
+    await smmDelete(`/organization/${organizationId}/assets/${asset.asset.id}/`)
   }
 
   const dataFields = [
-    <td key="name">{organization_asset.asset.name}</td>,
-    <td key="status">{organization_asset.asset.status}</td>,
-    <td key="created">{formatLocalDateTime(organization_asset.added)}</td>,
-    <td key="creator">{organization_asset.added_by}</td>
+    <td key="name">{asset.asset.name}</td>,
+    <td key="status">{asset.asset.status}</td>,
+    <td key="created">{formatLocalDateTime(asset.added)}</td>,
+    <td key="creator">{asset.added_by}</td>
   ]
 
   if (showButtons) {
@@ -95,16 +91,16 @@ function OrganizationAssetRow({ organizationId, organization_asset, showButtons 
     )
   }
 
-  return <tr key={organization_asset.id}>{dataFields}</tr>
+  return <tr key={asset.id}>{dataFields}</tr>
 }
 
 interface OrganizationMemberListProps {
   organizationId: number
-  organization_members?: OrganizationMemberData[]
+  members?: OrganizationMemberData[]
   showButtons: boolean
 }
 
-function OrganizationMemberList({ organizationId, organization_members, showButtons }: OrganizationMemberListProps) {
+function OrganizationMemberList({ organizationId, members, showButtons }: OrganizationMemberListProps) {
   return (
     <Table responsive>
       <thead>
@@ -121,8 +117,8 @@ function OrganizationMemberList({ organizationId, organization_members, showButt
         </tr>
       </thead>
       <tbody>
-        {organization_members?.map((member) => (
-          <OrganizationMemberRow key={member.id} organizationId={organizationId} organization_member={member} showButtons={showButtons} />
+        {members?.map((member) => (
+          <OrganizationMemberRow key={member.id} organizationId={organizationId} member={member} showButtons={showButtons} />
         ))}
       </tbody>
     </Table>
@@ -176,10 +172,10 @@ function OrganizationMemberAdd({ organizationId }: { organizationId: number }) {
 
 interface OrganizationAssetListProps {
   organizationId: number
-  organization_assets?: OrganizationAssetData[]
+  assets?: OrganizationAssetData[]
 }
 
-function OrganizationAssetList({ organizationId, organization_assets }: OrganizationAssetListProps) {
+function OrganizationAssetList({ organizationId, assets }: OrganizationAssetListProps) {
   return (
     <Table responsive>
       <thead>
@@ -197,8 +193,8 @@ function OrganizationAssetList({ organizationId, organization_assets }: Organiza
         </tr>
       </thead>
       <tbody>
-        {organization_assets?.map((asset) => (
-          <OrganizationAssetRow key={asset.id} organizationId={organizationId} organization_asset={asset} showButtons />
+        {assets?.map((asset) => (
+          <OrganizationAssetRow key={asset.id} organizationId={organizationId} asset={asset} showButtons />
         ))}
       </tbody>
     </Table>
@@ -282,18 +278,13 @@ function OrganizationDetailsPage({ organizationId, updateRadioOperator }: Organi
         <OrganizationListRow organization={organizationDetails} showButtons={false} />
       </tbody>
     </Table>,
-    <OrganizationMemberList
-      key="org_members"
-      organizationId={organizationId}
-      organization_members={organizationDetails.members}
-      showButtons={organizationDetails.role === 'Admin'}
-    />
+    <OrganizationMemberList key="org_members" organizationId={organizationId} members={organizationDetails.members} showButtons={organizationDetails.role === 'Admin'} />
   ]
 
   if (organizationDetails.role === 'Admin') {
     sections.push(<OrganizationMemberAdd key="org_add_member" organizationId={organizationId} />)
   }
-  sections.push(<OrganizationAssetList key="org_assets" organizationId={organizationId} organization_assets={organizationDetails.assets} />)
+  sections.push(<OrganizationAssetList key="org_assets" organizationId={organizationId} assets={organizationDetails.assets} />)
   sections.push(<OrganizationAssetAdd key="org_asset_add" organizationId={organizationId} />)
 
   return <div>{sections}</div>
