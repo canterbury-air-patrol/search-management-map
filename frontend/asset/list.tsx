@@ -6,6 +6,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
+import { Loading } from '../components/Loading'
 import { AssetData } from './types'
 
 interface AssetListRowProps {
@@ -56,12 +57,16 @@ function AssetList({ assets }: { assets: AssetData[] }) {
 }
 
 function AssetListPage() {
-  const [assets, setAssets] = useState<AssetData[]>([])
+  const [assets, setAssets] = useState<AssetData[] | undefined>(undefined)
 
   usePolling(async () => {
     const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
     setAssets(data.assets)
   }, 10000)
+
+  if (assets === undefined) {
+    return <Loading />
+  }
 
   return (
     <div>

@@ -7,6 +7,7 @@ import { formatLocalDateTime } from '../format'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
+import { Loading } from '../components/Loading'
 import { MissionData } from './types'
 
 interface MissionListRowProps {
@@ -114,7 +115,7 @@ function CompletedMissionList({ missions }: { missions: MissionData[] }) {
 }
 
 function MissionListPage() {
-  const [missions, setMissions] = useState<MissionData[]>([])
+  const [missions, setMissions] = useState<MissionData[] | undefined>(undefined)
 
   usePolling(async () => {
     const data = await smmGetJSON<{ missions: MissionData[] }>('/mission/list/', {})
@@ -123,11 +124,15 @@ function MissionListPage() {
 
   const { active, closed } = useMemo(
     () => ({
-      active: missions.filter((m) => !m.closed),
-      closed: missions.filter((m) => m.closed)
+      active: missions?.filter((m) => !m.closed) ?? [],
+      closed: missions?.filter((m) => m.closed) ?? []
     }),
     [missions]
   )
+
+  if (missions === undefined) {
+    return <Loading />
+  }
 
   return (
     <div>
