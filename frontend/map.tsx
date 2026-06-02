@@ -12,7 +12,7 @@ import '@canterbury-air-patrol/leaflet-dialog'
 import '@canterbury-air-patrol/leaflet-dialog/Leaflet.Dialog.css'
 import { LocateControl } from 'leaflet.locatecontrol'
 import 'leaflet.locatecontrol/dist/L.Control.Locate.min.css'
-import { cookieJar } from './cookies'
+import { cookieJar, PREFERENCE_COOKIE_OPTS } from './cookies'
 
 import './Admin/admin'
 import './ImageUploader/ImageUploader'
@@ -70,7 +70,7 @@ class SMMMap {
   }
 
   layerStateChanged(e: L.LayersControlEvent) {
-    cookieJar.set(`layer_${this.convertCookieName(e.name)}_on_map`, e.type === 'overlayadd')
+    cookieJar.set(`layer_${this.convertCookieName(e.name)}_on_map`, e.type === 'overlayadd', PREFERENCE_COOKIE_OPTS)
   }
 
   mapLayersCallback(data: {

@@ -4,7 +4,7 @@ import L from 'leaflet'
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
 import * as ReactDOM from 'react-dom/client'
-import { cookieJar } from '../cookies'
+import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
 import { MissionAssetSummary, AssetPointTime } from './types'
 
 import { smmGetJSON } from '../ajax'
@@ -45,7 +45,7 @@ class SMMAsset {
   }
 
   updateColor(color: string) {
-    cookieJar.set(`asset_${this.assetId}_track_color`, color)
+    cookieJar.set(`asset_${this.assetId}_track_color`, color, PREFERENCE_COOKIE_OPTS)
     this.color = color
     this.polyline.setStyle({ color: this.color })
     if (this.swatch) this.swatch.style.backgroundColor = color
