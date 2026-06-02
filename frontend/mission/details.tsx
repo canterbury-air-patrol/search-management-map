@@ -52,10 +52,10 @@ function MissionDetails({ mission }: { mission: MissionData }) {
 type ExtRefField = 'name' | 'code' | 'url' | 'notes'
 
 interface MissionDetailsExternalReferencesRowProps {
-  ExternalReference: MissionExternalReferenceData
+  externalReference: MissionExternalReferenceData
 }
 
-function MissionDetailsExternalReferencesRow({ ExternalReference: extRef }: MissionDetailsExternalReferencesRowProps) {
+function MissionDetailsExternalReferencesRow({ externalReference: extRef }: MissionDetailsExternalReferencesRowProps) {
   const [editFields, setEditFields] = useState<Partial<Record<ExtRefField, boolean>>>({})
   const [values, setValues] = useState({
     name: extRef.name,
@@ -170,11 +170,11 @@ function MissionDetailsExternalReferenceAdd({ mission }: MissionDetailsExternalR
 }
 
 interface MissionDetailsExternalReferencesListProps {
-  ExternalReferences: Array<MissionExternalReferenceData>
+  externalReferences: Array<MissionExternalReferenceData>
   mission: number
 }
 
-function MissionDetailsExternalReferencesList({ ExternalReferences, mission }: MissionDetailsExternalReferencesListProps) {
+function MissionDetailsExternalReferencesList({ externalReferences, mission }: MissionDetailsExternalReferencesListProps) {
   return (
     <Table>
       <thead>
@@ -187,8 +187,8 @@ function MissionDetailsExternalReferencesList({ ExternalReferences, mission }: M
         </tr>
       </thead>
       <tbody>
-        {ExternalReferences.map((extRef) => (
-          <MissionDetailsExternalReferencesRow key={extRef.id} ExternalReference={extRef} />
+        {externalReferences.map((extRef) => (
+          <MissionDetailsExternalReferencesRow key={extRef.id} externalReference={extRef} />
         ))}
         <MissionDetailsExternalReferenceAdd mission={mission} />
       </tbody>
@@ -564,7 +564,7 @@ function MissionDetailPage({ missionId }: { missionId: number }) {
   return (
     <>
       <MissionDetails mission={missionDetails.mission} />
-      <MissionDetailsExternalReferencesList mission={missionId} ExternalReferences={missionDetails.external_references} />
+      <MissionDetailsExternalReferencesList mission={missionId} externalReferences={missionDetails.external_references} />
       <MissionDetailsOrganizationsList mission={missionId} missionOrganizations={missionDetails.mission_organizations} isAdmin={missionDetails.admin} />
       {missionDetails.can_add_organizations && <MissionDetailsOrganizationAdd mission={missionId} />}
       <MissionDetailsUsersList mission={missionId} me={missionDetails.me} missionUsers={missionDetails.mission_users} isAdmin={missionDetails.admin} />
