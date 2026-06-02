@@ -30,7 +30,7 @@ export function POIPopup({ label, coords, pk, missionId, onEdit, onDelete, onCre
     : []
   return (
     <div>
-      <PopupDataList items={items} dlClass="poi row" />
+      <PopupDataList items={items} dlClass="row" />
       {buttons.length > 0 && <PopupButtonGroup buttons={buttons} />}
     </div>
   )
