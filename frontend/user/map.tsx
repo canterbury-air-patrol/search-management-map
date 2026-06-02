@@ -3,7 +3,7 @@ import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
 import * as ReactDOM from 'react-dom/client'
-import { cookieJar } from '../cookies'
+import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
 import { smmGetJSON } from '../ajax'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
 import { UserPopup } from './UserPopup'
@@ -41,7 +41,7 @@ class SMMUserPosition {
   }
 
   updateColor(color: string) {
-    cookieJar.set(`user_${this.userName}_track_color`, color)
+    cookieJar.set(`user_${this.userName}_track_color`, color, PREFERENCE_COOKIE_OPTS)
     this.color = color
     this.polyline.setStyle({ color: this.color })
     if (this.swatch) this.swatch.style.backgroundColor = color
