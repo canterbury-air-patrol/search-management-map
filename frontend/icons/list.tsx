@@ -6,6 +6,7 @@ import { Table } from 'react-bootstrap'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
+import { Loading } from '../components/Loading'
 
 interface IconData {
   id: number
@@ -48,12 +49,16 @@ function IconList({ icons }: { icons: IconData[] }) {
 }
 
 function IconListPage() {
-  const [icons, setIcons] = useState<IconData[]>([])
+  const [icons, setIcons] = useState<IconData[] | undefined>(undefined)
 
   usePolling(async () => {
     const data = await smmGetJSON<{ icons: IconData[] }>('/icons/', {})
     setIcons(data.icons)
   }, 10000)
+
+  if (icons === undefined) {
+    return <Loading />
+  }
 
   return (
     <div>
