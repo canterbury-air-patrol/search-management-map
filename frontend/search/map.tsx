@@ -10,12 +10,13 @@ import { SMMSearchObjectDetailsData } from './types'
 import { smmDelete } from '../ajax'
 import { SearchQueueDialog } from './SearchQueueDialog'
 import { SearchPopup } from './SearchPopup'
+import { mountPopup } from '../components/mountPopup'
 
 class SMMSearch {
   parent: SMMSearches
   search: SMMSearchObjectDetailsData
   QueueDialog?: L.Control.Dialog
-  popupRoot?: ReactDOM.Root
+  private popup?: ReturnType<typeof mountPopup>
   constructor(parent: SMMSearches, search: SMMSearchObjectDetailsData) {
     this.parent = parent
     this.search = search
@@ -52,26 +53,18 @@ class SMMSearch {
   }
 
   createPopup(layer: L.Layer) {
-    this.popupRoot?.unmount()
-    const container = document.createElement('div')
-    const root = ReactDOM.createRoot(container)
-    this.popupRoot = root
-    root.render(
+    this.popup?.unmount()
+    this.popup = mountPopup(
+      layer,
       <SearchPopup
         search={this.search}
         missionId={this.parent.missionId}
         status={this.parent.searchStatus(this.search)}
         onDelete={this.deleteCallback}
         onQueueDialog={this.searchQueueDialog}
-      />
+      />,
+      { minWidth: 200 }
     )
-    layer.bindPopup(container, { minWidth: 200 })
-    layer.once('remove', () => {
-      root.unmount()
-      if (this.popupRoot === root) {
-        this.popupRoot = undefined
-      }
-    })
   }
 }
 

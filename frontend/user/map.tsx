@@ -2,7 +2,6 @@ import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
-import * as ReactDOM from 'react-dom/client'
 import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
 import { smmGetJSON } from '../ajax'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
@@ -10,6 +9,7 @@ import { UserPopup } from './UserPopup'
 import { ColorPickerDialog } from '../asset/ColorPickerDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 import { buildSwatchLabel } from '../components/swatchLabel'
+import { mountPopup } from '../components/mountPopup'
 
 class SMMUserPosition {
   map: L.Map
@@ -17,7 +17,7 @@ class SMMUserPosition {
   userName: string
   color: string
   swatch?: HTMLElement
-  popupRoot?: ReactDOM.Root
+  popup?: ReturnType<typeof mountPopup>
   lastUpdate?: string
   path: L.LatLng[]
   updating: boolean
@@ -121,14 +121,10 @@ class SMMUserPositions extends SMMRealtime {
   createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {
     const userName = user.properties.user
     const userObject = this.createUser(userName)
-    const container = document.createElement('div')
-    const root = ReactDOM.createRoot(container)
-    userObject.popupRoot = root
-    root.render(<UserPopup userName={userName} />)
-    layer.bindPopup(container, { minWidth: 200 })
+    userObject.popup?.unmount()
+    userObject.popup = mountPopup(layer, <UserPopup userName={userName} />, { minWidth: 200 })
     layer.once('remove', () => {
-      root.unmount()
-      userObject.popupRoot = undefined
+      userObject.popup = undefined
     })
   }
 
@@ -153,7 +149,7 @@ class SMMUserPositions extends SMMRealtime {
     const coords = user.geometry.coordinates as [number, number]
     const { alt } = user.properties
 
-    this.userObjects[userName]?.popupRoot?.render(<UserPopup userName={userName} coords={coords} alt={alt} />)
+    this.userObjects[userName]?.popup?.rerender(<UserPopup userName={userName} coords={coords} alt={alt} />)
 
     if (user.geometry.type === 'Point') {
       const c = user.geometry.coordinates

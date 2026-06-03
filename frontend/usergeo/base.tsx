@@ -1,21 +1,21 @@
 import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 import React from 'react'
-import * as ReactDOM from 'react-dom/client'
 
 import { smmDelete } from '../ajax'
 import { SMMRealtime } from '../smmmap'
+import { mountPopup } from '../components/mountPopup'
 import { SMMUserGeoLabelData } from './types'
 
 /**
  * Abstract base for per-feature geo objects (SMMPOI, SMMLine, SMMPolygon).
- * Handles deleteCallback and the createPopup lifecycle (container, root, bind, unmount).
+ * Handles deleteCallback and the createPopup lifecycle via mountPopup.
  */
 abstract class SMMUserGeoLayer {
   map: L.Map
   missionId: MissionId
   data: SMMUserGeoLabelData
-  popupRoot?: ReactDOM.Root
+  private popup?: ReturnType<typeof mountPopup>
 
   constructor(map: L.Map, missionId: MissionId, data: SMMUserGeoLabelData) {
     this.map = map
@@ -39,18 +39,8 @@ abstract class SMMUserGeoLayer {
   }
 
   createPopup(layer: L.Layer) {
-    this.popupRoot?.unmount()
-    const container = document.createElement('div')
-    const root = ReactDOM.createRoot(container)
-    this.popupRoot = root
-    root.render(this.renderPopup())
-    layer.bindPopup(container, this.getPopupOptions())
-    layer.once('remove', () => {
-      root.unmount()
-      if (this.popupRoot === root) {
-        this.popupRoot = undefined
-      }
-    })
+    this.popup?.unmount()
+    this.popup = mountPopup(layer, this.renderPopup(), this.getPopupOptions())
   }
 }
 

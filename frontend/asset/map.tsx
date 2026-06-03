@@ -3,7 +3,6 @@ import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
-import * as ReactDOM from 'react-dom/client'
 import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
 import { MissionAssetSummary, AssetPointTime } from './types'
 
@@ -12,6 +11,7 @@ import { AssetPopup } from './AssetPopup'
 import { ColorPickerDialog } from './ColorPickerDialog'
 import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 import { buildSwatchLabel } from '../components/swatchLabel'
+import { mountPopup } from '../components/mountPopup'
 
 class SMMAsset {
   map: L.Map
@@ -94,12 +94,12 @@ class SMMAssets extends SMMRealtime {
   assetNameMap: { [key: number]: string }
   assetIconMap: { [key: number]: string }
   assetStatusMap: { [key: number]: { status: string; notes: string } }
-  popupRoots: { [key: number]: ReactDOM.Root }
+  popups: { [key: number]: ReturnType<typeof mountPopup> }
   constructor(map: L.Map, missionId: MissionId, interval: number, color: string, overlayAdd: (name: string | HTMLElement, overlay: L.Layer) => void) {
     super(map, missionId, interval, color)
     this.overlayAdd = overlayAdd
     this.assetObjects = {}
-    this.popupRoots = {}
+    this.popups = {}
     this.createPopup = this.createPopup.bind(this)
     this.assetUpdate = this.assetUpdate.bind(this)
     this.assetLayer = this.assetLayer.bind(this)
@@ -158,15 +158,9 @@ class SMMAssets extends SMMRealtime {
 
   createPopup(asset: { properties: { asset: number }; geometry: { coordinates: [number, number] } }, layer: L.Layer) {
     const assetId = asset.properties.asset
-    const container = document.createElement('div')
-    const root = ReactDOM.createRoot(container)
-    this.popupRoots[assetId] = root
-    root.render(<AssetPopup assetName={String(assetId)} coords={asset.geometry.coordinates} />)
-    layer.bindPopup(container, { minWidth: 200 })
-    layer.once('remove', () => {
-      root.unmount()
-      delete this.popupRoots[assetId]
-    })
+    this.popups[assetId]?.unmount()
+    this.popups[assetId] = mountPopup(layer, <AssetPopup assetName={String(assetId)} coords={asset.geometry.coordinates} />, { minWidth: 200 })
+    layer.once('remove', () => delete this.popups[assetId])
   }
 
   assetPathUpdate(assetId: number) {
@@ -189,7 +183,7 @@ class SMMAssets extends SMMRealtime {
 
     const coords = asset.geometry.coordinates as [number, number]
     const { alt, heading, fix } = asset.properties
-    this.popupRoots[assetId]?.render(
+    this.popups[assetId]?.rerender(
       <AssetPopup
         assetName={this.assetNameMap[assetId]}
         coords={coords}
