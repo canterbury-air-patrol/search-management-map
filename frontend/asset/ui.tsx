@@ -1,5 +1,5 @@
 import '../page-shell'
-import { ChangeEvent, useEffect, useRef, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { Table, Button } from 'react-bootstrap'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
@@ -217,9 +217,24 @@ function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
 
 interface AssetMissionDetailsProps {
   details?: AssetFullStatusData
+  /** Called after the user begins or finishes a search so the parent
+   *  refetches asset state without waiting for the next 10s poll. */
+  onAction?: () => void
 }
 
-function CurrentSearchRow({ details }: { details: AssetFullStatusData }) {
+function CurrentSearchRow({ details, onAction }: { details: AssetFullStatusData; onAction?: () => void }) {
+  const [busy, setBusy] = useState(false)
+
+  async function markComplete() {
+    setBusy(true)
+    try {
+      await smmPost(`/search/${details.current_search_id}/finished/`, { asset_id: details.asset_id })
+      onAction?.()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   if (Number.isInteger(details.current_search_id)) {
     return (
       <tr key="current_search">
@@ -229,7 +244,9 @@ function CurrentSearchRow({ details }: { details: AssetFullStatusData }) {
           <Button href={`/search/${details.current_search_id}/`}>Details</Button>
         </td>
         <td>
-          <Button onClick={() => smmGet(`/search/${details.current_search_id}/finished/?asset_id=${details.asset_id}`)}>Mark as Completed</Button>
+          <Button onClick={markComplete} disabled={busy}>
+            Mark as Completed
+          </Button>
         </td>
       </tr>
     )
@@ -246,7 +263,19 @@ function CurrentSearchRow({ details }: { details: AssetFullStatusData }) {
   )
 }
 
-function QueuedSearchRow({ details }: { details: AssetFullStatusData }) {
+function QueuedSearchRow({ details, onAction }: { details: AssetFullStatusData; onAction?: () => void }) {
+  const [busy, setBusy] = useState(false)
+
+  async function begin() {
+    setBusy(true)
+    try {
+      await smmPost(`/search/${details.queued_search_id}/begin/`, { asset_id: details.asset_id })
+      onAction?.()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const data = [<td key="title">Queued Search</td>, <td key="id">{details.queued_search_id}</td>]
   if (details.queued_search_id) {
     data.push(
@@ -257,7 +286,9 @@ function QueuedSearchRow({ details }: { details: AssetFullStatusData }) {
     if (details.current_search_id === undefined) {
       data.push(
         <td key="begin">
-          <Button onClick={() => smmGet(`/search/${details.queued_search_id}/begin/?asset_id=${details.asset_id}`)}>Begin Search</Button>
+          <Button onClick={begin} disabled={busy}>
+            Begin Search
+          </Button>
         </td>
       )
     } else {
@@ -277,7 +308,7 @@ function QueuedSearchRow({ details }: { details: AssetFullStatusData }) {
   )
 }
 
-function AssetMissionDetails({ details }: AssetMissionDetailsProps) {
+function AssetMissionDetails({ details, onAction }: AssetMissionDetailsProps) {
   const rows = []
 
   if (details?.mission_id) {
@@ -293,8 +324,8 @@ function AssetMissionDetails({ details }: AssetMissionDetailsProps) {
         </td>
       </tr>
     )
-    rows.push(<CurrentSearchRow key="current_search" details={details} />)
-    rows.push(<QueuedSearchRow key="queued_search" details={details} />)
+    rows.push(<CurrentSearchRow key="current_search" details={details} onAction={onAction} />)
+    rows.push(<QueuedSearchRow key="queued_search" details={details} onAction={onAction} />)
   } else {
     rows.push(
       <tr key="current_mission">
@@ -392,13 +423,15 @@ interface AssetUIProps {
 }
 
 /** Polls /assets/<id>/ + /assets/<id>/mission/ every 10s and returns the
- *  merged state plus the most-recent last_command. Used by both AssetUI
- *  and the radio operator's compact RadioOperatorAsset. */
+ *  merged state plus the most-recent last_command. The returned refetch
+ *  callback re-runs the same fetch immediately - useful after an action
+ *  (begin/finish a search, set status, ...) so the UI doesn't wait up to
+ *  10s for the next poll. Used by AssetUI and RadioOperatorAsset. */
 export function useAssetData(asset: number) {
   const [details, setDetails] = useState<AssetFullStatusData | undefined>(undefined)
   const [lastCommand, setLastCommand] = useState<AssetCommandData | undefined>(undefined)
 
-  usePolling(async () => {
+  const refetch = useCallback(async () => {
     const [assetData, missionData] = await Promise.all([
       smmGetJSON(`/assets/${asset}/`) as Promise<AssetFullStatusData>,
       (smmGetJSON(`/assets/${asset}/mission/`) as Promise<AssetMissionData>).catch(() => ({}) as AssetMissionData)
@@ -408,13 +441,15 @@ export function useAssetData(asset: number) {
     if (merged.last_command) {
       setLastCommand(merged.last_command)
     }
-  }, 10000)
+  }, [asset])
 
-  return { details, lastCommand }
+  usePolling(refetch, 10000)
+
+  return { details, lastCommand, refetch }
 }
 
 function AssetUI({ asset }: AssetUIProps) {
-  const { details, lastCommand } = useAssetData(asset)
+  const { details, lastCommand, refetch } = useAssetData(asset)
 
   let missionStatus
   if (details?.mission_id !== undefined) {
@@ -426,7 +461,7 @@ function AssetUI({ asset }: AssetUIProps) {
       <div style={{ fontWeight: 'bold', textAlign: 'center' }} className="bg-info">
         {details?.name}
       </div>
-      <AssetMissionDetails details={details} />
+      <AssetMissionDetails details={details} onAction={refetch} />
       <AssetCommandView lastCommand={lastCommand} asset={asset} />
       {missionStatus}
       <AssetTrackAs asset={asset} />
