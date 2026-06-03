@@ -1,11 +1,11 @@
 import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
-import * as ReactDOM from 'react-dom/client'
 
 import { SMMRealtime } from '../smmmap'
 import { SMMImageGeoJSON } from './types'
 import { smmPatch } from '../ajax'
 import { ImagePopup } from './ImagePopup'
+import { mountPopup } from '../components/mountPopup'
 
 abstract class SMMImage extends SMMRealtime {
   constructor(map: L.Map, missionId: MissionId, interval: number, color: string) {
@@ -27,10 +27,9 @@ abstract class SMMImage extends SMMRealtime {
   }
 
   createPopup(image: SMMImageGeoJSON, layer: L.Layer) {
-    const container = document.createElement('div')
-    const root = ReactDOM.createRoot(container)
     const imageID = image.properties.pk
-    root.render(
+    mountPopup(
+      layer,
       <ImagePopup
         description={image.properties.description}
         pk={imageID}
@@ -41,8 +40,6 @@ abstract class SMMImage extends SMMRealtime {
         onDeprioritize={() => smmPatch(`/image/${imageID}/priority/`, { priority: false })}
       />
     )
-    layer.bindPopup(container)
-    layer.once('remove', () => root.unmount())
   }
 }
 
