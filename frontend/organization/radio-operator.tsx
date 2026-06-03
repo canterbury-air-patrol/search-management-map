@@ -11,7 +11,7 @@ import { usePolling } from '../hooks/usePolling'
 import { OrganizationAssetData } from './types'
 
 function RadioOperatorAsset({ asset }: { asset: number }) {
-  const { details, lastCommand } = useAssetData(asset)
+  const { details, lastCommand, refetch } = useAssetData(asset)
 
   let missionStatus
   if (details && details.mission_id) {
@@ -29,7 +29,7 @@ function RadioOperatorAsset({ asset }: { asset: number }) {
       <tbody>
         <tr>
           <td>
-            <AssetMissionDetails details={details} />
+            <AssetMissionDetails details={details} onAction={refetch} />
           </td>
           <td>
             <AssetCommandView asset={asset} lastCommand={lastCommand} />
