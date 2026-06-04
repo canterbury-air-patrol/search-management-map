@@ -30,7 +30,7 @@ function IconList({ icons }: { icons: IconData[] }) {
     <Table responsive>
       <thead>
         <tr key="heading">
-          <th colSpan={5} align="center">
+          <th colSpan={2} align="center">
             Icons
           </th>
         </tr>

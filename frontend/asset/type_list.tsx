@@ -22,9 +22,7 @@ function AssetTypeList({ assetTypes }: { assetTypes: AssetTypeData[] }) {
     <Table responsive>
       <thead>
         <tr key="heading">
-          <th colSpan={5} align="center">
-            Asset Types
-          </th>
+          <th align="center">Asset Types</th>
         </tr>
         <tr key="labels">
           <th>Asset Type</th>
