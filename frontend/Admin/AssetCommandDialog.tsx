@@ -29,13 +29,18 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
   const gotoPos = useRef<L.LatLng>(map.getCenter())
 
   useEffect(() => {
+    let cancelled = false
     smmGetJSON<CommandFormData>(`/mission/${missionId}/assets/command/set/`, {}).then((data) => {
+      if (cancelled) return
       setAssets(data.assets)
       setCommands(data.commands)
       setRequiresPosition(data.requires_position)
       if (data.assets.length > 0) setAssetId(String(data.assets[0].id))
       if (data.commands.length > 0) setCommand(data.commands[0].value)
     })
+    return () => {
+      cancelled = true
+    }
   }, [missionId])
 
   function handleSet() {
