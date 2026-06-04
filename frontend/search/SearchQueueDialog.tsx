@@ -18,11 +18,16 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
   const [selectedAssetId, setSelectedAssetId] = useState('')
 
   useEffect(() => {
+    let cancelled = false
     smmGetJSON<{ assets: Array<MissionAssetSummary> }>(`/mission/${missionId}/assets/`, {}).then((d) => {
+      if (cancelled) return
       const filtered = d.assets.filter((a) => a.type_name === createdFor)
       setAssets(filtered)
       if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))
     })
+    return () => {
+      cancelled = true
+    }
   }, [missionId, createdFor])
 
   async function handleQueue() {
