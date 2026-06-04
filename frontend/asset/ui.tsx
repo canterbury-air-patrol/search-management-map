@@ -139,7 +139,7 @@ function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
   const responseData = []
   const response = lastCommand?.response
   if (response) {
-    if (response.set) {
+    if (response.set != null) {
       responseData.push(
         <tr key="response">
           <td>
