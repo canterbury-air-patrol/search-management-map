@@ -49,7 +49,13 @@ function MissionDetails({ mission }: { mission: MissionData }) {
   )
 }
 
-type ExtRefField = 'name' | 'code' | 'url' | 'notes'
+interface ExtRefValues {
+  name: string
+  code?: string
+  url?: string
+  notes?: string
+}
+type ExtRefField = keyof ExtRefValues
 
 interface MissionDetailsExternalReferencesRowProps {
   externalReference: MissionExternalReferenceData
@@ -57,7 +63,7 @@ interface MissionDetailsExternalReferencesRowProps {
 
 function MissionDetailsExternalReferencesRow({ externalReference: extRef }: MissionDetailsExternalReferencesRowProps) {
   const [editFields, setEditFields] = useState<Partial<Record<ExtRefField, boolean>>>({})
-  const [values, setValues] = useState({
+  const [values, setValues] = useState<ExtRefValues>({
     name: extRef.name,
     code: extRef.code,
     url: extRef.url,
@@ -84,7 +90,7 @@ function MissionDetailsExternalReferencesRow({ externalReference: extRef }: Miss
   }
 
   function update() {
-    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, values)
+    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, { ...values })
   }
 
   function deleteRow() {
