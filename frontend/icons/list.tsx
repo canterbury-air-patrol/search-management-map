@@ -19,7 +19,7 @@ function IconListRow({ icon }: { icon: IconData }) {
     <tr key={icon.id}>
       <td key="name">{icon.name}</td>
       <td key="img">
-        <img src={icon.url} />
+        <img src={icon.url} alt={icon.name} />
       </td>
     </tr>
   )
