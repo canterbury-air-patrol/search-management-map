@@ -47,7 +47,15 @@ function MissionTimeLineEntryAdd({ missionId }: MissionTimeLineEntryAddProps) {
         <tr>
           <td>
             Now: <input type="checkbox" checked={timeNow} onChange={(e: ChangeEvent<HTMLInputElement>) => setTimeNow(e.target.checked)} />{' '}
-            {!timeNow && <DateTimePicker onChange={(value) => value !== null && setSpecificDateTime(value)} value={specificDateTime} format="y-MM-dd HH:mm:ss" />}
+            {!timeNow && (
+              <DateTimePicker
+                onChange={(value) => {
+                  if (value instanceof Date) setSpecificDateTime(value)
+                }}
+                value={specificDateTime}
+                format="y-MM-dd HH:mm:ss"
+              />
+            )}
           </td>
           <td>
             <input type="text" value={message} onChange={(e: ChangeEvent<HTMLInputElement>) => setMessage(e.target.value)} />
