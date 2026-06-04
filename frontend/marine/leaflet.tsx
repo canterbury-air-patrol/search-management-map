@@ -15,8 +15,17 @@ interface CustomMarineVectorsProps {
   dialog: L.Control.Dialog
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type VendorVector = any
+interface CurrentVector {
+  timeFrom: Date
+  timeTo: Date
+  getVectorSpeed(): number
+  getVectorDirection(): number
+  getVectorDistance(): number
+}
+
+interface WindVector extends CurrentVector {
+  direction: number
+}
 
 class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
   onMap?: L.GeoJSON
@@ -51,7 +60,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       wind_total: this.state.windVectors.length
     }
 
-    this.state.currentVectors.forEach((currVector: VendorVector, idx: number) => {
+    this.state.currentVectors.forEach((currVector: CurrentVector, idx: number) => {
       data['curr_' + idx + '_from'] = this.formatTime(currVector.timeFrom)
       data['curr_' + idx + '_to'] = this.formatTime(currVector.timeTo)
       data['curr_' + idx + '_speed'] = currVector.getVectorSpeed()
@@ -59,7 +68,7 @@ class CustomMarineVectors extends MarineVectors<CustomMarineVectorsProps> {
       data['curr_' + idx + '_distance'] = currVector.getVectorDistance()
     })
 
-    this.state.windVectors.forEach((windVector: VendorVector, idx: number) => {
+    this.state.windVectors.forEach((windVector: WindVector, idx: number) => {
       data['wind_' + idx + '_from'] = this.formatTime(windVector.timeFrom)
       data['wind_' + idx + '_to'] = this.formatTime(windVector.timeTo)
       data['wind_' + idx + '_from_direction'] = windVector.direction
