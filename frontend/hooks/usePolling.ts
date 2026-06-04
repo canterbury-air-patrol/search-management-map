@@ -20,7 +20,14 @@ export function usePolling(fn: () => void | Promise<void>, intervalMs: number) {
     let cancelled = false
 
     const tick = () => {
-      if (!cancelled) fnRef.current()
+      if (cancelled) return
+      try {
+        Promise.resolve(fnRef.current()).catch((err) => {
+          console.error('usePolling callback rejected', err)
+        })
+      } catch (err) {
+        console.error('usePolling callback threw', err)
+      }
     }
 
     tick()
