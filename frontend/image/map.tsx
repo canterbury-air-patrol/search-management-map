@@ -14,7 +14,7 @@ abstract class SMMImage extends SMMRealtime {
     this.createPopup = this.createPopup.bind(this)
   }
 
-  protected featureOptions() {
+  protected override featureOptions() {
     return {
       pointToLayer: (_feature: SMMImageGeoJSON, latlng: L.LatLng) =>
         L.marker(latlng, {
