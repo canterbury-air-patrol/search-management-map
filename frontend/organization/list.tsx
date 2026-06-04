@@ -65,7 +65,7 @@ function OrganizationList({ organizations, showButtons }: OrganizationListProps)
           <th>Created</th>
           <th>By</th>
           <th>My Role</th>
-          <th></th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
