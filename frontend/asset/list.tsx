@@ -6,7 +6,7 @@ import { Table, Button, ButtonGroup } from 'react-bootstrap'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
-import { Loading } from '../components/Loading'
+import { Loading, LoadFailed } from '../components/Loading'
 import { AssetData } from './types'
 
 interface AssetListRowProps {
@@ -58,14 +58,21 @@ function AssetList({ assets }: { assets: AssetData[] }) {
 
 function AssetListPage() {
   const [assets, setAssets] = useState<AssetData[] | undefined>(undefined)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   usePolling(async () => {
-    const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
-    setAssets(data.assets)
+    try {
+      const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
+      setAssets(data.assets)
+      setLoadFailed(false)
+    } catch (e) {
+      console.error('Failed to fetch assets:', e)
+      setLoadFailed(true)
+    }
   }, 10000)
 
   if (assets === undefined) {
-    return <Loading />
+    return loadFailed ? <LoadFailed /> : <Loading />
   }
 
   return (

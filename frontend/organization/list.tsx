@@ -7,7 +7,7 @@ import { formatLocalDateTime } from '../format'
 import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
-import { Loading } from '../components/Loading'
+import { Loading, LoadFailed } from '../components/Loading'
 import { OrganizationData } from './types'
 
 interface OrganizationListRowProps {
@@ -117,18 +117,21 @@ function OrganizationAdd() {
 
 function OrganizationListPage() {
   const [organizations, setOrganizations] = useState<OrganizationData[] | undefined>(undefined)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   usePolling(async () => {
     try {
       const data = await smmGetJSON<{ organizations: OrganizationData[] }>('/organization/', {})
       setOrganizations(data.organizations)
+      setLoadFailed(false)
     } catch (e) {
       console.error('Failed to fetch organizations:', e)
+      setLoadFailed(true)
     }
   }, 10000)
 
   if (organizations === undefined) {
-    return <Loading />
+    return loadFailed ? <LoadFailed /> : <Loading />
   }
 
   return (

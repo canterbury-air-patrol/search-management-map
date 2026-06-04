@@ -6,3 +6,9 @@ import type { ReactNode } from 'react'
 export function Loading({ children = 'Loading ...' }: { children?: ReactNode }) {
   return <div className="text-muted">{children}</div>
 }
+
+/** Companion to Loading: shown when the first fetch has failed so the
+ *  page does not sit on "Loading ..." indefinitely. */
+export function LoadFailed({ children = 'Failed to load. Retrying ...' }: { children?: ReactNode }) {
+  return <div className="text-danger">{children}</div>
+}
