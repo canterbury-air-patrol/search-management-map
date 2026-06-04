@@ -56,7 +56,7 @@ function OrganizationList({ organizations, showButtons }: OrganizationListProps)
     <Table responsive>
       <thead>
         <tr key="heading">
-          <th colSpan={4} align="center">
+          <th colSpan={5} align="center">
             Current Organizations
           </th>
         </tr>
