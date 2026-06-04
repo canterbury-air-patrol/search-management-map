@@ -367,7 +367,6 @@ function AssetStatus({ asset, details }: AssetStatusProps) {
       value_id: selectedValueId,
       notes
     })
-    setSelectedValueId(undefined)
     setNotes('')
   }
 
@@ -395,7 +394,7 @@ function AssetStatus({ asset, details }: AssetStatusProps) {
         <tr>
           <td>Status:</td>
           <td>
-            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} defaultValue={selectedValueId}>
+            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} value={selectedValueId ?? ''}>
               {statusValues.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.name}
