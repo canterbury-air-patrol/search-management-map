@@ -100,7 +100,7 @@ class SMMUserPositions extends SMMRealtime {
     return `/mission/${this.missionId}/data/users/positions/latest/`
   }
 
-  protected featureOptions() {
+  protected override featureOptions() {
     return {
       updateFeature: this.userUpdate,
       getFeatureId: (feature: SMMMissionUserPointTimeGeoJSON) => feature.properties.user,

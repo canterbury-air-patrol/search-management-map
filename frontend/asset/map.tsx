@@ -131,7 +131,7 @@ class SMMAssets extends SMMRealtime {
     this.assetStatusMap = statuses
   }
 
-  protected featureOptions() {
+  protected override featureOptions() {
     return {
       updateFeature: this.assetUpdate,
       getFeatureId: (feature: { properties: { asset: number } }) => feature.properties.asset,
