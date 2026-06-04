@@ -224,12 +224,17 @@ interface AssetMissionDetailsProps {
 
 function CurrentSearchRow({ details, onAction }: { details: AssetFullStatusData; onAction?: () => void }) {
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function markComplete() {
     setBusy(true)
+    setError(null)
     try {
       await smmPost(`/search/${details.current_search_id}/finished/`, { asset_id: details.asset_id })
       onAction?.()
+    } catch (e) {
+      console.error('Failed to mark search as completed:', e)
+      setError('Failed - try again')
     } finally {
       setBusy(false)
     }
@@ -247,6 +252,7 @@ function CurrentSearchRow({ details, onAction }: { details: AssetFullStatusData;
           <Button onClick={markComplete} disabled={busy}>
             Mark as Completed
           </Button>
+          {error && <span className="text-danger ms-2">{error}</span>}
         </td>
       </tr>
     )
@@ -265,12 +271,17 @@ function CurrentSearchRow({ details, onAction }: { details: AssetFullStatusData;
 
 function QueuedSearchRow({ details, onAction }: { details: AssetFullStatusData; onAction?: () => void }) {
   const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   async function begin() {
     setBusy(true)
+    setError(null)
     try {
       await smmPost(`/search/${details.queued_search_id}/begin/`, { asset_id: details.asset_id })
       onAction?.()
+    } catch (e) {
+      console.error('Failed to begin search:', e)
+      setError('Failed - try again')
     } finally {
       setBusy(false)
     }
@@ -289,6 +300,7 @@ function QueuedSearchRow({ details, onAction }: { details: AssetFullStatusData; 
           <Button onClick={begin} disabled={busy}>
             Begin Search
           </Button>
+          {error && <span className="text-danger ms-2">{error}</span>}
         </td>
       )
     } else {
