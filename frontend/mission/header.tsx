@@ -12,7 +12,7 @@ function MissionHeader({ mission }: MissionHeaderProps) {
     <Table responsive>
       <thead>
         <tr>
-          <td>Misssion</td>
+          <td>Mission</td>
           <td>Created</td>
           <td>By</td>
           <td>Closed</td>
