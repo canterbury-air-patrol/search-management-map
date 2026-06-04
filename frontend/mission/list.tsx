@@ -7,7 +7,7 @@ import { formatLocalDateTime } from '../format'
 import { smmGetJSON } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
-import { Loading } from '../components/Loading'
+import { Loading, LoadFailed } from '../components/Loading'
 import { MissionData } from './types'
 
 interface MissionListRowProps {
@@ -116,10 +116,17 @@ function CompletedMissionList({ missions }: { missions: MissionData[] }) {
 
 function MissionListPage() {
   const [missions, setMissions] = useState<MissionData[] | undefined>(undefined)
+  const [loadFailed, setLoadFailed] = useState(false)
 
   usePolling(async () => {
-    const data = await smmGetJSON<{ missions: MissionData[] }>('/mission/list/', {})
-    setMissions(data.missions)
+    try {
+      const data = await smmGetJSON<{ missions: MissionData[] }>('/mission/list/', {})
+      setMissions(data.missions)
+      setLoadFailed(false)
+    } catch (e) {
+      console.error('Failed to fetch missions:', e)
+      setLoadFailed(true)
+    }
   }, 10000)
 
   const { active, closed } = useMemo(
@@ -131,7 +138,7 @@ function MissionListPage() {
   )
 
   if (missions === undefined) {
-    return <Loading />
+    return loadFailed ? <LoadFailed /> : <Loading />
   }
 
   return (
