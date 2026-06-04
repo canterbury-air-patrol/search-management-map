@@ -85,10 +85,10 @@ function MissionAssetStatus({ asset, mission }: MissionAssetStatusProps) {
       <Table>
         <thead>
           <tr>
-            <th>Mission Status</th>
-            <th>Description</th>
-            <th>Notes</th>
-            <th>Since</th>
+            <th scope="col">Mission Status</th>
+            <th scope="col">Description</th>
+            <th scope="col">Notes</th>
+            <th scope="col">Since</th>
           </tr>
         </thead>
         <tbody>
