@@ -153,7 +153,7 @@ function OrganizationMemberAdd({ organizationId }: { organizationId: number }) {
       <tbody>
         <tr>
           <td>
-            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setUserId(Number(e.target.value))}>
+            <select value={userId ?? ''} onChange={(e: ChangeEvent<HTMLSelectElement>) => setUserId(Number(e.target.value))}>
               {userList.map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.username}
@@ -227,7 +227,7 @@ function OrganizationAssetAdd({ organizationId }: { organizationId: number }) {
       <tbody>
         <tr>
           <td>
-            <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setAssetId(Number(e.target.value))}>
+            <select value={assetId ?? ''} onChange={(e: ChangeEvent<HTMLSelectElement>) => setAssetId(Number(e.target.value))}>
               {assetList.map((asset) => (
                 <option key={asset.id} value={asset.id}>
                   {asset.name}
