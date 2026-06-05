@@ -12,11 +12,11 @@ function MissionHeader({ mission }: MissionHeaderProps) {
     <Table responsive>
       <thead>
         <tr>
-          <td>Mission</td>
-          <td>Created</td>
-          <td>By</td>
-          <td>Closed</td>
-          <td>By</td>
+          <th scope="col">Mission</th>
+          <th scope="col">Created</th>
+          <th scope="col">By</th>
+          <th scope="col">Closed</th>
+          <th scope="col">By</th>
         </tr>
       </thead>
       <tbody>
