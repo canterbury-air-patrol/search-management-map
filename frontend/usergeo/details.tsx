@@ -38,8 +38,10 @@ function UserGeoDetailsPage({ userGeoId }: UserGeoDetailsPageProps) {
       features: { properties: SMMUserGeoObjectData; geometry: GeometryJSON }[]
     }
     const resp = await smmGetJSON<Response>(`/data/usergeo/${userGeoId}/`, {})
-    setData(resp.features[0].properties)
-    setGeometry(resp.features[0].geometry)
+    const feature = resp.features[0]
+    if (!feature) return
+    setData(feature.properties)
+    setGeometry(feature.geometry)
   }, 10000)
 
   return (
