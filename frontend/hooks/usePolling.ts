@@ -18,15 +18,29 @@ export function usePolling(fn: () => void | Promise<void>, intervalMs: number) {
 
   useEffect(() => {
     let cancelled = false
+    // Skip a tick while a previous async callback is still pending so a
+    // slow endpoint doesn't stack overlapping requests. Synchronous
+    // callbacks complete within tick() and never set this.
+    let inFlight = false
 
     const tick = () => {
-      if (cancelled) return
+      if (cancelled || inFlight) return
+      let result: void | Promise<void>
       try {
-        Promise.resolve(fnRef.current()).catch((err) => {
-          console.error('usePolling callback rejected', err)
-        })
+        result = fnRef.current()
       } catch (err) {
         console.error('usePolling callback threw', err)
+        return
+      }
+      if (result instanceof Promise) {
+        inFlight = true
+        result
+          .catch((err) => {
+            console.error('usePolling callback rejected', err)
+          })
+          .finally(() => {
+            inFlight = false
+          })
       }
     }
 
