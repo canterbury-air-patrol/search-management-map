@@ -119,6 +119,7 @@ function SearchDetailsPage({ searchId }: { searchId: number }) {
     }
     const resp = await smmGetJSON<Response>(`/search/${searchId}/`, {})
     const feature = resp.features[0]
+    if (!feature) return
     setData(feature.properties)
     setSearch(createSearch(feature.properties))
     setGeometry(feature.geometry)
