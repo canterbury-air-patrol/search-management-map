@@ -212,6 +212,7 @@ function OrganizationAssetAdd({ organizationId }: { organizationId: number }) {
   }, 10000)
 
   async function addOrganizationAsset() {
+    if (assetId === undefined) return
     await smmPost(`/organization/${organizationId}/assets/${assetId}/`, {})
     setAssetId(undefined)
   }
