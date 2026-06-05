@@ -16,10 +16,10 @@ export function AssetPopup({ assetName, coords, alt, heading, fix, status }: Pro
     { label: 'Lat', value: degreesToDM(coords[1], 'lat') },
     { label: 'Long', value: degreesToDM(coords[0], 'lon') }
   ]
-  if (alt) {
+  if (alt != null) {
     items.push({ label: 'Altitude', value: alt.toString() })
   }
-  if (heading) {
+  if (heading != null) {
     items.push({ label: 'Heading', value: heading.toString() })
   }
   if (fix) {

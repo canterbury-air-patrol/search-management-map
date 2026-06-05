@@ -159,7 +159,8 @@ class SMMAssets extends SMMRealtime {
   createPopup(asset: { properties: { asset: number }; geometry: { coordinates: [number, number] } }, layer: L.Layer) {
     const assetId = asset.properties.asset
     this.popups[assetId]?.unmount()
-    this.popups[assetId] = mountPopup(layer, <AssetPopup assetName={String(assetId)} coords={asset.geometry.coordinates} />, { minWidth: 200 })
+    const assetName = this.assetNameMap[assetId] ?? String(assetId)
+    this.popups[assetId] = mountPopup(layer, <AssetPopup assetName={assetName} coords={asset.geometry.coordinates} />, { minWidth: 200 })
     layer.once('remove', () => delete this.popups[assetId])
   }
 
