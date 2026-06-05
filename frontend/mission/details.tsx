@@ -49,12 +49,7 @@ function MissionDetails({ mission }: { mission: MissionData }) {
   )
 }
 
-interface ExtRefValues {
-  name: string
-  code?: string
-  url?: string
-  notes?: string
-}
+type ExtRefValues = Pick<MissionExternalReferenceData, 'name' | 'code' | 'url' | 'notes'>
 type ExtRefField = keyof ExtRefValues
 
 interface MissionDetailsExternalReferencesRowProps {
