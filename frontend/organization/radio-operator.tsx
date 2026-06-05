@@ -18,7 +18,7 @@ function RadioOperatorAsset({ asset }: { asset: number }) {
     missionStatus = <MissionAssetStatus mission={details.mission_id} asset={asset} />
   }
   return (
-    <>
+    <Table responsive>
       <thead>
         <tr>
           <td colSpan={2} align="center" style={{ fontWeight: 'bold' }} className="bg-info">
@@ -37,7 +37,7 @@ function RadioOperatorAsset({ asset }: { asset: number }) {
           </td>
         </tr>
       </tbody>
-    </>
+    </Table>
   )
 }
 
@@ -50,11 +50,11 @@ function OrganizationRadioOperatorPage({ organizationId }: { organizationId: num
   }, 10000)
 
   return (
-    <Table responsive>
+    <div>
       {assets.map((asset) => (
         <RadioOperatorAsset key={asset.id} asset={asset.asset.id} />
       ))}
-    </Table>
+    </div>
   )
 }
 
