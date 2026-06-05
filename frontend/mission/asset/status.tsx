@@ -48,7 +48,7 @@ function MissionAssetStatusForm({ asset, mission }: MissionAssetStatusFormProps)
   return (
     <tr>
       <td>
-        <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} defaultValue={selectedValueId}>
+        <select onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedValueId(Number(e.target.value))} value={selectedValueId ?? ''}>
           {statusValues.map((v) => (
             <option key={v.id} value={v.id}>
               {v.name}
