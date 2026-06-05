@@ -90,10 +90,18 @@ function MissionDetailsExternalReferencesRow({ externalReference: extRef }: Miss
   }
 
   function update() {
+    // Build the payload from the latest props, overlaying only the fields
+    // the user actually opened/edited. Fields never opened keep their
+    // current server value instead of a stale mount snapshot, so an
+    // untouched field can't clobber a newer value from a concurrent edit.
+    const payload: Record<string, string | undefined> = { name: extRef.name, code: extRef.code, url: extRef.url, notes: extRef.notes }
+    for (const field of Object.keys(editFields) as ExtRefField[]) {
+      payload[field] = values[field]
+    }
     // Leave edit mode only once the save succeeds; on failure the row
     // stays editable so the user can retry. The displayed values refresh
     // from props on the next 10s poll.
-    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, { ...values }, () => setEditFields({}))
+    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, payload, () => setEditFields({}))
   }
 
   function deleteRow() {
