@@ -294,7 +294,7 @@ function QueuedSearchRow({ details, onAction }: { details: AssetFullStatusData; 
         <Button href={`/search/${details.queued_search_id}/`}>Details</Button>
       </td>
     )
-    if (details.current_search_id === undefined) {
+    if (!Number.isInteger(details.current_search_id)) {
       data.push(
         <td key="begin">
           <Button onClick={begin} disabled={busy}>
