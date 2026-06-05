@@ -2,85 +2,27 @@ import { MissionId } from '../mission/MissionId'
 import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
-import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
-import { smmGetJSON } from '../ajax'
+import { cookieJar } from '../cookies'
 import { SMMMissionUserPointTimeGeoJSON } from './types'
 import { UserPopup } from './UserPopup'
-import { ColorPickerDialog } from '../asset/ColorPickerDialog'
-import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 import { buildSwatchLabel } from '../components/swatchLabel'
 import { mountPopup } from '../components/mountPopup'
+import { TrackedPath } from '../components/TrackedPath'
 
-class SMMUserPosition {
-  map: L.Map
-  missionId: MissionId
+class SMMUserPosition extends TrackedPath {
   userName: string
-  color: string
-  swatch?: HTMLElement
   popup?: ReturnType<typeof mountPopup>
-  lastUpdate?: string
-  path: L.LatLng[]
-  updating: boolean
-  polyline: L.Polyline
   constructor(map: L.Map, missionId: MissionId, userName: string, color: string) {
-    this.missionId = missionId
+    super(map, missionId, userName, color)
     this.userName = userName
-    this.color = color
-    this.map = map
-    this.path = []
-    this.updating = false
-    this.polyline = L.polyline([], { color: this.color })
-    this.updateColor = this.updateColor.bind(this)
-    this.colorPicker = this.colorPicker.bind(this)
-    this.updateNewPosition = this.updateNewPosition.bind(this)
-    this.updateError = this.updateError.bind(this)
   }
 
-  overlay() {
-    return this.polyline
+  protected colorCookieKey() {
+    return `user_${this.userName}_track_color`
   }
 
-  updateColor(color: string) {
-    cookieJar.set(`user_${this.userName}_track_color`, color, PREFERENCE_COOKIE_OPTS)
-    this.color = color
-    this.polyline.setStyle({ color: this.color })
-    if (this.swatch) this.swatch.style.backgroundColor = color
-  }
-
-  colorPicker() {
-    renderInLeafletDialog(this.map, (onClose) => <ColorPickerDialog name={this.userName} color={this.color} onColorChange={this.updateColor} onClose={onClose} />, {
-      initOpen: true
-    })
-  }
-
-  updateNewPosition(route: { features: Array<SMMMissionUserPointTimeGeoJSON> }) {
-    for (const feature of route.features) {
-      const lon = feature.geometry.coordinates[0]
-      const lat = feature.geometry.coordinates[1]
-      this.path.push(L.latLng(lat, lon))
-      this.lastUpdate = feature.properties.created_at
-    }
-    this.polyline.setLatLngs(this.path)
-    this.updating = false
-  }
-
-  updateError() {
-    this.updating = false
-  }
-
-  update() {
-    if (this.updating) {
-      return
-    }
-    this.updating = true
-
-    const userUrl = `/mission/${this.missionId}/data/user/${this.userName}/position/history/`
-    const params: Record<string, string | undefined> = { oldest: 'last' }
-    if (this.lastUpdate != null) {
-      params.from = this.lastUpdate
-    }
-
-    smmGetJSON<{ features: Array<SMMMissionUserPointTimeGeoJSON> }>(userUrl, params).then(this.updateNewPosition).catch(this.updateError)
+  protected historyUrl() {
+    return `/mission/${this.missionId}/data/user/${this.userName}/position/history/`
   }
 }
 

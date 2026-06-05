@@ -3,88 +3,28 @@ import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
 import '@canterbury-air-patrol/leaflet-dialog'
-import { cookieJar, PREFERENCE_COOKIE_OPTS } from '../cookies'
-import { MissionAssetSummary, AssetPointTime } from './types'
+import { cookieJar } from '../cookies'
+import { MissionAssetSummary } from './types'
 
 import { smmGetJSON } from '../ajax'
 import { AssetPopup } from './AssetPopup'
-import { ColorPickerDialog } from './ColorPickerDialog'
-import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 import { buildSwatchLabel } from '../components/swatchLabel'
 import { mountPopup } from '../components/mountPopup'
+import { TrackedPath } from '../components/TrackedPath'
 
-class SMMAsset {
-  map: L.Map
-  missionId: MissionId
+class SMMAsset extends TrackedPath {
   assetId: number
-  assetName: string
-  color: string
-  swatch?: HTMLElement
-  lastUpdate?: string
-  path: Array<L.LatLng>
-  updating: boolean
-  polyline: L.Polyline
   constructor(map: L.Map, missionId: MissionId, assetId: number, assetName: string, color: string) {
-    this.missionId = missionId
+    super(map, missionId, assetName, color)
     this.assetId = assetId
-    this.assetName = assetName
-    this.color = color
-    this.lastUpdate = undefined
-    this.path = []
-    this.updating = false
-    this.map = map
-    this.polyline = L.polyline([], { color: this.color })
-    this.updateColor = this.updateColor.bind(this)
-    this.colorPicker = this.colorPicker.bind(this)
-    this.updateNewRoute = this.updateNewRoute.bind(this)
-    this.updateFailed = this.updateFailed.bind(this)
   }
 
-  overlay() {
-    return this.polyline
+  protected colorCookieKey() {
+    return `asset_${this.assetId}_track_color`
   }
 
-  updateColor(color: string) {
-    cookieJar.set(`asset_${this.assetId}_track_color`, color, PREFERENCE_COOKIE_OPTS)
-    this.color = color
-    this.polyline.setStyle({ color: this.color })
-    if (this.swatch) this.swatch.style.backgroundColor = color
-  }
-
-  colorPicker() {
-    renderInLeafletDialog(this.map, (onClose) => <ColorPickerDialog name={this.assetName} color={this.color} onColorChange={this.updateColor} onClose={onClose} />, {
-      initOpen: true
-    })
-  }
-
-  updateNewRoute(route: { features: Array<{ geometry: { coordinates: Array<number> }; properties: AssetPointTime }> }) {
-    for (const feature of route.features) {
-      const lon = feature.geometry.coordinates[0]
-      const lat = feature.geometry.coordinates[1]
-      this.path.push(L.latLng(lat, lon))
-      this.lastUpdate = feature.properties.created_at
-    }
-    this.polyline.setLatLngs(this.path)
-    this.updating = false
-  }
-
-  updateFailed() {
-    this.updating = false
-  }
-
-  update() {
-    if (this.updating) {
-      return
-    }
-    this.updating = true
-
-    const assetUrl = `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/`
-    const params: Record<string, string | undefined> = { oldest: 'last' }
-    if (this.lastUpdate) {
-      params.from = this.lastUpdate
-    }
-
-    smmGetJSON<{ features: Array<{ geometry: { coordinates: Array<number> }; properties: AssetPointTime }> }>(assetUrl, params).then(this.updateNewRoute).catch(this.updateFailed)
+  protected historyUrl() {
+    return `/mission/${this.missionId}/data/assets/${this.assetId}/position/history/`
   }
 }
 
