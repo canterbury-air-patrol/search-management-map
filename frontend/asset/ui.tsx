@@ -5,7 +5,7 @@ import { Table, Button } from 'react-bootstrap'
 import { degreesToDM } from '@canterbury-air-patrol/deg-converter'
 
 import { formatLocalDateTime } from '../format'
-import { smmGet, smmGetJSON, smmPost } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { MissionAssetStatus } from '../mission/asset/status'
 import { usePolling } from '../hooks/usePolling'
@@ -32,7 +32,7 @@ function AssetTrackAs({ asset }: AssetTrackAsProps) {
     setLongitude(coords.longitude)
     setAltitude(coords.altitude)
 
-    smmGet(`/data/assets/${asset}/position/add/`, {
+    smmPost(`/data/assets/${asset}/position/add/`, {
       lat: coords.latitude,
       lon: coords.longitude,
       alt: coords.altitude,
