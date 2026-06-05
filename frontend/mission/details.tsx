@@ -85,7 +85,10 @@ function MissionDetailsExternalReferencesRow({ externalReference: extRef }: Miss
   }
 
   function update() {
-    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, { ...values })
+    // Leave edit mode only once the save succeeds; on failure the row
+    // stays editable so the user can retry. The displayed values refresh
+    // from props on the next 10s poll.
+    smmPost(`/mission/${extRef.mission}/externalreferences/${extRef.id}/`, { ...values }, () => setEditFields({}))
   }
 
   function deleteRow() {
