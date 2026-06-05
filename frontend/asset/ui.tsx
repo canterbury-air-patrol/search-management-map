@@ -161,7 +161,7 @@ function AssetCommandView({ asset, lastCommand }: AssetCommandViewProps) {
           <td>
             Response:
             <br />
-            <select onChange={(e) => setType(e.target.value)} defaultValue={type}>
+            <select onChange={(e) => setType(e.target.value)} value={type}>
               <option value="Accepted">Accept</option>
               <option value="More Info">More Info</option>
               <option value="Unable">Unable</option>
