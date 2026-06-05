@@ -66,6 +66,11 @@ function MissionDetailsExternalReferencesRow({ externalReference: extRef }: Miss
   })
 
   function toggleEdit(field: ExtRefField) {
+    // Seed the field being opened from the current prop so editing always
+    // starts from the latest server value (the row persists across the
+    // 10s poll, keyed by id). Only this field is reset, leaving any other
+    // in-progress edits untouched.
+    setValues((prev) => ({ ...prev, [field]: extRef[field] }))
     setEditFields((prev) => ({ ...prev, [field]: true }))
   }
 
