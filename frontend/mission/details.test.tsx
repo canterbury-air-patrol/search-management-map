@@ -86,7 +86,7 @@ describe('MissionDetailPage external references', () => {
     await screen.findByText('ABC')
 
     // The code changes server-side while the field is closed.
-    detailsState = { ...detailsState, external_references: [{ ...detailsState.external_references[0], code: 'XYZ' }] }
+    detailsState = { ...detailsState, external_references: [{ id: 50, mission: 1, name: 'IRD', code: 'XYZ', url: 'http://example/x', notes: 'note' }] }
     triggerRepoll()
     await screen.findByText('XYZ')
 
@@ -101,7 +101,7 @@ describe('MissionDetailPage external references', () => {
     await screen.findByText('ABC')
 
     // Code is updated by a background poll; the user never touches it.
-    detailsState = { ...detailsState, external_references: [{ ...detailsState.external_references[0], code: 'XYZ' }] }
+    detailsState = { ...detailsState, external_references: [{ id: 50, mission: 1, name: 'IRD', code: 'XYZ', url: 'http://example/x', notes: 'note' }] }
     triggerRepoll()
     await screen.findByText('XYZ')
 
