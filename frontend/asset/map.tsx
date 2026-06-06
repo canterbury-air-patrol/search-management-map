@@ -111,7 +111,7 @@ class SMMAssets extends SMMRealtime {
 
   assetLayer(asset: { properties: { asset: number } }, latlng: L.LatLng) {
     const iconUrl = this.getAssetIcon(asset.properties.asset)
-    const title = this.assetNameMap[asset.properties.asset]
+    const title = this.assetNameMap[asset.properties.asset] ?? String(asset.properties.asset)
     return L.marker(latlng, iconUrl ? { title, icon: customAssetIcon(iconUrl) } : { title })
   }
 
