@@ -28,7 +28,10 @@ function mockResponse({ ok, status, json, text }: ResponseInit): Response {
 const fetchMock = vi.fn()
 
 function lastCall() {
-  return fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+  const { calls } = fetchMock.mock
+  const call = calls[calls.length - 1]
+  if (!call) throw new Error('fetch was not called')
+  return call
 }
 
 beforeEach(() => {
