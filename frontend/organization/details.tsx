@@ -201,7 +201,7 @@ function OrganizationAssetList({ organizationId, assets }: OrganizationAssetList
   )
 }
 
-function OrganizationAssetAdd({ organizationId }: { organizationId: number }) {
+export function OrganizationAssetAdd({ organizationId }: { organizationId: number }) {
   const [assetList, setAssetList] = useState<AssetData[]>([])
   const [assetId, setAssetId] = useState<number | undefined>(undefined)
 
