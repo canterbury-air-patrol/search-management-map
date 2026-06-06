@@ -28,11 +28,28 @@ function makeDetails() {
   }
 }
 
+let detailsState: ReturnType<typeof makeDetails>
+
+function setVisibility(state: 'visible' | 'hidden') {
+  Object.defineProperty(document, 'visibilityState', { value: state, configurable: true })
+}
+
+// usePolling re-runs its callback immediately when the tab returns to
+// visible, so a hide/show cycle forces a fresh /details/ fetch without
+// waiting out the 10s interval - our stand-in for a background poll.
+function triggerRepoll() {
+  setVisibility('hidden')
+  document.dispatchEvent(new Event('visibilitychange'))
+  setVisibility('visible')
+  document.dispatchEvent(new Event('visibilitychange'))
+}
+
 beforeEach(() => {
-  const details = makeDetails()
+  detailsState = makeDetails()
+  setVisibility('visible')
   ;(smmGetJSON as Mock).mockImplementation((url: string, _data: unknown, success?: (d: unknown) => void) => {
     let data: unknown = {}
-    if (url.includes('/details/')) data = details
+    if (url.includes('/details/')) data = detailsState
     else if (url.includes('not_included')) data = { assets: [], organizations: [], users: [] }
     success?.(data)
     return Promise.resolve(data)
@@ -48,13 +65,7 @@ afterEach(() => {
 })
 
 describe('MissionDetailPage external references', () => {
-  it('seeds the edit input from the current value when a field is opened', async () => {
-    render(<MissionDetailPage missionId={1} />)
-    await userEvent.click(await screen.findByText('IRD'))
-    expect(screen.getByDisplayValue('IRD')).toBeInTheDocument()
-  })
-
-  it('saves only edited fields over the latest props and leaves edit mode on success', async () => {
+  it('leaves edit mode on a successful save', async () => {
     render(<MissionDetailPage missionId={1} />)
 
     await userEvent.click(await screen.findByText('IRD'))
@@ -64,13 +75,45 @@ describe('MissionDetailPage external references', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Update' }))
 
-    // Untouched fields carry their current prop values, not a blank/stale snapshot.
-    expect(smmPost).toHaveBeenCalledWith('/mission/1/externalreferences/50/', { name: 'NewName', code: 'ABC', url: 'http://example/x', notes: 'note' }, expect.any(Function))
-
-    // Editing ends on success: the input is gone and the row is back to its
-    // display state (Delete button shown instead of Update/Cancel).
+    // The input is gone and the row is back to its display state (Delete
+    // shown instead of Update/Cancel).
     expect(screen.queryByDisplayValue('NewName')).toBeNull()
     expect(screen.getByRole('button', { name: 'Delete' })).toBeInTheDocument()
+  })
+
+  it('seeds a field from the latest props, not a stale snapshot, when re-opened', async () => {
+    render(<MissionDetailPage missionId={1} />)
+    await screen.findByText('ABC')
+
+    // The code changes server-side while the field is closed.
+    detailsState = { ...detailsState, external_references: [{ ...detailsState.external_references[0], code: 'XYZ' }] }
+    triggerRepoll()
+    await screen.findByText('XYZ')
+
+    // Opening the code field shows the updated value, not the mount snapshot.
+    await userEvent.click(screen.getByText('XYZ'))
+    expect(screen.getByDisplayValue('XYZ')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('ABC')).toBeNull()
+  })
+
+  it('posts edited fields over the latest props, so an untouched field is not reverted', async () => {
+    render(<MissionDetailPage missionId={1} />)
+    await screen.findByText('ABC')
+
+    // Code is updated by a background poll; the user never touches it.
+    detailsState = { ...detailsState, external_references: [{ ...detailsState.external_references[0], code: 'XYZ' }] }
+    triggerRepoll()
+    await screen.findByText('XYZ')
+
+    // Edit only the name, then save.
+    await userEvent.click(screen.getByText('IRD'))
+    const input = screen.getByDisplayValue('IRD')
+    await userEvent.clear(input)
+    await userEvent.type(input, 'NewName')
+    await userEvent.click(screen.getByRole('button', { name: 'Update' }))
+
+    // code is the freshly-polled XYZ, not the stale mount-time ABC.
+    expect(smmPost).toHaveBeenCalledWith('/mission/1/externalreferences/50/', { name: 'NewName', code: 'XYZ', url: 'http://example/x', notes: 'note' }, expect.any(Function))
   })
 
   it('cancel discards the edit without posting', async () => {
