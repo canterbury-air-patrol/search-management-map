@@ -132,7 +132,7 @@ function OrganizationMemberAdd({ organizationId }: { organizationId: number }) {
   usePolling(async () => {
     const data = await smmGetJSON<{ users: { id: number; username: string }[] }>(`/organization/${organizationId}/users/notmember/`, {})
     setUserList(data.users)
-    setUserId((prev) => (prev === undefined && data.users.length > 0 ? data.users[0].id : prev))
+    setUserId((prev) => prev ?? data.users[0]?.id)
   }, 10000)
 
   async function addOrganizationMember() {
@@ -208,7 +208,7 @@ export function OrganizationAssetAdd({ organizationId }: { organizationId: numbe
   usePolling(async () => {
     const data = await smmGetJSON<{ assets: AssetData[] }>('/assets/', {})
     setAssetList(data.assets)
-    setAssetId((prev) => (prev === undefined && data.assets.length > 0 ? data.assets[0].id : prev))
+    setAssetId((prev) => prev ?? data.assets[0]?.id)
   }, 10000)
 
   async function addOrganizationAsset() {

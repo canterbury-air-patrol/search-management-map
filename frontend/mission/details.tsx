@@ -296,7 +296,7 @@ function MissionDetailsOrganizationAdd({ mission }: { mission: number }) {
   usePolling(async () => {
     const data = await smmGetJSON<{ organizations: OrganizationData[] }>(`/mission/${mission}/organizations/?not_included=True`, {})
     setOrgs(data.organizations)
-    setSelectedOrg((prev) => (prev === undefined && data.organizations.length > 0 ? data.organizations[0].id : prev))
+    setSelectedOrg((prev) => prev ?? data.organizations[0]?.id)
   }, 10000)
 
   function add() {
@@ -427,7 +427,7 @@ function MissionDetailsUserAdd({ mission }: { mission: number }) {
   usePolling(async () => {
     const data = await smmGetJSON<{ users: Array<{ id: number; username: string }> }>(`/mission/${mission}/users/?not_included=True`, {})
     setUsers(data.users)
-    setSelectedUser((prev) => (prev === undefined && data.users.length > 0 ? data.users[0].id : prev))
+    setSelectedUser((prev) => prev ?? data.users[0]?.id)
   }, 10000)
 
   function add() {
@@ -533,7 +533,7 @@ function MissionDetailsAssetAdd({ mission }: { mission: number }) {
   usePolling(async () => {
     const data = await smmGetJSON<{ assets: AssetData[] }>(`/mission/${mission}/assets/?not_included=True`, {})
     setAssets(data.assets)
-    setSelectedAsset((prev) => (prev === undefined && data.assets.length > 0 ? data.assets[0].id : prev))
+    setSelectedAsset((prev) => prev ?? data.assets[0]?.id)
   }, 10000)
 
   function add() {

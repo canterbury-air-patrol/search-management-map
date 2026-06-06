@@ -35,8 +35,10 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
       setAssets(data.assets)
       setCommands(data.commands)
       setRequiresPosition(data.requires_position)
-      if (data.assets.length > 0) setAssetId(String(data.assets[0].id))
-      if (data.commands.length > 0) setCommand(data.commands[0].value)
+      const firstAsset = data.assets[0]
+      if (firstAsset) setAssetId(String(firstAsset.id))
+      const firstCommand = data.commands[0]
+      if (firstCommand) setCommand(firstCommand.value)
     })
     return () => {
       cancelled = true
