@@ -60,10 +60,12 @@ abstract class SMMUserGeoCollection<TGeoJSON extends { properties: SMMUserGeoLab
   abstract createObject(feature: TGeoJSON): TLayer
 
   getObject(pk: number, feature: TGeoJSON): TLayer {
-    if (!(pk in this.objects)) {
-      this.objects[pk] = this.createObject(feature)
+    let obj = this.objects[pk]
+    if (!obj) {
+      obj = this.createObject(feature)
+      this.objects[pk] = obj
     }
-    return this.objects[pk]
+    return obj
   }
 
   createPopup(feature: TGeoJSON, layer: L.Layer) {

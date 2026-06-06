@@ -80,14 +80,15 @@ class SMMAssets extends SMMRealtime {
   }
 
   createAsset(assetId: number) {
-    if (!(assetId in this.assetNameMap)) {
+    const assetName = this.assetNameMap[assetId]
+    if (assetName === undefined) {
       return null
     }
     if (!(assetId in this.assetObjects)) {
       const color = cookieJar.get(`asset_${assetId}_track_color`)
-      const assetObject = new SMMAsset(this.map, this.missionId, assetId, this.assetNameMap[assetId], color !== undefined ? color : this.color)
+      const assetObject = new SMMAsset(this.map, this.missionId, assetId, assetName, color !== undefined ? color : this.color)
       this.assetObjects[assetId] = assetObject
-      this.overlayAdd(buildSwatchLabel(this.assetNameMap[assetId], assetObject), assetObject.overlay())
+      this.overlayAdd(buildSwatchLabel(assetName, assetObject), assetObject.overlay())
     }
     return this.assetObjects[assetId]
   }
@@ -124,27 +125,19 @@ class SMMAssets extends SMMRealtime {
 
     const coords = asset.geometry.coordinates as [number, number]
     const { alt, heading, fix } = asset.properties
+    const assetName = this.assetNameMap[assetId] ?? String(assetId)
     this.popups[assetId]?.rerender(
-      <AssetPopup
-        assetName={this.assetNameMap[assetId]}
-        coords={coords}
-        alt={alt}
-        heading={heading}
-        fix={fix}
-        status={assetId in this.assetStatusMap ? this.assetStatusMap[assetId] : undefined}
-      />
+      <AssetPopup assetName={assetName} coords={coords} alt={alt} heading={heading} fix={fix} status={assetId in this.assetStatusMap ? this.assetStatusMap[assetId] : undefined} />
     )
 
     if (asset.geometry.type === 'Point') {
-      const c = asset.geometry.coordinates
-      oldLayer.setLatLng([c[1], c[0]])
+      oldLayer.setLatLng([coords[1], coords[0]])
 
-      const newTitle = this.assetNameMap[assetId]
       const iconEl = oldLayer.getElement()
-      if (iconEl && iconEl.title !== newTitle) {
-        iconEl.title = newTitle
+      if (iconEl && iconEl.title !== assetName) {
+        iconEl.title = assetName
       }
-      oldLayer.options.title = newTitle
+      oldLayer.options.title = assetName
 
       const desiredIconUrl = this.assetIconMap[assetId] // undefined when the asset has no custom icon
       const currentIconUrl = oldLayer.getIcon().options.iconUrl

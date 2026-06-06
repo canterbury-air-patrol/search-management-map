@@ -51,13 +51,14 @@ class SMMUserPositions extends SMMRealtime {
   }
 
   createUser(userName: string) {
-    if (!(userName in this.userObjects)) {
+    let userObject = this.userObjects[userName]
+    if (!userObject) {
       const color = cookieJar.get(`user_${userName}_track_color`)
-      const userObject = new SMMUserPosition(this.map, this.missionId, userName, color !== undefined ? color : this.color)
+      userObject = new SMMUserPosition(this.map, this.missionId, userName, color !== undefined ? color : this.color)
       this.userObjects[userName] = userObject
       this.overlayAdd(buildSwatchLabel(userName, userObject), userObject.overlay())
     }
-    return this.userObjects[userName]
+    return userObject
   }
 
   createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {
