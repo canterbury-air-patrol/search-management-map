@@ -23,7 +23,8 @@ export function SearchQueueDialog({ searchPk, missionId, createdFor, onClose }: 
       if (cancelled) return
       const filtered = d.assets.filter((a) => a.type_name === createdFor)
       setAssets(filtered)
-      if (filtered.length > 0) setSelectedAssetId(String(filtered[0].id))
+      const firstAsset = filtered[0]
+      if (firstAsset) setSelectedAssetId(String(firstAsset.id))
     })
     return () => {
       cancelled = true

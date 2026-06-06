@@ -33,7 +33,7 @@ function MissionAssetStatusForm({ asset, mission }: MissionAssetStatusFormProps)
   usePolling(async () => {
     const data = await smmGetJSON<{ values: MissionAssetStatusValue[] }>('/mission/asset/status/values/', {})
     setStatusValues(data.values)
-    setSelectedValueId((prev) => (prev === undefined && data.values.length > 0 ? data.values[0].id : prev))
+    setSelectedValueId((prev) => prev ?? data.values[0]?.id)
   }, 10000)
 
   async function setStatus() {

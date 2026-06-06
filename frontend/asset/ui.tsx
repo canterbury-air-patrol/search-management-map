@@ -371,7 +371,7 @@ function AssetStatus({ asset, details }: AssetStatusProps) {
   usePolling(async () => {
     const data = await smmGetJSON<{ values: AssetStatusValueData[] }>('/assets/status/values/', {})
     setStatusValues(data.values)
-    setSelectedValueId((prev) => (prev === undefined && data.values.length > 0 ? data.values[0].id : prev))
+    setSelectedValueId((prev) => prev ?? data.values[0]?.id)
   }, 10000)
 
   async function setStatus() {

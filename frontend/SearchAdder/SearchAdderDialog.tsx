@@ -54,7 +54,8 @@ export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props)
     smmGetJSON<{ asset_types: AssetType[] }>('/assets/assettypes/', {}).then((data) => {
       const types = data.asset_types ?? []
       setAssetTypes(types)
-      if (types.length > 0) setAssetTypeId(String(types[0].id))
+      const firstType = types[0]
+      if (firstType) setAssetTypeId(String(firstType.id))
     })
     return () => {
       previewRef.current?.remove()
