@@ -55,10 +55,12 @@ describe('usePolling', () => {
     await vi.advanceTimersByTimeAsync(1000)
     expect(fn).toHaveBeenCalledTimes(1)
 
-    // Once it settles, the next tick runs again.
+    // Once it settles, the next tick runs again. Awaiting the promise then
+    // advancing drains the .catch().finally() that clears the in-flight flag
+    // (advanceTimersByTimeAsync flushes microtasks before firing the timer),
+    // so this doesn't depend on the exact length of the implementation chain.
     first.resolve()
-    await Promise.resolve()
-    await Promise.resolve()
+    await first.promise
     await vi.advanceTimersByTimeAsync(1000)
     expect(fn).toHaveBeenCalledTimes(2)
   })
@@ -99,8 +101,8 @@ describe('usePolling', () => {
     await vi.advanceTimersByTimeAsync(3000)
     expect(fn).toHaveBeenCalledTimes(1)
 
-    // A visibility change after unmount must not restart polling.
-    setVisibility('visible')
+    // A visibility change after unmount must not restart polling (the
+    // listener was removed). The tab is already visible here.
     document.dispatchEvent(new Event('visibilitychange'))
     expect(fn).toHaveBeenCalledTimes(1)
   })
@@ -112,7 +114,7 @@ describe('usePolling', () => {
 
     await vi.advanceTimersByTimeAsync(1000)
     expect(fn).toHaveBeenCalledTimes(2)
-    expect(consoleError).toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('usePolling callback rejected', expect.any(Error))
   })
 
   it('logs and keeps polling when a synchronous callback throws', async () => {
@@ -122,7 +124,7 @@ describe('usePolling', () => {
     })
     renderHook(() => usePolling(fn, 1000))
     expect(fn).toHaveBeenCalledTimes(1)
-    expect(consoleError).toHaveBeenCalled()
+    expect(consoleError).toHaveBeenCalledWith('usePolling callback threw', expect.any(Error))
 
     await vi.advanceTimersByTimeAsync(1000)
     expect(fn).toHaveBeenCalledTimes(2)
