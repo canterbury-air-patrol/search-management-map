@@ -2,6 +2,7 @@
 
 npm ci
 npm run check
+npm test
 npm run build-only
 if [[ "x$USERID" != "x" ]] && [[ "x$GROUPID" != "x" ]]
 then
