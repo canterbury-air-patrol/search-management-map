@@ -16,10 +16,11 @@ class SMMPolygon extends SMMUserGeoLayer {
   }
 
   editCallback() {
+    const ring = this.coords[0] ?? []
     PolygonAdder(
       this.map,
       this.missionId,
-      this.coords[0].map((x) => L.latLng(x[1], x[0])),
+      ring.map((x) => L.latLng(x[1], x[0])),
       this.data.pk,
       this.data.label
     )

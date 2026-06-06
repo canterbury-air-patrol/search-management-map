@@ -80,11 +80,12 @@ abstract class SMMSearches extends SMMRealtime {
   abstract searchStatus(search: SMMSearchObjectDetailsData): string
 
   getObject(pk: number, search: SMMSearchObjectDetailsData) {
-    if (!(pk in this.searchObjects)) {
-      const searchObject = new SMMSearch(this, search)
+    let searchObject = this.searchObjects[pk]
+    if (!searchObject) {
+      searchObject = new SMMSearch(this, search)
       this.searchObjects[pk] = searchObject
     }
-    return this.searchObjects[pk]
+    return searchObject
   }
 
   createPopup(search: { properties: SMMSearchObjectDetailsData }, layer: L.Layer) {

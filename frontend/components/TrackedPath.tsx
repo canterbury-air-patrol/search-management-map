@@ -10,7 +10,7 @@ import { renderInLeafletDialog } from './renderInLeafletDialog'
  *  [lon, lat] order, each carrying the time it was recorded. Both the
  *  asset and user position-history responses are supersets of this. */
 interface PositionHistory {
-  features: Array<{ geometry: { coordinates: number[] }; properties: { created_at: string } }>
+  features: Array<{ geometry: { coordinates: [number, number] }; properties: { created_at: string } }>
 }
 
 /**
