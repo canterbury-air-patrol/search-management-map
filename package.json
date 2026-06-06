@@ -7,7 +7,9 @@
     "check": "tsc --noEmit && eslint --max-warnings 0 frontend/ && prettier -c frontend/",
     "build-only": "esbuild $(esbuild-config) && mkdir -p dist/icons && cp frontend/icons/*.png dist/icons/",
     "build": "esbuild $(esbuild-config) && mkdir -p dist/icons && cp frontend/icons/*.png dist/icons/ && cp -dpR dist/* map/static/",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "repository": {
     "type": "git",
@@ -43,17 +45,24 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/leaflet": "^1.9.21",
     "@types/react": "^19.2.16",
     "@types/react-color": "^3.0.13",
     "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.8",
     "eslint": "^9.39.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
+    "jsdom": "^29.1.1",
     "prettier": "3.8.3",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.1"
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.8"
   },
   "overrides": {
     "react-collapsible": {
