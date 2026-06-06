@@ -20,13 +20,13 @@ function GeoJsonMap({ geometry }: GeoJsonMapProps) {
   switch (geometry.type) {
     case 'LineString': {
       const coordinates = mapCoordinates(geometry.coordinates)
-      firstPoint = coordinates[0]
+      firstPoint = coordinates[0] ?? firstPoint
       objects.push(<Polyline key="linestring" positions={coordinates} />)
       break
     }
     case 'Polygon': {
-      const coordinates = mapCoordinates(geometry.coordinates[0])
-      firstPoint = coordinates[0]
+      const coordinates = mapCoordinates(geometry.coordinates[0] ?? [])
+      firstPoint = coordinates[0] ?? firstPoint
       objects.push(<Polygon key="polygon" positions={coordinates} />)
       break
     }

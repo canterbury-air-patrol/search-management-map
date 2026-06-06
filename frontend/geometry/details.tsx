@@ -17,8 +17,8 @@ export type GeometryJSON =
 
 function coordinateToLatLng(point: number[]): Point {
   return {
-    lat: point[1],
-    lng: point[0]
+    lat: point[1] ?? 0,
+    lng: point[0] ?? 0
   }
 }
 
@@ -36,8 +36,10 @@ function pointsFromGeometry(geometry: GeometryJSON): Point[] {
       return [coordinateToLatLng(geometry.coordinates)]
     case 'LineString':
       return mapCoordinates(geometry.coordinates)
-    case 'Polygon':
-      return mapCoordinates(geometry.coordinates[0])
+    case 'Polygon': {
+      const ring = geometry.coordinates[0]
+      return ring ? mapCoordinates(ring) : []
+    }
   }
 }
 
