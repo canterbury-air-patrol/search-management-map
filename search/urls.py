@@ -25,6 +25,7 @@ urlpatterns = [
     re_path(r'^search/creepingline/create/track/$', views.TrackCreepingLineSearchCreateView.as_view(), name='track_creeping_line_search_create'),
     re_path(r'^search/creepingline/create/polygon/$', views.PolygonCreepingLineSearchCreateView.as_view(), name='polygon_creeping_line_search_create'),
     re_path(r'^search/find/closest/$', views.find_next_search, name='find_next_search'),
+    re_path(r'^assets/(?P<asset_id>\d+)/mission/$', views.AssetMissionView.as_view(), name='asset_mission_view'),
 
     re_path(r'^mission/all/search/notstarted/$', views.search_notstarted_user, {'search_class': Search, 'current_only': False}),
     re_path(r'^mission/all/search/inprogress/$', views.search_inprogress_user, {'search_class': Search, 'current_only': False}),

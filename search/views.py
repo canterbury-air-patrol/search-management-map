@@ -21,12 +21,12 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from assets.models import AssetType, Asset
-from organization.decorators import asset_id_in_get_post
+from organization.decorators import asset_id_in_get_post, asset_is_operator
 from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
-from mission.models import Mission, MissionAsset
-from mission.decorators import mission_is_member, mission_asset_get_mission
+from mission.models import Mission, MissionAsset, AssetCommand
+from mission.decorators import mission_is_member, mission_asset_get_mission, mission_asset_get
 from timeline.helpers import timeline_record_search_finished
 from .decorators import search_from_id
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
@@ -425,3 +425,31 @@ class SearchView(View):
             return HttpResponse('Success')
 
         return HttpResponseNotFound('Unable')
+
+
+@method_decorator(login_required, name="dispatch")
+@method_decorator(asset_is_operator, name="dispatch")
+class AssetMissionView(View):
+    """
+    Mission/search context for an asset: last command, active mission, and searches.
+    """
+    def get(self, request, asset):
+        """
+        Return mission/search context for this asset as JSON.
+        """
+        data = {
+            'last_command': AssetCommand.last_command_for_asset_to_json(asset),
+        }
+        mission_asset = mission_asset_get(asset)
+        if mission_asset is not None:
+            data['mission_id'] = mission_asset.mission.pk
+            data['mission_name'] = mission_asset.mission.mission_name
+
+            current_search = check_searches_in_progress(mission_asset.mission, asset)
+            if current_search is not None:
+                data['current_search_id'] = current_search.pk
+            queued_search = Search.oldest_queued_for_asset(mission_asset.mission, asset)
+            if queued_search is not None:
+                data['queued_search_id'] = queued_search.pk
+
+        return JsonResponse(data)
