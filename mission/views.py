@@ -452,14 +452,17 @@ class MissionUserView(View):
         add_organization = body.get('add_organization', None)
         add_user = body.get('add_user', None)
 
+        if any(v is not None and not isinstance(v, bool) for v in (admin, add_organization, add_user)):
+            return HttpResponseBadRequest('admin, add_organization and add_user must be booleans')
+
         if admin is not None or add_organization is not None or add_user is not None:
             target_mission_user = get_object_or_404(MissionUser, mission=mission_user.mission, user=user)
             if admin is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'admin', bool(admin))
+                self._update_user_permissions(mission_user, target_mission_user, 'admin', admin)
             if add_organization is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'organization_add', bool(add_organization))
+                self._update_user_permissions(mission_user, target_mission_user, 'organization_add', add_organization)
             if add_user is not None:
-                self._update_user_permissions(mission_user, target_mission_user, 'user_add', bool(add_user))
+                self._update_user_permissions(mission_user, target_mission_user, 'user_add', add_user)
             target_mission_user.save()
         return HttpResponse('')
 
