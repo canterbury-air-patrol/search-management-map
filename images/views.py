@@ -117,9 +117,11 @@ class ImagePriorityView(View):
         """Update image priority from JSON body {"priority": true/false}."""
         try:
             body = json.loads(request.body)
-            priority = bool(body.get('priority'))
-        except (ValueError, KeyError):
+        except ValueError:
             return HttpResponseBadRequest('Expected JSON body with {"priority": true/false}')
+        priority = body.get('priority')
+        if not isinstance(priority, bool):
+            return HttpResponseBadRequest('priority must be a boolean')
         image.priority = priority
         image.save()
         timeline_record_image_priority_changed(mission_user.mission, mission_user.user, image)
