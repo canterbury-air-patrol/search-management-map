@@ -37,7 +37,7 @@ class ImageUploadView(View):
                 point = Point(float(longitude), float(latitude))
             except (ValueError, TypeError):
                 return HttpResponseBadRequest('Invalid lat/long')
-            upload_image_file(mission_user, form.cleaned_data['description'], point, request.FILES['file'])
+            upload_image_file(mission_user, form.cleaned_data['description'], point, form.cleaned_data['file'])
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/map/')
         return HttpResponseBadRequest()
 
