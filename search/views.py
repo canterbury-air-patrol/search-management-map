@@ -40,6 +40,14 @@ def mission_get(mission_id):
     return get_object_or_404(Mission, pk=mission_id)
 
 
+def _parse_first_bearing(value) -> int:
+    """Return value as int, defaulting to 0 for missing or non-numeric input."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
 @login_required
 @asset_id_in_get_post
 @mission_asset_get_mission
@@ -295,10 +303,7 @@ class ExpandingBoxSearchCreateView(View):
         poi = get_object_or_404(GeoTimeLabel, pk=request.GET.get('poi_id'), geo_type='poi')
         asset_type = get_object_or_404(AssetType, pk=request.GET.get('asset_type_id'))
         sweep_width = float(request.GET.get('sweep_width'))
-        try:
-            first_bearing = int(request.GET.get('first_bearing'))
-        except TypeError:
-            first_bearing = 0
+        first_bearing = _parse_first_bearing(request.GET.get('first_bearing'))
         params = ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, request.GET.get('iterations'), first_bearing)
         return to_geojson(Search, [Search.create_expanding_box_search(params, save=False)])
 
@@ -307,10 +312,7 @@ class ExpandingBoxSearchCreateView(View):
         poi = get_object_or_404(GeoTimeLabel, pk=request.POST.get('poi_id'), geo_type='poi')
         asset_type = get_object_or_404(AssetType, pk=request.POST.get('asset_type_id'))
         sweep_width = float(request.POST.get('sweep_width'))
-        try:
-            first_bearing = int(request.POST.get('first_bearing'))
-        except TypeError:
-            first_bearing = 0
+        first_bearing = _parse_first_bearing(request.POST.get('first_bearing'))
         params = ExpandingBoxSearchParams(poi, asset_type, request.user, sweep_width, request.POST.get('iterations'), first_bearing)
         return to_geojson(Search, [Search.create_expanding_box_search(params, save=True)])
 
