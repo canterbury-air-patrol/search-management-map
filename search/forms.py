@@ -16,8 +16,9 @@ class AssetSearchQueueEntryForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.mission = kwargs.pop('mission')
         super().__init__(*args, **kwargs)
-        mission_assets = MissionAsset.objects.filter(mission=self.mission, removed__isnull=True)
-        self.fields['queued_for_asset'].queryset = Asset.objects.filter(pk__in=[mission_asset.asset.pk for mission_asset in mission_assets])
+        self.fields['queued_for_asset'].queryset = Asset.objects.filter(
+            pk__in=MissionAsset.objects.filter(mission=self.mission, removed__isnull=True).values('asset')
+        )
 
     class Meta:
         model = Search
