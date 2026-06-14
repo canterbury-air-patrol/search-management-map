@@ -9,6 +9,7 @@ from django.views import View
 
 from .decorators import asset_is_owner
 
+from assets.models import Asset
 from .models import Organization, OrganizationMember, OrganizationAsset
 from .decorators import organization_is_admin, organization_assets_admin, organization_is_radio_operator, get_target_user
 
@@ -113,18 +114,14 @@ class OrganizationAssetsView(View):
     """
     def get(self, request):
         """Return assets from all orgs where the user has a recorder/operator/admin role."""
-        org_members = OrganizationMember.objects.filter(
+        org_ids = OrganizationMember.objects.filter(
             user=request.user, role__in=['A', 'R', 'b'], removed__isnull=True
-        )
-        seen = set()
-        assets = []
-        for org_member in org_members:
-            for org_asset in OrganizationAsset.objects.filter(
-                organization=org_member.organization, removed__isnull=True
-            ):
-                if org_asset.asset.pk not in seen:
-                    seen.add(org_asset.asset.pk)
-                    assets.append(org_asset.asset)
+        ).values('organization')
+        asset_ids = OrganizationAsset.objects.filter(
+            organization__in=org_ids,
+            removed__isnull=True,
+        ).values('asset')
+        assets = Asset.objects.filter(pk__in=asset_ids)
         return JsonResponse({'assets': [a.as_object() for a in assets]})
 
 
