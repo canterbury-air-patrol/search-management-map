@@ -44,11 +44,9 @@ def assets_position_latest(request, mission_user):
     """
     Get the last position of each of the know assets
     """
-    assets = Asset.objects.all()
-    positions = []
-    for asset in assets:
-        points = AssetPointTime.objects.filter(mission=mission_user.mission, asset=asset).order_by('-created_at')[:1]
-        positions.extend(iter(points))
+    positions = AssetPointTime.objects.filter(
+        mission=mission_user.mission
+    ).order_by('asset', '-created_at').distinct('asset')
     return to_geojson(AssetPointTime, positions)
 
 
@@ -57,14 +55,12 @@ def assets_position_latest_user(request, current_only):
     """
     Get the last position of each of the know assets from all missions
     """
-    assets = Asset.objects.all()
-    positions = []
-    for asset in assets:
-        points = AssetPointTime.objects
-        if current_only:
-            points = points.filter(mission__closed__isnull=True)
-        points = points.filter(mission__missionuser__user=request.user, asset=asset).order_by('-created_at')[:1]
-        positions.extend(iter(points))
+    points = AssetPointTime.objects
+    if current_only:
+        points = points.filter(mission__closed__isnull=True)
+    positions = points.filter(
+        mission__missionuser__user=request.user
+    ).order_by('asset', '-created_at').distinct('asset')
     return to_geojson(AssetPointTime, positions)
 
 
