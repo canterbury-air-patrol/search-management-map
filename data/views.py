@@ -182,29 +182,25 @@ def asset_position_history_user(request, asset_id, current_only):
 @mission_is_member
 def users_position_latest(request, mission_user):
     """
-    Get the last position of each of the know assets
+    Get the last position of each of the known users
     """
-    users = get_user_model().objects.all()
-    positions = []
-    for user in users:
-        points = UserPointTime.objects.filter(mission=mission_user.mission, user=user).order_by('-created_at')[:1]
-        positions.extend(iter(points))
+    positions = UserPointTime.objects.filter(
+        mission=mission_user.mission
+    ).order_by('user', '-created_at').distinct('user')
     return to_geojson(UserPointTime, positions)
 
 
 @login_required
 def users_position_latest_user(request, current_only):
     """
-    Get the last position of each of the know assets from all missions
+    Get the last position of each of the known users from all missions
     """
-    users = get_user_model().objects.all()
-    positions = []
-    for user in users:
-        points = UserPointTime.objects
-        if current_only:
-            points = points.filter(mission__closed__isnull=True)
-        points = points.filter(mission__missionuser__user=request.user, user=user).order_by('-created_at')[:1]
-        positions.extend(iter(points))
+    points = UserPointTime.objects
+    if current_only:
+        points = points.filter(mission__closed__isnull=True)
+    positions = points.filter(
+        mission__missionuser__user=request.user
+    ).order_by('user', '-created_at').distinct('user')
     return to_geojson(UserPointTime, positions)
 
 
