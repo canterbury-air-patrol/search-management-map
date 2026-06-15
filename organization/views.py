@@ -116,12 +116,12 @@ class OrganizationAssetsView(View):
         """Return assets from all orgs where the user has a recorder/operator/admin role."""
         org_ids = OrganizationMember.objects.filter(
             user=request.user, role__in=['A', 'R', 'b'], removed__isnull=True
-        ).values('organization')
+        ).values_list('organization', flat=True)
         asset_ids = OrganizationAsset.objects.filter(
             organization__in=org_ids,
             removed__isnull=True,
-        ).values('asset')
-        assets = Asset.objects.filter(pk__in=asset_ids)
+        ).values_list('asset', flat=True)
+        assets = Asset.objects.filter(pk__in=asset_ids).order_by('name')
         return JsonResponse({'assets': [a.as_object() for a in assets]})
 
 
