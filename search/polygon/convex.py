@@ -72,11 +72,9 @@ def lrng_cross(lrng):
         pt_0 = lrng_1[i-2]
         pt_1 = lrng_1[i-1]
         pt_2 = val
-        dirl.append(
-            np.cross(
-                *pt_corner_relv(pt_0, pt_1, pt_2)
-            )
-        )
+        vec_u, vec_v = pt_corner_relv(pt_0, pt_1, pt_2)
+        # 2D cross product (z-component). np.cross dropped 2D support in NumPy 2.0.
+        dirl.append(vec_u[0] * vec_v[1] - vec_u[1] * vec_v[0])
     dirl.append(dirl.pop(0))
     return [np.float64(x) for x in dirl]
 
