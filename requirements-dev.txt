@@ -1,7 +1,7 @@
 -r requirements.txt
 
 # Code checking
-pycodestyle
+pycodestyle==2.14.0
 pylint==4.0.*
 pylint-django==2.7.0
 

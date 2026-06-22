@@ -1,20 +1,20 @@
 django==6.0.6
 
 # Timezone support
-pytz
+pytz==2026.2
 
 # Database
 psycopg[binary,pool]==3.3.4
 
 # Numerical
 numpy==2.4.5
-haversine
+haversine==2.9.0
 
 # uwsgi
-uwsgi
+uwsgi==2.0.31
 
 # static file serving
-whitenoise
+whitenoise==6.12.0
 
 # image support
-image
+image==1.5.33
