@@ -23,6 +23,9 @@ services:
       - DB_PASS=password
       - ALLOWED_HOSTS=localhost
       - CSRF_TRUSTED_ORIGINS=http://localhost:8080
+      # This demo serves plain HTTP on :8080; real deployments behind TLS should
+      # drop this so cookies/redirects default to HTTPS-only.
+      - SECURE_SSL=False
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_PASSWORD=administrator
       - DJANGO_SUPERUSER_EMAIL=me@example.com
