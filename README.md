@@ -45,6 +45,8 @@ for a working example):
 | `DB_PASS` | Database password | (from template) |
 | `ALLOWED_HOSTS` | Comma-separated allowed hosts | `localhost` |
 | `CSRF_TRUSTED_ORIGINS` | Comma-separated trusted origins | `http://localhost:8080` |
+| `SECURE_SSL` | HTTPS-only cookies + SSL redirect. Defaults on (off when `DEBUG`); set `False` for plain-HTTP deployments | (off if `DEBUG`, else on) |
+| `SECURE_HSTS_SECONDS` | Enable HSTS for this many seconds (e.g. `31536000`). Leave `0` until HTTPS-only is confirmed | `0` |
 | `DJANGO_SUPERUSER_USERNAME` | Superuser created on first start, if set | (unset) |
 | `DJANGO_SUPERUSER_PASSWORD` | Password for that superuser | (unset) |
 | `DJANGO_SUPERUSER_EMAIL` | Email for that superuser | (unset) |
