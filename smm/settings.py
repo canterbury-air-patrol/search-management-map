@@ -112,3 +112,26 @@ STORAGES = {
 LOGIN_REDIRECT_URL = '/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+# Security: HTTPS-only cookies and SSL redirect.
+# https://docs.djangoproject.com/en/stable/topics/security/
+#
+# Enabled by default in production and disabled automatically when DEBUG is on,
+# so local development runs over plain HTTP with no extra setup. Override either
+# way with the SECURE_SSL env var (set SECURE_SSL=False for HTTP-only
+# deployments, e.g. the bundled docker-compose demo).
+SECURE_SSL = os.environ.get('SECURE_SSL', 'False' if globals().get('DEBUG', False) else 'True') == 'True'
+
+SESSION_COOKIE_SECURE = SECURE_SSL
+CSRF_COOKIE_SECURE = SECURE_SSL
+SECURE_SSL_REDIRECT = SECURE_SSL
+
+if SECURE_SSL:
+    # TLS is terminated at the reverse proxy / load balancer in front of uWSGI.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # HSTS is opt-in and off by default: it is hard to undo, so operators should
+    # set SECURE_HSTS_SECONDS (e.g. 31536000) only once HTTPS-only is confirmed.
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+    SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
