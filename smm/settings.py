@@ -121,7 +121,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # so local development runs over plain HTTP with no extra setup. Override either
 # way with the SECURE_SSL env var (set SECURE_SSL=False for HTTP-only
 # deployments, e.g. the bundled docker-compose demo).
-SECURE_SSL = os.environ.get('SECURE_SSL', 'False' if globals().get('DEBUG', False) else 'True') == 'True'
+SECURE_SSL = os.environ.get('SECURE_SSL', 'False' if globals().get('DEBUG', False) else 'True').strip().lower() in ('true', '1', 'yes', 'on')
 
 SESSION_COOKIE_SECURE = SECURE_SSL
 CSRF_COOKIE_SECURE = SECURE_SSL
