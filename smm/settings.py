@@ -4,6 +4,8 @@ Django settings for smm project.
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Import other settings
 from smm.local_settings import *
 
@@ -132,6 +134,10 @@ if SECURE_SSL:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     # HSTS is opt-in and off by default: it is hard to undo, so operators should
     # set SECURE_HSTS_SECONDS (e.g. 31536000) only once HTTPS-only is confirmed.
-    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+    # Fail loudly on a non-integer value rather than silently disabling HSTS.
+    try:
+        SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+    except ValueError as exc:
+        raise ImproperlyConfigured('SECURE_HSTS_SECONDS must be an integer number of seconds') from exc
     SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
     SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
