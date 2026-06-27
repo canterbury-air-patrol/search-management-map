@@ -55,7 +55,9 @@ class MarineVectorCreateView(View):
         current_vectors = []
         wind_vectors = []
         poi_id = user_data.get('poi_id')
-        poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi')
+        # Scope the datum lookup to the current mission so a POI from another
+        # mission cannot be attached as the datum (cross-mission data leakage).
+        poi = get_object_or_404(GeoTimeLabel, pk=poi_id, geo_type='poi', mission=mission_user.mission)
         lat = user_data.get('from_lat')
         lng = user_data.get('from_lng')
         start_point = Point(float(lng), float(lat))
