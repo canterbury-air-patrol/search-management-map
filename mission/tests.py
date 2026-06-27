@@ -71,7 +71,7 @@ class MissionTestWrapper:
         """
         if client is None:
             client = self.smm.client1
-        return client.get(f'/mission/{self.mission_pk}/close/', follow=True)
+        return client.post(f'/mission/{self.mission_pk}/close/', follow=True)
 
     def add_asset(self, asset, client=None):
         """
@@ -241,6 +241,17 @@ class MissionTestCase(MissionBaseTestCase):
         mission.add_user()
         response = mission.close(client=self.smm.client2)
         self.assertEqual(response.status_code, 403)
+        mission_obj = mission.get_object()
+        self.assertIsNone(mission_obj.closed)
+        self.assertIsNone(mission_obj.closed_by)
+
+    def test_mission_close_rejects_get(self):
+        """
+        Closing a mission mutates state, so GET must be rejected (CSRF safe method).
+        """
+        mission = self.missions.create_mission('test_mission_close_rejects_get')
+        response = self.smm.client1.get(f'/mission/{mission.mission_pk}/close/')
+        self.assertEqual(response.status_code, 405)
         mission_obj = mission.get_object()
         self.assertIsNone(mission_obj.closed)
         self.assertIsNone(mission_obj.closed_by)

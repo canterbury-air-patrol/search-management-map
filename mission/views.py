@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
+from django.views.decorators.http import require_POST
 
 from assets.models import Asset, AssetStatus
 from mission.helpers import get_my_assets_not_in_mission
@@ -97,6 +98,7 @@ class MissionDetailsView(View):
         return render(request, 'mission_details.html', data)
 
 
+@require_POST
 @login_required
 @mission_is_admin
 def mission_close(request, mission_user):
