@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from mission.models import Mission, MissionUser
-from .models import GeoTimeLabel
+from .models import GeoTimeLabel, UserPointTime
 
 
 class UserDataTestCase(TestCase):
@@ -25,6 +25,34 @@ class UserDataTestCase(TestCase):
         self.user_non_member = get_user_model().objects.create_user('test2', password='password')
         self.mission = Mission.objects.create(creator=self.user)
         MissionUser(mission=self.mission, user=self.user, permissions_admin=True, creator=self.user).save()
+
+
+class UserRecordPositionTestCase(TestCase):
+    """
+    Tests for recording a user's own position
+    """
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('test', password='password')
+        self.mission = Mission.objects.create(creator=self.user)
+        MissionUser(mission=self.mission, user=self.user, permissions_admin=True, creator=self.user).save()
+        self.url = f'/mission/{self.mission.pk}/data/user/{self.user.username}/position/add/'
+        self.client.force_login(self.user)
+
+    def test_user_record_position_via_post(self):
+        """
+        Recording a user position via POST works.
+        """
+        response = self.client.post(self.url, {'lat': -43.5, 'lon': 172.5})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(UserPointTime.objects.filter(user=self.user).count(), 1)
+
+    def test_user_record_position_rejects_get(self):
+        """
+        Recording a user position mutates state, so GET must be rejected.
+        """
+        response = self.client.get(self.url, {'lat': -43.5, 'lon': 172.5})
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(UserPointTime.objects.filter(user=self.user).count(), 0)
 
 
 class GeoTimeAllCurrentTestCase(TestCase):

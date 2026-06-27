@@ -19,6 +19,7 @@ from django.contrib.gis.geos import Point
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.http import require_POST
 
 from smm.settings import TIME_ZONE
 from assets.models import Asset
@@ -64,6 +65,7 @@ def assets_position_latest_user(request, current_only):
     return to_geojson(AssetPointTime, positions)
 
 
+@require_POST
 @login_required
 @asset_is_recorder
 def asset_record_position(request, asset):
@@ -71,30 +73,18 @@ def asset_record_position(request, asset):
     Record the current position of an asset.
 
     Only allows recording of the assets position by the owner.
-    Accepts get requests because some assets are very basic.
+
+    Recording a position mutates state, so it requires POST (Django's CSRF
+    protection only covers unsafe methods). Basic assets that can only issue
+    simple requests can authenticate with an in-URL token (see the tokens app).
 
     Return the last command that applies to an object
     """
-    lat = ''
-    lon = ''
-    fix = None
-    alt = None
-    heading = None
-
-    if request.method == 'GET':
-        lat = request.GET.get('lat')
-        lon = request.GET.get('lon')
-        fix = request.GET.get('fix')
-        alt = request.GET.get('alt')
-        heading = request.GET.get('heading')
-    elif request.method == 'POST':
-        lat = request.POST.get('lat')
-        lon = request.POST.get('lon')
-        fix = request.POST.get('fix')
-        alt = request.POST.get('alt')
-        heading = request.POST.get('heading')
-    else:
-        return HttpResponseBadRequest("Unsupported method")
+    lat = request.POST.get('lat')
+    lon = request.POST.get('lon')
+    fix = request.POST.get('fix')
+    alt = request.POST.get('alt')
+    heading = request.POST.get('heading')
 
     point = None
     with contextlib.suppress(ValueError, TypeError):
@@ -204,6 +194,7 @@ def users_position_latest_user(request, current_only):
     return to_geojson(UserPointTime, positions)
 
 
+@require_POST
 @login_required
 @mission_is_member
 def user_record_position(request, mission_user, user):
@@ -211,30 +202,18 @@ def user_record_position(request, mission_user, user):
     Record the current position of a user.
 
     Only allows recording of the assets position by the owner.
-    """
-    lat = ''
-    lon = ''
-    fix = None
-    alt = None
-    heading = None
 
+    Recording a position mutates state, so it requires POST (Django's CSRF
+    protection only covers unsafe methods).
+    """
     if request.user.username != user:
         return HttpResponse('Unauthorized', status=401)
 
-    if request.method == 'GET':
-        lat = request.GET.get('lat')
-        lon = request.GET.get('lon')
-        fix = request.GET.get('fix')
-        alt = request.GET.get('alt')
-        heading = request.GET.get('heading')
-    elif request.method == 'POST':
-        lat = request.POST.get('lat')
-        lon = request.POST.get('lon')
-        fix = request.POST.get('fix')
-        alt = request.POST.get('alt')
-        heading = request.POST.get('heading')
-    else:
-        return HttpResponseBadRequest("Unsupported method")
+    lat = request.POST.get('lat')
+    lon = request.POST.get('lon')
+    fix = request.POST.get('fix')
+    alt = request.POST.get('alt')
+    heading = request.POST.get('heading')
 
     point = None
     with contextlib.suppress(ValueError, TypeError):
