@@ -7,6 +7,7 @@ from django.test import TestCase
 from smm.tests import SMMTestUsers
 
 from organization.models import Organization, OrganizationMember, OrganizationAsset
+from data.models import AssetPointTime
 
 from .models import AssetType, Asset
 
@@ -213,3 +214,12 @@ class AssetTestCase(TestCase):
             'heading': 0,
         })
         self.assertEqual(response.status_code, 403)
+
+    def test_asset_record_position_rejects_get(self):
+        """
+        Recording a position mutates state, so GET must be rejected (CSRF safe method).
+        """
+        asset = self.assets.create_asset()
+        response = self.smm.client1.get(f'/data/assets/{asset.pk}/position/add/', {'lat': -43.5, 'lon': 172.5})
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(AssetPointTime.objects.filter(asset=asset).count(), 0)
