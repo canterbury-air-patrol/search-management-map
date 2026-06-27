@@ -73,13 +73,11 @@ class ViewHelpersTestCase(TestCase):
         self.assertIn('created', resp2.content.decode('utf-8'))
 
     def test_user_polygon_and_line_make(self):  # pylint: disable=too-many-locals
-        """user_polygon_make and user_line_make handle GET rejection, creation, and replace failure."""
-        # polygon should reject non-POST
-        req = self.factory.get('/')
-        req.user = self.smm.user1
-        resp = user_polygon_make(req, mission=self.mission)
-        self.assertEqual(resp.status_code, 400)
+        """user_polygon_make and user_line_make handle creation and replace failure.
 
+        Method rejection is enforced by @require_POST on the views (see the
+        userlines/userpolygons create tests in test_udl.py).
+        """
         # valid polygon create
         data = {
             'label': 'poly',
@@ -106,10 +104,6 @@ class ViewHelpersTestCase(TestCase):
         req3.user = self.smm.user1
         resp3 = user_polygon_make(req3, mission=self.mission, replaces=Dummy())
         self.assertEqual(resp3.status_code, 400)
-
-        # line should reject non-POST
-        resp_line = user_line_make(self.factory.get('/'), mission=self.mission)
-        self.assertEqual(resp_line.status_code, 400)
 
         # valid line create
         data_line = {
