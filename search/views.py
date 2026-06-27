@@ -19,6 +19,7 @@ from django.contrib.gis.geos import Point
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.http import require_POST
 
 from assets.models import AssetType, Asset
 from organization.decorators import asset_id_in_get_post, asset_is_operator
@@ -131,6 +132,7 @@ def check_search_state(search, action, asset):
     return None
 
 
+@require_POST
 @login_required
 @asset_id_in_get_post
 @mission_asset_get_mission
@@ -156,6 +158,7 @@ def search_begin(request, search_id, object_class, asset, mission):
     return error if error is not None else HttpResponseNotFound('Try Again')
 
 
+@require_POST
 @login_required
 @asset_id_in_get_post
 @mission_asset_get_mission
@@ -177,6 +180,7 @@ def search_finished(request, search_id, object_class, asset, mission):
     return HttpResponse("Completed")
 
 
+@require_POST
 @login_required
 @search_from_id
 @data_get_mission_id(arg_name='search')
@@ -190,7 +194,7 @@ def search_queue(request, search, mission_user):
         return HttpResponseForbidden(f"This search is already queued for {search.get_match()}")
 
     asset = None
-    if request.method == "POST" and 'asset' in request.POST:
+    if 'asset' in request.POST:
         asset = get_object_or_404(Asset, pk=request.POST['asset'])
         # Make sure this asset is a member of this mission
         get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
