@@ -448,3 +448,65 @@ class SearchTestCase(TestCase):
             'asset_id': self.asset1.pk,
         })
         self.assertEqual(response.status_code, 405)
+
+    def test_1100_queue_rejects_get(self):
+        """
+        Queueing a search mutates state, so GET must be rejected (CSRF safe method).
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        response = self.smm.client1.get(f'/search/{search.search_id}/queue/')
+        self.assertEqual(response.status_code, 405)
+        self.assertIsNone(search.as_object().queued_at)
+
+    def test_1101_queue_via_post(self):
+        """
+        Queueing a search via POST still works.
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        response = self.smm.client1.post(f'/search/{search.search_id}/queue/', data={})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(search.as_object().queued_at)
+
+    def test_1102_begin_rejects_get(self):
+        """
+        Beginning a search mutates state, so GET must be rejected.
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        response = self.smm.client1.get(f'/search/{search.search_id}/begin/', data={'asset_id': self.asset1.pk})
+        self.assertEqual(response.status_code, 405)
+        self.assertIsNone(search.as_object().inprogress_by)
+
+    def test_1103_begin_via_post(self):
+        """
+        Beginning a search via POST still works.
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        response = self.smm.client1.post(f'/search/{search.search_id}/begin/', data={'asset_id': self.asset1.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(search.as_object().inprogress_by, self.asset1)
+
+    def test_1104_finished_rejects_get(self):
+        """
+        Finishing a search mutates state, so GET must be rejected.
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        self.smm.client1.post(f'/search/{search.search_id}/begin/', data={'asset_id': self.asset1.pk})
+        response = self.smm.client1.get(f'/search/{search.search_id}/finished/', data={'asset_id': self.asset1.pk})
+        self.assertEqual(response.status_code, 405)
+        self.assertIsNone(search.as_object().completed_at)
+
+    def test_1105_finished_via_post(self):
+        """
+        Finishing a search via POST still works.
+        """
+        poi = self.create_poi(-43.5, 172.5)
+        search = self.searches.create_sector(poi, 200, self.asset_type1)
+        self.smm.client1.post(f'/search/{search.search_id}/begin/', data={'asset_id': self.asset1.pk})
+        response = self.smm.client1.post(f'/search/{search.search_id}/finished/', data={'asset_id': self.asset1.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(search.as_object().completed_at)
