@@ -510,3 +510,56 @@ class SearchTestCase(TestCase):
         response = self.smm.client1.post(f'/search/{search.search_id}/finished/', data={'asset_id': self.asset1.pk})
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(search.as_object().completed_at)
+
+
+class SearchCreateMembershipTestCase(TestCase):
+    """
+    Search creation/preview must verify the user is a member of the datum's mission.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
+        self.missions = MissionFunctions(self.smm)
+        self.asset_type = self.assets.create_asset_type()
+        # A mission owned by user2 that user1 is not a member of
+        self.other_mission = self.missions.create_mission('other mission', client=self.smm.client2)
+
+    def _other_geo(self, geo, geo_type):
+        """Create a geometry owned by user2 in the mission user1 is not a member of."""
+        return GeoTimeLabel.objects.create(geo=geo, created_by=self.smm.user2, label='datum', geo_type=geo_type, mission=self.other_mission.get_object())
+
+    def test_create_sector_rejects_non_member_datum(self):
+        """Creating a search against another mission's POI returns 404."""
+        poi = self._other_geo(Point(172.5, -43.5), 'poi')
+        response = self.smm.client1.post('/search/sector/create/', data={
+            'poi_id': poi.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Search.objects.count(), 0)
+
+    def test_preview_sector_rejects_non_member_datum(self):
+        """The GET preview path also rejects another mission's POI."""
+        poi = self._other_geo(Point(172.5, -43.5), 'poi')
+        response = self.smm.client1.get('/search/sector/create/', data={
+            'poi_id': poi.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Search.objects.count(), 0)
+
+    def test_create_trackline_rejects_non_member_datum(self):
+        """Line-datum searches reject a line from a mission the user is not in."""
+        line = self._other_geo(LineString((172.5, -43.5), (172.6, -43.6)), 'line')
+        response = self.smm.client1.post('/search/trackline/create/', data={
+            'line_id': line.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Search.objects.count(), 0)
+
+    def test_create_polygon_creepingline_rejects_non_member_datum(self):
+        """Polygon-datum searches reject a polygon from a mission the user is not in."""
+        poly = self._other_geo(Polygon(((172.5, -43.5), (172.6, -43.5), (172.6, -43.6), (172.5, -43.5))), 'polygon')
+        response = self.smm.client1.post('/search/creepingline/create/polygon/', data={
+            'poly_id': poly.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(Search.objects.count(), 0)
