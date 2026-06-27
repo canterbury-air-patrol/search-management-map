@@ -8,6 +8,7 @@ views work.
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseBadRequest
 from django.core.serializers import serialize
 from django.contrib.gis.geos import Point, Polygon, LineString, GEOSGeometry
+from django.utils.html import escape
 
 from .models import GeoTimeLabel
 
@@ -29,8 +30,11 @@ def to_kml(objecttype, objects):
                '<kml xmlns="http://www.opengis.net/kml/2.2">\n' + \
                '\t<Document>\n'
     for obj in objects:
-        kml_data += f'\t\t<Placemark>\n\t\t\t<name><![CDATA[{str(obj)}]]></name>\n'
-        kml_data += f'\t\t\t<description><![CDATA[{str(obj)}]]></description>\n'
+        # Escape user-supplied text (e.g. GeoTimeLabel.label) so it cannot break
+        # out of the element and inject markup. str(obj) is plain text, not HTML.
+        label = escape(str(obj))
+        kml_data += f'\t\t<Placemark>\n\t\t\t<name>{label}</name>\n'
+        kml_data += f'\t\t\t<description>{label}</description>\n'
         kml_data += GEOSGeometry(getattr(obj, objecttype.GEOFIELD)).kml
         kml_data += '\n\t\t</Placemark>\n'
 
