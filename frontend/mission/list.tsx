@@ -1,10 +1,10 @@
 import '../page-shell'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { Table, Button, ButtonGroup } from 'react-bootstrap'
 
 import { formatLocalDateTime } from '../format'
-import { smmGetJSON } from '../ajax'
+import { smmGetJSON, smmPost } from '../ajax'
 import { SMMTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
 import { Loading, LoadFailed } from '../components/Loading'
@@ -14,9 +14,10 @@ interface MissionListRowProps {
   mission: MissionData
   showClosed: boolean
   showButtons: boolean
+  onChanged?: () => void
 }
 
-function MissionListRow({ mission, showClosed, showButtons }: MissionListRowProps) {
+function MissionListRow({ mission, showClosed, showButtons, onChanged }: MissionListRowProps) {
   const dataFields = [<td key="name">{mission.name}</td>, <td key="opened">{formatLocalDateTime(mission.started)}</td>, <td key="creator">{mission.creator}</td>]
 
   if (showClosed) {
@@ -37,8 +38,11 @@ function MissionListRow({ mission, showClosed, showButtons }: MissionListRowProp
       </Button>
     ]
     if (!mission.closed && mission.admin) {
+      const closeMission = () => {
+        smmPost(`/mission/${mission.id}/close/`, {}, () => onChanged?.())
+      }
       buttons.push(
-        <Button key="close" className="btn-danger" href={`/mission/${mission.id}/close/`}>
+        <Button key="close" className="btn-danger" onClick={closeMission}>
           Close
         </Button>
       )
@@ -52,7 +56,7 @@ function MissionListRow({ mission, showClosed, showButtons }: MissionListRowProp
   return <tr key={mission.id}>{dataFields}</tr>
 }
 
-function ActiveMissionList({ missions }: { missions: MissionData[] }) {
+function ActiveMissionList({ missions, onChanged }: { missions: MissionData[]; onChanged: () => void }) {
   return (
     <Table responsive>
       <thead>
@@ -70,7 +74,7 @@ function ActiveMissionList({ missions }: { missions: MissionData[] }) {
       </thead>
       <tbody>
         {missions.map((mission) => (
-          <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} />
+          <MissionListRow key={mission.id} mission={mission} showButtons={true} showClosed={false} onChanged={onChanged} />
         ))}
       </tbody>
     </Table>
@@ -118,7 +122,7 @@ function MissionListPage() {
   const [missions, setMissions] = useState<MissionData[] | undefined>(undefined)
   const [loadFailed, setLoadFailed] = useState(false)
 
-  usePolling(async () => {
+  const refresh = useCallback(async () => {
     try {
       const data = await smmGetJSON<{ missions: MissionData[] }>('/mission/list/', {})
       setMissions(data.missions)
@@ -127,7 +131,9 @@ function MissionListPage() {
       console.error('Failed to fetch missions:', e)
       setLoadFailed(true)
     }
-  }, 10000)
+  }, [])
+
+  usePolling(refresh, 10000)
 
   const { active, closed } = useMemo(
     () => ({
@@ -143,7 +149,7 @@ function MissionListPage() {
 
   return (
     <div>
-      <ActiveMissionList missions={active} />
+      <ActiveMissionList missions={active} onChanged={refresh} />
       <GeneralMissionButtons />
       <CompletedMissionList missions={closed} />
     </div>
