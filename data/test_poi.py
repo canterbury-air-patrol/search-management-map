@@ -48,6 +48,28 @@ class POIsTestCase(UserDataTestCase):
         pois = GeoTimeLabel.objects.filter(label='Test API POI 3')
         self.assertEqual(len(pois), 0)
 
+    def test_poi_api_create_rejects_get(self):
+        """
+        Creating a POI mutates state, so GET must be rejected (CSRF safe method).
+        """
+        client = Client()
+        client.login(username='test', password='password')
+        poi_create_url = f'/mission/{self.mission.pk}/data/pois/create/'
+        response = client.get(poi_create_url, {'lat': -43.5, 'lon': 172.5, 'label': 'GET POI'})
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(GeoTimeLabel.objects.filter(label='GET POI').count(), 0)
+
+    def test_poi_api_replace_rejects_get(self):
+        """
+        Replacing a POI mutates state, so GET must be rejected.
+        """
+        client = Client()
+        client.login(username='test', password='password')
+        poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.user, label='Replace GET POI', geo_type='poi', mission=self.mission)
+        response = client.get(f'/data/pois/{poi.pk}/replace/', {'lat': -44.5, 'lon': 171.5, 'label': 'Replaced via GET'})
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(GeoTimeLabel.objects.filter(label='Replaced via GET').count(), 0)
+
     def test_poi_api_move(self):
         """
         Check the api for moving POIs

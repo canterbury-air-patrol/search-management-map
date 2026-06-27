@@ -328,6 +328,7 @@ def point_labels_all_kml(request, mission_id):
     return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission.mission, geo_type='poi'))
 
 
+@require_POST
 @login_required
 @mission_is_member
 def point_label_create(request, mission_user):
@@ -337,6 +338,7 @@ def point_label_create(request, mission_user):
     return point_label_make(request, mission=mission_user.mission)
 
 
+@require_POST
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
@@ -356,6 +358,7 @@ def user_polygons_all_kml(request, mission_id):
     return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission, geo_type='polygon'))
 
 
+@require_POST
 @login_required
 @mission_is_member
 def user_polygon_create(request, mission_user):
@@ -365,6 +368,7 @@ def user_polygon_create(request, mission_user):
     return user_polygon_make(request, mission=mission_user.mission)
 
 
+@require_POST
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
@@ -384,6 +388,7 @@ def user_lines_all_kml(request, mission_id):
     return to_kml(GeoTimeLabel, GeoTimeLabel.all_current_of_geo(mission, geo_type='line'))
 
 
+@require_POST
 @login_required
 @mission_is_member
 def user_line_create(request, mission_user):
@@ -393,6 +398,7 @@ def user_line_create(request, mission_user):
     return user_line_make(request, mission=mission_user.mission)
 
 
+@require_POST
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')

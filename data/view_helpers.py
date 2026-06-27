@@ -57,17 +57,9 @@ def point_label_make(request, mission=None, replaces=None):
     """
     Create or replace a POI based on user supplied data.
     """
-    poi_lat = ''
-    poi_lon = ''
-    poi_label = ''
-    if request.method == 'GET':
-        poi_lat = request.GET.get('lat')
-        poi_lon = request.GET.get('lon')
-        poi_label = request.GET.get('label')
-    elif request.method == 'POST':
-        poi_lat = request.POST.get('lat')
-        poi_lon = request.POST.get('lon')
-        poi_label = request.POST.get('label')
+    poi_lat = request.POST.get('lat')
+    poi_lon = request.POST.get('lon')
+    poi_label = request.POST.get('label')
 
     if poi_lat is None or poi_lon is None or poi_label is None:
         return HttpResponseBadRequest()
@@ -88,8 +80,6 @@ def user_polygon_make(request, mission=None, replaces=None):
     """
     Create a polygon based on user supplied data.
     """
-    if request.method != 'POST':
-        return HttpResponseBadRequest()
     points = []
     label = request.POST['label']
     points_count = int(request.POST['points'])
@@ -111,8 +101,6 @@ def user_line_make(request, mission=None, replaces=None):
     """
     Create a line (string) based on user supplied data.
     """
-    if request.method != 'POST':
-        return HttpResponseBadRequest()
     points = []
     label = request.POST['label']
     points_count = int(request.POST['points'])
