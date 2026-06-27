@@ -2,6 +2,8 @@
 Tests for data view helpers
 """
 
+from xml.etree import ElementTree
+
 from django.contrib.gis.geos import Point
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
@@ -38,6 +40,26 @@ class ViewHelpersTestCase(TestCase):
         self.assertEqual(resp2.status_code, 200)
         self.assertEqual(resp2['Content-Type'], 'application/vnd.google-earth.kml+xml')
         self.assertIn('<kml', resp2.content.decode('utf-8'))
+
+    def test_to_kml_escapes_user_content(self):
+        """A label with CDATA/markup characters round-trips to well-formed KML."""
+        evil_label = 'pwn]]><script>alert(1)</script> & <b>x</b>'
+        ptl = GeoTimeLabel.objects.create(geo=Point(174.0, -41.0), label=evil_label, created_by=self.smm.user1, mission=self.mission, geo_type='poi')
+
+        resp = to_kml(GeoTimeLabel, [ptl])
+        content = resp.content.decode('utf-8')
+
+        # The raw markup must not appear unescaped (no CDATA breakout / tag injection)
+        self.assertNotIn('<script>', content)
+        self.assertNotIn(']]>', content)
+
+        # The document must be well-formed and the label must round-trip exactly
+        root = ElementTree.fromstring(content)
+        ns = {'kml': 'http://www.opengis.net/kml/2.2'}
+        name = root.find('.//kml:Placemark/kml:name', ns)
+        description = root.find('.//kml:Placemark/kml:description', ns)
+        self.assertEqual(name.text, str(ptl))
+        self.assertEqual(description.text, str(ptl))
 
     def test_geotimelabel_replace_checks(self):
         """geotimelabel_replace returns 404 for deleted or replaced objects."""
