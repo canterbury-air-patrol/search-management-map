@@ -491,6 +491,35 @@ class MissionTimelineTestCase(MissionBaseTestCase):
             timestamp=datetime(2026, 6, 28, 13, 0, tzinfo=datetime_timezone.utc),
         )
 
+    def _create_filter_timeline_entries(self, mission):
+        """
+        Create timeline entries that can be filtered independently.
+        """
+        mission_obj = mission.get_object()
+        TimeLineEntry.objects.create(
+            mission=mission_obj,
+            user=self.smm.user1,
+            event_type='usr',
+            message='Medical note',
+            url='http://example.test/medical',
+            timestamp=datetime(2026, 6, 28, 12, 0, tzinfo=datetime_timezone.utc),
+        )
+        TimeLineEntry.objects.create(
+            mission=mission_obj,
+            user=self.smm.user2,
+            event_type='que',
+            message='Search queue noise',
+            url='',
+            timestamp=datetime(2026, 6, 28, 13, 0, tzinfo=datetime_timezone.utc),
+        )
+
+    @staticmethod
+    def _messages(response):
+        """
+        Return all timeline messages from a timeline response.
+        """
+        return [entry['message'] for entry in response.json()['timeline']]
+
     def test_timeline_defaults_to_newest_first(self):
         """
         Timeline JSON returns the newest entries first by default.
@@ -529,6 +558,57 @@ class MissionTimelineTestCase(MissionBaseTestCase):
             'error': 'invalid_timeline_order',
             'message': 'Invalid timeline order',
         })
+
+    def test_timeline_filters_by_date_range(self):
+        """
+        Timeline JSON can be filtered to a date/time range.
+        """
+        mission = self.missions.create_mission('test_timeline_date_filter')
+        self._create_filter_timeline_entries(mission)
+
+        response = self.smm.client1.get(
+            f'/mission/{mission.mission_pk}/timeline/',
+            data={
+                'start': '2026-06-28T12:30:00Z',
+                'end': '2026-06-28T13:30:00Z',
+            },
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Search queue noise', self._messages(response))
+        self.assertNotIn('Medical note', self._messages(response))
+
+    def test_timeline_filters_by_user_action_and_text(self):
+        """
+        Timeline JSON can be filtered by creator, action, and message/url contents.
+        """
+        mission = self.missions.create_mission('test_timeline_field_filters')
+        self._create_filter_timeline_entries(mission)
+
+        response = self.smm.client1.get(
+            f'/mission/{mission.mission_pk}/timeline/',
+            data={'user': 'test1', 'action': 'User defined', 'q': 'medical'},
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Medical note', self._messages(response))
+        self.assertNotIn('Search queue noise', self._messages(response))
+
+    def test_invalid_timeline_date_filter_is_rejected(self):
+        """
+        Invalid date filters fail clearly.
+        """
+        mission = self.missions.create_mission('test_timeline_invalid_date_filter')
+
+        response = self.smm.client1.get(
+            f'/mission/{mission.mission_pk}/timeline/',
+            data={'start': 'not-a-date'},
+            HTTP_ACCEPT='application/json',
+        )
+
+        self.assertEqual(response.status_code, 400)
 
     def test_missing_timeline_timestamp_uses_submit_time(self):
         """

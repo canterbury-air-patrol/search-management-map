@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedirect, HttpResponseForbidden, HttpResponseNotFound, HttpResponse
 from django.db import transaction
-from django.db.models import OuterRef, Prefetch, Subquery, Exists
+from django.db.models import OuterRef, Prefetch, Q, Subquery, Exists
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from django.utils.decorators import method_decorator
@@ -226,6 +226,61 @@ class MissionTimelineView(View):
             return ('-timestamp', '-pk')
         return None
 
+    @staticmethod
+    def _parse_timeline_datetime(value):
+        """
+        Parse a timeline filter datetime from the request query.
+        """
+        if not value:
+            return None
+        timestamp = parse_datetime(value)
+        if timestamp is None:
+            return False
+        if timezone.is_naive(timestamp):
+            return timezone.make_aware(timestamp, timezone.get_current_timezone())
+        return timestamp
+
+    @staticmethod
+    def _timeline_action_codes(action_filter):
+        """
+        Match an action filter against timeline event codes and labels.
+        """
+        action_filter = action_filter.lower()
+        return [
+            code
+            for code, label in TimeLineEntry.EVENT_TYPE
+            if action_filter in code.lower() or action_filter in label.lower()
+        ]
+
+    def _timeline_entries(self, request, mission):
+        """
+        Return filtered timeline entries for the mission.
+        """
+        timeline_entries = TimeLineEntry.objects.filter(mission=mission)
+
+        start = self._parse_timeline_datetime(request.GET.get('start'))
+        end = self._parse_timeline_datetime(request.GET.get('end'))
+        if start is False or end is False:
+            return None
+        if start:
+            timeline_entries = timeline_entries.filter(timestamp__gte=start)
+        if end:
+            timeline_entries = timeline_entries.filter(timestamp__lte=end)
+
+        user_filter = request.GET.get('user', '').strip()
+        if user_filter:
+            timeline_entries = timeline_entries.filter(user__username__icontains=user_filter)
+
+        action_filter = request.GET.get('action', '').strip()
+        if action_filter:
+            timeline_entries = timeline_entries.filter(event_type__in=self._timeline_action_codes(action_filter))
+
+        text_filter = request.GET.get('q', '').strip()
+        if text_filter:
+            timeline_entries = timeline_entries.filter(Q(message__icontains=text_filter) | Q(url__icontains=text_filter))
+
+        return timeline_entries
+
     def as_json(self, request, mission_user):
         """
         Mission timeline, a history of everything that happened during a mission, in json
@@ -237,7 +292,11 @@ class MissionTimelineView(View):
                 'message': 'Invalid timeline order',
             }, status=400)
 
-        timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by(*order_fields)
+        timeline_entries = self._timeline_entries(request, mission_user.mission)
+        if timeline_entries is None:
+            return HttpResponseBadRequest("Invalid timeline date filter")
+
+        timeline_entries = timeline_entries.order_by(*order_fields)
 
         data = {
             'mission': mission_user.mission.as_object(mission_user.is_admin()),

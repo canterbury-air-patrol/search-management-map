@@ -88,4 +88,44 @@ describe('MissionTimeLine', () => {
 
     expect(timelineRows()[0]).toContain('Old entry')
   })
+
+  it('sends timeline filters to the endpoint', async () => {
+    vi.mocked(smmGetJSON).mockResolvedValue({
+      mission: {
+        id: 42,
+        name: 'Test mission',
+        description: 'description',
+        started: '2026-06-28T00:00:00.000Z',
+        creator: 'test1',
+        closed: '2026-06-28T02:00:00.000Z',
+        admin: true
+      },
+      timeline: [
+        {
+          id: 1,
+          timestamp: '2026-06-28T00:00:00.000Z',
+          creator: 'test1',
+          event_type: 'User defined Event',
+          message: 'Medical note',
+          url: ''
+        }
+      ]
+    })
+
+    render(<MissionTimeLine missionId={42} />)
+
+    await screen.findByText('Medical note')
+    await userEvent.type(screen.getByLabelText('User'), 'test1')
+    await userEvent.type(screen.getByLabelText('Action'), 'User')
+    await userEvent.type(screen.getByLabelText('Contains'), 'medical')
+
+    const calls = vi.mocked(smmGetJSON).mock.calls
+    const lastCall = calls[calls.length - 1]
+    expect(lastCall?.[1]).toMatchObject({
+      order: 'desc',
+      user: 'test1',
+      action: 'User',
+      q: 'medical'
+    })
+  })
 })
