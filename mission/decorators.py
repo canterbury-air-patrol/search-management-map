@@ -2,6 +2,8 @@
 Function decorators to make dealing with missions easier
 """
 
+from functools import wraps
+
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponseForbidden, Http404
 from django.core.exceptions import ObjectDoesNotExist
@@ -104,6 +106,24 @@ def mission_is_member_open(view_func):
             return closed
         return view_func(*args, mission_user=mission_user, **kwargs)
     return wrapper_is_member_open
+
+
+def mission_open_required(view_method):
+    """
+    Class-based-view handler decorator: reject the request with 403 if the
+    (already-resolved) mission_user's mission is closed.
+
+    Use on write handlers (post/patch/delete) of views whose dispatch already
+    runs mission_is_member, so reads of a closed mission keep working while
+    writes are rejected.
+    """
+    @wraps(view_method)
+    def wrapper(self, request, *args, mission_user, **kwargs):
+        closed = mission_closed_response(mission_user.mission)
+        if closed is not None:
+            return closed
+        return view_method(self, request, *args, mission_user=mission_user, **kwargs)
+    return wrapper
 
 
 def mission_is_admin(view_func):

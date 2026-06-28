@@ -3,6 +3,7 @@ Tests for missions
 """
 
 from django.test import TestCase
+from django.utils import timezone
 
 from smm.tests import SMMTestUsers
 
@@ -452,3 +453,42 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 1)
+
+
+class MissionClosedWriteProtectionTestCase(TestCase):
+    """
+    Closed missions are read-only: mission write endpoints must reject mutations.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
+        missions = MissionFunctions(self.smm)
+        self.mission = missions.create_mission('closed mission')
+        mission_obj = self.mission.get_object()
+        mission_obj.closed = timezone.now()
+        mission_obj.closed_by = self.smm.user1
+        mission_obj.save()
+
+    def test_add_asset_rejected_on_closed_mission(self):
+        """Adding an asset to a closed mission is forbidden."""
+        asset = self.assets.create_asset()
+        response = self.mission.add_asset(asset)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(MissionAsset.objects.filter(mission=self.mission.get_object()).count(), 0)
+
+    def test_add_user_rejected_on_closed_mission(self):
+        """Adding a user to a closed mission is forbidden."""
+        response = self.mission.add_user(user=self.smm.user2)
+        self.assertEqual(response.status_code, 403)
+
+    def test_external_reference_create_rejected_on_closed_mission(self):
+        """Creating an external reference on a closed mission is forbidden."""
+        response = self.smm.client1.post(f'/mission/{self.mission.mission_pk}/externalreferences/', data={
+            'reference': 'IRD', 'url': 'http://example/x', 'notes': 'note',
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_read_still_allowed_on_closed_mission(self):
+        """Reading mission details is still allowed after closure."""
+        response = self.mission.get_details(client=self.smm.client1)
+        self.assertEqual(response.status_code, 200)

@@ -30,7 +30,7 @@ from timeline.helpers import timeline_record_create, \
 
 from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue, AssetCommand
 from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
-from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
+from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin, mission_open_required
 
 
 def user_can_command_asset(mission_user, asset):
@@ -236,6 +236,7 @@ class MissionTimelineView(View):
         }
         return render(request, 'mission_timeline.html', data)
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Add a custom entry to the mission timeline
@@ -281,6 +282,7 @@ class MissionOrganizationsView(View):
             return self.as_json(mission_user.mission, list_not_included)
         return render(request, 'mission_organizations_list.html')
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Add an organization to this mission
@@ -339,6 +341,7 @@ class MissionOrganizationView(View):
         setattr(mission_organization, f'permissions_{permission_type}', value)
         timeline_record_mission_organization_update(mission_user.mission, mission_user.user, mission_organization.organization, permission_type, value)
 
+    @mission_open_required
     def post(self, request, mission_user, organization):
         """
         Update the permissions of an organization
@@ -394,6 +397,7 @@ class MissionUsersView(View):
             return self.as_json(mission_user.mission, list_not_included)
         return render(request, 'mission_organizations_list.html')
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Add a user to this mission
@@ -449,6 +453,7 @@ class MissionUserView(View):
         setattr(target_mission_user, f"permissions_{permission_type}", value)
         timeline_record_mission_user_update(mission_user.mission, mission_user.user, target_mission_user, permission_type, value)
 
+    @mission_open_required
     def patch(self, request, mission_user, user):
         """
         Update the permissions of a user
@@ -524,6 +529,7 @@ class MissionAssetsView(View):
             return self.as_json(request, mission_user)
         return render(request, "mission/assets_view.html", {'mission_asset_add': MissionAssetForm(user=request.user, mission=mission_user.mission)})
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Add an asset to this mission
@@ -569,6 +575,7 @@ def mission_asset_is_owner(mission_user, asset, user):
 class MissionAssetView(View):
     """Manage a single asset within a mission."""
 
+    @mission_open_required
     def delete(self, request, mission_user, asset_id):
         """Remove an asset from the mission."""
         asset = get_object_or_404(Asset, pk=asset_id)
@@ -612,6 +619,7 @@ class MissionAssetStatusView(View):
             return self.as_json(request, mission_asset)
         return render(request, "mission_asset_status.html", {'mission_asset': mission_asset})
 
+    @mission_open_required
     def post(self, request, mission_user, asset):
         """
         Allow setting/updating the asset status
@@ -677,6 +685,7 @@ class MissionExternalReferencesView(View):
         }
         return render(request, 'mission_external_references.html', data)
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Add an external reference to the mission
@@ -699,6 +708,7 @@ class MissionExternalReferenceView(View):
     """
     update/delete an external reference for this mission
     """
+    @mission_open_required
     def post(self, request, ext_ref_id, mission_user):
         """
         Update an external reference in the mission
@@ -718,6 +728,7 @@ class MissionExternalReferenceView(View):
             return HttpResponse("Done")
         return HttpResponse("Failed")
 
+    @mission_open_required
     def delete(self, request, ext_ref_id, mission_user):
         """
         Delete an external reference from the mission
@@ -750,6 +761,7 @@ class AssetCommandSetView(View):
             'requires_position': list(AssetCommand.REQUIRES_POSITION),
         })
 
+    @mission_open_required
     def post(self, request, mission_user):
         """
         Validate and create an AssetCommand; returns JSON status or field errors.
