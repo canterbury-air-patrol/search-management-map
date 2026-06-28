@@ -12,6 +12,7 @@ from django.http import HttpResponseBadRequest, JsonResponse, HttpResponseRedire
 from django.db import transaction
 from django.db.models import OuterRef, Prefetch, Subquery, Exists
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -243,7 +244,15 @@ class MissionTimelineView(View):
         """
         message = request.POST.get('message')
         url = request.POST.get('url')
-        timestamp = request.POST.get('timestamp')
+        timestamp_raw = request.POST.get('timestamp')
+        if timestamp_raw:
+            timestamp = parse_datetime(timestamp_raw)
+            if timestamp is None:
+                return HttpResponseBadRequest("Invalid timestamp")
+            if timezone.is_naive(timestamp):
+                timestamp = timezone.make_aware(timestamp, timezone.get_current_timezone())
+        else:
+            timestamp = timezone.now()
         if message:
             entry = TimeLineEntry(mission=mission_user.mission, user=request.user, message=message, timestamp=timestamp, url=url, event_type='usr')
             entry.save()

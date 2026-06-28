@@ -2,12 +2,16 @@
 Tests for missions
 """
 
+from datetime import datetime, timezone as datetime_timezone
+from unittest.mock import patch
+
 from django.test import TestCase
 from django.utils import timezone
 
 from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
+from timeline.models import TimeLineEntry
 
 from .models import Mission, MissionUser, MissionAsset
 
@@ -453,6 +457,52 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         self.assertEqual(response.status_code, 200)
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 1)
+
+
+class MissionTimelineTestCase(MissionBaseTestCase):
+    """
+    Mission timeline API
+    """
+    def test_missing_timeline_timestamp_uses_submit_time(self):
+        """
+        Adding a manual timeline entry without a timestamp uses the server time.
+        """
+        mission = self.missions.create_mission('test_missing_timeline_timestamp')
+        submitted_at = datetime(2026, 6, 28, 12, 30, tzinfo=datetime_timezone.utc)
+
+        with patch('mission.views.timezone.now', return_value=submitted_at):
+            response = self.smm.client1.post(
+                f'/mission/{mission.mission_pk}/timeline/',
+                data={'message': 'Manual entry without client timestamp'},
+            )
+
+        self.assertEqual(response.status_code, 200)
+        entry = TimeLineEntry.objects.get(
+            mission=mission.get_object(),
+            event_type='usr',
+            message='Manual entry without client timestamp',
+        )
+        self.assertEqual(entry.timestamp, submitted_at)
+
+    def test_invalid_timeline_timestamp_is_rejected(self):
+        """
+        Invalid manual timeline timestamps fail clearly instead of saving junk.
+        """
+        mission = self.missions.create_mission('test_invalid_timeline_timestamp')
+
+        response = self.smm.client1.post(
+            f'/mission/{mission.mission_pk}/timeline/',
+            data={'message': 'Manual entry with invalid timestamp', 'timestamp': 'not-a-date'},
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(
+            TimeLineEntry.objects.filter(
+                mission=mission.get_object(),
+                event_type='usr',
+                message='Manual entry with invalid timestamp',
+            ).exists()
+        )
 
 
 class MissionClosedWriteProtectionTestCase(TestCase):
