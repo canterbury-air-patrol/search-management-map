@@ -1,5 +1,5 @@
 import '../page-shell'
-import { ChangeEvent, useMemo, useState } from 'react'
+import { ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
 import { Table, Button, Form } from 'react-bootstrap'
 import DateTimePicker from 'react-datetime-picker'
@@ -82,6 +82,25 @@ interface TimeLineEntry {
 }
 
 type TimelineSortOrder = 'desc' | 'asc'
+type TimelineQueryParams = {
+  order: TimelineSortOrder
+  start?: string
+  end?: string
+  user?: string
+  action?: string
+  q?: string
+}
+
+function localDateTimeToIso(value: string) {
+  if (!value) return undefined
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return undefined
+  return date.toISOString()
+}
+
+function setIfPresent(params: TimelineQueryParams, key: keyof Omit<TimelineQueryParams, 'order'>, value?: string) {
+  if (value) params[key] = value
+}
 
 function MissionTimelineEntry({ timelineEntry }: { timelineEntry: TimeLineEntry }) {
   return (
@@ -103,12 +122,38 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
   const [timelineEntries, setTimelineEntries] = useState<TimeLineEntry[]>([])
   const [missionData, setMissionData] = useState<MissionData | undefined>(undefined)
   const [sortOrder, setSortOrder] = useState<TimelineSortOrder>('desc')
+  const [startFilter, setStartFilter] = useState('')
+  const [endFilter, setEndFilter] = useState('')
+  const [userFilter, setUserFilter] = useState('')
+  const [actionFilter, setActionFilter] = useState('')
+  const [textFilter, setTextFilter] = useState('')
+  const skipInitialRefresh = useRef(true)
 
-  usePolling(async () => {
-    const data = await smmGetJSON<{ timeline: TimeLineEntry[]; mission: MissionData }>(`/mission/${missionId}/timeline/`, { order: sortOrder })
+  const queryParams = useMemo(() => {
+    const params: TimelineQueryParams = { order: sortOrder }
+    setIfPresent(params, 'start', localDateTimeToIso(startFilter))
+    setIfPresent(params, 'end', localDateTimeToIso(endFilter))
+    setIfPresent(params, 'user', userFilter.trim())
+    setIfPresent(params, 'action', actionFilter.trim())
+    setIfPresent(params, 'q', textFilter.trim())
+    return params
+  }, [actionFilter, endFilter, sortOrder, startFilter, textFilter, userFilter])
+
+  const loadTimeline = useCallback(async () => {
+    const data = await smmGetJSON<{ timeline: TimeLineEntry[]; mission: MissionData }>(`/mission/${missionId}/timeline/`, queryParams)
     setTimelineEntries(data.timeline)
     setMissionData(data.mission)
-  }, 10000)
+  }, [missionId, queryParams])
+
+  useEffect(() => {
+    if (skipInitialRefresh.current) {
+      skipInitialRefresh.current = false
+      return
+    }
+    void loadTimeline()
+  }, [loadTimeline])
+
+  usePolling(loadTimeline, 10000)
 
   const sortedTimelineEntries = useMemo(
     () =>
@@ -121,21 +166,58 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
     [sortOrder, timelineEntries]
   )
 
+  function clearFilters() {
+    setStartFilter('')
+    setEndFilter('')
+    setUserFilter('')
+    setActionFilter('')
+    setTextFilter('')
+  }
+
   return (
     <div>
       {missionData && <MissionHeader key="missionHeader" mission={missionData} />}
       {missionData && !missionData.closed && <MissionTimeLineEntryAdd missionId={missionId} />}
-      <div className="d-flex justify-content-end mb-2">
-        <Form.Select
-          aria-label="Timeline sort order"
-          value={sortOrder}
-          onChange={(event: ChangeEvent<HTMLSelectElement>) => setSortOrder(event.target.value as TimelineSortOrder)}
-          style={{ maxWidth: '12rem' }}
-        >
-          <option value="desc">Newest first</option>
-          <option value="asc">Oldest first</option>
-        </Form.Select>
-      </div>
+      <Form className="mb-2" onSubmit={(event) => event.preventDefault()}>
+        <div className="row g-2 align-items-end">
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineSortOrder">
+            <Form.Label>Sort</Form.Label>
+            <Form.Select
+              aria-label="Timeline sort order"
+              value={sortOrder}
+              onChange={(event: ChangeEvent<HTMLSelectElement>) => setSortOrder(event.target.value as TimelineSortOrder)}
+            >
+              <option value="desc">Newest first</option>
+              <option value="asc">Oldest first</option>
+            </Form.Select>
+          </Form.Group>
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineStartFilter">
+            <Form.Label>From</Form.Label>
+            <Form.Control type="datetime-local" value={startFilter} onChange={(event: ChangeEvent<HTMLInputElement>) => setStartFilter(event.target.value)} />
+          </Form.Group>
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineEndFilter">
+            <Form.Label>To</Form.Label>
+            <Form.Control type="datetime-local" value={endFilter} onChange={(event: ChangeEvent<HTMLInputElement>) => setEndFilter(event.target.value)} />
+          </Form.Group>
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineUserFilter">
+            <Form.Label>User</Form.Label>
+            <Form.Control value={userFilter} onChange={(event: ChangeEvent<HTMLInputElement>) => setUserFilter(event.target.value)} />
+          </Form.Group>
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineActionFilter">
+            <Form.Label>Action</Form.Label>
+            <Form.Control value={actionFilter} onChange={(event: ChangeEvent<HTMLInputElement>) => setActionFilter(event.target.value)} />
+          </Form.Group>
+          <Form.Group className="col-sm-6 col-lg-2" controlId="timelineTextFilter">
+            <Form.Label>Contains</Form.Label>
+            <div className="d-flex gap-2">
+              <Form.Control value={textFilter} onChange={(event: ChangeEvent<HTMLInputElement>) => setTextFilter(event.target.value)} />
+              <Button type="button" variant="light" onClick={clearFilters}>
+                Clear
+              </Button>
+            </div>
+          </Form.Group>
+        </div>
+      </Form>
       <Table responsive aria-label="Timeline entries">
         <thead>
           <tr>
