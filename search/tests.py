@@ -3,6 +3,7 @@ Tests for search creation/management
 """
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.gis.geos import Point, LineString, Polygon
 
 from data.models import GeoTimeLabel
@@ -563,3 +564,58 @@ class SearchCreateMembershipTestCase(TestCase):
         })
         self.assertEqual(response.status_code, 404)
         self.assertEqual(Search.objects.count(), 0)
+
+
+class SearchClosedMissionTestCase(TestCase):
+    """
+    Search create/preview/queue/begin/finished must be blocked on a closed mission.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        assets = AssetsHelpers(self.smm)
+        searches = SearchHelpers(self.smm)
+        missions = MissionFunctions(self.smm)
+        self.asset_type = assets.create_asset_type()
+        self.asset = assets.create_asset(asset_type=self.asset_type)
+        mission = missions.create_mission('closed search mission')
+        mission.add_asset(self.asset)
+        self.poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.smm.user1, label='datum', geo_type='poi', mission=mission.get_object())
+        # Create a search while the mission is open, then close the mission.
+        self.search = searches.create_sector(self.poi, 200, self.asset_type)
+        mission_obj = mission.get_object()
+        mission_obj.closed = timezone.now()
+        mission_obj.closed_by = self.smm.user1
+        mission_obj.save()
+
+    def test_create_rejected_on_closed_mission(self):
+        """Saving a new search against a closed mission's datum is forbidden."""
+        response = self.smm.client1.post('/search/sector/create/', data={
+            'poi_id': self.poi.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Search.objects.count(), 1)  # only the one created during setUp
+
+    def test_preview_rejected_on_closed_mission(self):
+        """Previewing a search against a closed mission's datum is forbidden."""
+        response = self.smm.client1.get('/search/sector/create/', data={
+            'poi_id': self.poi.pk, 'asset_type_id': self.asset_type.pk, 'sweep_width': 200,
+        })
+        self.assertEqual(response.status_code, 403)
+
+    def test_queue_rejected_on_closed_mission(self):
+        """Queueing a search in a closed mission is forbidden."""
+        response = self.smm.client1.post(f'/search/{self.search.search_id}/queue/', data={})
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNone(self.search.as_object().queued_at)
+
+    def test_begin_rejected_on_closed_mission(self):
+        """Beginning a search in a closed mission is forbidden."""
+        response = self.smm.client1.post(f'/search/{self.search.search_id}/begin/', data={'asset_id': self.asset.pk})
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNone(self.search.as_object().inprogress_by)
+
+    def test_finished_rejected_on_closed_mission(self):
+        """Finishing a search in a closed mission is forbidden."""
+        response = self.smm.client1.post(f'/search/{self.search.search_id}/finished/', data={'asset_id': self.asset.pk})
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNone(self.search.as_object().completed_at)
