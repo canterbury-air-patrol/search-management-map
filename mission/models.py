@@ -22,6 +22,15 @@ class Mission(models.Model):
     closed = models.DateTimeField(null=True, blank=True)
     closed_by = models.ForeignKey(get_user_model(), on_delete=models.PROTECT, related_name='closer%(app_label)s_%(class)s_related', null=True, blank=True)
 
+    def is_closed(self):
+        """
+        Return true if this mission has been closed.
+
+        Closed missions are read-only: mission-scoped write endpoints must
+        reject mutations (other than re-opening) once this is true.
+        """
+        return self.closed is not None
+
     def as_object(self, admin):
         """
         Convert mission to an object that is suitable for returning via JsonResponse

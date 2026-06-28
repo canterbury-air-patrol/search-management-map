@@ -72,6 +72,40 @@ def mission_is_member(view_func):
     return wrapper_is_member
 
 
+def mission_closed_response(mission):
+    """
+    Return a 403 response if the mission is closed, otherwise None.
+
+    Use this inside views that serve both reads and writes (e.g. a class-based
+    view's post()) so reads of a closed mission keep working while writes are
+    rejected. For write-only views prefer the mission_is_member_open decorator.
+    """
+    if mission.is_closed():
+        return HttpResponseForbidden("This mission is closed")
+    return None
+
+
+def mission_is_member_open(view_func):
+    """
+    Make sure the user is a member of the mission and the mission is not closed.
+
+    For write-only, *function-based* mission-scoped views. Like mission_is_member
+    it reads the request from the first positional argument, so it must not be
+    applied to class-based view methods (where the first argument is self) -
+    those should call mission_closed_response() inside their write handlers
+    instead. Closed missions are read-only, so mutations are rejected with 403
+    (re-opening a mission is handled separately).
+    """
+    def wrapper_is_member_open(*args, **kwargs):
+        mission_user = mission_user_get(kwargs['mission_id'], args[0].user)
+        kwargs.pop('mission_id')
+        closed = mission_closed_response(mission_user.mission)
+        if closed is not None:
+            return closed
+        return view_func(*args, mission_user=mission_user, **kwargs)
+    return wrapper_is_member_open
+
+
 def mission_is_admin(view_func):
     """
     Make sure the user is a member and they have an admin role of the mission
