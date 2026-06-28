@@ -214,11 +214,27 @@ class MissionTimelineView(View):
     """
     Show/update the timeline for a mission
     """
-    def as_json(self, mission_user):
+    @staticmethod
+    def _timeline_order_fields(request):
+        """
+        Return database order fields for the requested timeline sort order.
+        """
+        order = request.GET.get('order', 'desc')
+        if order == 'asc':
+            return ('timestamp', 'pk')
+        if order == 'desc':
+            return ('-timestamp', '-pk')
+        return None
+
+    def as_json(self, request, mission_user):
         """
         Mission timeline, a history of everything that happened during a mission, in json
         """
-        timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by('timestamp')
+        order_fields = self._timeline_order_fields(request)
+        if order_fields is None:
+            return HttpResponseBadRequest("Invalid timeline order")
+
+        timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by(*order_fields)
 
         data = {
             'mission': mission_user.mission.as_object(mission_user.is_admin()),
@@ -231,7 +247,7 @@ class MissionTimelineView(View):
         Display the assets in this mission
         """
         if "application/json" in request.META.get('HTTP_ACCEPT', ''):
-            return self.as_json(mission_user)
+            return self.as_json(request, mission_user)
         data = {
             'mission': mission_user.mission,
         }
