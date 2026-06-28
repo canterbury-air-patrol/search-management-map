@@ -11,7 +11,7 @@ from django.contrib.gis.geos import Point
 from django.utils.decorators import method_decorator
 from django.views import View
 
-from mission.decorators import mission_is_member, mission_is_member_no_variable
+from mission.decorators import mission_is_member, mission_is_member_no_variable, mission_open_required
 from data.decorators import data_get_mission_id
 from data.view_helpers import to_geojson
 from timeline.helpers import timeline_record_image_priority_changed
@@ -27,6 +27,7 @@ from .models import GeoImage
 class ImageUploadView(View):
     """Allow users (typically an asset) to upload an image with a location."""
 
+    @mission_open_required
     def post(self, request, mission_user):
         """Handle image upload."""
         form = UploadImageForm(request.POST, request.FILES)
@@ -113,6 +114,7 @@ def image_get_thumbnail(request, image):
 class ImagePriorityView(View):
     """Set or unset the priority flag on an image via PATCH."""
 
+    @mission_open_required
     def patch(self, request, image, mission_user):
         """Update image priority from JSON body {"priority": true/false}."""
         try:

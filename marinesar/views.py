@@ -4,6 +4,7 @@ Views for marinesar
 These views should only relate to presentation of the UI
 """
 
+from django.core.exceptions import PermissionDenied
 from django.db import connection as dbconn
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import GEOSGeometry, LineString, Point
@@ -16,7 +17,7 @@ from django.views import View
 from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_geojson
-from mission.decorators import mission_is_member
+from mission.decorators import mission_is_member, mission_open_required
 
 from .decorators import total_drift_from_type_id
 from .models import MarineTotalDriftVector, MarineTotalDriftVectorCurrent, MarineTotalDriftVectorWind
@@ -51,6 +52,8 @@ class MarineVectorCreateView(View):
 
     def _compute_vector(self, user_data, mission_user, save):  # pylint: disable=R0914,R0915
         """Build the drift vector from user_data; persist it if save=True."""
+        if mission_user.mission.is_closed():
+            raise PermissionDenied("This mission is closed")
         vectors = []
         current_vectors = []
         wind_vectors = []
@@ -138,6 +141,7 @@ class MarineVectorDetailView(View):
         """Return the vector as GeoJSON."""
         return to_geojson(MarineTotalDriftVector, [tdv])
 
+    @mission_open_required
     def delete(self, request, tdv, mission_user):
         """Delete the vector."""
         if not tdv.delete(mission_user.user):
