@@ -3,7 +3,8 @@ Tests for marinesar functionality
 """
 
 from django.test import TestCase
-from django.contrib.gis.geos import Point
+from django.utils import timezone
+from django.contrib.gis.geos import Point, LineString
 
 from data.models import GeoTimeLabel
 from mission.models import Mission, MissionUser
@@ -60,3 +61,39 @@ class MarineVectorCreateTestCase(TestCase):
         response = self.smm.client1.get(self._url(), self._payload(self.other_poi))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(MarineTotalDriftVector.objects.count(), 0)
+
+
+class MarineVectorClosedMissionTestCase(TestCase):
+    """
+    Marine vector create/preview/delete must be blocked on a closed mission.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.mission = Mission.objects.create(creator=self.smm.user1, mission_name='closed', closed=timezone.now(), closed_by=self.smm.user1)
+        MissionUser(mission=self.mission, user=self.smm.user1, permissions_admin=True, creator=self.smm.user1).save()
+        self.poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.smm.user1, label='datum', geo_type='poi', mission=self.mission)
+
+    def _create_url(self):
+        return f'/mission/{self.mission.pk}/sar/marine/vectors/create/'
+
+    def test_create_rejected_on_closed_mission(self):
+        """Saving a marine vector in a closed mission is forbidden."""
+        response = self.smm.client1.post(self._create_url(), {'poi_id': self.poi.pk})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(MarineTotalDriftVector.objects.count(), 0)
+
+    def test_preview_rejected_on_closed_mission(self):
+        """Previewing a marine vector in a closed mission is forbidden."""
+        response = self.smm.client1.get(self._create_url(), {'poi_id': self.poi.pk})
+        self.assertEqual(response.status_code, 403)
+
+    def test_delete_rejected_on_closed_mission(self):
+        """Deleting a marine vector in a closed mission is forbidden."""
+        vector = MarineTotalDriftVector.objects.create(
+            geo=LineString((172.5, -43.5), (172.6, -43.6)), datum=self.poi,
+            leeway_multiplier=1.0, leeway_modifier=0.0, mission=self.mission, created_by=self.smm.user1,
+        )
+        response = self.smm.client1.delete(f'/sar/marine/vectors/{vector.pk}/')
+        self.assertEqual(response.status_code, 403)
+        vector.refresh_from_db()
+        self.assertIsNone(vector.deleted_at)
