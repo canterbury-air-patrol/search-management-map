@@ -1,7 +1,7 @@
 import '../page-shell'
-import { ChangeEvent, useState } from 'react'
+import { ChangeEvent, useMemo, useState } from 'react'
 import * as ReactDOM from 'react-dom/client'
-import { Table, Button } from 'react-bootstrap'
+import { Table, Button, Form } from 'react-bootstrap'
 import DateTimePicker from 'react-datetime-picker'
 import 'react-datetime-picker/dist/DateTimePicker.css'
 
@@ -81,6 +81,8 @@ interface TimeLineEntry {
   url: string
 }
 
+type TimelineSortOrder = 'desc' | 'asc'
+
 function MissionTimelineEntry({ timelineEntry }: { timelineEntry: TimeLineEntry }) {
   return (
     <tr>
@@ -100,18 +102,41 @@ interface MissionTimeLineProps {
 export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
   const [timelineEntries, setTimelineEntries] = useState<TimeLineEntry[]>([])
   const [missionData, setMissionData] = useState<MissionData | undefined>(undefined)
+  const [sortOrder, setSortOrder] = useState<TimelineSortOrder>('desc')
 
   usePolling(async () => {
-    const data = await smmGetJSON<{ timeline: TimeLineEntry[]; mission: MissionData }>(`/mission/${missionId}/timeline/`, {})
+    const data = await smmGetJSON<{ timeline: TimeLineEntry[]; mission: MissionData }>(`/mission/${missionId}/timeline/`, { order: sortOrder })
     setTimelineEntries(data.timeline)
     setMissionData(data.mission)
   }, 10000)
+
+  const sortedTimelineEntries = useMemo(
+    () =>
+      [...timelineEntries].sort((a, b) => {
+        const byTime = new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        const byId = a.id - b.id
+        const result = byTime || byId
+        return sortOrder === 'asc' ? result : -result
+      }),
+    [sortOrder, timelineEntries]
+  )
 
   return (
     <div>
       {missionData && <MissionHeader key="missionHeader" mission={missionData} />}
       {missionData && !missionData.closed && <MissionTimeLineEntryAdd missionId={missionId} />}
-      <Table responsive>
+      <div className="d-flex justify-content-end mb-2">
+        <Form.Select
+          aria-label="Timeline sort order"
+          value={sortOrder}
+          onChange={(event: ChangeEvent<HTMLSelectElement>) => setSortOrder(event.target.value as TimelineSortOrder)}
+          style={{ maxWidth: '12rem' }}
+        >
+          <option value="desc">Newest first</option>
+          <option value="asc">Oldest first</option>
+        </Form.Select>
+      </div>
+      <Table responsive aria-label="Timeline entries">
         <thead>
           <tr>
             <td key="heading" colSpan={5} align="center">
@@ -127,7 +152,7 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
           </tr>
         </thead>
         <tbody>
-          {timelineEntries.map((entry) => (
+          {sortedTimelineEntries.map((entry) => (
             <MissionTimelineEntry key={entry.id} timelineEntry={entry} />
           ))}
         </tbody>

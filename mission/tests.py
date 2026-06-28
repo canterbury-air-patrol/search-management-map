@@ -463,6 +463,68 @@ class MissionTimelineTestCase(MissionBaseTestCase):
     """
     Mission timeline API
     """
+    @staticmethod
+    def _timeline_messages(response):
+        """
+        Return manual test timeline messages from a timeline response.
+        """
+        messages = [entry['message'] for entry in response.json()['timeline']]
+        return [message for message in messages if message in ('Old entry', 'New entry')]
+
+    def _create_ordered_timeline_entries(self, mission):
+        """
+        Create two manual entries with stable timestamps for sort tests.
+        """
+        mission_obj = mission.get_object()
+        TimeLineEntry.objects.create(
+            mission=mission_obj,
+            user=self.smm.user1,
+            event_type='usr',
+            message='Old entry',
+            timestamp=datetime(2026, 6, 28, 12, 0, tzinfo=datetime_timezone.utc),
+        )
+        TimeLineEntry.objects.create(
+            mission=mission_obj,
+            user=self.smm.user1,
+            event_type='usr',
+            message='New entry',
+            timestamp=datetime(2026, 6, 28, 13, 0, tzinfo=datetime_timezone.utc),
+        )
+
+    def test_timeline_defaults_to_newest_first(self):
+        """
+        Timeline JSON returns the newest entries first by default.
+        """
+        mission = self.missions.create_mission('test_timeline_default_order')
+        self._create_ordered_timeline_entries(mission)
+
+        response = self.smm.client1.get(f'/mission/{mission.mission_pk}/timeline/', HTTP_ACCEPT='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._timeline_messages(response), ['New entry', 'Old entry'])
+
+    def test_timeline_can_be_sorted_oldest_first(self):
+        """
+        Timeline JSON can still be requested oldest first.
+        """
+        mission = self.missions.create_mission('test_timeline_asc_order')
+        self._create_ordered_timeline_entries(mission)
+
+        response = self.smm.client1.get(f'/mission/{mission.mission_pk}/timeline/', data={'order': 'asc'}, HTTP_ACCEPT='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self._timeline_messages(response), ['Old entry', 'New entry'])
+
+    def test_invalid_timeline_sort_order_is_rejected(self):
+        """
+        Unknown timeline sort orders fail clearly.
+        """
+        mission = self.missions.create_mission('test_timeline_invalid_order')
+
+        response = self.smm.client1.get(f'/mission/{mission.mission_pk}/timeline/', data={'order': 'sideways'}, HTTP_ACCEPT='application/json')
+
+        self.assertEqual(response.status_code, 400)
+
     def test_missing_timeline_timestamp_uses_submit_time(self):
         """
         Adding a manual timeline entry without a timestamp uses the server time.
