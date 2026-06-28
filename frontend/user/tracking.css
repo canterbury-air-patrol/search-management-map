@@ -1,0 +1,12 @@
+.UserTracker-marker {
+  height: 100%;
+  opacity: 0.8;
+}
+
+.UserTracker-marker:hover {
+  opacity: 1;
+}
+
+.UserTracker-container.is-tracking a {
+  background-color: #cfe2ff;
+}
