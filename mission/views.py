@@ -19,7 +19,7 @@ from django.views.decorators.http import require_POST
 
 from assets.models import Asset, AssetStatus
 from mission.helpers import get_my_assets_not_in_mission
-from organization.decorators import asset_is_operator, get_organization_from_id
+from organization.decorators import asset_is_operator, get_organization_from_id, user_can_operate_asset
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import timeline_record_create, \
@@ -31,6 +31,17 @@ from timeline.helpers import timeline_record_create, \
 from .models import Mission, MissionExternalReference, MissionUser, MissionAsset, MissionAssetType, MissionOrganization, MissionAssetStatus, MissionAssetStatusValue, AssetCommand
 from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetForm, MissionOrganizationForm
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin
+
+
+def user_can_command_asset(mission_user, asset):
+    """
+    Whether this user may send operational commands to the asset.
+
+    Currently allowed for mission admins and users who can operate the asset
+    (its owner or an organization radio operator). This is the single place to
+    extend as missions and organizations gain finer operational roles.
+    """
+    return mission_user.is_admin() or user_can_operate_asset(mission_user.user, asset)
 
 
 @method_decorator(login_required, name="dispatch")
@@ -746,6 +757,9 @@ class AssetCommandSetView(View):
         form = AssetCommandForm(request.POST, mission=mission_user.mission)
         if not form.is_valid():
             return JsonResponse({'errors': form.errors}, status=400)
+        asset = form.cleaned_data['asset']
+        if not user_can_command_asset(mission_user, asset):
+            return HttpResponseForbidden("You do not have permission to command this asset")
         point = None
         if form.cleaned_data['command'] in AssetCommand.REQUIRES_POSITION:
             try:
@@ -753,7 +767,7 @@ class AssetCommandSetView(View):
             except (ValueError, TypeError):
                 return JsonResponse({'errors': {'position': ['Invalid lat/long']}}, status=400)
         AssetCommand(
-            asset=form.cleaned_data['asset'],
+            asset=asset,
             command=form.cleaned_data['command'],
             issued_by=request.user,
             reason=form.cleaned_data['reason'],
