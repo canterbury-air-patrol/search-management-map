@@ -16,7 +16,7 @@ interface MissionTimeLineEntryAddProps {
   missionId: number
 }
 
-function MissionTimeLineEntryAdd({ missionId }: MissionTimeLineEntryAddProps) {
+export function MissionTimeLineEntryAdd({ missionId }: MissionTimeLineEntryAddProps) {
   const [timeNow, setTimeNow] = useState(true)
   const [specificDateTime, setSpecificDateTime] = useState<Date>(() => new Date())
   const [message, setMessage] = useState('')
