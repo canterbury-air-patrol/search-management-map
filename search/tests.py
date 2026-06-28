@@ -12,6 +12,7 @@ from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
 from mission.tests import MissionFunctions
+from timeline.models import TimeLineEntry
 
 from .models import Search
 
@@ -42,6 +43,14 @@ class SearchWrapper:
             data['asset'] = asset.pk
         return client.post(f'/search/{self.search_id}/queue/', data=data)
 
+    def unqueue(self, client=None):
+        """
+        Remove this search from the queue
+        """
+        if client is None:
+            client = self.smm.client1
+        return client.delete(f'/search/{self.search_id}/queue/')
+
     def delete(self, client=None):
         """
         Delete this search
@@ -66,13 +75,16 @@ class SearchWrapper:
             client = self.smm.client1
         return client.get(f'/search/{self.search_id}/', HTTP_ACCEPT='application/json')
 
-    def begin(self, client=None):
+    def begin(self, asset=None, client=None):
         """
         Begin this search
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/search/{self.search_id}/begin/')
+        data = {}
+        if asset is not None:
+            data['asset_id'] = asset.pk
+        return client.post(f'/search/{self.search_id}/begin/', data=data)
 
     def finished(self, client=None):
         """
@@ -513,6 +525,83 @@ class SearchTestCase(TestCase):
         self.assertIsNotNone(search.as_object().completed_at)
 
 
+class SearchQueueTestCase(TestCase):
+    """
+    Tests for queue lifecycle changes.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
+        self.searches = SearchHelpers(self.smm)
+        self.missions = MissionFunctions(self.smm)
+        self.asset_type = self.assets.create_asset_type()
+        self.asset = self.assets.create_asset(asset_type=self.asset_type)
+        self.mission = self.missions.create_mission('test mission')
+        self.mission.add_asset(self.asset)
+
+    def create_poi(self):
+        """
+        Create a POI for the test mission.
+        """
+        return GeoTimeLabel.objects.create(
+            geo=Point(172.5, -43.5),
+            created_by=self.smm.user1,
+            label='Test Point',
+            geo_type='poi',
+            mission=self.mission.get_object(),
+        )
+
+    def create_search(self):
+        """
+        Create a sector search for queue tests.
+        """
+        return self.searches.create_sector(self.create_poi(), 200, self.asset_type)
+
+    def test_unqueue_via_delete(self):
+        """
+        A queued search can be removed from the queue with DELETE.
+        """
+        search = self.create_search()
+        response = search.queue(asset=self.asset)
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(search.as_object().queued_at)
+        self.assertEqual(search.as_object().queued_for_asset, self.asset)
+
+        response = search.unqueue()
+
+        self.assertEqual(response.status_code, 200)
+        search_obj = search.as_object()
+        self.assertIsNone(search_obj.queued_at)
+        self.assertIsNone(search_obj.queued_for_asset)
+        timeline_entry = TimeLineEntry.objects.filter(event_type='que').order_by('-pk').first()
+        self.assertIsNotNone(timeline_entry)
+        self.assertIn("Unqueued Search", timeline_entry.message)
+
+    def test_unqueue_rejects_not_queued_search(self):
+        """
+        Removing a search that is not queued should be rejected.
+        """
+        search = self.create_search()
+
+        response = search.unqueue()
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNone(search.as_object().queued_at)
+
+    def test_unqueue_rejects_inprogress_search(self):
+        """
+        A queued search cannot be unqueued once an asset has started it.
+        """
+        search = self.create_search()
+        self.assertEqual(search.queue().status_code, 200)
+        self.assertEqual(search.begin(asset=self.asset).status_code, 200)
+
+        response = search.unqueue()
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNotNone(search.as_object().queued_at)
+
+
 class SearchCreateMembershipTestCase(TestCase):
     """
     Search creation/preview must verify the user is a member of the datum's mission.
@@ -607,6 +696,13 @@ class SearchClosedMissionTestCase(TestCase):
         response = self.smm.client1.post(f'/search/{self.search.search_id}/queue/', data={})
         self.assertEqual(response.status_code, 403)
         self.assertIsNone(self.search.as_object().queued_at)
+
+    def test_unqueue_rejected_on_closed_mission(self):
+        """Unqueueing a search in a closed mission is forbidden."""
+        Search.objects.filter(pk=self.search.search_id).update(queued_at=timezone.now())
+        response = self.smm.client1.delete(f'/search/{self.search.search_id}/queue/')
+        self.assertEqual(response.status_code, 403)
+        self.assertIsNotNone(self.search.as_object().queued_at)
 
     def test_begin_rejected_on_closed_mission(self):
         """Beginning a search in a closed mission is forbidden."""
