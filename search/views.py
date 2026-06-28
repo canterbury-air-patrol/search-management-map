@@ -12,6 +12,7 @@ Basic overview of presented API:
  - List all completed searches
  - Details
 """
+from django.core.exceptions import PermissionDenied
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
@@ -27,7 +28,7 @@ from data.decorators import data_get_mission_id
 from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission, MissionAsset, AssetCommand
-from mission.decorators import mission_is_member, mission_asset_get_mission, mission_asset_get, mission_user_get
+from mission.decorators import mission_is_member, mission_is_member_open, mission_asset_get_mission, mission_asset_get, mission_user_get, mission_closed_response
 from timeline.helpers import timeline_record_search_finished
 from .decorators import search_from_id
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
@@ -52,6 +53,8 @@ def get_search_datum(request, geo_id, geo_type):
     """
     geo = get_object_or_404(GeoTimeLabel, pk=geo_id, geo_type=geo_type)
     mission_user_get(geo.mission_id, request.user)
+    if geo.mission.is_closed():
+        raise PermissionDenied("This mission is closed")
     return geo
 
 
@@ -158,6 +161,10 @@ def search_begin(request, search_id, object_class, asset, mission):
     """
     search = get_object_or_404(object_class, pk=search_id)
 
+    closed = mission_closed_response(mission)
+    if closed is not None:
+        return closed
+
     if search.mission != mission:
         return HttpResponseForbidden("Asset not currently assigned to the mission this search is in.")
 
@@ -181,6 +188,11 @@ def search_finished(request, search_id, object_class, asset, mission):
     A search has been completed
     """
     search = get_object_or_404(object_class, pk=search_id)
+
+    closed = mission_closed_response(mission)
+    if closed is not None:
+        return closed
+
     error = check_search_state(search, 'complete', asset)
     if error is not None:
         return error
@@ -198,7 +210,7 @@ def search_finished(request, search_id, object_class, asset, mission):
 @login_required
 @search_from_id
 @data_get_mission_id(arg_name='search')
-@mission_is_member
+@mission_is_member_open
 def search_queue(request, search, mission_user):
     """
     Queue a search
