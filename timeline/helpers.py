@@ -142,6 +142,19 @@ def timeline_record_search_queue(mission, user, search, assettype, asset):
     entry.save()
 
 
+def timeline_record_search_unqueue(mission, user, search, assettype, asset):
+    """
+    Create a timeline entry for a search being removed from the queue
+    """
+    if asset:
+        message = f"{user} Unqueued Search {search} for Asset {asset} in Mission {mission.pk}"
+    else:
+        message = f"{user} Unqueued Search {search} for Assets of Type {assettype} in Mission {mission.pk}"
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='que', message=message, url=url)
+    entry.save()
+
+
 def timeline_record_mission_asset_status(mission, user, asset, status):
     """
     Create a timeline entry for a mission asset status being set

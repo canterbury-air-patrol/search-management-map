@@ -11,9 +11,10 @@ interface Props {
   status: string
   onDelete: () => void
   onQueueDialog: () => void
+  onUnqueue: () => void
 }
 
-export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog }: Props) {
+export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog, onUnqueue }: Props) {
   const rows: { label: string; value: string }[] = [
     { label: 'Search Type', value: search.search_type },
     { label: 'Status', value: status },
@@ -39,6 +40,9 @@ export function SearchPopup({ search, missionId, status, onDelete, onQueueDialog
     }
     if (!search.queued_at && !search.inprogress_at) {
       buttons.push({ label: 'Queue', btnClass: 'btn-light', onclick: onQueueDialog })
+    }
+    if (search.queued_at && !search.inprogress_at) {
+      buttons.push({ label: 'Unqueue', btnClass: 'btn-light', onclick: onUnqueue })
     }
     buttons.push({ label: 'Details', btnClass: 'btn-light', href: `/search/${search.pk}/` })
   }

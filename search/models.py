@@ -17,7 +17,11 @@ from data.models import GeoTime, GeoTimeLabel
 from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
 from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
-from timeline.helpers import timeline_record_search_queue, timeline_record_search_begin
+from timeline.helpers import (
+    timeline_record_search_begin,
+    timeline_record_search_queue,
+    timeline_record_search_unqueue,
+)
 
 
 def dictfetchall(cursor):
@@ -240,10 +244,36 @@ class Search(GeoTime):
         '''
         Queue this search for an asset
         '''
-        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset)
+        updated = Search.objects.filter(
+            pk=self.pk,
+            inprogress_by__isnull=True,
+            completed_at__isnull=True,
+            deleted_at__isnull=True,
+            replaced_at__isnull=True,
+            queued_at__isnull=True,
+        ).update(queued_at=timezone.now(), queued_for_asset=asset)
         self.refresh_from_db()
-        if self.queued_for_asset == asset:
+        if updated:
             timeline_record_search_queue(mission_user.mission, mission_user.user, self, self.created_for, asset)
+            return True
+        return False
+
+    def unqueue_search(self, mission_user):
+        '''
+        Remove this search from the queue
+        '''
+        asset = self.queued_for_asset
+        updated = Search.objects.filter(
+            pk=self.pk,
+            inprogress_by__isnull=True,
+            completed_at__isnull=True,
+            deleted_at__isnull=True,
+            replaced_at__isnull=True,
+            queued_at__isnull=False,
+        ).update(queued_at=None, queued_for_asset=None)
+        self.refresh_from_db()
+        if updated:
+            timeline_record_search_unqueue(mission_user.mission, mission_user.user, self, self.created_for, asset)
             return True
         return False
 

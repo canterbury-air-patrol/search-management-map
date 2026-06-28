@@ -13,14 +13,20 @@ Basic overview of presented API:
  - Details
 """
 from django.core.exceptions import PermissionDenied
-from django.http import HttpResponse, HttpResponseForbidden, HttpResponseNotFound, JsonResponse, HttpResponseBadRequest
+from django.http import (
+    HttpResponse,
+    HttpResponseBadRequest,
+    HttpResponseForbidden,
+    HttpResponseNotFound,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Point
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_http_methods, require_POST
 
 from assets.models import AssetType, Asset
 from organization.decorators import asset_id_in_get_post, asset_is_operator
@@ -139,6 +145,9 @@ def check_search_state(search, action, asset):
     if action == 'begin':
         if search.inprogress_by is not None and search.inprogress_by != asset:
             return HttpResponseForbidden("Search already in progress")
+    elif action == 'queue':
+        if search.inprogress_by is not None:
+            return HttpResponseForbidden("Search currently in progress")
     elif action == 'delete':
         if search.inprogress_by is not None:
             return HttpResponseForbidden("Search currently in progress")
@@ -206,16 +215,10 @@ def search_finished(request, search_id, object_class, asset, mission):
     return HttpResponse("Completed")
 
 
-@require_POST
-@login_required
-@search_from_id
-@data_get_mission_id(arg_name='search')
-@mission_is_member_open
-def search_queue(request, search, mission_user):
+def _queue_search(request, search, mission_user):
     """
-    Queue a search
+    Queue a search for an asset type or specific asset.
     """
-    # Check if this search has already been queued
     if search.queued_at:
         return HttpResponseForbidden(f"This search is already queued for {search.get_match()}")
 
@@ -225,9 +228,42 @@ def search_queue(request, search, mission_user):
         # Make sure this asset is a member of this mission
         get_object_or_404(MissionAsset, mission=mission_user.mission, asset=asset, removed__isnull=True)
 
-    search.queue_search(mission_user=mission_user, asset=asset)
+    if search.queue_search(mission_user=mission_user, asset=asset):
+        return HttpResponse("Success")
 
-    return HttpResponse("Success")
+    return HttpResponseNotFound("Unable")
+
+
+def _unqueue_search(search, mission_user):
+    """
+    Remove a search from the queue.
+    """
+    if not search.queued_at:
+        return HttpResponseForbidden("This search is not queued")
+
+    if search.unqueue_search(mission_user=mission_user):
+        return HttpResponse("Success")
+
+    return HttpResponseNotFound("Unable")
+
+
+@require_http_methods(["POST", "DELETE"])
+@login_required
+@search_from_id
+@data_get_mission_id(arg_name='search')
+@mission_is_member_open
+def search_queue(request, search, mission_user):
+    """
+    Queue or unqueue a search
+    """
+    error = check_search_state(search, 'queue' if request.method == "POST" else 'delete', None)
+    if error is not None:
+        return error
+
+    if request.method == "DELETE":
+        return _unqueue_search(search, mission_user)
+
+    return _queue_search(request, search, mission_user)
 
 
 @login_required

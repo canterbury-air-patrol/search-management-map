@@ -24,10 +24,15 @@ class SMMSearch {
     this.deleteCallback = this.deleteCallback.bind(this)
     this.searchQueueDestroy = this.searchQueueDestroy.bind(this)
     this.searchQueueDialog = this.searchQueueDialog.bind(this)
+    this.unqueueCallback = this.unqueueCallback.bind(this)
   }
 
   deleteCallback() {
     smmDelete(`/search/${this.search.pk}/`)
+  }
+
+  unqueueCallback() {
+    smmDelete(`/search/${this.search.pk}/queue/`)
   }
 
   searchQueueDestroy() {
@@ -62,6 +67,7 @@ class SMMSearch {
         status={this.parent.searchStatus(this.search)}
         onDelete={this.deleteCallback}
         onQueueDialog={this.searchQueueDialog}
+        onUnqueue={this.unqueueCallback}
       />,
       { minWidth: 200 }
     )
