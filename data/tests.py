@@ -4,7 +4,7 @@ Tests for data handling
 
 from datetime import timedelta
 
-from django.contrib.gis.geos import Point
+from django.contrib.gis.geos import Point, LineString
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -53,6 +53,64 @@ class UserRecordPositionTestCase(TestCase):
         response = self.client.get(self.url, {'lat': -43.5, 'lon': 172.5})
         self.assertEqual(response.status_code, 405)
         self.assertEqual(UserPointTime.objects.filter(user=self.user).count(), 0)
+
+
+class ClosedMissionWriteProtectionTestCase(TestCase):
+    """
+    Closed missions are read-only: data write endpoints must reject mutations.
+    """
+    def setUp(self):
+        self.user = get_user_model().objects.create_user('test', password='password')
+        self.mission = Mission.objects.create(creator=self.user, closed=timezone.now(), closed_by=self.user)
+        MissionUser(mission=self.mission, user=self.user, permissions_admin=True, creator=self.user).save()
+        self.client.force_login(self.user)
+
+    def test_poi_create_rejected_on_closed_mission(self):
+        """Creating a POI in a closed mission is forbidden."""
+        response = self.client.post(f'/mission/{self.mission.pk}/data/pois/create/', {'lat': -43.5, 'lon': 172.5, 'label': 'nope'})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(GeoTimeLabel.objects.filter(mission=self.mission).count(), 0)
+
+    def test_line_create_rejected_on_closed_mission(self):
+        """Creating a line in a closed mission is forbidden."""
+        response = self.client.post(f'/mission/{self.mission.pk}/data/userlines/create/', {
+            'label': 'nope', 'points': 2,
+            'point0_lat': -43.5, 'point0_lng': 172.5, 'point1_lat': -43.6, 'point1_lng': 172.6,
+        })
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(GeoTimeLabel.objects.filter(mission=self.mission).count(), 0)
+
+    def test_user_record_position_rejected_on_closed_mission(self):
+        """Recording a user position in a closed mission is forbidden."""
+        response = self.client.post(f'/mission/{self.mission.pk}/data/user/{self.user.username}/position/add/', {'lat': -43.5, 'lon': 172.5})
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(UserPointTime.objects.filter(mission=self.mission).count(), 0)
+
+    def test_poi_replace_rejected_on_closed_mission(self):
+        """Replacing an existing POI in a closed mission is forbidden and does not mutate it."""
+        poi = GeoTimeLabel.objects.create(geo=Point(172.5, -43.5), created_by=self.user, label='original', geo_type='poi', mission=self.mission)
+        response = self.client.post(f'/data/pois/{poi.pk}/replace/', {'lat': -43.6, 'lon': 172.6, 'label': 'changed'})
+        self.assertEqual(response.status_code, 403)
+        poi.refresh_from_db()
+        self.assertEqual(poi.label, 'original')
+        self.assertIsNone(poi.replaced_by)
+
+    def test_line_replace_rejected_on_closed_mission(self):
+        """Replacing an existing line in a closed mission is forbidden and does not mutate it."""
+        line = GeoTimeLabel.objects.create(geo=LineString((172.5, -43.5), (172.6, -43.6)), created_by=self.user, label='original line', geo_type='line', mission=self.mission)
+        response = self.client.post(f'/data/userlines/{line.pk}/replace/', {
+            'label': 'changed line', 'points': 2,
+            'point0_lat': -43.5, 'point0_lng': 172.5, 'point1_lat': -43.6, 'point1_lng': 172.6,
+        })
+        self.assertEqual(response.status_code, 403)
+        line.refresh_from_db()
+        self.assertEqual(line.label, 'original line')
+        self.assertIsNone(line.replaced_by)
+
+    def test_read_still_allowed_on_closed_mission(self):
+        """Reading mission data is still allowed after closure."""
+        response = self.client.get(f'/mission/{self.mission.pk}/data/pois/current/')
+        self.assertEqual(response.status_code, 200)
 
 
 class GeoTimeAllCurrentTestCase(TestCase):

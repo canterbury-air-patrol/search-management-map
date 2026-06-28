@@ -24,7 +24,7 @@ from django.views.decorators.http import require_POST
 from smm.settings import TIME_ZONE
 from assets.models import Asset
 from organization.decorators import asset_is_recorder
-from mission.decorators import mission_is_member, mission_asset_get
+from mission.decorators import mission_is_member, mission_is_member_open, mission_asset_get
 from mission.models import Mission, AssetCommand
 from .decorators import geotimelabel_from_type_id, geotimelabel_from_id, data_get_mission_id
 from .models import AssetPointTime, GeoTimeLabel, UserPointTime
@@ -196,7 +196,7 @@ def users_position_latest_user(request, current_only):
 
 @require_POST
 @login_required
-@mission_is_member
+@mission_is_member_open
 def user_record_position(request, mission_user, user):
     """
     Record the current position of a user.
@@ -330,7 +330,7 @@ def point_labels_all_kml(request, mission_id):
 
 @require_POST
 @login_required
-@mission_is_member
+@mission_is_member_open
 def point_label_create(request, mission_user):
     """
     Store a new POI
@@ -342,7 +342,7 @@ def point_label_create(request, mission_user):
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
-@mission_is_member
+@mission_is_member_open
 def point_label_replace(request, mission_user, usergeo):
     """
     Move/relabel a POI
@@ -360,7 +360,7 @@ def user_polygons_all_kml(request, mission_id):
 
 @require_POST
 @login_required
-@mission_is_member
+@mission_is_member_open
 def user_polygon_create(request, mission_user):
     """
     Create a new user polygon
@@ -372,7 +372,7 @@ def user_polygon_create(request, mission_user):
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
-@mission_is_member
+@mission_is_member_open
 def user_polygon_replace(request, mission_user, usergeo):
     """
     Update the polygon/label of a user polygon
@@ -390,7 +390,7 @@ def user_lines_all_kml(request, mission_id):
 
 @require_POST
 @login_required
-@mission_is_member
+@mission_is_member_open
 def user_line_create(request, mission_user):
     """
     Create a new user line
@@ -402,7 +402,7 @@ def user_line_create(request, mission_user):
 @login_required
 @geotimelabel_from_type_id
 @data_get_mission_id(arg_name='usergeo')
-@mission_is_member
+@mission_is_member_open
 def user_line_replace(request, mission_user, usergeo):
     """
     Update the line/label of a user line
@@ -463,7 +463,7 @@ def convert_typhoon_time(timestamp):
 
 
 @login_required
-@mission_is_member
+@mission_is_member_open
 def upload_typhoonh_data(request, mission_user):
     """
     Allow the user to upload a telemetry from a Typhoon H to create
