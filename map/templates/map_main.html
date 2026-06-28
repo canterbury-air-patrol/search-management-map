@@ -11,5 +11,6 @@
     <body style="height: 100%">
 	{% csrf_token %}
     <input type="hidden" value="{% if mission == 'all' or mission == 'current' %}{{ mission }}{% else %}{{ mission.pk }}{% endif %}" name="missionId" id="missionId" />
+    <input type="hidden" value="{{ request.user.username }}" name="currentUser" id="currentUser" />
     </body>
 </html>

@@ -2,6 +2,7 @@
 Tests for data handling
 """
 
+import json
 from datetime import timedelta
 
 from django.contrib.gis.geos import Point, LineString
@@ -53,6 +54,28 @@ class UserRecordPositionTestCase(TestCase):
         response = self.client.get(self.url, {'lat': -43.5, 'lon': 172.5})
         self.assertEqual(response.status_code, 405)
         self.assertEqual(UserPointTime.objects.filter(user=self.user).count(), 0)
+
+    def test_user_position_latest_and_history_endpoints(self):
+        """
+        Recorded user positions are visible in mission and aggregate endpoints.
+        """
+        response = self.client.post(self.url, {'lat': -43.5, 'lon': 172.5})
+        self.assertEqual(response.status_code, 200)
+
+        latest_response = self.client.get(f'/mission/{self.mission.pk}/data/users/positions/latest/')
+        self.assertEqual(latest_response.status_code, 200)
+        latest_data = json.loads(latest_response.content)
+        self.assertEqual(len(latest_data['features']), 1)
+        self.assertEqual(latest_data['features'][0]['properties']['user'], [self.user.username])
+
+        specific_history = self.client.get(f'/mission/{self.mission.pk}/data/user/{self.user.username}/position/history/')
+        current_history = self.client.get(f'/mission/current/data/users/{self.user.username}/position/history/')
+        all_history = self.client.get(f'/mission/all/data/users/{self.user.username}/position/history/')
+
+        for history_response in (specific_history, current_history, all_history):
+            self.assertEqual(history_response.status_code, 200)
+            history_data = json.loads(history_response.content)
+            self.assertEqual(len(history_data['features']), 1)
 
 
 class ClosedMissionWriteProtectionTestCase(TestCase):

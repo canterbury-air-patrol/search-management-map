@@ -3,11 +3,12 @@ import L from 'leaflet'
 
 import { SMMRealtime } from '../smmmap'
 import { cookieJar } from '../cookies'
-import { SMMMissionUserPointTimeGeoJSON } from './types'
+import { SMMMissionUserPointTimeGeoJSON, userNameFromProperty } from './types'
 import { UserPopup } from './UserPopup'
 import { buildSwatchLabel } from '../components/swatchLabel'
 import { mountPopup } from '../components/mountPopup'
 import { TrackedPath } from '../components/TrackedPath'
+import { userPositionHistoryUrl } from './tracking'
 
 class SMMUserPosition extends TrackedPath {
   userName: string
@@ -22,7 +23,7 @@ class SMMUserPosition extends TrackedPath {
   }
 
   protected historyUrl() {
-    return `/mission/${this.missionId}/data/user/${this.userName}/position/history/`
+    return userPositionHistoryUrl(this.missionId, this.userName)
   }
 }
 
@@ -45,7 +46,7 @@ class SMMUserPositions extends SMMRealtime {
   protected override featureOptions() {
     return {
       updateFeature: this.userUpdate,
-      getFeatureId: (feature: SMMMissionUserPointTimeGeoJSON) => feature.properties.user,
+      getFeatureId: (feature: SMMMissionUserPointTimeGeoJSON) => userNameFromProperty(feature.properties.user),
       pointToLayer: this.userLayer
     }
   }
@@ -62,7 +63,7 @@ class SMMUserPositions extends SMMRealtime {
   }
 
   createPopup(user: SMMMissionUserPointTimeGeoJSON, layer: L.Layer) {
-    const userName = user.properties.user
+    const userName = userNameFromProperty(user.properties.user)
     const userObject = this.createUser(userName)
     userObject.popup?.unmount()
     userObject.popup = mountPopup(layer, <UserPopup userName={userName} />, { minWidth: 200 })
@@ -72,8 +73,9 @@ class SMMUserPositions extends SMMRealtime {
   }
 
   userLayer(user: SMMMissionUserPointTimeGeoJSON, latlng: L.LatLng) {
+    const userName = userNameFromProperty(user.properties.user)
     return L.marker(latlng, {
-      title: user.properties.user
+      title: userName
     })
   }
 
@@ -82,7 +84,7 @@ class SMMUserPositions extends SMMRealtime {
   }
 
   userUpdate(user: SMMMissionUserPointTimeGeoJSON, oldLayer: L.Marker) {
-    const userName = user.properties.user
+    const userName = userNameFromProperty(user.properties.user)
     this.userPathUpdate(userName)
 
     if (!oldLayer) {

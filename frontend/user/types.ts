@@ -1,6 +1,8 @@
+type SMMUserName = string | [string]
+
 interface SMMMissionUserPointTimeData {
   pk: number
-  user: string
+  user: SMMUserName
   created_at: string
   alt?: number
 }
@@ -13,4 +15,9 @@ interface SMMMissionUserPointTimeGeoJSON {
   properties: SMMMissionUserPointTimeData
 }
 
-export { SMMMissionUserPointTimeData, SMMMissionUserPointTimeGeoJSON }
+function userNameFromProperty(user: SMMUserName) {
+  if (Array.isArray(user)) return user[0] ?? ''
+  return user
+}
+
+export { SMMMissionUserPointTimeData, SMMMissionUserPointTimeGeoJSON, userNameFromProperty }

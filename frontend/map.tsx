@@ -29,6 +29,7 @@ import { SMMMarineVector } from './marine/vectors.js'
 import { SMMAssets } from './asset/map.js'
 import { SMMMissionTopBar } from './menu/topbar.js'
 import { SMMUserPositions } from './user/map.js'
+import { createUserTrackingControl } from './user/tracking'
 import { smmGetJSON } from './ajax'
 
 class SMMMap {
@@ -49,14 +50,16 @@ class SMMMap {
   allImages?: SMMImageAll
   importantImages?: SMMImageImportant
   marineVectors?: SMMMarineVector
+  currentUserName: string
 
-  constructor(mapElem: string | HTMLElement, missionId: MissionId) {
+  constructor(mapElem: string | HTMLElement, missionId: MissionId, currentUserName: string) {
     this.map = L.map(mapElem)
     this.layerControl = L.control.layers({}, {})
     this.layerControlMaps = L.control.layers({}, {})
     this.layerControlAssets = L.control.layers({}, {})
     this.layerControlUsers = L.control.layers({}, {})
     this.missionId = missionId
+    this.currentUserName = currentUserName
     this.overlayAdd = this.overlayAdd.bind(this)
     this.overlayAddAsset = this.overlayAddAsset.bind(this)
     this.overlayAddUser = this.overlayAddUser.bind(this)
@@ -128,6 +131,9 @@ class SMMMap {
         keepCurrentZoomLevel: true,
         locateOptions: { enableHighAccuracy: true }
       }).addTo(this.map)
+      if (this.currentUserName) {
+        createUserTrackingControl({ missionId: this.missionId, userName: this.currentUserName }).addTo(this.map)
+      }
       L.control.imageuploader({ missionId: this.missionId }).addTo(this.map)
     }
     L.control.smmadmin({ missionId: this.missionId }).addTo(this.map)
@@ -202,6 +208,7 @@ function mapInit() {
   document.body.appendChild(wrapperEl)
 
   const missionId = parseMissionId((document.getElementById('missionId') as HTMLInputElement).value)
+  const currentUserName = (document.getElementById('currentUser') as HTMLInputElement).value
 
   if (isSpecificMission(missionId)) {
     const menuEl = document.createElement('div')
@@ -215,7 +222,7 @@ function mapInit() {
   mapEl.className = 'flex-grow-1'
   wrapperEl.appendChild(mapEl)
 
-  return new SMMMap(mapEl, missionId)
+  return new SMMMap(mapEl, missionId, currentUserName)
 }
 
 mapInit()
