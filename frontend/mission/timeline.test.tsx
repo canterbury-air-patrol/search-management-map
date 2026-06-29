@@ -5,10 +5,18 @@ import userEvent from '@testing-library/user-event'
 vi.mock('../page-shell', () => ({}))
 vi.mock('../ajax', () => ({
   smmGetJSON: vi.fn(),
-  smmPost: vi.fn(() => Promise.resolve(''))
+  smmPost: vi.fn(() => Promise.resolve('')),
+  smmPatch: vi.fn((_url: string, _data: unknown, success?: () => void) => {
+    success?.()
+    return Promise.resolve('')
+  }),
+  smmDelete: vi.fn((_url: string, success?: () => void) => {
+    success?.()
+    return Promise.resolve()
+  })
 }))
 
-import { smmGetJSON, smmPost } from '../ajax'
+import { smmDelete, smmGetJSON, smmPatch, smmPost } from '../ajax'
 import { MissionTimeLine, MissionTimeLineEntryAdd } from './timeline'
 
 afterEach(() => {
@@ -127,5 +135,81 @@ describe('MissionTimeLine', () => {
       action: 'User',
       q: 'medical'
     })
+  })
+
+  it('updates editable manual timeline entries', async () => {
+    vi.mocked(smmGetJSON).mockResolvedValue({
+      mission: {
+        id: 42,
+        name: 'Test mission',
+        description: 'description',
+        started: '2026-06-28T00:00:00.000Z',
+        creator: 'test1',
+        admin: true
+      },
+      timeline: [
+        {
+          id: 7,
+          timestamp: '2026-06-28T00:00:00.000Z',
+          creator: 'test1',
+          event_type_code: 'usr',
+          event_type: 'User defined Event',
+          message: 'Manual entry',
+          url: '',
+          can_edit: true
+        }
+      ]
+    })
+
+    render(<MissionTimeLine missionId={42} />)
+
+    const row = (await screen.findByText('Manual entry')).closest('tr')
+    if (!row) throw new Error('Timeline row not found')
+    await userEvent.click(within(row).getByRole('button', { name: 'Edit' }))
+    const messageInput = screen.getByDisplayValue('Manual entry')
+    fireEvent.change(messageInput, { target: { value: 'Updated entry' } })
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(smmPatch).toHaveBeenCalledWith(
+      '/mission/42/timeline/7/',
+      expect.objectContaining({
+        message: 'Updated entry',
+        url: ''
+      }),
+      expect.any(Function)
+    )
+  })
+
+  it('deletes editable manual timeline entries', async () => {
+    vi.mocked(smmGetJSON).mockResolvedValue({
+      mission: {
+        id: 42,
+        name: 'Test mission',
+        description: 'description',
+        started: '2026-06-28T00:00:00.000Z',
+        creator: 'test1',
+        admin: true
+      },
+      timeline: [
+        {
+          id: 7,
+          timestamp: '2026-06-28T00:00:00.000Z',
+          creator: 'test1',
+          event_type_code: 'usr',
+          event_type: 'User defined Event',
+          message: 'Manual entry',
+          url: '',
+          can_edit: true
+        }
+      ]
+    })
+
+    render(<MissionTimeLine missionId={42} />)
+
+    const row = (await screen.findByText('Manual entry')).closest('tr')
+    if (!row) throw new Error('Timeline row not found')
+    await userEvent.click(within(row).getByRole('button', { name: 'Delete' }))
+
+    expect(smmDelete).toHaveBeenCalledWith('/mission/42/timeline/7/', expect.any(Function))
   })
 })

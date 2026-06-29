@@ -215,6 +215,13 @@ class MissionTimelineView(View):
     Show/update the timeline for a mission
     """
     @staticmethod
+    def can_change_entry(mission_user, entry):
+        """
+        Return whether the mission user can change a manual timeline entry.
+        """
+        return entry.event_type == 'usr' and (mission_user.is_admin() or entry.user == mission_user.user)
+
+    @staticmethod
     def _timeline_order_fields(request):
         """
         Return database order fields for the requested timeline sort order.
@@ -297,10 +304,15 @@ class MissionTimelineView(View):
             return HttpResponseBadRequest("Invalid timeline date filter")
 
         timeline_entries = timeline_entries.order_by(*order_fields)
+        timeline = []
+        for timeline_entry in timeline_entries:
+            entry = timeline_entry.as_object()
+            entry['can_edit'] = self.can_change_entry(mission_user, timeline_entry)
+            timeline.append(entry)
 
         data = {
             'mission': mission_user.mission.as_object(mission_user.is_admin()),
-            'timeline': [timeline_entry.as_object() for timeline_entry in timeline_entries],
+            'timeline': timeline,
         }
         return JsonResponse(data)
 

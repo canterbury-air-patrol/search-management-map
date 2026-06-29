@@ -6,7 +6,7 @@ import DateTimePicker from 'react-datetime-picker'
 import 'react-datetime-picker/dist/DateTimePicker.css'
 
 import { formatLocalDateTime } from '../format'
-import { smmGetJSON, smmPost } from '../ajax'
+import { smmDelete, smmGetJSON, smmPatch, smmPost } from '../ajax'
 import { MissionHeader } from './header'
 import { SMMMissionTopBar } from '../menu/topbar'
 import { usePolling } from '../hooks/usePolling'
@@ -76,9 +76,11 @@ interface TimeLineEntry {
   id: number
   timestamp: string
   creator: string
+  event_type_code?: string
   event_type: string
   message: string
   url: string
+  can_edit?: boolean
 }
 
 type TimelineSortOrder = 'desc' | 'asc'
@@ -98,18 +100,109 @@ function localDateTimeToIso(value: string) {
   return date.toISOString()
 }
 
+function isoToLocalDateTimeInput(value: string) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  return localDate.toISOString().slice(0, 16)
+}
+
 function setIfPresent(params: TimelineQueryParams, key: keyof Omit<TimelineQueryParams, 'order'>, value?: string) {
   if (value) params[key] = value
 }
 
-function MissionTimelineEntry({ timelineEntry }: { timelineEntry: TimeLineEntry }) {
+function MissionTimelineEntry({ timelineEntry, missionId, onChanged }: { timelineEntry: TimeLineEntry; missionId: number; onChanged: () => Promise<void> }) {
+  const [editing, setEditing] = useState(false)
+  const [timestamp, setTimestamp] = useState('')
+  const [message, setMessage] = useState('')
+  const [url, setUrl] = useState('')
+
+  function startEdit() {
+    setTimestamp(isoToLocalDateTimeInput(timelineEntry.timestamp))
+    setMessage(timelineEntry.message)
+    setUrl(timelineEntry.url || '')
+    setEditing(true)
+  }
+
+  function refresh() {
+    void onChanged()
+  }
+
+  function cancelEdit() {
+    setTimestamp(isoToLocalDateTimeInput(timelineEntry.timestamp))
+    setMessage(timelineEntry.message)
+    setUrl(timelineEntry.url || '')
+    setEditing(false)
+  }
+
+  function saveEdit() {
+    const timestampIso = localDateTimeToIso(timestamp)
+    if (!timestampIso || !message.trim()) return
+    smmPatch(
+      `/mission/${missionId}/timeline/${timelineEntry.id}/`,
+      {
+        timestamp: timestampIso,
+        message,
+        url
+      },
+      () => {
+        setEditing(false)
+        refresh()
+      }
+    )
+  }
+
+  function deleteEntry() {
+    smmDelete(`/mission/${missionId}/timeline/${timelineEntry.id}/`, refresh)
+  }
+
+  if (editing) {
+    return (
+      <tr>
+        <td>
+          <Form.Control type="datetime-local" value={timestamp} onChange={(event: ChangeEvent<HTMLInputElement>) => setTimestamp(event.target.value)} />
+        </td>
+        <td>{timelineEntry.creator}</td>
+        <td>{timelineEntry.event_type}</td>
+        <td>
+          <Form.Control value={message} onChange={(event: ChangeEvent<HTMLInputElement>) => setMessage(event.target.value)} />
+        </td>
+        <td>
+          <div className="d-flex gap-2">
+            <Form.Control value={url} onChange={(event: ChangeEvent<HTMLInputElement>) => setUrl(event.target.value)} />
+            <Button type="button" variant="primary" size="sm" onClick={saveEdit}>
+              Save
+            </Button>
+            <Button type="button" variant="light" size="sm" onClick={cancelEdit}>
+              Cancel
+            </Button>
+          </div>
+        </td>
+      </tr>
+    )
+  }
+
   return (
     <tr>
       <td>{formatLocalDateTime(timelineEntry.timestamp)}</td>
       <td>{timelineEntry.creator}</td>
       <td>{timelineEntry.event_type}</td>
       <td>{timelineEntry.message}</td>
-      <td>{timelineEntry.url}</td>
+      <td>
+        <div className="d-flex gap-2 align-items-center">
+          <span>{timelineEntry.url}</span>
+          {timelineEntry.can_edit && (
+            <>
+              <Button type="button" variant="light" size="sm" onClick={startEdit}>
+                Edit
+              </Button>
+              <Button type="button" variant="danger" size="sm" onClick={deleteEntry}>
+                Delete
+              </Button>
+            </>
+          )}
+        </div>
+      </td>
     </tr>
   )
 }
@@ -235,7 +328,7 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
         </thead>
         <tbody>
           {sortedTimelineEntries.map((entry) => (
-            <MissionTimelineEntry key={entry.id} timelineEntry={entry} />
+            <MissionTimelineEntry key={entry.id} timelineEntry={entry} missionId={missionId} onChanged={loadTimeline} />
           ))}
         </tbody>
       </Table>

@@ -5,11 +5,13 @@ This is mapped in to /mission
 """
 
 from django.urls import re_path
+from timeline import views as timeline_views
 from . import views
 
 urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/details/$', views.MissionDetailsView.as_view(), name='mission_details'),
     re_path(r'^mission/(?P<mission_id>\d+)/timeline/$', views.MissionTimelineView.as_view(), name='mission_timeline'),
+    re_path(r'^mission/(?P<mission_id>\d+)/timeline/(?P<entry_id>\d+)/$', timeline_views.MissionTimelineEntryView.as_view(), name='mission_timeline_entry'),
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/$', views.MissionOrganizationsView.as_view(), name='mission_organizations'),
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/(?P<organization_id>\d+)/$', views.MissionOrganizationView.as_view(), name='mission_organization'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/$', views.MissionUsersView.as_view(), name='mission_users'),
