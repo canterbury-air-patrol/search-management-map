@@ -566,6 +566,9 @@ class SearchQueueTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(search.as_object().queued_at)
         self.assertEqual(search.as_object().queued_for_asset, self.asset)
+        queue_entry = TimeLineEntry.objects.filter(event_type='que').order_by('-pk').first()
+        self.assertIsNotNone(queue_entry)
+        self.assertIn("Queued Search", queue_entry.message)
 
         response = search.unqueue()
 
@@ -573,7 +576,7 @@ class SearchQueueTestCase(TestCase):
         search_obj = search.as_object()
         self.assertIsNone(search_obj.queued_at)
         self.assertIsNone(search_obj.queued_for_asset)
-        timeline_entry = TimeLineEntry.objects.filter(event_type='que').order_by('-pk').first()
+        timeline_entry = TimeLineEntry.objects.filter(event_type='unq').order_by('-pk').first()
         self.assertIsNotNone(timeline_entry)
         self.assertIn("Unqueued Search", timeline_entry.message)
 
