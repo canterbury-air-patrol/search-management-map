@@ -524,6 +524,11 @@ class MissionTimelineTestCase(MissionBaseTestCase):
         response = self.smm.client1.get(f'/mission/{mission.mission_pk}/timeline/', data={'order': 'sideways'}, HTTP_ACCEPT='application/json')
 
         self.assertEqual(response.status_code, 400)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response.json(), {
+            'error': 'invalid_timeline_order',
+            'message': 'Invalid timeline order',
+        })
 
     def test_missing_timeline_timestamp_uses_submit_time(self):
         """

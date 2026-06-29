@@ -232,7 +232,10 @@ class MissionTimelineView(View):
         """
         order_fields = self._timeline_order_fields(request)
         if order_fields is None:
-            return HttpResponseBadRequest("Invalid timeline order")
+            return JsonResponse({
+                'error': 'invalid_timeline_order',
+                'message': 'Invalid timeline order',
+            }, status=400)
 
         timeline_entries = TimeLineEntry.objects.filter(mission=mission_user.mission).order_by(*order_fields)
 
