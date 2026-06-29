@@ -23,7 +23,7 @@ from mission.helpers import get_my_assets_not_in_mission
 from organization.decorators import asset_is_operator, get_organization_from_id, user_can_operate_asset
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
-from timeline.helpers import timeline_record_create, \
+from timeline.helpers import can_change_timeline_entry, timeline_record_create, \
     timeline_record_external_reference_add, timeline_record_external_reference_remove, timeline_record_external_reference_update, \
     timeline_record_mission_organization_add, timeline_record_mission_organization_update, \
     timeline_record_mission_user_add, timeline_record_mission_user_update, \
@@ -219,7 +219,7 @@ class MissionTimelineView(View):
         """
         Return whether the mission user can change a manual timeline entry.
         """
-        return entry.event_type == 'usr' and (mission_user.is_admin() or entry.user == mission_user.user)
+        return can_change_timeline_entry(mission_user, entry)
 
     @staticmethod
     def _timeline_order_fields(request):

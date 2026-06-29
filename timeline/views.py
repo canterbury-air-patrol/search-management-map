@@ -4,7 +4,7 @@ Timeline views
 import json
 
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
@@ -12,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 
 from mission.decorators import mission_is_member, mission_open_required
+from .helpers import can_change_timeline_entry
 from .models import TimeLineEntry
 
 
@@ -26,7 +27,7 @@ class MissionTimelineEntryView(View):
         """
         Return whether the mission user can change a manual timeline entry.
         """
-        return entry.event_type == 'usr' and (mission_user.is_admin() or entry.user == mission_user.user)
+        return can_change_timeline_entry(mission_user, entry)
 
     @staticmethod
     def _get_manual_entry(mission_user, entry_id):
@@ -107,7 +108,7 @@ class MissionTimelineEntryView(View):
         error = self._apply_patch(entry, body)
         if error is not None:
             return error
-        return HttpResponse("Done")
+        return JsonResponse({'status': 'updated'})
 
     @mission_open_required
     def delete(self, request, mission_user, entry_id):
@@ -118,4 +119,4 @@ class MissionTimelineEntryView(View):
         if error is not None:
             return error
         entry.delete()
-        return HttpResponse("Done")
+        return HttpResponse(status=204)

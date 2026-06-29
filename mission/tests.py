@@ -678,6 +678,8 @@ class MissionTimelineTestCase(MissionBaseTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response.json(), {'status': 'updated'})
         entry.refresh_from_db()
         self.assertEqual(entry.message, 'Updated entry')
         self.assertEqual(entry.url, 'http://example.test/update')
@@ -692,7 +694,8 @@ class MissionTimelineTestCase(MissionBaseTestCase):
 
         response = self.smm.client1.delete(f'/mission/{mission.mission_pk}/timeline/{entry.pk}/')
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.content, b'')
         self.assertFalse(TimeLineEntry.objects.filter(pk=entry.pk).exists())
 
     def test_non_manual_timeline_entry_cannot_be_changed(self):

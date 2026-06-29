@@ -116,11 +116,13 @@ function MissionTimelineEntry({ timelineEntry, missionId, onChanged }: { timelin
   const [timestamp, setTimestamp] = useState('')
   const [message, setMessage] = useState('')
   const [url, setUrl] = useState('')
+  const [saveError, setSaveError] = useState('')
 
   function startEdit() {
     setTimestamp(isoToLocalDateTimeInput(timelineEntry.timestamp))
     setMessage(timelineEntry.message)
     setUrl(timelineEntry.url || '')
+    setSaveError('')
     setEditing(true)
   }
 
@@ -132,13 +134,18 @@ function MissionTimelineEntry({ timelineEntry, missionId, onChanged }: { timelin
     setTimestamp(isoToLocalDateTimeInput(timelineEntry.timestamp))
     setMessage(timelineEntry.message)
     setUrl(timelineEntry.url || '')
+    setSaveError('')
     setEditing(false)
   }
 
   function saveEdit() {
     const timestampIso = localDateTimeToIso(timestamp)
-    if (!timestampIso || !message.trim()) return
-    smmPatch(
+    if (!timestampIso || !message.trim()) {
+      setSaveError('Enter a valid date/time and a message before saving.')
+      return
+    }
+    setSaveError('')
+    void smmPatch(
       `/mission/${missionId}/timeline/${timelineEntry.id}/`,
       {
         timestamp: timestampIso,
@@ -148,8 +155,11 @@ function MissionTimelineEntry({ timelineEntry, missionId, onChanged }: { timelin
       () => {
         setEditing(false)
         refresh()
+      },
+      () => {
+        setSaveError('Could not save the timeline entry. Check your input and try again.')
       }
-    )
+    ).catch(() => undefined)
   }
 
   function deleteEntry() {
@@ -177,6 +187,11 @@ function MissionTimelineEntry({ timelineEntry, missionId, onChanged }: { timelin
               Cancel
             </Button>
           </div>
+          {saveError && (
+            <div className="text-danger small mt-1" role="alert">
+              {saveError}
+            </div>
+          )}
         </td>
       </tr>
     )
