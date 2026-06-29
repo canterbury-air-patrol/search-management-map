@@ -240,18 +240,23 @@ class Search(GeoTime):
             return self.queued_for_asset
         return self.created_for
 
-    def queue_search(self, mission_user, asset=None):
-        '''
-        Queue this search for an asset
-        '''
-        updated = Search.objects.filter(
-            pk=self.pk,
+    @classmethod
+    def queue_state_change_queryset(cls):
+        """
+        Searches whose queue state can be safely changed.
+        """
+        return cls.objects.filter(
             inprogress_by__isnull=True,
             completed_at__isnull=True,
             deleted_at__isnull=True,
             replaced_at__isnull=True,
-            queued_at__isnull=True,
-        ).update(queued_at=timezone.now(), queued_for_asset=asset)
+        )
+
+    def queue_search(self, mission_user, asset=None):
+        '''
+        Queue this search for an asset
+        '''
+        updated = self.__class__.queue_state_change_queryset().filter(pk=self.pk, queued_at__isnull=True).update(queued_at=timezone.now(), queued_for_asset=asset)
         self.refresh_from_db()
         if updated:
             timeline_record_search_queue(mission_user.mission, mission_user.user, self, self.created_for, asset)
@@ -263,14 +268,7 @@ class Search(GeoTime):
         Remove this search from the queue
         '''
         asset = self.queued_for_asset
-        updated = Search.objects.filter(
-            pk=self.pk,
-            inprogress_by__isnull=True,
-            completed_at__isnull=True,
-            deleted_at__isnull=True,
-            replaced_at__isnull=True,
-            queued_at__isnull=False,
-        ).update(queued_at=None, queued_for_asset=None)
+        updated = self.__class__.queue_state_change_queryset().filter(pk=self.pk, queued_at__isnull=False).update(queued_at=None, queued_for_asset=None)
         self.refresh_from_db()
         if updated:
             timeline_record_search_unqueue(mission_user.mission, mission_user.user, self, self.created_for, asset)

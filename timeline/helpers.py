@@ -151,7 +151,7 @@ def timeline_record_search_unqueue(mission, user, search, assettype, asset):
     else:
         message = f"{user} Unqueued Search {search} for Assets of Type {assettype} in Mission {mission.pk}"
     url = ""
-    entry = TimeLineEntry(mission=mission, user=user, event_type='que', message=message, url=url)
+    entry = TimeLineEntry(mission=mission, user=user, event_type='unq', message=message, url=url)
     entry.save()
 
 
