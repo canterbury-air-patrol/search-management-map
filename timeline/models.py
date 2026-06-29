@@ -62,6 +62,7 @@ class TimeLineEntry(models.Model):
             'id': self.pk,
             'creator': self.user.username,  # pylint: disable=E1101
             'timestamp': self.timestamp,
+            'event_type_code': self.event_type,
             'event_type': self.event_type_str(),
             'message': self.message,
             'url': self.url,

@@ -463,6 +463,19 @@ class MissionTimelineTestCase(MissionBaseTestCase):
     """
     Mission timeline API
     """
+    def _create_manual_timeline_entry(self, mission, user=None, message='Manual entry'):
+        """
+        Create a manual timeline entry for edit/delete tests.
+        """
+        return TimeLineEntry.objects.create(
+            mission=mission.get_object(),
+            user=user or self.smm.user1,
+            event_type='usr',
+            message=message,
+            url='',
+            timestamp=datetime(2026, 6, 28, 12, 0, tzinfo=datetime_timezone.utc),
+        )
+
     @staticmethod
     def _timeline_messages(response):
         """
@@ -651,6 +664,117 @@ class MissionTimelineTestCase(MissionBaseTestCase):
             ).exists()
         )
 
+    def test_manual_timeline_entry_can_be_updated(self):
+        """
+        The entry creator can update a manual timeline entry.
+        """
+        mission = self.missions.create_mission('test_timeline_entry_update')
+        entry = self._create_manual_timeline_entry(mission)
+
+        response = self.smm.client1.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"timestamp": "2026-06-28T13:00:00Z", "message": "Updated entry", "url": "http://example.test/update"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        entry.refresh_from_db()
+        self.assertEqual(entry.message, 'Updated entry')
+        self.assertEqual(entry.url, 'http://example.test/update')
+        self.assertEqual(entry.timestamp, datetime(2026, 6, 28, 13, 0, tzinfo=datetime_timezone.utc))
+
+    def test_manual_timeline_entry_can_be_deleted(self):
+        """
+        The entry creator can delete a manual timeline entry.
+        """
+        mission = self.missions.create_mission('test_timeline_entry_delete')
+        entry = self._create_manual_timeline_entry(mission)
+
+        response = self.smm.client1.delete(f'/mission/{mission.mission_pk}/timeline/{entry.pk}/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(TimeLineEntry.objects.filter(pk=entry.pk).exists())
+
+    def test_non_manual_timeline_entry_cannot_be_changed(self):
+        """
+        Generated timeline entries cannot be updated or deleted through the manual-entry endpoint.
+        """
+        mission = self.missions.create_mission('test_timeline_generated_entry')
+        entry = TimeLineEntry.objects.create(
+            mission=mission.get_object(),
+            user=self.smm.user1,
+            event_type='add',
+            message='Generated entry',
+            timestamp=datetime(2026, 6, 28, 12, 0, tzinfo=datetime_timezone.utc),
+        )
+
+        update_response = self.smm.client1.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"message": "Updated generated entry"}',
+            content_type='application/json',
+        )
+        delete_response = self.smm.client1.delete(f'/mission/{mission.mission_pk}/timeline/{entry.pk}/')
+
+        self.assertEqual(update_response.status_code, 403)
+        self.assertEqual(delete_response.status_code, 403)
+        self.assertTrue(TimeLineEntry.objects.filter(pk=entry.pk).exists())
+
+    def test_manual_timeline_entry_rejects_non_owner(self):
+        """
+        A non-admin mission member cannot edit another user's manual timeline entry.
+        """
+        mission = self.missions.create_mission('test_timeline_entry_non_owner')
+        mission.add_user(user=self.smm.user2)
+        entry = self._create_manual_timeline_entry(mission)
+
+        response = self.smm.client2.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"message": "Updated by another user"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 403)
+        entry.refresh_from_db()
+        self.assertEqual(entry.message, 'Manual entry')
+
+    def test_manual_timeline_entry_admin_can_update_other_user_entry(self):
+        """
+        A mission admin can update another user's manual timeline entry.
+        """
+        mission = self.missions.create_mission('test_timeline_entry_admin_update')
+        entry = self._create_manual_timeline_entry(mission, user=self.smm.user2)
+
+        response = self.smm.client1.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"message": "Updated by admin"}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        entry.refresh_from_db()
+        self.assertEqual(entry.message, 'Updated by admin')
+
+    def test_invalid_manual_timeline_entry_update_is_rejected(self):
+        """
+        Manual timeline entry updates require valid timestamps and non-empty messages.
+        """
+        mission = self.missions.create_mission('test_timeline_entry_invalid_update')
+        entry = self._create_manual_timeline_entry(mission)
+
+        timestamp_response = self.smm.client1.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"timestamp": "not-a-date"}',
+            content_type='application/json',
+        )
+        message_response = self.smm.client1.patch(
+            f'/mission/{mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"message": ""}',
+            content_type='application/json',
+        )
+
+        self.assertEqual(timestamp_response.status_code, 400)
+        self.assertEqual(message_response.status_code, 400)
+
 
 class MissionClosedWriteProtectionTestCase(TestCase):
     """
@@ -689,3 +813,19 @@ class MissionClosedWriteProtectionTestCase(TestCase):
         """Reading mission details is still allowed after closure."""
         response = self.mission.get_details(client=self.smm.client1)
         self.assertEqual(response.status_code, 200)
+
+    def test_timeline_entry_update_rejected_on_closed_mission(self):
+        """Updating a manual timeline entry on a closed mission is forbidden."""
+        entry = TimeLineEntry.objects.create(
+            mission=self.mission.get_object(),
+            user=self.smm.user1,
+            event_type='usr',
+            message='closed',
+            timestamp=timezone.now(),
+        )
+        response = self.smm.client1.patch(
+            f'/mission/{self.mission.mission_pk}/timeline/{entry.pk}/',
+            data='{"message": "updated"}',
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, 403)
