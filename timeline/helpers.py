@@ -5,6 +5,13 @@ Helper functions for recording timeline activities
 from .models import TimeLineEntry
 
 
+def can_change_timeline_entry(mission_user, entry):
+    """
+    Return whether the mission user can change a manual timeline entry.
+    """
+    return entry.event_type == 'usr' and (mission_user.is_admin() or entry.user == mission_user.user)
+
+
 def timeline_record_create(mission, user, obj):
     """
     Create a timeline entry for an object being created
