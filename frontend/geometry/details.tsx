@@ -11,9 +11,7 @@ interface Point {
 /** A GeoJSON-style geometry tagged by its `type` field. Lets TypeScript
  *  narrow `coordinates` automatically instead of probing array depth. */
 export type GeometryJSON =
-  | { type: 'Point'; coordinates: [number, number] }
-  | { type: 'LineString'; coordinates: [number, number][] }
-  | { type: 'Polygon'; coordinates: [number, number][][] }
+  { type: 'Point'; coordinates: [number, number] } | { type: 'LineString'; coordinates: [number, number][] } | { type: 'Polygon'; coordinates: [number, number][][] }
 
 function coordinateToLatLng(point: number[]): Point {
   return {
