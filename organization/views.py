@@ -14,20 +14,6 @@ from .models import Organization, OrganizationMember, OrganizationAsset
 from .decorators import organization_is_admin, organization_assets_admin, organization_is_radio_operator, get_target_user
 
 
-def _valid_member_role(role):
-    return role in {value for value, _label in OrganizationMember.USER_ROLE}
-
-
-def _is_last_active_admin(organization_member):
-    if organization_member.role != 'A':
-        return False
-    return OrganizationMember.objects.filter(
-        organization=organization_member.organization,
-        role='A',
-        removed__isnull=True,
-    ).count() <= 1
-
-
 @method_decorator(login_required, name="dispatch")
 class OrganizationView(View):
     """
@@ -103,7 +89,7 @@ class OrganizationUserView(View):
     def post(self, request, organization_member, target_user):
         # Create/modify the membership
         role = request.POST.get('role')
-        if role is not None and not _valid_member_role(role):
+        if role is not None and not OrganizationMember.is_valid_role(role):
             return HttpResponseBadRequest("Invalid organization role")
 
         try:
@@ -112,7 +98,7 @@ class OrganizationUserView(View):
             om = OrganizationMember(organization=organization_member.organization, user=target_user, added_by=request.user)
             om.save()
         if role is not None:
-            if role != 'A' and _is_last_active_admin(om):
+            if role != 'A' and om.is_only_active_admin():
                 return HttpResponseForbidden("Cannot remove the last organization admin")
             om.role = role
             om.save()
@@ -120,7 +106,7 @@ class OrganizationUserView(View):
 
     def delete(self, request, organization_member, target_user):
         om = get_object_or_404(OrganizationMember, organization=organization_member.organization, user=target_user, removed__isnull=True)
-        if _is_last_active_admin(om):
+        if om.is_only_active_admin():
             return HttpResponseForbidden("Cannot remove the last organization admin")
         om.removed = timezone.now()
         om.removed_by = organization_member.user
