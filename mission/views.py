@@ -34,9 +34,29 @@ from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetF
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin, mission_open_required
 
 
+def _current_statuses_for_assets(mission_asset_ids):
+    if not mission_asset_ids:
+        return {}
+
+    statuses = MissionAssetStatus.objects.filter(
+        mission_asset_id__in=mission_asset_ids,
+    ).select_related(
+        'status',
+        'mission_asset__asset',
+    ).order_by(
+        'mission_asset_id',
+        '-since',
+    ).distinct('mission_asset_id')
+    return {status.mission_asset_id: status for status in statuses}
+
+
 def _mission_assets_json(assets):
+    mission_assets = list(assets)
+    current_statuses = _current_statuses_for_assets([
+        mission_asset.pk for mission_asset in mission_assets
+    ])
     assets_json = []
-    for mission_asset in assets:
+    for mission_asset in mission_assets:
         asset_data = {
             'id': mission_asset.asset.pk,
             'name': mission_asset.asset.name,
@@ -44,7 +64,7 @@ def _mission_assets_json(assets):
             'type_name': mission_asset.asset.asset_type.name,
             'icon_url': mission_asset.asset.icon_url(),
         }
-        if asset_status := MissionAssetStatus.current_for_asset(mission_asset):
+        if asset_status := current_statuses.get(mission_asset.pk):
             asset_data['status'] = asset_status.as_object()
         assets_json.append(asset_data)
 
@@ -678,7 +698,7 @@ class MissionUserAssetsView(View):
         ).values_list('mission_id', flat=True)
         mission_filter = Q(mission_id__in=user_mission_ids)
         mission_filter |= Q(mission_id__in=organization_mission_ids)
-        assets = MissionAsset.objects.filter(mission_filter)
+        assets = MissionAsset.objects.filter(mission_filter).distinct()
         if current_only:
             assets = assets.filter(mission__closed__isnull=True)
         if not _query_param_true(request, 'include_removed'):

@@ -11,9 +11,12 @@ from django.utils import timezone
 from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
+from organization.tests import OrganizationFunctions
 from timeline.models import TimeLineEntry
 
-from .models import Mission, MissionUser, MissionAsset
+from .models import (
+    Mission, MissionUser, MissionAsset, MissionAssetStatus, MissionAssetStatusValue
+)
 
 
 class MissionTestWrapper:
@@ -398,6 +401,7 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         """
         super().setUp()
         self.assets = AssetsHelpers(self.smm)
+        self.organizations = OrganizationFunctions(self.smm)
         self.asset_type = self.assets.create_asset_type(at_name='test_type')
         self.asset = self.assets.create_asset(name='test-asset', asset_type=self.asset_type)
 
@@ -468,11 +472,19 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         current_mission.add_asset(self.asset, client=self.smm.client1)
         closed_mission.add_asset(closed_asset, client=self.smm.client1)
         closed_mission.close(client=self.smm.client1)
+        org = self.organizations.create_organization()
+        current_mission.add_organization(org)
+        status_value = MissionAssetStatusValue.objects.create(name='ready')
+        mission_asset = MissionAsset.objects.get(mission=current_mission.get_object(), asset=self.asset)
+        MissionAssetStatus.objects.create(mission_asset=mission_asset, status=status_value)
 
         response = self.smm.client1.get('/mission/all/assets/?include_removed=true', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         assets = response.json()['assets']
         self.assertEqual({asset['name'] for asset in assets}, {'test-asset', 'closed-asset'})
+        self.assertEqual([asset['name'] for asset in assets].count('test-asset'), 1)
+        test_asset = next(asset for asset in assets if asset['name'] == 'test-asset')
+        self.assertEqual(test_asset['status']['status'], 'ready')
 
         response = self.smm.client1.get('/mission/all/assets/?include_removed=false', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
