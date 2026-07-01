@@ -7,6 +7,7 @@ from django.test import TestCase
 from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
+from .models import OrganizationMember
 
 
 class OrganizationWrapper:
@@ -39,7 +40,7 @@ class OrganizationWrapper:
         """
         if client is None:
             client = self.smm.client1
-        client.delete(f'/organization/{self.org_id}/user/{user}/')
+        return client.delete(f'/organization/{self.org_id}/user/{user}/')
 
     def get_details(self, client=None):
         """
@@ -122,6 +123,81 @@ class OrganizationFunctions:
         organization_list_mine_url = '/organization/?only=mine'
         json_data = self.get_url_json(organization_list_mine_url, client=client)
         return json_data['organizations']
+
+
+class OrganizationRoleGuardTestCase(TestCase):
+    """
+    Tests for organization role safety checks.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.orgs = OrganizationFunctions(self.smm)
+
+    def create_organization(self):
+        """
+        Create a test organization owned by user1.
+        """
+        return self.orgs.create_organization(organization_name='role-guard-org', client=self.smm.client1)
+
+    def current_member(self, org, user):
+        """
+        Return the active membership for a user.
+        """
+        return OrganizationMember.objects.get(organization_id=org.org_id, user=user, removed__isnull=True)
+
+    def test_invalid_role_is_rejected_without_creating_member(self):
+        """
+        Unknown role codes should not be persisted.
+        """
+        org = self.create_organization()
+
+        response = org.add_user(user=self.smm.user2.username, client=self.smm.client1, role='X')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(
+            OrganizationMember.objects.filter(
+                organization_id=org.org_id,
+                user=self.smm.user2,
+                removed__isnull=True,
+            ).exists()
+        )
+
+    def test_last_admin_cannot_be_demoted(self):
+        """
+        An organization must retain at least one active admin.
+        """
+        org = self.create_organization()
+
+        response = org.add_user(user=self.smm.user1.username, client=self.smm.client1, role='M')
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.current_member(org, self.smm.user1).role, 'A')
+
+    def test_last_admin_cannot_be_removed(self):
+        """
+        Removing the final admin would make the organization unmanageable.
+        """
+        org = self.create_organization()
+
+        response = org.remove_user(user=self.smm.user1.username, client=self.smm.client1)
+
+        self.assertEqual(response.status_code, 403)
+        member = self.current_member(org, self.smm.user1)
+        self.assertEqual(member.role, 'A')
+        self.assertIsNone(member.removed)
+
+    def test_admin_can_be_demoted_when_another_admin_remains(self):
+        """
+        Demotion is allowed once another active admin can manage the organization.
+        """
+        org = self.create_organization()
+        org.add_user(user=self.smm.user2.username, client=self.smm.client1, role='A')
+
+        response = org.add_user(user=self.smm.user1.username, client=self.smm.client1, role='M')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.current_member(org, self.smm.user1).role, 'M')
+        self.assertEqual(self.current_member(org, self.smm.user2).role, 'A')
 
 
 class OrganizationTestCase(TestCase):
