@@ -241,16 +241,22 @@ class Search(GeoTime):
         return self.created_for
 
     @classmethod
-    def queue_state_change_queryset(cls):
+    def _active_state_change_queryset(cls):
         """
-        Searches whose queue state can be safely changed.
+        Searches that can still move through active workflow states.
         """
         return cls.objects.filter(
-            inprogress_by__isnull=True,
             completed_at__isnull=True,
             deleted_at__isnull=True,
             replaced_at__isnull=True,
         )
+
+    @classmethod
+    def queue_state_change_queryset(cls):
+        """
+        Searches whose queue state can be safely changed.
+        """
+        return cls._active_state_change_queryset().filter(inprogress_by__isnull=True)
 
     def queue_search(self, mission_user, asset=None):
         '''
@@ -279,7 +285,7 @@ class Search(GeoTime):
         '''
         Set the asset that conducting this search
         '''
-        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(inprogress_at=timezone.now(), inprogress_by=asset)
+        self._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(inprogress_at=timezone.now(), inprogress_by=asset)
         self.refresh_from_db()
         if self.inprogress_by == asset:
             timeline_record_search_begin(self.mission, user, asset, self)
@@ -291,7 +297,7 @@ class Search(GeoTime):
         Delete this search
         '''
         time = timezone.now()
-        Search.objects.filter(pk=self.pk, inprogress_by__isnull=True, deleted_at__isnull=True).update(deleted_at=time, deleted_by=user)
+        self._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(deleted_at=time, deleted_by=user)
         return self.check_and_record_delete(time)
 
     @staticmethod

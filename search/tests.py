@@ -86,13 +86,16 @@ class SearchWrapper:
             data['asset_id'] = asset.pk
         return client.post(f'/search/{self.search_id}/begin/', data=data)
 
-    def finished(self, client=None):
+    def finished(self, asset=None, client=None):
         """
         Mark this search as finished
         """
         if client is None:
             client = self.smm.client1
-        return client.post(f'/search/{self.search_id}/details/')
+        data = {}
+        if asset is not None:
+            data['asset_id'] = asset.pk
+        return client.post(f'/search/{self.search_id}/finished/', data=data)
 
 
 class SearchHelpers:
@@ -523,6 +526,88 @@ class SearchTestCase(TestCase):
         response = self.smm.client1.post(f'/search/{search.search_id}/finished/', data={'asset_id': self.asset1.pk})
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(search.as_object().completed_at)
+
+
+class SearchStateTransitionTestCase(TestCase):
+    """
+    Tests for invalid search state transitions.
+    """
+    def setUp(self):
+        self.smm = SMMTestUsers()
+        self.assets = AssetsHelpers(self.smm)
+        self.searches = SearchHelpers(self.smm)
+        self.missions = MissionFunctions(self.smm)
+        self.asset_type = self.assets.create_asset_type()
+        self.asset = self.assets.create_asset(asset_type=self.asset_type)
+        self.mission = self.missions.create_mission('test mission')
+        self.mission.add_asset(self.asset)
+
+    def create_poi(self):
+        """
+        Create a POI for the test mission.
+        """
+        return GeoTimeLabel.objects.create(
+            geo=Point(172.5, -43.5),
+            created_by=self.smm.user1,
+            label='Test Point',
+            geo_type='poi',
+            mission=self.mission.get_object(),
+        )
+
+    def create_search(self):
+        """
+        Create a sector search for state-transition tests.
+        """
+        return self.searches.create_sector(self.create_poi(), 200, self.asset_type)
+
+    def test_begin_rejects_completed_search_without_reopening(self):
+        """
+        A completed search must not be moved back into progress.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.completed_at = timezone.now()
+        search_obj.completed_by = self.asset
+        search_obj.save()
+
+        response = search.begin(asset=self.asset)
+
+        self.assertEqual(response.status_code, 403)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.inprogress_at)
+        self.assertIsNone(search_obj.inprogress_by)
+
+    def test_begin_rejects_replaced_search_without_reopening(self):
+        """
+        A replaced search must not be moved back into progress.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.replaced_at = timezone.now()
+        search_obj.save()
+
+        response = search.begin(asset=self.asset)
+
+        self.assertEqual(response.status_code, 404)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.inprogress_at)
+        self.assertIsNone(search_obj.inprogress_by)
+
+    def test_model_begin_rejects_terminal_search_without_reopening(self):
+        """
+        Direct model calls use the same terminal-state guard as the view.
+        """
+        search = self.create_search().as_object()
+        search.completed_at = timezone.now()
+        search.completed_by = self.asset
+        search.save()
+
+        changed = search.set_inprogress_by(self.asset, self.smm.user1)
+
+        self.assertFalse(changed)
+        search.refresh_from_db()
+        self.assertIsNone(search.inprogress_at)
+        self.assertIsNone(search.inprogress_by)
 
 
 class SearchQueueTestCase(TestCase):

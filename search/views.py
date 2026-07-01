@@ -137,7 +137,7 @@ def check_search_state(search, action, asset):
     # pylint: disable=R0911
     if search.deleted_at is not None:
         return HttpResponseForbidden("Search has been deleted")
-    if search.replaced_by is not None:
+    if search.replaced_at is not None or search.replaced_by is not None:
         return HttpResponseNotFound("Search has been replaced")
     if search.completed_at is not None or search.completed_by is not None:
         return HttpResponseForbidden("Search already completed")
@@ -177,6 +177,10 @@ def search_begin(request, search_id, object_class, asset, mission):
     if search.mission != mission:
         return HttpResponseForbidden("Asset not currently assigned to the mission this search is in.")
 
+    error = check_search_state(search, 'begin', asset)
+    if error is not None:
+        return error
+
     inprogress_search = check_searches_in_progress(mission, asset)
     if inprogress_search is not None and inprogress_search != search:
         return HttpResponseForbidden("Asset already has a search in progress.")
@@ -184,8 +188,7 @@ def search_begin(request, search_id, object_class, asset, mission):
     if search.set_inprogress_by(asset, request.user):
         return to_geojson(object_class, [search])
 
-    error = check_search_state(search, 'begin', asset)
-    return error if error is not None else HttpResponseNotFound('Try Again')
+    return HttpResponseNotFound('Try Again')
 
 
 @require_POST
