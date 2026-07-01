@@ -37,7 +37,7 @@ from mission.models import Mission, MissionAsset, AssetCommand
 from mission.decorators import mission_is_member, mission_is_member_open, mission_asset_get_mission, mission_asset_get, mission_user_get, mission_closed_response
 from timeline.helpers import timeline_record_search_finished
 from .decorators import search_from_id
-from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams
+from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, TERMINAL_COMPLETED, TERMINAL_DELETED, TERMINAL_REPLACED, search_terminal_state
 from .view_helpers import check_searches_in_progress
 
 
@@ -135,11 +135,12 @@ def check_search_state(search, action, asset):
     a suitable error response if it's not suitable for desired action
     """
     # pylint: disable=R0911
-    if search.deleted_at is not None:
+    terminal_state = search_terminal_state(search)
+    if terminal_state == TERMINAL_DELETED:
         return HttpResponseForbidden("Search has been deleted")
-    if search.replaced_at is not None or search.replaced_by is not None:
+    if terminal_state == TERMINAL_REPLACED:
         return HttpResponseNotFound("Search has been replaced")
-    if search.completed_at is not None or search.completed_by is not None:
+    if terminal_state == TERMINAL_COMPLETED:
         return HttpResponseForbidden("Search already completed")
 
     if action == 'begin':
