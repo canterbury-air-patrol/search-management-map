@@ -609,6 +609,22 @@ class SearchStateTransitionTestCase(TestCase):
         self.assertIsNone(search.inprogress_at)
         self.assertIsNone(search.inprogress_by)
 
+    def test_begin_rejects_completed_by_only_search_without_reopening(self):
+        """
+        A partially completed search record is still terminal.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.completed_by = self.asset
+        search_obj.save()
+
+        response = search.begin(asset=self.asset)
+
+        self.assertEqual(response.status_code, 403)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.inprogress_at)
+        self.assertIsNone(search_obj.inprogress_by)
+
 
 class SearchQueueTestCase(TestCase):
     """

@@ -24,6 +24,31 @@ from timeline.helpers import (
 )
 
 
+TERMINAL_DELETED = 'deleted'
+TERMINAL_REPLACED = 'replaced'
+TERMINAL_COMPLETED = 'completed'
+
+ACTIVE_STATE_CHANGE_FILTERS = {
+    'completed_at__isnull': True,
+    'completed_by__isnull': True,
+    'deleted_at__isnull': True,
+    'replaced_at__isnull': True,
+}
+
+
+def search_terminal_state(search):
+    """
+    Return the terminal state for a search, or None while it is still active.
+    """
+    if search.deleted_at is not None:
+        return TERMINAL_DELETED
+    if search.replaced_at is not None or getattr(search, 'replaced_by', None) is not None:
+        return TERMINAL_REPLACED
+    if search.completed_at is not None or search.completed_by is not None:
+        return TERMINAL_COMPLETED
+    return None
+
+
 def dictfetchall(cursor):
     "Return all rows from a cursor as a dict"
     columns = [col[0] for col in cursor.description]
@@ -245,11 +270,7 @@ class Search(GeoTime):
         """
         Searches that can still move through active workflow states.
         """
-        return cls.objects.filter(
-            completed_at__isnull=True,
-            deleted_at__isnull=True,
-            replaced_at__isnull=True,
-        )
+        return cls.objects.filter(**ACTIVE_STATE_CHANGE_FILTERS)
 
     @classmethod
     def queue_state_change_queryset(cls):
@@ -285,7 +306,7 @@ class Search(GeoTime):
         '''
         Set the asset that conducting this search
         '''
-        self._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(inprogress_at=timezone.now(), inprogress_by=asset)
+        Search._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(inprogress_at=timezone.now(), inprogress_by=asset)
         self.refresh_from_db()
         if self.inprogress_by == asset:
             timeline_record_search_begin(self.mission, user, asset, self)
@@ -297,7 +318,7 @@ class Search(GeoTime):
         Delete this search
         '''
         time = timezone.now()
-        self._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(deleted_at=time, deleted_by=user)
+        Search._active_state_change_queryset().filter(pk=self.pk, inprogress_by__isnull=True).update(deleted_at=time, deleted_by=user)
         return self.check_and_record_delete(time)
 
     @staticmethod
