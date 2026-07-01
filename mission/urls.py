@@ -16,6 +16,8 @@ urlpatterns = [
     re_path(r'^mission/(?P<mission_id>\d+)/organizations/(?P<organization_id>\d+)/$', views.MissionOrganizationView.as_view(), name='mission_organization'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/$', views.MissionUsersView.as_view(), name='mission_users'),
     re_path(r'^mission/(?P<mission_id>\d+)/users/(?P<user_id>\d+)/$', views.MissionUserView.as_view(), name='mission_user'),
+    re_path(r'^mission/all/assets/$', views.MissionUserAssetsView.as_view(), {'current_only': False}, name='mission_all_assets'),
+    re_path(r'^mission/current/assets/$', views.MissionUserAssetsView.as_view(), {'current_only': True}, name='mission_current_assets'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/$', views.MissionAssetsView.as_view()),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/(?P<asset_id>\d+)/$', views.MissionAssetView.as_view(), name='mission_asset'),
     re_path(r'^mission/(?P<mission_id>\d+)/assets/(?P<asset_id>\d+)/status/$', views.MissionAssetStatusView.as_view()),

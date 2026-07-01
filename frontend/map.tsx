@@ -135,8 +135,8 @@ class SMMMap {
         createUserTrackingControl({ missionId: this.missionId, userName: this.currentUserName }).addTo(this.map)
       }
       L.control.imageuploader({ missionId: this.missionId }).addTo(this.map)
+      L.control.smmadmin({ missionId: this.missionId }).addTo(this.map)
     }
-    L.control.smmadmin({ missionId: this.missionId }).addTo(this.map)
 
     const assetUpdateFreq = 3 * 1000
     const userUpdateFreq = 3 * 1000
