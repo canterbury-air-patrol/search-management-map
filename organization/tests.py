@@ -145,6 +145,29 @@ class OrganizationRoleGuardTestCase(TestCase):
         """
         return OrganizationMember.objects.get(organization_id=org.org_id, user=user, removed__isnull=True)
 
+    def test_model_validates_role_codes_from_choices(self):
+        """
+        Role validation belongs to the membership model.
+        """
+        self.assertTrue(OrganizationMember.is_valid_role('A'))
+        self.assertTrue(OrganizationMember.is_valid_role('b'))
+        self.assertFalse(OrganizationMember.is_valid_role('X'))
+
+    def test_model_identifies_only_active_admin(self):
+        """
+        The only-admin check excludes the member being changed.
+        """
+        org = self.create_organization()
+        admin = self.current_member(org, self.smm.user1)
+        self.assertTrue(admin.is_only_active_admin())
+
+        org.add_user(user=self.smm.user2.username, client=self.smm.client1, role='A')
+
+        admin.refresh_from_db()
+        other_admin = self.current_member(org, self.smm.user2)
+        self.assertFalse(admin.is_only_active_admin())
+        self.assertFalse(other_admin.is_only_active_admin())
+
     def test_invalid_role_is_rejected_without_creating_member(self):
         """
         Unknown role codes should not be persisted.

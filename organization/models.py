@@ -98,6 +98,28 @@ class OrganizationMember(models.Model):
         return self.role in ('A', 'b')
 
     @classmethod
+    def is_valid_role(cls, role):
+        """
+        Return whether a role code is one of the model's declared choices.
+        """
+        return role in {value for value, _label in cls.USER_ROLE}
+
+    def is_only_active_admin(self):
+        """
+        Return whether this active admin is the organization's only admin.
+
+        The check treats this membership as the admin being changed and asks
+        whether any other active admin membership remains.
+        """
+        if self.role != 'A' or self.removed is not None:
+            return False
+        return not OrganizationMember.objects.filter(
+            organization=self.organization,
+            role='A',
+            removed__isnull=True,
+        ).exclude(pk=self.pk).exists()
+
+    @classmethod
     def user_current(cls, user):
         """
         Get all the OrganizationMember classes a user is currently in
