@@ -458,6 +458,27 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         assets_data = response.json()
         self.assertEqual(len(assets_data['assets']), 1)
 
+    def test_aggregate_mission_asset_json(self):
+        """
+        Aggregate map asset metadata uses explicit all/current mission routes.
+        """
+        current_mission = self.missions.create_mission('test_mission_asset_current')
+        closed_mission = self.missions.create_mission('test_mission_asset_closed')
+        closed_asset = self.assets.create_asset(name='closed-asset', asset_type=self.asset_type)
+        current_mission.add_asset(self.asset, client=self.smm.client1)
+        closed_mission.add_asset(closed_asset, client=self.smm.client1)
+        closed_mission.close(client=self.smm.client1)
+
+        response = self.smm.client1.get('/mission/all/assets/?include_removed=true', HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        assets = response.json()['assets']
+        self.assertEqual({asset['name'] for asset in assets}, {'test-asset', 'closed-asset'})
+
+        response = self.smm.client1.get('/mission/current/assets/?include_removed=true', HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        assets = response.json()['assets']
+        self.assertEqual([asset['name'] for asset in assets], ['test-asset'])
+
 
 class MissionTimelineTestCase(MissionBaseTestCase):
     """

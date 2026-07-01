@@ -34,6 +34,23 @@ from .forms import AssetCommandForm, MissionForm, MissionUserForm, MissionAssetF
 from .decorators import get_user_from_id, mission_can_add_organization, mission_can_add_user, mission_is_member, mission_is_admin, mission_open_required
 
 
+def _mission_assets_json(assets):
+    assets_json = []
+    for mission_asset in assets:
+        asset_data = {
+            'id': mission_asset.asset.pk,
+            'name': mission_asset.asset.name,
+            'type_id': mission_asset.asset.asset_type.pk,
+            'type_name': mission_asset.asset.asset_type.name,
+            'icon_url': mission_asset.asset.icon_url(),
+        }
+        if asset_status := MissionAssetStatus.current_for_asset(mission_asset):
+            asset_data['status'] = asset_status.as_object()
+        assets_json.append(asset_data)
+
+    return JsonResponse({'assets': assets_json})
+
+
 def user_can_command_asset(mission_user, asset):
     """
     Whether this user may send operational commands to the asset.
@@ -602,23 +619,7 @@ class MissionAssetsView(View):
             assets = MissionAsset.objects.filter(mission=mission_user.mission)
         else:
             assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
-        assets_json = []
-        for mission_asset in assets:
-            asset_data = {
-                'id': mission_asset.asset.pk,
-                'name': mission_asset.asset.name,
-                'type_id': mission_asset.asset.asset_type.pk,
-                'type_name': mission_asset.asset.asset_type.name,
-                'icon_url': mission_asset.asset.icon_url(),
-            }
-            if asset_status := MissionAssetStatus.current_for_asset(mission_asset):
-                asset_data['status'] = asset_status.as_object()
-            assets_json.append(asset_data)
-
-        data = {
-            'assets': assets_json,
-        }
-        return JsonResponse(data)
+        return _mission_assets_json(assets.select_related('asset', 'asset__asset_type'))
 
     def get(self, request, mission_user):
         """
@@ -648,6 +649,24 @@ class MissionAssetsView(View):
 
             return HttpResponseRedirect(f'/mission/{mission_user.mission.pk}/details/')
         return HttpResponseNotFound()
+
+
+@method_decorator(login_required, name="dispatch")
+class MissionUserAssetsView(View):
+    """
+    Read-only asset metadata for aggregate mission maps.
+    """
+    def get(self, request, current_only):
+        """
+        Return assets from all missions visible to the current user.
+        """
+        mission_ids = {mission.pk for mission in Mission.all_user_missions(request.user)}
+        assets = MissionAsset.objects.filter(mission_id__in=mission_ids)
+        if current_only:
+            assets = assets.filter(mission__closed__isnull=True)
+        if not request.GET.get('include_removed', False):
+            assets = assets.filter(removed__isnull=True)
+        return _mission_assets_json(assets.select_related('asset', 'asset__asset_type'))
 
 
 def mission_asset_is_owner(mission_user, asset, user):

@@ -12,6 +12,10 @@ import { buildSwatchLabel } from '../components/swatchLabel'
 import { mountPopup } from '../components/mountPopup'
 import { TrackedPath } from '../components/TrackedPath'
 
+function assetMetadataUrl(missionId: MissionId) {
+  return `/mission/${missionId}/assets/?include_removed=true`
+}
+
 class SMMAsset extends TrackedPath {
   assetId: number
   constructor(map: L.Map, missionId: MissionId, assetId: number, assetName: string, color: string) {
@@ -55,7 +59,7 @@ class SMMAssets extends SMMRealtime {
   }
 
   async updateAssetNameMap() {
-    const data = await smmGetJSON<{ assets: Array<MissionAssetSummary> }>(`/mission/${this.missionId}/assets/?include_removed=true`, {})
+    const data = await smmGetJSON<{ assets: Array<MissionAssetSummary> }>(assetMetadataUrl(this.missionId), {})
     // Rebuild the maps from scratch so an asset that drops its icon /
     // status / name on the server doesn't carry a stale entry forever.
     const names: { [key: number]: string } = {}
@@ -156,4 +160,4 @@ function customAssetIcon(iconUrl: string): L.Icon {
   return L.icon({ iconUrl, iconSize: [50, 50], iconAnchor: [25, 50] })
 }
 
-export { SMMAssets }
+export { assetMetadataUrl, SMMAssets }
