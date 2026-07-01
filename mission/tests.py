@@ -474,6 +474,11 @@ class MissionAssetsTestCase(MissionBaseTestCase):
         assets = response.json()['assets']
         self.assertEqual({asset['name'] for asset in assets}, {'test-asset', 'closed-asset'})
 
+        response = self.smm.client1.get('/mission/all/assets/?include_removed=false', HTTP_ACCEPT='application/json')
+        self.assertEqual(response.status_code, 200)
+        assets = response.json()['assets']
+        self.assertEqual([asset['name'] for asset in assets], ['test-asset'])
+
         response = self.smm.client1.get('/mission/current/assets/?include_removed=true', HTTP_ACCEPT='application/json')
         self.assertEqual(response.status_code, 200)
         assets = response.json()['assets']

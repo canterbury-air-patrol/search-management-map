@@ -51,6 +51,11 @@ def _mission_assets_json(assets):
     return JsonResponse({'assets': assets_json})
 
 
+def _query_param_true(request, name):
+    value = request.GET.get(name)
+    return isinstance(value, str) and value.lower() in {'1', 'true', 'yes'}
+
+
 def user_can_command_asset(mission_user, asset):
     """
     Whether this user may send operational commands to the asset.
@@ -615,7 +620,7 @@ class MissionAssetsView(View):
             assets = get_my_assets_not_in_mission(mission_user.mission, mission_user.user)
             return JsonResponse({'assets': [a.as_object() for a in assets]})
 
-        if request.GET.get('include_removed', False):
+        if _query_param_true(request, 'include_removed'):
             assets = MissionAsset.objects.filter(mission=mission_user.mission)
         else:
             assets = MissionAsset.objects.filter(mission=mission_user.mission, removed__isnull=True)
@@ -660,11 +665,23 @@ class MissionUserAssetsView(View):
         """
         Return assets from all missions visible to the current user.
         """
-        mission_ids = {mission.pk for mission in Mission.all_user_missions(request.user)}
-        assets = MissionAsset.objects.filter(mission_id__in=mission_ids)
+        user_mission_ids = MissionUser.objects.filter(
+            user=request.user,
+        ).values_list('mission_id', flat=True)
+        org_ids = OrganizationMember.objects.filter(
+            user=request.user,
+            removed__isnull=True,
+        ).values_list('organization_id', flat=True)
+        organization_mission_ids = MissionOrganization.objects.filter(
+            organization_id__in=org_ids,
+            removed__isnull=True,
+        ).values_list('mission_id', flat=True)
+        mission_filter = Q(mission_id__in=user_mission_ids)
+        mission_filter |= Q(mission_id__in=organization_mission_ids)
+        assets = MissionAsset.objects.filter(mission_filter)
         if current_only:
             assets = assets.filter(mission__closed__isnull=True)
-        if not request.GET.get('include_removed', False):
+        if not _query_param_true(request, 'include_removed'):
             assets = assets.filter(removed__isnull=True)
         return _mission_assets_json(assets.select_related('asset', 'asset__asset_type'))
 
