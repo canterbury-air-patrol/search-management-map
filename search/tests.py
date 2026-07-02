@@ -11,6 +11,7 @@ from data.models import GeoTimeLabel
 from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
+from mission.models import MissionUser
 from mission.tests import MissionFunctions
 from timeline.models import TimeLineEntry
 
@@ -608,6 +609,75 @@ class SearchStateTransitionTestCase(TestCase):
         search.refresh_from_db()
         self.assertIsNone(search.inprogress_at)
         self.assertIsNone(search.inprogress_by)
+
+    def test_queue_rejects_completed_search_without_queueing(self):
+        """
+        A completed search must not be queued again.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.completed_at = timezone.now()
+        search_obj.completed_by = self.asset
+        search_obj.save()
+
+        response = search.queue(asset=self.asset)
+
+        self.assertEqual(response.status_code, 403)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.queued_at)
+        self.assertIsNone(search_obj.queued_for_asset)
+
+    def test_queue_rejects_replaced_search_without_queueing(self):
+        """
+        A replaced search must not be queued again.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.replaced_at = timezone.now()
+        search_obj.save()
+
+        response = search.queue(asset=self.asset)
+
+        self.assertEqual(response.status_code, 404)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.queued_at)
+        self.assertIsNone(search_obj.queued_for_asset)
+
+    def test_delete_rejects_completed_search_without_deleting(self):
+        """
+        A completed search must keep its terminal completion state.
+        """
+        search = self.create_search()
+        search_obj = search.as_object()
+        search_obj.completed_at = timezone.now()
+        search_obj.completed_by = self.asset
+        search_obj.save()
+
+        response = search.delete()
+
+        self.assertEqual(response.status_code, 403)
+        search_obj.refresh_from_db()
+        self.assertIsNone(search_obj.deleted_at)
+
+    def test_model_queue_rejects_terminal_search_without_queueing(self):
+        """
+        Direct model queue calls must also reject terminal searches.
+        """
+        search = self.create_search().as_object()
+        search.completed_at = timezone.now()
+        search.completed_by = self.asset
+        search.save()
+        mission_user = MissionUser.objects.get(
+            mission=self.mission.get_object(),
+            user=self.smm.user1,
+        )
+
+        changed = search.queue_search(mission_user, asset=self.asset)
+
+        self.assertFalse(changed)
+        search.refresh_from_db()
+        self.assertIsNone(search.queued_at)
+        self.assertIsNone(search.queued_for_asset)
 
     def test_begin_rejects_completed_by_only_search_without_reopening(self):
         """
