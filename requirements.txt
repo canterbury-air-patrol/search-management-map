@@ -1,4 +1,4 @@
-django==6.0.6
+django==6.0.7
 
 # Timezone support
 pytz==2026.2
