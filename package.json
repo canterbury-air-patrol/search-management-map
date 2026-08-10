@@ -35,7 +35,7 @@
     "react-bootstrap": "^2.10.10",
     "react-collapsible": "^2.10.0",
     "react-color": "^2.19.3",
-    "react-datetime-picker": "^7.0.2",
+    "react-datetime-picker": "^7.1.0",
     "react-leaflet": "^5.0.0",
     "universal-cookie": "^8.1.2"
   },
