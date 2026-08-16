@@ -18,6 +18,7 @@ urlpatterns = [
     re_path(r'^search/(?P<search_id>\d+)/queue/$', views.search_queue, name='search_queue'),
     re_path(r'^search/(?P<search_id>\d+)/begin/$', views.search_begin, {'object_class': Search}, name='search_begin'),
     re_path(r'^search/(?P<search_id>\d+)/finished/$', views.search_finished, {'object_class': Search}, name='search_finished'),
+    re_path(r'^search/(?P<search_id>\d+)/abandon/$', views.search_abandon, name='search_abandon'),
     re_path(r'^search/sector/create/$', views.SectorSearchCreateView.as_view(), name='sector_search_create'),
     re_path(r'^search/expandingbox/create/$', views.ExpandingBoxSearchCreateView.as_view(), name='expanding_box_search_create'),
     re_path(r'^search/trackline/create/$', views.TrackLineSearchCreateView.as_view(), name='track_line_search_create'),

@@ -312,3 +312,159 @@ class SearchAbandonCommandTestCase(SearchAbandonTestBase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(TimeLineEntry.objects.filter(event_type='sab').count(), 0)
+
+
+class SearchAbandonViewTestCase(SearchAbandonTestBase):
+    """
+    Tests for POST /search/<id>/abandon/
+    """
+    def abandon(self, search, reason='Abandoned from map', client=None):
+        """
+        Abandon a search via the endpoint
+        """
+        if client is None:
+            client = self.smm.client1
+        data = {} if reason is None else {'reason': reason}
+        return client.post(f'/search/{search.pk}/abandon/', data=data)
+
+    def test_abandon_as_mission_admin(self):
+        """
+        A mission admin can take an asset off a search
+        """
+        search = self.create_inprogress_search()
+
+        response = self.abandon(search)
+
+        self.assertEqual(response.status_code, 200)
+        search.refresh_from_db()
+        self.assertIsNone(search.inprogress_by)
+        self.assertEqual(AssetCommand.objects.filter(asset=self.asset, command='AS').count(), 1)
+
+    def test_abandon_records_the_reason(self):
+        """
+        The reason reaches the command, and so the timeline
+        """
+        search = self.create_inprogress_search()
+
+        self.abandon(search, reason='weather')
+
+        self.assertEqual(AssetCommand.objects.get(asset=self.asset, command='AS').reason, 'weather')
+
+    def test_abandon_as_asset_owner(self):
+        """
+        A non-admin member who owns the asset can take it off a search
+        """
+        owned_asset = AssetsHelpers(self.smm).create_asset(name='owned', asset_type=self.asset_type, owner=self.smm.user2)
+        self.mission.add_asset(owned_asset)
+        self.mission.add_user(user=self.smm.user2)
+        search = self.create_inprogress_search(asset=owned_asset)
+
+        response = self.abandon(search, client=self.smm.client2)
+
+        self.assertEqual(response.status_code, 200)
+        search.refresh_from_db()
+        self.assertIsNone(search.inprogress_by)
+
+    def test_abandon_rejected_for_plain_member(self):
+        """
+        A member who cannot command the asset cannot take it off the search
+        """
+        self.mission.add_user(user=self.smm.user2)
+        search = self.create_inprogress_search()
+
+        response = self.abandon(search, client=self.smm.client2)
+
+        self.assertEqual(response.status_code, 403)
+        search.refresh_from_db()
+        self.assertEqual(search.inprogress_by, self.asset)
+        self.assertEqual(AssetCommand.objects.filter(command='AS').count(), 0)
+
+    def test_abandon_rejected_for_non_member(self):
+        """
+        A user who isn't in the mission can't reach the search at all
+
+        mission_is_member_open hides the mission's existence, hence 404.
+        """
+        search = self.create_inprogress_search()
+
+        response = self.abandon(search, client=self.smm.client2)
+
+        self.assertEqual(response.status_code, 404)
+        search.refresh_from_db()
+        self.assertEqual(search.inprogress_by, self.asset)
+
+    def test_abandon_rejects_search_not_in_progress(self):
+        """
+        There is nothing to abandon on a search nobody is conducting
+        """
+        search = self.searches.create_sector(self.poi, 200, self.asset_type).as_object()
+
+        response = self.abandon(search)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(AssetCommand.objects.filter(command='AS').count(), 0)
+
+    def test_abandon_rejects_completed_search(self):
+        """
+        A completed search can't be abandoned
+        """
+        search = self.create_inprogress_search()
+        search.completed_at = timezone.now()
+        search.completed_by = self.asset
+        search.save()
+
+        response = self.abandon(search)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(AssetCommand.objects.filter(command='AS').count(), 0)
+
+    def test_abandon_requires_a_reason(self):
+        """
+        An abandonment with no reason is worse for the record than no abandonment
+        """
+        search = self.create_inprogress_search()
+
+        response = self.abandon(search, reason='   ')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('reason', response.json()['errors'])
+        search.refresh_from_db()
+        self.assertEqual(search.inprogress_by, self.asset)
+
+    def test_abandon_rejects_get(self):
+        """
+        Abandoning is a POST-only action
+        """
+        search = self.create_inprogress_search()
+
+        response = self.smm.client1.get(f'/search/{search.pk}/abandon/')
+
+        self.assertEqual(response.status_code, 405)
+
+    def test_abandon_errors_are_json(self):
+        """
+        The map dialog can only show a message it can parse
+        """
+        self.mission.add_user(user=self.smm.user2)
+        search = self.create_inprogress_search()
+
+        response = self.abandon(search, client=self.smm.client2)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertIn('errors', response.json())
+
+    def test_abandon_rejected_on_closed_mission(self):
+        """
+        Nothing changes in a closed mission
+        """
+        search = self.create_inprogress_search()
+        mission_obj = self.mission.get_object()
+        mission_obj.closed = timezone.now()
+        mission_obj.closed_by = self.smm.user1
+        mission_obj.save()
+
+        response = self.abandon(search)
+
+        self.assertEqual(response.status_code, 403)
+        search.refresh_from_db()
+        self.assertEqual(search.inprogress_by, self.asset)
