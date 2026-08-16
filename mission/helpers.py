@@ -5,9 +5,21 @@ Helper function for missions
 from django.db.models import OuterRef, Exists
 
 from assets.models import Asset, AssetStatus
+from organization.decorators import user_can_operate_asset
 from organization.models import OrganizationAsset, OrganizationMember
 
 from .models import MissionOrganization, MissionAsset
+
+
+def user_can_command_asset(mission_user, asset):
+    """
+    Whether this user may send operational commands to the asset.
+
+    Currently allowed for mission admins and users who can operate the asset
+    (its owner or an organization radio operator). This is the single place to
+    extend as missions and organizations gain finer operational roles.
+    """
+    return mission_user.is_admin() or user_can_operate_asset(mission_user.user, asset)
 
 
 def get_my_assets_not_in_mission(mission, user):

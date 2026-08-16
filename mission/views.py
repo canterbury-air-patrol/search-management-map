@@ -19,8 +19,8 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST
 
 from assets.models import Asset, AssetStatus
-from mission.helpers import get_my_assets_not_in_mission
-from organization.decorators import asset_is_operator, get_organization_from_id, user_can_operate_asset
+from mission.helpers import get_my_assets_not_in_mission, user_can_command_asset
+from organization.decorators import asset_is_operator, get_organization_from_id
 from organization.models import Organization, OrganizationMember, OrganizationAsset
 from timeline.models import TimeLineEntry
 from timeline.helpers import can_change_timeline_entry, timeline_record_create, \
@@ -74,17 +74,6 @@ def _mission_assets_json(assets):
 def _query_param_true(request, name):
     value = request.GET.get(name)
     return isinstance(value, str) and value.lower() in {'1', 'true', 'yes'}
-
-
-def user_can_command_asset(mission_user, asset):
-    """
-    Whether this user may send operational commands to the asset.
-
-    Currently allowed for mission admins and users who can operate the asset
-    (its owner or an organization radio operator). This is the single place to
-    extend as missions and organizations gain finer operational roles.
-    """
-    return mission_user.is_admin() or user_can_operate_asset(mission_user.user, asset)
 
 
 @method_decorator(login_required, name="dispatch")
