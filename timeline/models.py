@@ -21,6 +21,7 @@ class TimeLineEntry(models.Model):
         ('upd', "Updated/Edited an Object"),
         ('sbg', "Asset Started Search"),
         ('snd', "Asset Finished Search"),
+        ('sab', "Asset Abandoned Search"),
         ('usr', "User defined Event"),
         ('oad', "Organization added to mission"),
         ('oup', "Organization updated"),

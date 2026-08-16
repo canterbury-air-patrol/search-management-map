@@ -62,6 +62,16 @@ def timeline_record_search_finished(mission, user, asset, obj):
     entry.save()
 
 
+def timeline_record_search_abandoned(mission, user, asset, obj):
+    """
+    Create a timeline entry for an asset abandoning a search
+    """
+    message = f"{user} using {asset} Abandoned {type(obj).__name__} ({obj.pk}): {str(obj)}"
+    url = ""
+    entry = TimeLineEntry(mission=mission, user=user, event_type='sab', message=message, url=url)
+    entry.save()
+
+
 def timeline_record_mission_organization_add(mission, actioner, organization):
     """
     Create a timeline entry for an organization being added to a mission
