@@ -9,8 +9,10 @@ import { SMMRealtime } from '../smmmap'
 import { SMMSearchObjectDetailsData } from './types'
 import { smmDelete } from '../ajax'
 import { SearchQueueDialog } from './SearchQueueDialog'
+import { SearchAbandonDialog } from './SearchAbandonDialog'
 import { SearchPopup } from './SearchPopup'
 import { mountPopup } from '../components/mountPopup'
+import { renderInLeafletDialog } from '../components/renderInLeafletDialog'
 
 class SMMSearch {
   parent: SMMSearches
@@ -25,6 +27,7 @@ class SMMSearch {
     this.searchQueueDestroy = this.searchQueueDestroy.bind(this)
     this.searchQueueDialog = this.searchQueueDialog.bind(this)
     this.unqueueCallback = this.unqueueCallback.bind(this)
+    this.searchAbandonDialog = this.searchAbandonDialog.bind(this)
   }
 
   deleteCallback() {
@@ -57,6 +60,12 @@ class SMMSearch {
     )
   }
 
+  searchAbandonDialog() {
+    renderInLeafletDialog(this.parent.map, (onClose) => <SearchAbandonDialog searchPk={this.search.pk} assetName={this.search.inprogress_by ?? 'this asset'} onClose={onClose} />, {
+      initOpen: true
+    })
+  }
+
   createPopup(layer: L.Layer) {
     this.popup?.unmount()
     this.popup = mountPopup(
@@ -68,6 +77,7 @@ class SMMSearch {
         onDelete={this.deleteCallback}
         onQueueDialog={this.searchQueueDialog}
         onUnqueue={this.unqueueCallback}
+        onAbandon={this.searchAbandonDialog}
       />,
       { minWidth: 200 }
     )
