@@ -18,6 +18,7 @@ from assets.models import AssetType, Asset
 from search.polygon.convex import creep_line_concave as polygon_creep_line
 from search.polygon.convex import conv_lonlat_to_meters, conv_meters_to_lonlat
 from timeline.helpers import (
+    timeline_record_search_abandoned,
     timeline_record_search_begin,
     timeline_record_search_queue,
     timeline_record_search_unqueue,
@@ -119,6 +120,7 @@ class Search(GeoTime):
 
     There are a variety of search types we can handle, each one has it's own create function.
     """
+    # pylint: disable=R0904
     created_for = models.ForeignKey(AssetType, on_delete=models.PROTECT)
     sweep_width = models.IntegerField()
     inprogress_at = models.DateTimeField(null=True, blank=True)
@@ -128,6 +130,8 @@ class Search(GeoTime):
 
     queued_at = models.DateTimeField(null=True, blank=True)
     queued_for_asset = models.ForeignKey(Asset, on_delete=models.PROTECT, null=True, blank=True, related_name='queued_for_assettype%(app_label)s_%(class)s_related')
+
+    abandoned_by = models.ManyToManyField(Asset, blank=True, related_name='abandoned%(app_label)s_%(class)s_related')
 
     datum = models.ForeignKey(GeoTimeLabel, on_delete=models.PROTECT)
 
@@ -310,6 +314,24 @@ class Search(GeoTime):
         self.refresh_from_db()
         if self.inprogress_by == asset:
             timeline_record_search_begin(self.mission, user, asset, self)
+            return True
+        return False
+
+    def abandon(self, asset, user):
+        '''
+        Release this search from the asset conducting it
+
+        The search returns to the pool for other assets: it is taken out of the
+        queue entirely, and the asset is recorded in abandoned_by so it isn't
+        immediately offered the same search again.
+
+        A no-op unless this search is currently in progress by this asset.
+        '''
+        updated = Search._active_state_change_queryset().filter(pk=self.pk, inprogress_by=asset).update(inprogress_at=None, inprogress_by=None, queued_at=None, queued_for_asset=None)
+        self.refresh_from_db()
+        if updated:
+            self.abandoned_by.add(asset)
+            timeline_record_search_abandoned(self.mission, user, asset, self)
             return True
         return False
 
