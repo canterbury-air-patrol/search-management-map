@@ -35,6 +35,7 @@ from data.models import GeoTimeLabel
 from data.view_helpers import to_kml, to_geojson
 from mission.models import Mission, MissionAsset, AssetCommand
 from mission.decorators import mission_is_member, mission_is_member_open, mission_asset_get_mission, mission_asset_get, mission_user_get, mission_closed_response
+from mission.helpers import user_can_command_asset
 from timeline.helpers import timeline_record_search_finished
 from .decorators import search_from_id
 from .models import Search, SearchParams, ExpandingBoxSearchParams, TrackLineCreepingSearchParams, TERMINAL_COMPLETED, TERMINAL_DELETED, TERMINAL_REPLACED, search_terminal_state
@@ -146,15 +147,15 @@ def check_search_state(search, action, asset):
     if action == 'begin':
         if search.inprogress_by is not None and search.inprogress_by != asset:
             return HttpResponseForbidden("Search already in progress")
-    elif action == 'queue':
-        if search.inprogress_by is not None:
-            return HttpResponseForbidden("Search currently in progress")
-    elif action == 'delete':
+    elif action in ('queue', 'delete'):
         if search.inprogress_by is not None:
             return HttpResponseForbidden("Search currently in progress")
     elif action == 'complete':
         if search.inprogress_by is None or search.inprogress_by.id != asset.id:
             return HttpResponseForbidden("Search not in progress by this asset")
+    elif action == 'abandon':
+        if search.inprogress_by is None:
+            return HttpResponseForbidden("Search is not in progress")
 
     return None
 
@@ -217,6 +218,43 @@ def search_finished(request, search_id, object_class, asset, mission):
     timeline_record_search_finished(mission, request.user, asset, search)
 
     return HttpResponse("Completed")
+
+
+@require_POST
+@login_required
+@search_from_id
+@data_get_mission_id(arg_name='search')
+@mission_is_member_open
+def search_abandon(request, search, mission_user):
+    """
+    Take the asset currently conducting this search off it
+
+    The asset is resolved from the search rather than supplied by the caller:
+    the search geojson carries inprogress_by as an asset name, not a pk.
+
+    Issuing the command is the whole action - the release itself hangs off
+    AssetCommand, so the command and the release can't diverge.
+    """
+    error = check_search_state(search, 'abandon', None)
+    if error is not None:
+        return error
+
+    if not user_can_command_asset(mission_user, search.inprogress_by):
+        return JsonResponse({'errors': {'__all__': ['You do not have permission to command this asset']}}, status=403)
+
+    reason = request.POST.get('reason', '').strip()
+    if not reason:
+        return JsonResponse({'errors': {'reason': ['This field is required.']}}, status=400)
+
+    AssetCommand(
+        asset=search.inprogress_by,
+        command='AS',
+        issued_by=request.user,
+        reason=reason,
+        mission=mission_user.mission,
+    ).save()
+
+    return HttpResponse("Success")
 
 
 def _queue_search(request, search, mission_user):
