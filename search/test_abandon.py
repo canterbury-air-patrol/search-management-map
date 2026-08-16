@@ -15,6 +15,7 @@ from data.models import GeoTimeLabel
 from smm.tests import SMMTestUsers
 
 from assets.tests import AssetsHelpers
+from mission.models import AssetCommand
 from mission.tests import MissionFunctions
 from timeline.models import TimeLineEntry
 
@@ -22,9 +23,9 @@ from .models import Search
 from .tests import SearchHelpers
 
 
-class SearchAbandonModelTestCase(TestCase):
+class SearchAbandonTestBase(TestCase):
     """
-    Tests for Search.abandon()
+    A mission with two assets of the same type and a datum to search from
     """
     def setUp(self):
         self.smm = SMMTestUsers()
@@ -47,6 +48,12 @@ class SearchAbandonModelTestCase(TestCase):
         search = self.searches.create_sector(self.poi, 200, self.asset_type).as_object()
         self.assertTrue(search.set_inprogress_by(asset, self.smm.user1))
         return search
+
+
+class SearchAbandonModelTestCase(SearchAbandonTestBase):
+    """
+    Tests for Search.abandon()
+    """
 
     def test_abandon_clears_inprogress_and_queue(self):
         """
@@ -204,3 +211,104 @@ class SearchAbandonModelTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['object_url'], f'/search/{search.pk}/')
+
+
+class SearchAbandonCommandTestCase(SearchAbandonTestBase):
+    """
+    Tests that an 'AS' asset command releases the asset's search
+    """
+    def issue_command(self, command, asset=None, client=None):
+        """
+        Send a command to an asset via the mission command endpoint
+        """
+        if asset is None:
+            asset = self.asset
+        if client is None:
+            client = self.smm.client1
+        return client.post(f'/mission/{self.mission.mission_pk}/assets/command/set/', data={
+            'asset': asset.pk, 'command': command, 'reason': 'test',
+        })
+
+    def test_abandon_command_releases_the_search(self):
+        """
+        Issuing 'AS' releases the search the asset is conducting
+        """
+        search = self.create_inprogress_search()
+
+        response = self.issue_command('AS')
+
+        self.assertEqual(response.status_code, 200)
+        search.refresh_from_db()
+        self.assertIsNone(search.inprogress_at)
+        self.assertIsNone(search.inprogress_by)
+        self.assertEqual(list(search.abandoned_by.all()), [self.asset])
+
+    def test_abandon_command_records_timeline_entry(self):
+        """
+        The handover is visible in the timeline, not just as a command
+        """
+        self.create_inprogress_search()
+
+        self.issue_command('AS')
+
+        self.assertEqual(TimeLineEntry.objects.filter(mission=self.mission.get_object(), event_type='sab').count(), 1)
+
+    def test_abandon_command_direct_model_create_releases(self):
+        """
+        Any path that creates the command releases the search, not just the view
+        """
+        search = self.create_inprogress_search()
+
+        AssetCommand.objects.create(asset=self.asset, issued_by=self.smm.user1, command='AS', reason='test', mission=self.mission.get_object())
+
+        search.refresh_from_db()
+        self.assertIsNone(search.inprogress_by)
+
+    def test_other_commands_leave_the_search_alone(self):
+        """
+        Only 'AS' releases a search
+        """
+        search = self.create_inprogress_search()
+
+        for command in ('RTL', 'RON', 'CIR', 'MC'):
+            self.issue_command(command)
+            search.refresh_from_db()
+            self.assertEqual(search.inprogress_by, self.asset, f'{command} released the search')
+
+    def test_abandon_command_only_affects_the_commanded_asset(self):
+        """
+        Another asset's search in the same mission is untouched
+        """
+        others_search = self.create_inprogress_search(asset=self.other_asset)
+
+        self.issue_command('AS')
+
+        others_search.refresh_from_db()
+        self.assertEqual(others_search.inprogress_by, self.other_asset)
+
+    def test_abandon_command_response_does_not_re_release(self):
+        """
+        The asset responding to an 'AS' command must not abandon a second search
+        """
+        self.create_inprogress_search()
+        self.issue_command('AS')
+        command = AssetCommand.objects.get(asset=self.asset, command='AS')
+        next_search = self.create_inprogress_search()
+
+        command.responded_at = timezone.now()
+        command.responded_by = self.smm.user1
+        command.response_type = 'ok'
+        command.response_message = 'abandoned'
+        command.save()
+
+        next_search.refresh_from_db()
+        self.assertEqual(next_search.inprogress_by, self.asset)
+
+    def test_abandon_command_with_no_search_is_harmless(self):
+        """
+        Abandoning when the asset isn't searching is a no-op, not an error
+        """
+        response = self.issue_command('AS')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(TimeLineEntry.objects.filter(event_type='sab').count(), 0)
