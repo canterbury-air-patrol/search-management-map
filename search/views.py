@@ -118,10 +118,10 @@ def find_next_search(request, asset, mission):
 
     if search is None:
         # Check for the oldest queue entry for this asset
-        search = Search.oldest_queued_for_asset_type(mission, asset.asset_type)
+        search = Search.oldest_queued_for_asset_type(mission, asset.asset_type, exclude_asset=asset)
 
     if search is None:
-        search = Search.find_closest(mission, asset.asset_type, point)
+        search = Search.find_closest(mission, asset.asset_type, point, exclude_asset=asset)
 
     if search:
         return search_data(search)

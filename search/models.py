@@ -213,13 +213,16 @@ class Search(GeoTime):
         return cls.filter_objects(objects, current_at=current_at, started=started, finished=finished)
 
     @classmethod
-    def find_closest(cls, mission, asset_type, point):
+    def find_closest(cls, mission, asset_type, point, exclude_asset=None):
         """
         Find the search with the closest starting point
         Only searches that haven't been started or deleted and are for the right asset type are considered
+        Searches exclude_asset has abandoned are skipped
         """
         try:
             possibles = cls.all_waiting(mission).filter(created_for=asset_type)
+            if exclude_asset is not None:
+                possibles = possibles.exclude(abandoned_by=exclude_asset)
             return possibles.annotate(distance=Distance('geo', point)).order_by(
                 'distance'
             )[0]
@@ -231,6 +234,10 @@ class Search(GeoTime):
         """
         Find the oldest queued search for this asset
         Only entries that haven't already been started/deleted are considered
+
+        Searches this asset previously abandoned are deliberately not skipped:
+        queueing a search for one named asset is an explicit operator
+        assignment that should win over an earlier abandonment.
         """
         try:
             return (
@@ -243,19 +250,22 @@ class Search(GeoTime):
             return None
 
     @classmethod
-    def oldest_queued_for_asset_type(cls, mission, asset_type):
+    def oldest_queued_for_asset_type(cls, mission, asset_type, exclude_asset=None):
         """
         Find the oldest queued search for this asset_type
         Only entries that haven't already been used/deleted are considered
+        Searches exclude_asset has abandoned are skipped
         """
         try:
-            return (
+            possibles = (
                 cls.all_waiting(mission)
                 .filter(queued_for_asset__isnull=True)
                 .filter(created_for=asset_type)
                 .filter(queued_at__isnull=False)
-                .order_by('queued_at')[0]
             )
+            if exclude_asset is not None:
+                possibles = possibles.exclude(abandoned_by=exclude_asset)
+            return possibles.order_by('queued_at')[0]
         except IndexError:
             return None
 
