@@ -7,7 +7,7 @@ pytz==2026.3.post1
 psycopg[binary,pool]==3.3.4
 
 # Numerical
-numpy==2.5.1
+numpy==2.5.2
 haversine==2.9.0
 
 # uwsgi
