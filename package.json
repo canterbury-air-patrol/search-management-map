@@ -31,7 +31,7 @@
     "esbuild-config": "^1.0.1",
     "leaflet": "^1.9.4",
     "leaflet-realtime": "^2.2.0",
-    "leaflet.locatecontrol": "^0.90.0",
+    "leaflet.locatecontrol": "^0.90.1",
     "react-bootstrap": "^2.10.10",
     "react-collapsible": "^2.10.0",
     "react-color": "^2.19.3",
