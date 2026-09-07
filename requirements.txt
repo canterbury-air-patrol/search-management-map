@@ -4,7 +4,7 @@ django==6.1.1
 pytz==2026.3.post1
 
 # Database
-psycopg[binary,pool]==3.3.4
+psycopg[binary,pool]==3.3.5
 
 # Numerical
 numpy==2.5.2
