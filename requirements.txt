@@ -1,7 +1,7 @@
 django==6.1.1
 
 # Timezone support
-pytz==2026.3.post1
+pytz==2026.4
 
 # Database
 psycopg[binary,pool]==3.3.5
