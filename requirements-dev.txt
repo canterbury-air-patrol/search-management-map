@@ -6,4 +6,4 @@ pylint==4.1.*
 pylint-django==2.8.0
 
 # coverage reporting
-coverage==7.16.2
+coverage==7.17.0
