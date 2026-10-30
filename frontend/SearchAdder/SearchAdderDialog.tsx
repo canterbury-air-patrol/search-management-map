@@ -41,7 +41,7 @@ function getUrl(searchType: SearchType, objectType: Props['objectType']): string
 }
 
 export function SearchAdderDialog({ map, objectType, objectID, onClose }: Props) {
-  const [searchType, setSearchType] = useState<SearchType>(initialSearchType(objectType))
+  const [searchType, setSearchType] = useState<SearchType>(() => initialSearchType(objectType))
   const [assetTypes, setAssetTypes] = useState<AssetType[]>([])
   const [sweepWidth, setSweepWidth] = useState('')
   const [assetTypeId, setAssetTypeId] = useState('')

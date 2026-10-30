@@ -26,7 +26,7 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
   const [command, setCommand] = useState('')
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
-  const gotoPos = useRef<L.LatLng>(map.getCenter())
+  const gotoPosRef = useRef<L.LatLng>(map.getCenter())
 
   useEffect(() => {
     let cancelled = false
@@ -57,8 +57,8 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
     setError('')
     const data: Record<string, string | number> = { asset: assetId, command, reason }
     if (requiresPosition.includes(command)) {
-      data.latitude = gotoPos.current.lat
-      data.longitude = gotoPos.current.lng
+      data.latitude = gotoPosRef.current.lat
+      data.longitude = gotoPosRef.current.lng
     }
     smmPost(
       `/mission/${missionId}/assets/command/set/`,
@@ -103,7 +103,7 @@ export function AssetCommandDialog({ map, missionId, onClose }: Props) {
           map={map}
           initialPos={map.getCenter()}
           onChange={(p) => {
-            gotoPos.current = p
+            gotoPosRef.current = p
           }}
         />
       )}

@@ -22,10 +22,10 @@ function AssetTrackAs({ asset }: AssetTrackAsProps) {
   const [altitude, setAltitude] = useState<number | null>(0)
   const [tracking, setTracking] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const watchID = useRef<number | undefined>(undefined)
+  const watchIDRef = useRef<number | undefined>(undefined)
 
   function positionUpdate(position: GeolocationPosition) {
-    if (watchID.current === undefined) return
+    if (watchIDRef.current === undefined) return
 
     const coords = position.coords
     setLatitude(coords.latitude)
@@ -61,7 +61,7 @@ function AssetTrackAs({ asset }: AssetTrackAsProps) {
       setErrorMsg('Geolocation is not supported by this browser')
       return
     }
-    watchID.current = navigator.geolocation.watchPosition(positionUpdate, positionErrorHandler, {
+    watchIDRef.current = navigator.geolocation.watchPosition(positionUpdate, positionErrorHandler, {
       timeout: 15000,
       maximumAge: 1000,
       enableHighAccuracy: true
@@ -71,18 +71,18 @@ function AssetTrackAs({ asset }: AssetTrackAsProps) {
   }
 
   function disableTracking() {
-    if (watchID.current !== undefined) {
-      navigator.geolocation.clearWatch(watchID.current)
-      watchID.current = undefined
+    if (watchIDRef.current !== undefined) {
+      navigator.geolocation.clearWatch(watchIDRef.current)
+      watchIDRef.current = undefined
     }
     setTracking(false)
   }
 
   useEffect(() => {
     return () => {
-      if (watchID.current !== undefined) {
-        navigator.geolocation.clearWatch(watchID.current)
-        watchID.current = undefined
+      if (watchIDRef.current !== undefined) {
+        navigator.geolocation.clearWatch(watchIDRef.current)
+        watchIDRef.current = undefined
       }
     }
   }, [])

@@ -35,7 +35,7 @@ export function VectorAdderDialog({ map, type, missionId, initialPoints, replace
     return () => {
       shape.remove()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps, @eslint-react/exhaustive-deps
   }, [])
 
   function handlePositionChange(index: number, pos: L.LatLng) {
@@ -83,6 +83,7 @@ export function VectorAdderDialog({ map, type, missionId, initialPoints, replace
         </button>
       </DialogActions>
       {positions.map((pos, i) => (
+        // eslint-disable-next-line @eslint-react/no-array-index-key -- positions have no stable id
         <LatLngMarkerInput key={i} map={map} initialPos={pos} showLabels={i === 0} onChange={(p) => handlePositionChange(i, p)} />
       ))}
       <DialogActions>
