@@ -4,7 +4,7 @@
  * publishes proper d.ts files. */
 declare module '@canterbury-air-patrol/marine-total-drift-vector' {
   import * as React from 'react'
-  /* eslint-disable @typescript-eslint/no-explicit-any */
+  /* eslint-disable @typescript-eslint/no-explicit-any, @eslint-react/no-unused-class-component-members */
   export class MarineVectors<P = unknown, S = any> extends React.Component<P, S> {
     state: S & {
       LKPLat: number

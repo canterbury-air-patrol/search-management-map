@@ -53,6 +53,7 @@ function GeometryPoints({ geometry }: GeometryPointsProps) {
       </thead>
       <tbody>
         {points.map((point, index) => (
+          // eslint-disable-next-line @eslint-react/no-array-index-key -- points have no id
           <tr key={index}>
             <td>{degreesToDM(point.lng, 'lon')}</td>
             <td>{degreesToDM(point.lat, 'lat')}</td>

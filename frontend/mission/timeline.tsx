@@ -235,7 +235,7 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
   const [userFilter, setUserFilter] = useState('')
   const [actionFilter, setActionFilter] = useState('')
   const [textFilter, setTextFilter] = useState('')
-  const skipInitialRefresh = useRef(true)
+  const skipInitialRefreshRef = useRef(true)
 
   const queryParams = useMemo(() => {
     const params: TimelineQueryParams = { order: sortOrder }
@@ -254,8 +254,8 @@ export function MissionTimeLine({ missionId }: MissionTimeLineProps) {
   }, [missionId, queryParams])
 
   useEffect(() => {
-    if (skipInitialRefresh.current) {
-      skipInitialRefresh.current = false
+    if (skipInitialRefreshRef.current) {
+      skipInitialRefreshRef.current = false
       return
     }
     void loadTimeline()
